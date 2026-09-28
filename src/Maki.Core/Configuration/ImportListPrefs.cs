@@ -20,7 +20,7 @@ public record ImportListTrackerPrefs(
     string MonitorNewItems = ImportListTrackerPrefs.DefaultMonitorNewItems,
     int MaxPerRun = ImportListTrackerPrefs.DefaultMaxPerRun)
 {
-    public const string DefaultMonitorNewItems = nameof(NewChapterMonitorMode.All);
+    public const string DefaultMonitorNewItems = nameof(NewChapterMonitorMode.Smart);
     public const int DefaultMaxPerRun = 10;
     public const int MaxPerRunLimit = 100;
 

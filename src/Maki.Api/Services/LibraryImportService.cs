@@ -270,10 +270,8 @@ public class LibraryImportService(
             seriesFolderName = standardName;
         }
 
-        series.MonitorNewItems =
-            await appSettings.GetAsync(SettingKeys.MonitoringUnmonitorSpecials, ct) == "true"
-                ? NewChapterMonitorMode.MainOnly
-                : NewChapterMonitorMode.All;
+        // Smart honours monitoring.unmonitorspecials itself (Chapter.WantedUnder), so no MainOnly swap.
+        series.MonitorNewItems = NewChapterMonitorMode.Smart;
         series.RootFolderId = rootFolder.Id;
         series.FolderName = seriesFolderName;
         db.Series.Add(series);

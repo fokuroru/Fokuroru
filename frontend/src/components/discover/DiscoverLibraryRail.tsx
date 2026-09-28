@@ -110,7 +110,7 @@ export function DiscoverLibraryRail({
         metadataProviderId: item.providerId,
         rootFolderId: Number(rootFolderId),
         monitored,
-        monitorNewItems: monitored ? 'All' : 'None',
+        monitorNewItems: monitored ? 'Smart' : 'None',
         incognito: incognito ?? 'Off',
         addedFrom: addedFrom ?? 'library',
         clientMutationId: addMutationId.current,

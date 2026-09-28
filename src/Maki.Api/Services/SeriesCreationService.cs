@@ -172,7 +172,7 @@ public class SeriesCreationService(
                 ? NewChapterMonitorMode.None
                 : Enum.TryParse<NewChapterMonitorMode>(monitorNewItems, true, out var mode)
                     ? mode
-                    : NewChapterMonitorMode.All, ct);
+                    : NewChapterMonitorMode.Smart, ct);
         // An explicit choice from the add form wins, including an explicit "Off" over a rule that
         // would have hidden it. Only an absent value consults the per-rating rules.
         series.Incognito = Enum.TryParse<IncognitoMode>(incognito, true, out var explicitMode)
