@@ -353,6 +353,18 @@ function ProfileEditor({
           ]}
         />
         <Select
+          label={t`Navigation`}
+          description={t`Vertical scrolls down through a tall page before turning it, for long strips.`}
+          allowDeselect={false}
+          value={prefs.navigation}
+          onChange={(value) => value && set({ navigation: value as ReaderPrefs['navigation'] })}
+          data={[
+            { value: 'auto', label: t`Automatic (vertical in continuous)` },
+            { value: 'horizontal', label: t`Horizontal (turn pages)` },
+            { value: 'vertical', label: t`Vertical (scroll down)` },
+          ]}
+        />
+        <Select
           label={t`Page fit`}
           allowDeselect={false}
           value={prefs.fit}
@@ -408,6 +420,13 @@ function ProfileEditor({
         />
       </Group>
 
+      <Switch
+        size="sm"
+        label={t`Smooth scrolling`}
+        description={t`Glide through vertical navigation's steps instead of jumping.`}
+        checked={prefs.smoothScroll}
+        onChange={(e) => set({ smoothScroll: e.currentTarget.checked })}
+      />
       <Switch
         size="sm"
         label={t`Advance to the next chapter at the end`}

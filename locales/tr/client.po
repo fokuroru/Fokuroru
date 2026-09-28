@@ -2549,6 +2549,7 @@ msgid "Attribute Kavita's reading to"
 msgstr "Kavita'nın okumasını şuna ata:"
 
 #: src/components/discover/DiscoverHero.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Auto"
 msgstr "Otomatik"
@@ -2598,6 +2599,10 @@ msgstr "Otomatik (tarayıcımla eşleştir)"
 #, fuzzy
 msgid "Automatic (source priority)"
 msgstr "Otomatik (kaynak önceliği)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Automatic (vertical in continuous)"
+msgstr ""
 
 #: src/api/inbox.ts
 #, fuzzy
@@ -5871,6 +5876,10 @@ msgstr "Diğer kişilere kendi hesaplarını, kitaplık erişimlerini ve okuma g
 msgid "Give up on a chapter after (minutes)"
 msgstr "Bir bölümden şu kadar dakika sonra vazgeç"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Glide through vertical navigation's steps instead of jumping."
+msgstr ""
+
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
 msgid "Go to library"
@@ -6190,6 +6199,14 @@ msgstr "ana sayfa bölümleri, satırlar, okumaya devam et, son eklenenler, böl
 #, fuzzy
 msgid "Home server"
 msgstr "Ev sunucusu"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Horizontal"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Horizontal (turn pages)"
+msgstr ""
 
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
@@ -8030,6 +8047,11 @@ msgstr "Adlandırma"
 msgid "Naming tokens"
 msgstr "Adlandırma belirteçleri"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Navigation"
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Needed for Cloudflare-protected sources like MangaFire. Point this at a running FlareSolverr instance."
@@ -9340,6 +9362,10 @@ msgstr "Sayfa {pageIndex}/{pageCount}"
 msgid "Page {pageNumber} of {pageCount}"
 msgstr "Sayfa {pageNumber} / {pageCount}"
 
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Page Down"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "Page fit"
@@ -9360,6 +9386,10 @@ msgstr "Sayfa bulunamadı"
 #, fuzzy
 msgid "Page thumbnails"
 msgstr "Sayfa küçük resimleri"
+
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Page Up"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -11272,10 +11302,18 @@ msgstr "Okumayı senkronize et"
 msgid "Scrobbling"
 msgstr "Senkronize ediliyor"
 
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Scroll down a screen (vertical navigation)"
+msgstr ""
+
 #: src/pages/reader/ContinuousView.tsx
 #, fuzzy
 msgid "Scroll for next chapter"
 msgstr "Sonraki bölüm için kaydırın"
+
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Scroll up a screen (vertical navigation)"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -12159,6 +12197,11 @@ msgstr "Smart Download"
 #, fuzzy
 msgid "Smart Download queued chapters"
 msgstr "Smart Download bölümleri kuyruğa aldı"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Smooth scrolling"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -14018,6 +14061,18 @@ msgstr "Bu dosyayı doğrula"
 #, fuzzy
 msgid "Version"
 msgstr "Sürüm"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Vertical"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Vertical (scroll down)"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Vertical scrolls down through a tall page before turning it, for long strips."
+msgstr ""
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy

@@ -26,6 +26,8 @@ export default function ShortcutSheet({ rtl, onClose }: { rtl: boolean; onClose:
       items: [
         { keys: [forward, t`Space`], label: t`Next page` },
         { keys: [back, t`Shift + Space`], label: t`Previous page` },
+        { keys: ['↓', t`Page Down`], label: t`Scroll down a screen (vertical navigation)` },
+        { keys: ['↑', t`Page Up`], label: t`Scroll up a screen (vertical navigation)` },
         { keys: [t`Home`], label: t`First page` },
         { keys: [t`End`], label: t`Last page` },
       ],

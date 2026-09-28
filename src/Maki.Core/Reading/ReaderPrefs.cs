@@ -36,8 +36,21 @@ public record ReaderPrefsSpec(
     /// credit pages and the first pages of the next chapter often look alike, so without a cue the
     /// only evidence a chapter turn happened is the page counter resetting.
     /// </summary>
-    bool ChapterBanner = true)
+    bool ChapterBanner = true,
+    /// <summary>
+    /// Which way "next" moves: <see cref="NavHorizontal"/> turns pages left and right,
+    /// <see cref="NavVertical"/> scrolls down through a tall page a screen at a time and only turns
+    /// the page at its bottom (long vertical strips read in paged mode, and continuous mode).
+    /// <see cref="NavAuto"/> is vertical in continuous mode and horizontal otherwise.
+    /// </summary>
+    string Navigation = ReaderPrefsSpec.NavAuto,
+    /// <summary>Animate the screen-sized steps of vertical navigation instead of jumping.</summary>
+    bool SmoothScroll = true)
 {
+    public const string NavAuto = "auto";
+    public const string NavHorizontal = "horizontal";
+    public const string NavVertical = "vertical";
+
     public const string ModePaged = "paged";
     public const string ModeDouble = "double";
     public const string ModeVertical = "vertical";
@@ -65,6 +78,7 @@ public record ReaderPrefsSpec(
     private static readonly string[] Modes = [ModePaged, ModeDouble, ModeVertical];
     private static readonly string[] Directions = [DirectionLtr, DirectionRtl];
     private static readonly string[] Fits = [FitWidth, FitHeight, FitScreen, FitOriginal];
+    private static readonly string[] Navigations = [NavAuto, NavHorizontal, NavVertical];
 
     /// <summary>Clamps free-text fields back onto known values so a bad write can't wedge the reader.</summary>
     public ReaderPrefsSpec Sanitized() => this with
@@ -72,6 +86,7 @@ public record ReaderPrefsSpec(
         Mode = Modes.Contains(Mode) ? Mode : ModePaged,
         Direction = Directions.Contains(Direction) ? Direction : DirectionRtl,
         Fit = Fits.Contains(Fit) ? Fit : FitHeight,
+        Navigation = Navigations.Contains(Navigation) ? Navigation : NavAuto,
         PageGap = Math.Clamp(PageGap, 0, 64),
         Preload = Math.Clamp(Preload, 0, 10),
         Scale = Math.Clamp(Scale, 25, 400),

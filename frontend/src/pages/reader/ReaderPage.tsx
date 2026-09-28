@@ -21,7 +21,7 @@ import ContinuousView from './ContinuousView'
 import PagedView from './PagedView'
 import PageStrip from './PageStrip'
 import ReaderToolbar from './ReaderToolbar'
-import { useReaderPrefs } from './prefs'
+import { navigatesVertically, useReaderPrefs } from './prefs'
 import { usePageUrls, usePreload } from './usePageUrls'
 import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
@@ -74,6 +74,12 @@ export default function ReaderPage() {
   // the completion back out of a write that has not gone out yet.
   const [finishedFor, setFinishedFor] = useState<number | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const surfaceRef = useRef<HTMLDivElement>(null)
+  // Set when vertical navigation steps back off the top of a page: the page before it opens at its
+  // bottom, where reading left off, rather than at the top. Cleared once the image has loaded and
+  // the scroll has actually been placed.
+  const landAtBottomRef = useRef(false)
+  const vertical = navigatesVertically(prefs)
 
   const pageCount = manifest?.pageCount ?? 0
   const urls = usePageUrls(chapterId, pageCount, manifest?.pageVersion)
@@ -83,6 +89,14 @@ export default function ReaderPage() {
   const spreadIndex = useMemo(() => spreadIndexOf(spreads, page), [spreads, page])
   // `page` is a spread's first index; the position on record is the furthest page on screen.
   const shownTo = useMemo(() => Math.max(page, ...(spreads[spreadIndex] ?? [])), [spreads, spreadIndex, page])
+
+  // A page turn in the paged layouts starts at the top of the new page. The surface kept the old
+  // page's scroll position, so a tall page turned from its bottom opened the next one part-way down.
+  useEffect(() => {
+    const el = surfaceRef.current
+    if (!el || prefs.mode === 'vertical') return
+    el.scrollTop = landAtBottomRef.current ? el.scrollHeight : 0
+  }, [spreadIndex, chapterId, prefs.mode])
 
   const { data: bookmarks } = useBookmarks(chapterId)
   const toggleBookmark = useToggleBookmark(chapterId)
@@ -277,6 +291,48 @@ export default function ReaderPage() {
     }
   }, [spreads, spreadIndex, manifest, goToChapter, atEnd, seekToPage])
 
+  const onPageMeasured = useCallback(
+    (index: number, image: HTMLImageElement) => {
+      measure(index, image)
+      const el = surfaceRef.current
+      if (landAtBottomRef.current && el) {
+        el.scrollTop = el.scrollHeight
+        landAtBottomRef.current = false
+      }
+    },
+    [measure],
+  )
+
+  /** Scrolls the surface most of a screen; false when already at that edge, so the caller turns the page. */
+  const scrollStep = useCallback(
+    (direction: 1 | -1): boolean => {
+      const el = surfaceRef.current
+      if (!el) return false
+      const room = direction > 0 ? el.scrollHeight - el.clientHeight - el.scrollTop : el.scrollTop
+      if (room <= 2) return false
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollBy({
+        // 85% leaves a strip of the previous screen in view, so the eye keeps its place.
+        top: direction * Math.min(room, el.clientHeight * 0.85),
+        behavior: prefs.smoothScroll && !reduceMotion ? 'smooth' : 'auto',
+      })
+      return true
+    },
+    [prefs.smoothScroll],
+  )
+
+  /** "Next" under vertical navigation: down through the page first, then on to the next one. */
+  const forward = useCallback(() => {
+    if (vertical && !atEnd && scrollStep(1)) return
+    next()
+  }, [vertical, atEnd, scrollStep, next])
+
+  const backward = useCallback(() => {
+    if (vertical && !atEnd && scrollStep(-1)) return
+    if (vertical && prefs.mode !== 'vertical') landAtBottomRef.current = true
+    previous()
+  }, [vertical, atEnd, scrollStep, previous, prefs.mode])
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
@@ -305,10 +361,28 @@ export default function ReaderPage() {
           event.preventDefault()
           previous()
           break
+        case 'ArrowDown':
+        case 'PageDown':
+          if (vertical) {
+            event.preventDefault()
+            forward()
+          }
+          break
+        case 'ArrowUp':
+        case 'PageUp':
+          if (vertical) {
+            event.preventDefault()
+            backward()
+          }
+          break
         case ' ':
-          // Continuous mode keeps the browser's native space-to-scroll, except on the end screen,
-          // where there is nothing to scroll.
-          if (prefs.mode !== 'vertical' || atEnd) {
+          if (vertical) {
+            event.preventDefault()
+            if (event.shiftKey) backward()
+            else forward()
+          } else if (prefs.mode !== 'vertical' || atEnd) {
+            // Continuous mode with horizontal navigation keeps the browser's own space-to-scroll,
+            // except on the end screen, where there is nothing to scroll.
             event.preventDefault()
             if (event.shiftKey) previous()
             else next()
@@ -369,6 +443,9 @@ export default function ReaderPage() {
     atEnd,
     next,
     previous,
+    forward,
+    backward,
+    vertical,
     pageCount,
     prefs,
     update,
@@ -380,14 +457,22 @@ export default function ReaderPage() {
     seekToPage,
   ])
 
-  /** Tap zones: outer thirds page, the middle toggles the chrome. */
+  /** Tap zones: outer thirds page, the middle toggles the chrome. Top and bottom under vertical navigation. */
   const onSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!prefs.tapZones || prefs.mode === 'vertical' || zoom !== 1) {
+    if (!prefs.tapZones || zoom !== 1 || (prefs.mode === 'vertical' && !vertical)) {
       setChrome((visible) => !visible)
       return
     }
 
     const bounds = event.currentTarget.getBoundingClientRect()
+    if (vertical) {
+      const y = (event.clientY - bounds.top) / bounds.height
+      if (y < 0.33) backward()
+      else if (y > 0.67) forward()
+      else setChrome((visible) => !visible)
+      return
+    }
+
     const ratio = (event.clientX - bounds.left) / bounds.width
     // Right-to-left reading puts "next" on the left edge.
     const leftAdvances = prefs.direction === 'rtl'
@@ -473,6 +558,7 @@ export default function ReaderPage() {
         />
       ) : (
         <div
+          ref={surfaceRef}
           className="reader-surface"
           // Continuous mode scrolls one way only, unless the reader has been zoomed past 100%,
           // which is the one case where panning across a page is what was asked for.
@@ -505,7 +591,7 @@ export default function ReaderPage() {
               zoom={zoom}
               scale={prefs.scale}
               label={manifest.label}
-              onMeasure={measure}
+              onMeasure={onPageMeasured}
             />
           )}
         </div>

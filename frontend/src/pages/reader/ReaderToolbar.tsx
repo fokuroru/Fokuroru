@@ -378,6 +378,22 @@ export default function ReaderToolbar({
                     ]}
                   />
                 </div>
+                <div>
+                  <Text fz="xs" c="var(--ink-3)" mb={4}>
+                    <Trans>Navigation</Trans>
+                  </Text>
+                  <SegmentedControl
+                    fullWidth
+                    size="xs"
+                    value={prefs.navigation}
+                    onChange={(value) => onPrefs({ navigation: value as ReaderPrefs['navigation'] })}
+                    data={[
+                      { label: t`Auto`, value: 'auto' },
+                      { label: t`Horizontal`, value: 'horizontal' },
+                      { label: t`Vertical`, value: 'vertical' },
+                    ]}
+                  />
+                </div>
                 {prefs.fit === 'original' && (
                   <div>
                     <Text fz="xs" c="var(--ink-3)" mb={4}>
@@ -427,6 +443,12 @@ export default function ReaderToolbar({
                   label={t`Flash chapter name on chapter change`}
                   checked={prefs.chapterBanner}
                   onChange={(event) => onPrefs({ chapterBanner: event.currentTarget.checked })}
+                />
+                <Switch
+                  size="xs"
+                  label={t`Smooth scrolling`}
+                  checked={prefs.smoothScroll}
+                  onChange={(event) => onPrefs({ smoothScroll: event.currentTarget.checked })}
                 />
                 <Switch
                   size="xs"

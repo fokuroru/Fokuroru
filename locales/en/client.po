@@ -2066,6 +2066,7 @@ msgid "Attribute Kavita's reading to"
 msgstr "Attribute Kavita's reading to"
 
 #: src/components/discover/DiscoverHero.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 msgid "Auto"
 msgstr "Auto"
 
@@ -2105,6 +2106,10 @@ msgstr "Automatic (match my browser)"
 #: src/pages/HealthPage.tsx
 msgid "Automatic (source priority)"
 msgstr "Automatic (source priority)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Automatic (vertical in continuous)"
+msgstr "Automatic (vertical in continuous)"
 
 #: src/api/inbox.ts
 msgid "Automatic download failed"
@@ -4768,6 +4773,10 @@ msgstr "Give others their own account, library access and reading history."
 msgid "Give up on a chapter after (minutes)"
 msgstr "Give up on a chapter after (minutes)"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Glide through vertical navigation's steps instead of jumping."
+msgstr "Glide through vertical navigation's steps instead of jumping."
+
 #: src/pages/DiscoverPage.tsx
 msgid "Go to library"
 msgstr "Go to library"
@@ -5026,6 +5035,14 @@ msgstr "home sections, rails, continue reading, recently added, section order, e
 #: src/components/NotificationsSection.tsx
 msgid "Home server"
 msgstr "Home server"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Horizontal"
+msgstr "Horizontal"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Horizontal (turn pages)"
+msgstr "Horizontal (turn pages)"
 
 #: src/components/CatalogueFilters.tsx
 msgid "Horror"
@@ -6519,6 +6536,11 @@ msgstr "Naming"
 msgid "Naming tokens"
 msgstr "Naming tokens"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Navigation"
+msgstr "Navigation"
+
 #: src/pages/SettingsPage.tsx
 msgid "Needed for Cloudflare-protected sources like MangaFire. Point this at a running FlareSolverr instance."
 msgstr "Needed for Cloudflare-protected sources like MangaFire. Point this at a running FlareSolverr instance."
@@ -7577,6 +7599,10 @@ msgstr "Page {pageIndex}/{pageCount}"
 msgid "Page {pageNumber} of {pageCount}"
 msgstr "Page {pageNumber} of {pageCount}"
 
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Page Down"
+msgstr "Page Down"
+
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "Page fit"
 msgstr "Page fit"
@@ -7593,6 +7619,10 @@ msgstr "Page not found"
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Page thumbnails"
 msgstr "Page thumbnails"
+
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Page Up"
+msgstr "Page Up"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Paged pace · {remainingChapters} chapters left · based on {sampleChapters} chapters from this series"
@@ -9148,9 +9178,17 @@ msgstr "Scrobble reading"
 msgid "Scrobbling"
 msgstr "Scrobbling"
 
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Scroll down a screen (vertical navigation)"
+msgstr "Scroll down a screen (vertical navigation)"
+
 #: src/pages/reader/ContinuousView.tsx
 msgid "Scroll for next chapter"
 msgstr "Scroll for next chapter"
+
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Scroll up a screen (vertical navigation)"
+msgstr "Scroll up a screen (vertical navigation)"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Scrolling pace · {remainingChapters} chapters left · based on {sampleChapters} chapters from this series"
@@ -9864,6 +9902,11 @@ msgstr "Smart Download"
 #: src/api/inbox.ts
 msgid "Smart Download queued chapters"
 msgstr "Smart Download queued chapters"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Smooth scrolling"
+msgstr "Smooth scrolling"
 
 #: src/pages/SettingsPage.tsx
 msgid "Snapshot on disk: {snapshotSize}, refreshed {refreshedAtLabel}"
@@ -11367,6 +11410,18 @@ msgstr "Verify this file"
 #: src/pages/SettingsPage.tsx
 msgid "Version"
 msgstr "Version"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Vertical"
+msgstr "Vertical"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Vertical (scroll down)"
+msgstr "Vertical (scroll down)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Vertical scrolls down through a tall page before turning it, for long strips."
+msgstr "Vertical scrolls down through a tall page before turning it, for long strips."
 
 #: src/pages/discover/TasteTab.tsx
 msgid "very tight"

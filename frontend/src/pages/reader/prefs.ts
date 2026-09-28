@@ -6,6 +6,8 @@ import { useReadingProfiles, type ReadingProfile } from '../../api/readingProfil
 export type ReaderMode = 'paged' | 'double' | 'vertical'
 export type ReaderDirection = 'ltr' | 'rtl'
 export type ReaderFit = 'width' | 'height' | 'screen' | 'original'
+/** Which way "next" moves. `auto` is vertical in continuous mode, horizontal otherwise. */
+export type ReaderNavigation = 'auto' | 'horizontal' | 'vertical'
 
 export interface ReaderPrefs {
   mode: ReaderMode
@@ -25,6 +27,14 @@ export interface ReaderPrefs {
   background: string
   /** Percent scale on top of the '1:1' fit; meaningless for the other fits, which already size to the viewport. */
   scale: number
+  navigation: ReaderNavigation
+  /** Animate vertical navigation's screen-sized steps instead of jumping. */
+  smoothScroll: boolean
+}
+
+/** Whether "next" scrolls down rather than turning a page sideways. */
+export function navigatesVertically(prefs: Pick<ReaderPrefs, 'navigation' | 'mode'>): boolean {
+  return prefs.navigation === 'vertical' || (prefs.navigation === 'auto' && prefs.mode === 'vertical')
 }
 
 /** The two page backgrounds. OLED is true black so the panel edge disappears on an OLED panel. */
@@ -51,6 +61,8 @@ export const DEFAULT_PREFS: ReaderPrefs = {
   chapterBanner: true,
   background: BACKGROUNDS.dark,
   scale: 100,
+  navigation: 'auto',
+  smoothScroll: true,
 }
 
 /**

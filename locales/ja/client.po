@@ -2549,6 +2549,7 @@ msgid "Attribute Kavita's reading to"
 msgstr "Kavitaの読書を帰属させる先"
 
 #: src/components/discover/DiscoverHero.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Auto"
 msgstr "自動"
@@ -2598,6 +2599,10 @@ msgstr "自動（ブラウザーに合わせる）"
 #, fuzzy
 msgid "Automatic (source priority)"
 msgstr "自動（ソースの優先度）"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Automatic (vertical in continuous)"
+msgstr ""
 
 #: src/api/inbox.ts
 #, fuzzy
@@ -5871,6 +5876,10 @@ msgstr "他のユーザーに専用アカウント、ライブラリへのアク
 msgid "Give up on a chapter after (minutes)"
 msgstr "章を諦めるまでの時間（分）"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Glide through vertical navigation's steps instead of jumping."
+msgstr ""
+
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
 msgid "Go to library"
@@ -6190,6 +6199,14 @@ msgstr "ホームのセクション, レール, 続きを読む, 最近追加, �
 #, fuzzy
 msgid "Home server"
 msgstr "ホームサーバー"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Horizontal"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Horizontal (turn pages)"
+msgstr ""
 
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
@@ -8030,6 +8047,11 @@ msgstr "名前付け"
 msgid "Naming tokens"
 msgstr "名前付けトークン"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Navigation"
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Needed for Cloudflare-protected sources like MangaFire. Point this at a running FlareSolverr instance."
@@ -9340,6 +9362,10 @@ msgstr "ページ{pageIndex}/{pageCount}"
 msgid "Page {pageNumber} of {pageCount}"
 msgstr "{pageCount}ページ中{pageNumber}ページ"
 
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Page Down"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "Page fit"
@@ -9360,6 +9386,10 @@ msgstr "ページが見つかりません"
 #, fuzzy
 msgid "Page thumbnails"
 msgstr "ページサムネイル"
+
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Page Up"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -11272,10 +11302,18 @@ msgstr "読書をScrobble"
 msgid "Scrobbling"
 msgstr "Scrobbling"
 
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Scroll down a screen (vertical navigation)"
+msgstr ""
+
 #: src/pages/reader/ContinuousView.tsx
 #, fuzzy
 msgid "Scroll for next chapter"
 msgstr "スクロールして次の章へ"
+
+#: src/pages/reader/ShortcutSheet.tsx
+msgid "Scroll up a screen (vertical navigation)"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -12159,6 +12197,11 @@ msgstr "Smart Download"
 #, fuzzy
 msgid "Smart Download queued chapters"
 msgstr "Smart Downloadが章をキューに追加"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Smooth scrolling"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -14018,6 +14061,18 @@ msgstr "このファイルを検証"
 #, fuzzy
 msgid "Version"
 msgstr "バージョン"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Vertical"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Vertical (scroll down)"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Vertical scrolls down through a tall page before turning it, for long strips."
+msgstr ""
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
