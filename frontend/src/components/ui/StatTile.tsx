@@ -58,7 +58,7 @@ export function StatTile({
       <span className="stat-accent" style={{ background: color }} />
       <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
         <div style={{ minWidth: 0 }}>
-          <Text size="xs" c="var(--ink-3)" fw={600} tt="uppercase" style={{ letterSpacing: '0.05em' }}>
+          <Text size="xs" c="var(--ink-3)" fw={600}>
             {label}
           </Text>
           {loading ? (

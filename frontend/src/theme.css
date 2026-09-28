@@ -477,8 +477,6 @@ body {
   font-size: 10px;
   font-weight: 600;
   color: var(--ink-3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   font-variant-numeric: tabular-nums;
   line-height: 1.4;
 }
@@ -697,8 +695,6 @@ body {
 .nav-section-label {
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--ink-4);
   padding: 0 11px;
 }
@@ -823,8 +819,6 @@ body {
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
   line-height: 1;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
   white-space: nowrap;
   color: #fff;
   background: color-mix(in srgb, black 55%, transparent);
@@ -970,7 +964,8 @@ body {
 .cover-bar-fill {
   height: 100%;
   border-radius: var(--radius-pill);
-  background: var(--brand);
+  /* Download progress is neutral; the spine colour is kept for reading. */
+  background: #ece5d8;
 }
 .cover-bar-fill[data-complete] {
   background: var(--ok);
@@ -1533,8 +1528,6 @@ body {
 .discover-hero-eyebrow {
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--ink-4);
   margin-bottom: 8px;
 }
@@ -1608,8 +1601,6 @@ body {
 .discover-hero-strip-label {
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--ink-3);
 }
 .discover-hero-strip-heading {
@@ -1621,8 +1612,6 @@ body {
 .discover-hero-strip-mode {
   font-size: var(--type-badge);
   font-weight: var(--fw-strong);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--brand-fg, var(--brand));
 }
 .discover-hero-strip-row {
@@ -1755,8 +1744,6 @@ body {
   flex: none;
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--ink-4);
 }
 .discover-seeds-row {
@@ -1972,8 +1959,6 @@ body {
 .discover-taste-lead {
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--ink-4);
 }
 .discover-taste-chip {
@@ -2269,8 +2254,6 @@ body {
   margin-top: 4px;
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--ink-4);
 }
 .setup-steps {
@@ -2392,8 +2375,6 @@ body {
 .setup-eyebrow {
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--brand-fg, var(--brand));
 }
 .setup-title {
@@ -2568,8 +2549,6 @@ body {
   background: var(--neutral-soft);
   font-size: var(--type-badge);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--ink-3);
   white-space: nowrap;
 }
@@ -2627,8 +2606,6 @@ body {
   margin: 36px 0 12px;
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--ink-3);
 }
 .setup-next {
@@ -2698,8 +2675,6 @@ body {
   .setup-mobile-step {
     font-size: var(--type-label);
     font-weight: var(--fw-bold);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
     color: var(--ink-3);
   }
   .setup-mobile-progress {
@@ -2776,15 +2751,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-block: 24px;
   overflow: hidden;
-  writing-mode: vertical-rl;
-  white-space: nowrap;
   background: var(--spine);
   color: var(--spine-ink);
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 2.25rem;
   letter-spacing: 0.1em;
+}
+/* Only the title runs vertically, so the band can centre it and a title longer than the band ends
+   in an ellipsis instead of being cut at both ends. */
+.series-spine-band > span {
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  max-height: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 @media (prefers-reduced-motion: no-preference) {
   .series-spine-band {
@@ -2804,9 +2787,15 @@ body {
   .series-spine-band {
     width: auto;
     height: 6px;
+    /* The hero bleeds up by the shell padding, which puts its top under the fixed burger bar;
+       this brings the strip back down flush with the bar's bottom edge. */
+    margin-top: var(--app-shell-padding, 1rem);
     font-size: 0;
     writing-mode: horizontal-tb;
     animation: none;
+  }
+  .series-hero:not([data-compact]) .series-hero-body {
+    padding-top: var(--mantine-spacing-md);
   }
 }
 
@@ -3047,8 +3036,6 @@ body {
   color: var(--ink-4);
   font-size: var(--type-micro);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 /* Mantine's modal content is not a positioned element, so the floating close button needs one:
@@ -3191,8 +3178,6 @@ body {
   color: var(--bucket);
   font-size: var(--type-micro);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
 }
 .tag-bucket-rule {
   flex: 1;
@@ -4006,8 +3991,6 @@ body {
   color: var(--ink-4);
   font-size: var(--type-micro);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 @media (max-width: 61.9375em) {
@@ -4262,8 +4245,6 @@ body {
   color: var(--ink-3);
   font-size: var(--type-micro);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 .stats-fact-value {
   color: var(--ink-hi);
@@ -4727,8 +4708,6 @@ body {
 .rewind-summary-label {
   font-size: 0.8rem;
   font-weight: var(--fw-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   opacity: 0.7;
 }
 
@@ -5105,8 +5084,6 @@ body.reader-open {
 }
 .reader-chapter-banner-series {
   font-size: var(--type-micro);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.6);
 }
 .reader-chapter-banner-label {
@@ -5170,8 +5147,6 @@ body.reader-open {
 .reader-end-eyebrow {
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
 }
 .reader-end-title {
@@ -5316,8 +5291,6 @@ body.reader-open {
   margin: 0 0 8px;
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
 }
 .reader-shortcuts-groups dl {
@@ -5641,8 +5614,6 @@ body.reader-open {
   color: var(--ink-4);
   font-size: var(--type-micro);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 .health-group:first-of-type .health-group-label {
   margin-top: 0;
@@ -5997,8 +5968,6 @@ body.reader-open {
   color: var(--ink-4);
   font-size: var(--type-label);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .status-dot {
@@ -6550,9 +6519,7 @@ body.reader-open {
   color: var(--ink-3);
   font-size: var(--type-label);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.08em;
   line-height: 1.25;
-  text-transform: uppercase;
 }
 .inbox-record {
   border-bottom: 1px solid var(--line-soft);
@@ -6722,8 +6689,6 @@ body.reader-open {
   color: var(--ink-3);
   font-size: var(--type-badge);
   font-weight: var(--fw-bold);
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
 }
 .continue-tile-dot {
   width: 3px;
@@ -7436,8 +7401,6 @@ body.reader-open {
   padding: 10px 10px 6px;
   font-size: var(--type-label);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--ink-4);
 }
 .source-manager-empty {
@@ -7551,8 +7514,6 @@ body.reader-open {
 .source-tag[data-tone='language'] {
   font-family: var(--mantine-font-family-monospace);
   font-size: var(--type-badge);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .source-filter-count {
@@ -7576,8 +7537,6 @@ body.reader-open {
   margin-bottom: 6px;
   font-size: var(--type-label);
   font-weight: var(--fw-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--ink-4);
 }
 .source-filter-n {
@@ -7692,9 +7651,8 @@ body.reader-open {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 0;
+  padding: 12px 0 10px;
   text-decoration: none;
-  writing-mode: vertical-rl;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.9375rem;
@@ -7705,6 +7663,10 @@ body.reader-open {
   outline-offset: 2px;
 }
 .spine-book-title {
+  /* Only the title runs vertically. On the whole spine, vertical-rl turns the flex column
+     sideways and the count lands beside the title instead of at its foot. */
+  writing-mode: vertical-rl;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7712,8 +7674,31 @@ body.reader-open {
 }
 .spine-book-count {
   flex: none;
-  writing-mode: horizontal-tb;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 500;
+}
+
+/* The list row draws the cover bar on the page ground rather than over art, so it takes the
+   theme's ink and shelf instead of the fixed on-art colours. */
+.row-bar {
+  background: var(--surface);
+}
+.row-bar .cover-bar-fill {
+  background: var(--ink);
+}
+.row-bar .cover-bar-fill[data-complete] {
+  background: var(--ok);
+}
+
+/* The spine band takes 72px beside the nav rail, so between the phone breakpoint and a wide window
+   the poster would leave the actions too little room (a foldable, a half-width window). */
+@container series-hero (max-width: 44rem) {
+  .series-hero:not([data-compact]) .series-hero-poster {
+    width: 128px;
+    height: 192px;
+  }
+  .series-hero:not([data-compact]) .series-hero-row {
+    gap: 20px;
+  }
 }

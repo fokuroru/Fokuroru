@@ -158,7 +158,7 @@ export function SeriesHero({
 
     return (
         <Box className="series-hero">
-            <div className="series-spine-band" aria-hidden="true">{spineTitle}</div>
+            <div className="series-spine-band" aria-hidden="true"><span>{spineTitle}</span></div>
 
             <div className="series-hero-body">
                 {/* Arrow inside the link, not beside it: the arrow is the part of this people aim at. */}

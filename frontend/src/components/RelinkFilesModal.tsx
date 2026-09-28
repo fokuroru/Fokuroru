@@ -311,7 +311,7 @@ export function RelinkFilesModal({
                 {volumeRows.length > 0 && (
                   <>
                     <div className="relink-section">
-                      <Text size="xs" fw={600} c="var(--ink-4)" tt="uppercase" style={{ letterSpacing: '0.06em' }}>
+                      <Text size="xs" fw={600} c="var(--ink-4)">
                         <Trans>Volumes that hold chapters still read from single files</Trans>
                       </Text>
                       <AllNone onAll={() => setRows(volumeRows, false)} onNone={() => setRows(volumeRows, true)} />
@@ -324,7 +324,7 @@ export function RelinkFilesModal({
                 {fillRows.length > 0 && (
                   <>
                     <div className="relink-section">
-                      <Text size="xs" fw={600} c="var(--ink-4)" tt="uppercase" style={{ letterSpacing: '0.06em' }}>
+                      <Text size="xs" fw={600} c="var(--ink-4)">
                         <Trans>Files that hold chapters marked missing</Trans>
                       </Text>
                       <AllNone onAll={() => setRows(fillRows, false)} onNone={() => setRows(fillRows, true)} />

@@ -396,7 +396,7 @@ function AppShellRoutes() {
             <Text fz="lg" lh={1} className="brand-wordmark">
               Maki
             </Text>
-            <Text fz={10} c="var(--ink-3)" fw={600} tt="uppercase" style={{ letterSpacing: '0.12em' }}>
+            <Text fz={10} c="var(--ink-3)" fw={600}>
               <Trans>Manga manager</Trans>
             </Text>
           </div>

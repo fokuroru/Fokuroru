@@ -10,6 +10,8 @@ paths:
 
 # Design system
 
+**The look is Maki Spine** (claude.ai Design System "Maki Spine", https://claude.ai/artifact/A5xEDUYaLME7cLFiZt5DZL). Warm charcoal and bone grounds, Zen Kaku Gothic New for all text with Martian Mono for figures, square corners, no gradients, glass or glow. The accent is the **spine**: `Series.SpineColor`, sampled from the cover by `Maki.Core.Imaging.SpineColor` (skin tones skipped, darkened to carry white text, vivid yellows kept pale). A page or tile that belongs to one series wraps itself in `useSpineStyle(spineColor)` (`frontend/src/lib/spine.ts`), which sets `--spine`, `--spine-fg`, `--spine-ink`, the `--brand*` variables and Mantine's primary-colour variables for that subtree; setting `--spine` alone is not enough, because `--brand` was already resolved at the root. Reading progress is `--spine-fg`; download progress is neutral ink, so the two bars never read alike. No uppercase letter-spaced labels anywhere.
+
 The Maki design system (a claude.ai Design System artifact, https://claude.ai/artifact/2qxby6RtK7vtNbgb5y86z9) is built from the code by `scripts/design-system/build.mjs` (`npm run ds:build` in `frontend/`). Output goes to `design-system/out/project/`, which is gitignored.
 
 - **Values are never typed into the design system.** Colours, radii, weights, type sizes, shadows and layout widths come from `theme.css` custom properties (per theme, light and `[data-accent]` overrides applied), and palettes, Mantine radii, shadows, headings and the primary shade from `theme.ts`. Change the code, rebuild.
