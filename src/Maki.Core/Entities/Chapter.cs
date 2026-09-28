@@ -73,10 +73,15 @@ public class Chapter
     /// Ordering is done in memory because <see cref="Number"/> is stored as REAL and EF Core SQLite
     /// can't ORDER BY it. One-shots have no number to sort on and go last.
     /// </para>
+    /// <para>
+    /// <paramref name="after"/> skips numbered chapters at or below a reading mark, so a series read
+    /// elsewhere up to chapter 50 starts at 51 rather than filling in everything already read.
+    /// </para>
     /// </summary>
-    public static List<int> NextWanted(IEnumerable<Chapter> chapters, int count) =>
+    public static List<int> NextWanted(IEnumerable<Chapter> chapters, int count, decimal? after = null) =>
         chapters
             .Where(c => c.Wanted && c.ChapterFileId == null)
+            .Where(c => after is null || c.Number is null || c.Number > after)
             .OrderBy(c => c.Number ?? decimal.MaxValue)
             .ThenBy(c => c.Id)
             .Take(count)

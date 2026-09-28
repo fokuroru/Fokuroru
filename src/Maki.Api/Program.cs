@@ -946,6 +946,11 @@ try
             .StartAt(DateTimeOffset.UtcNow.AddHours(1))
             .WithSimpleSchedule(s => s.WithIntervalInHours(24).RepeatForever()));
 
+        q.ScheduleJob<Maki.Api.Jobs.AutoDeleteReadChaptersJob>(t => t
+            .WithIdentity("auto-delete-read")
+            .StartAt(DateTimeOffset.UtcNow.AddMinutes(30))
+            .WithSimpleSchedule(s => s.WithIntervalInHours(6).RepeatForever()));
+
         q.ScheduleJob<Maki.Api.Jobs.HealthCheckJob>(t => t
             .WithIdentity("health-check")
             .StartAt(DateTimeOffset.UtcNow.AddSeconds(10))

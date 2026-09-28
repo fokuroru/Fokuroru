@@ -5,8 +5,8 @@ namespace Maki.Api.Tests;
 
 /// <summary>
 /// <see cref="SmartDownloadJob.SeriesNeedingTopUpAsync"/> is the eligibility gate the job runs
-/// before topping anything up: only a Smart series whose downloaded-but-unread backlog has shrunk
-/// to within the configured limit is due, and only once reading progress exists at all.
+/// before topping anything up: a Smart series is due once its downloaded-but-unread backlog is
+/// within the configured limit. Nothing read, or nothing downloaded, counts as an empty backlog.
 /// </summary>
 public class SeriesNeedingTopUpTests : IDisposable
 {
@@ -53,25 +53,40 @@ public class SeriesNeedingTopUpTests : IDisposable
     {
         using var db = _db.NewContext();
         var due = await SmartDownloadJob.SeriesNeedingTopUpAsync(db, limit, CancellationToken.None);
-        return due.Select(s => s.Id).ToList();
+        return due.Select(d => d.Series.Id).ToList();
     }
 
     [Fact]
-    public async Task Not_due_without_any_reading_progress()
+    public async Task Due_with_nothing_read_while_the_backlog_is_within_limit()
     {
         var id = _db.SeedSeries(monitor: NewChapterMonitorMode.Smart);
         SeedDownloaded(id, 1m, 2m, 3m);
 
-        Assert.DoesNotContain(id, await Due());
+        Assert.Contains(id, await Due(limit: 5));
+        Assert.DoesNotContain(id, await Due(limit: 2));
+    }
+
+    /// <summary>
+    /// A freshly added Smart series has neither files nor progress. It used to be skipped for
+    /// both reasons, so Smart never started on its own.
+    /// </summary>
+    [Fact]
+    public async Task A_new_series_with_nothing_downloaded_or_read_is_due()
+    {
+        var id = _db.SeedSeries(monitor: NewChapterMonitorMode.Smart);
+
+        Assert.Contains(id, await Due());
     }
 
     [Fact]
-    public async Task Not_due_with_no_downloaded_chapters()
+    public async Task Due_with_no_downloaded_chapters_and_carries_the_read_mark()
     {
         var id = _db.SeedSeries(monitor: NewChapterMonitorMode.Smart);
-        SeedReadingState(id, maxChapter: 1);
+        SeedReadingState(id, maxChapter: 12);
 
-        Assert.DoesNotContain(id, await Due());
+        using var db = _db.NewContext();
+        var due = await SmartDownloadJob.SeriesNeedingTopUpAsync(db, 5, CancellationToken.None);
+        Assert.Equal(12m, Assert.Single(due, d => d.Series.Id == id).ReadMark);
     }
 
     [Fact]

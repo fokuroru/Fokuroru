@@ -79,4 +79,12 @@ public class ChapterWantedTests
 
         Assert.Equal([1, 2], Chapter.NextWanted(chapters, 50));
     }
+
+    [Fact]
+    public void NextWanted_starts_after_the_read_mark_and_keeps_one_shots()
+    {
+        var chapters = new List<Chapter> { Ch(1, 1m), Ch(2, 2m), Ch(3, 3m), Ch(4, 3.5m), Ch(5, null) };
+
+        Assert.Equal([4, 5], Chapter.NextWanted(chapters, 10, after: 3m));
+    }
 }

@@ -4428,6 +4428,14 @@ msgstr "プロファイルを削除"
 msgid "Delete rail"
 msgstr "レールを削除"
 
+#: src/pages/SettingsPage.tsx
+msgid "Delete read chapters"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Delete read chapters after (days)"
+msgstr ""
+
 #: src/pages/RequestsPage.tsx
 #, fuzzy
 msgid "Delete request"
@@ -4489,6 +4497,10 @@ msgstr "「{name}」を削除しました"
 #, fuzzy
 msgid "Deleted files are removed from disk and cannot be recovered from Maki."
 msgstr "削除したファイルはディスクから除去され、Makiから復元できません。"
+
+#: src/pages/SettingsPage.tsx
+msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -4852,9 +4864,8 @@ msgid "Downloads"
 msgstr "ダウンロード"
 
 #: src/pages/SettingsPage.tsx
-#, fuzzy
-msgid "Downloads the next chapters of a series when you're down to a few unread. Checks every five minutes against progress from Kavita or the built-in reader. Turn it on per series in its monitoring options."
-msgstr "未読の章が少なくなると、シリーズの次の章をダウンロードします。Kavitaまたは組み込みリーダーの進捗を5分ごとに確認します。各シリーズの監視オプションから有効にしてください。"
+msgid "Downloads the next chapters of a series when you're down to a few unread, starting with the first batch as soon as a series is set to Smart. Checks every five minutes against progress from Kavita or the built-in reader. Turn it on per series in its monitoring options."
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 #, fuzzy

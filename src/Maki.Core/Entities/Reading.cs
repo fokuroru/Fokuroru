@@ -105,6 +105,14 @@ public class ChapterProgress : IUserOwned
     /// </summary>
     public int ReportedSeconds { get; set; }
 
+    /// <summary>
+    /// When <see cref="Completed"/> last went from false to true, null while it is false. Stamped by
+    /// <c>MakiDbContext</c> on save rather than by each writer, so a new completion path can't forget
+    /// it. Rows completed before the column existed were backfilled with the migration time, which
+    /// is what keeps auto-delete from removing a whole back catalogue the day it is switched on.
+    /// </summary>
+    public DateTime? CompletedAt { get; set; }
+
     public DateTime StartedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

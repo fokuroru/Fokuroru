@@ -75,6 +75,13 @@ public static class SettingKeys
     public const string MonitoringBulkHoldThreshold = "monitoring.bulkholdthreshold";
 
     /// <summary>
+    /// Days after a chapter is read before its file is deleted. 0 (the default) turns auto-delete
+    /// off. Read by <c>AutoDeleteReadChaptersJob</c>, which also unwants the chapter so no download
+    /// path fetches it again.
+    /// </summary>
+    public const string LibraryAutoDeleteReadDays = "library.autodeletereaddays";
+
+    /// <summary>
     /// "false" → don't rewrite ComicInfo.xml inside files Maki adopts from disk (torrent grabs,
     /// manual imports). Chapters Maki downloads itself from a source always get a fresh ComicInfo —
     /// that CBZ is built by Maki, not an existing file being modified. Default on.

@@ -2908,6 +2908,7 @@ body {
      The inline padding is deliberately generous: the poster hard against the rail was the single
      thing that most made this band read as unfinished. */
   padding: var(--app-shell-header-offset, 0px) clamp(24px, 3.6vw, 64px) 0;
+  container: series-hero / inline-size;
 }
 /* Inline-flex and `fit-content` so the target is the arrow and the word, not the full width of
    the hero: a link as wide as the band sends a stray click halfway across the page back to it. */
@@ -3569,9 +3570,13 @@ body {
   .series-records {
     grid-template-columns: minmax(0, 1fr);
   }
-  /* The Progress panel gets its own line before it starts squeezing the title and actions.
-     `:not([data-compact])` keeps this off the modal band, which has its own narrower collapse
-     breakpoint below. */
+}
+
+/* The Progress panel gets its own line before it starts squeezing the title and actions. Measured
+   on the band, not the viewport: from `sm` up the 232px nav rail is beside it, so a 1000px window
+   (a foldable opened flat) left the title column too narrow for its buttons, which spilled under
+   the panel. `:not([data-compact])` keeps this off the modal band, which collapses on its own. */
+@container series-hero (max-width: 56rem) {
   .series-hero:not([data-compact]) .series-hero-content {
     grid-template-columns: minmax(0, 1fr);
   }

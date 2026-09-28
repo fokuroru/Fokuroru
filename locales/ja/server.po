@@ -1533,6 +1533,11 @@ msgid "error.settings.bulkHoldRange"
 msgstr "一括保留は0（オフ）から{max}章の間でなければなりません"
 
 #: src/Maki.Api/Controllers/SettingsController.cs
+#. English: Auto-delete must be between 0 (off) and {max} days
+msgid "error.settings.autoDeleteReadRange"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SettingsController.cs
 #. English: Backups to keep must be between {min} and {max}
 #, fuzzy
 msgid "error.settings.backupsToKeepRange"

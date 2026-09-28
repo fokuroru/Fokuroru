@@ -1135,6 +1135,7 @@ function DownloadSection() {
   const [itemTimeoutMinutes, setItemTimeoutMinutes] = useState<number | string>(120)
   const [useHardlinks, setUseHardlinks] = useState(true)
   const [bulkHoldThreshold, setBulkHoldThreshold] = useState<number | string>(5)
+  const [autoDeleteReadDays, setAutoDeleteReadDays] = useState<number | string>(0)
 
   useEffect(() => {
     if (settings) {
@@ -1145,6 +1146,7 @@ function DownloadSection() {
       setItemTimeoutMinutes(settings.itemTimeoutMinutes)
       setUseHardlinks(settings.useHardlinks)
       setBulkHoldThreshold(settings.bulkHoldThreshold)
+      setAutoDeleteReadDays(settings.autoDeleteReadDays)
     }
   }, [settings])
 
@@ -1156,7 +1158,8 @@ function DownloadSection() {
       Number(smartDownloadChapters) !== settings.smartDownloadChapters ||
       Number(itemTimeoutMinutes) !== settings.itemTimeoutMinutes ||
       useHardlinks !== settings.useHardlinks ||
-      Number(bulkHoldThreshold) !== settings.bulkHoldThreshold)
+      Number(bulkHoldThreshold) !== settings.bulkHoldThreshold ||
+      Number(autoDeleteReadDays) !== settings.autoDeleteReadDays)
 
   return (
     <Panel>
@@ -1184,9 +1187,10 @@ function DownloadSection() {
       </Text>
       <SettingsHelp mb="xs">
         <Trans>
-          Downloads the next chapters of a series when you're down to a few unread. Checks every
-          five minutes against progress from Kavita or the built-in reader. Turn it on per series
-          in its monitoring options.
+          Downloads the next chapters of a series when you're down to a few unread, starting with
+          the first batch as soon as a series is set to Smart. Checks every five minutes against
+          progress from Kavita or the built-in reader. Turn it on per series in its monitoring
+          options.
         </Trans>
       </SettingsHelp>
       <Group align="flex-end" mb="md">
@@ -1226,6 +1230,26 @@ function DownloadSection() {
         clampBehavior="strict"
         value={bulkHoldThreshold}
         onChange={setBulkHoldThreshold}
+        w={220}
+        mb="md"
+      />
+      <Text fw={500} size="sm" mb={4}>
+        <Trans>Delete read chapters</Trans>
+      </Text>
+      <SettingsHelp mb="xs">
+        <Trans>
+          Deletes a chapter's file this many days after it was read. The chapter stays in the
+          series with its read status and is no longer wanted, so it won't be downloaded again. A
+          volume file goes only when every chapter in it has been read that long. 0 means never.
+        </Trans>
+      </SettingsHelp>
+      <NumberInput
+        label={t`Delete read chapters after (days)`}
+        min={0}
+        max={3650}
+        clampBehavior="strict"
+        value={autoDeleteReadDays}
+        onChange={setAutoDeleteReadDays}
         w={220}
         mb="md"
       />
@@ -1300,6 +1324,7 @@ function DownloadSection() {
                 itemTimeoutMinutes: Number(itemTimeoutMinutes),
                 useHardlinks,
                 bulkHoldThreshold: Number(bulkHoldThreshold),
+                autoDeleteReadDays: Number(autoDeleteReadDays),
               },
               {
                 onSuccess: () =>

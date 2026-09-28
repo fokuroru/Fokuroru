@@ -89,13 +89,33 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
     public override int SaveChanges()
     {
         StampOwner();
+        StampCompletedAt();
         return base.SaveChanges();
     }
 
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken ct = default)
     {
         StampOwner();
+        StampCompletedAt();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
+    }
+
+    private void StampCompletedAt()
+    {
+        foreach (var entry in ChangeTracker.Entries<ChapterProgress>())
+        {
+            var row = entry.Entity;
+            if (!row.Completed)
+            {
+                row.CompletedAt = null;
+            }
+            else if (entry.State == EntityState.Added
+                     || (entry.State == EntityState.Modified
+                         && !entry.Property(p => p.Completed).OriginalValue))
+            {
+                row.CompletedAt ??= DateTime.UtcNow;
+            }
+        }
     }
 
     /// <summary>

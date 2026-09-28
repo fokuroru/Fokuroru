@@ -3083,6 +3083,8 @@ export interface DownloadSettings {
   useHardlinks: boolean
   /** More new chapters than this in one refresh are held back instead of queued. 0 means never hold. */
   bulkHoldThreshold: number
+  /** Days after a chapter is read before its file is deleted. 0 means never. */
+  autoDeleteReadDays: number
 }
 
 export function useDownloadSettings() {

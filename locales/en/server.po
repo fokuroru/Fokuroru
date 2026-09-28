@@ -1069,6 +1069,10 @@ msgid "error.settings.bulkHoldRange"
 msgstr "Bulk hold must be between 0 (off) and {max} chapters"
 
 #: src/Maki.Api/Controllers/SettingsController.cs
+msgid "error.settings.autoDeleteReadRange"
+msgstr "Auto-delete must be between 0 (off) and {max} days"
+
+#: src/Maki.Api/Controllers/SettingsController.cs
 msgid "error.settings.backupsToKeepRange"
 msgstr "Backups to keep must be between {min} and {max}"
 

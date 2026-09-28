@@ -53,10 +53,12 @@ public class SmartDownloadJob(
 
         var dueSeries = await SeriesNeedingTopUpAsync(db, limit, ct);
 
-        foreach (var series in dueSeries)
+        foreach (var (series, readMark) in dueSeries)
         {
             var chapters = await db.Chapters.Where(c => c.SeriesId == series.Id).ToListAsync(ct);
-            var missing = Chapter.NextWanted(chapters, batchSize);
+            var missing = Chapter.NextWanted(chapters, batchSize, readMark);
+            if (missing.Count == 0)
+                continue;
 
             var queuedItemIds = new List<int>();
             foreach (var chapterId in missing)
@@ -82,16 +84,21 @@ public class SmartDownloadJob(
     }
 
     /// <summary>Smart-monitored series that are due for a top-up: reading has caught up to within
-    /// <paramref name="limit"/> chapters of what's already downloaded. Skips series with no reading
-    /// progress recorded yet or nothing downloaded at all.</summary>
-    internal static async Task<List<Series>> SeriesNeedingTopUpAsync(
+    /// <paramref name="limit"/> chapters of what's already downloaded, paired with the reading mark the
+    /// next batch starts after (null when nothing has been read).
+    /// <para>
+    /// A series with nothing read or nothing downloaded is due as well. Both used to be skipped, so a
+    /// series switched to Smart never started on its own: it sat waiting for a manual download and a
+    /// first read that nothing prompted anyone to do.
+    /// </para></summary>
+    internal static async Task<List<(Series Series, decimal? ReadMark)>> SeriesNeedingTopUpAsync(
         MakiDbContext db, int limit, CancellationToken ct)
     {
         var smartSeries = await db.Series
             .Where(s => s.MonitorNewItems == NewChapterMonitorMode.Smart)
             .ToListAsync(ct);
 
-        var due = new List<Series>();
+        var due = new List<(Series, decimal?)>();
         foreach (var series in smartSeries)
         {
             var downloaded = await db.Chapters.Where(c => c.SeriesId == series.Id && c.ChapterFile != null).ToListAsync(ct);
@@ -105,17 +112,14 @@ public class SmartDownloadJob(
                 .Where(s => s.SeriesId == series.Id)
                 .OrderByDescending(s => s.MaxChapter)
                 .FirstOrDefaultAsync(ct);
-            if (readStatus == null || downloaded.Count == 0)
-                continue;
+            var readMark = readStatus is { MaxChapter: > 0 } ? (decimal?)readStatus.MaxChapter : null;
 
             // Wanted is the whole eligibility rule, so a chapter the user doesn't want must not
             // count as backlog either — otherwise an unwanted special sitting unread would hold the
             // series permanently "not due" and top-ups would stop.
-            downloaded = downloaded.Where(c => c.Wanted).ToList();
-
-            var unread = downloaded.Count(c => c.Number > (decimal?)readStatus.MaxChapter);
+            var unread = downloaded.Count(c => c.Wanted && (readMark is null || c.Number > readMark));
             if (unread <= limit)
-                due.Add(series);
+                due.Add((series, readMark));
         }
 
         return due;
