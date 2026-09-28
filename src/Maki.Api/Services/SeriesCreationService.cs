@@ -263,6 +263,7 @@ public class SeriesCreationService(
                 if (coverPath != null)
                 {
                     series.CoverPath = coverPath;
+                    series.SpineColor = await coverService.SampleSpineAsync(series.Id, ct);
                     await db.SaveChangesAsync(ct);
                     await coverService.WriteLibraryCoverAsync(series.Id, seriesFolder, ct);
                 }

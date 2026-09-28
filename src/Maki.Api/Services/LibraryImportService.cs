@@ -288,6 +288,7 @@ public class LibraryImportService(
             if (coverPath != null)
             {
                 series.CoverPath = coverPath;
+                series.SpineColor = await coverService.SampleSpineAsync(series.Id, ct);
                 await coverService.WriteLibraryCoverAsync(series.Id, targetDir, ct);
             }
         }

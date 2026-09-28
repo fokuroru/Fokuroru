@@ -105,6 +105,8 @@ export interface SeriesDto {
    * defers to the `seriesDefault` on your inbox prefs.
    */
   notificationMode: string
+  /** The colour sampled from the cover, `#rrggbb`, or null for the default spine. See lib/spine.ts. */
+  spineColor?: string | null
   /** Personal time left from comparable timed chapters in the built-in reader. Detail endpoint only. */
   readTimeEstimate?: {
     seconds: number

@@ -39,6 +39,7 @@ public class SeriesMetadataRefreshService(
         }
 
         series.CoverPath = coverPath;
+        series.SpineColor = await coverService.SampleSpineAsync(series.Id, ct);
         await coverService.WriteLibraryCoverAsync(series, ct);
         series.LastMetadataRefresh = DateTime.UtcNow;
         return true;
@@ -91,6 +92,7 @@ public class SeriesMetadataRefreshService(
             if (coverPath != null)
             {
                 series.CoverPath = coverPath;
+                series.SpineColor = await coverService.SampleSpineAsync(series.Id, ct);
                 await coverService.WriteLibraryCoverAsync(series, ct);
             }
         }

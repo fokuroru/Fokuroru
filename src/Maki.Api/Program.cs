@@ -811,6 +811,7 @@ try
     builder.Services.AddScoped<SeriesIdentityRepairService>();
     builder.Services.AddScoped<ImportPathRepairService>();
     builder.Services.AddScoped<ChapterFileDuplicateRepairService>();
+    builder.Services.AddScoped<SpineColorBackfillService>();
     builder.Services.AddScoped<BaoziChapterRenumberRepairService>();
     builder.Services.AddScoped<ActivityStatsService>();
     builder.Services.AddScoped<UserViewResolver>();
@@ -1214,6 +1215,9 @@ try
             .RunOnceAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         scope.ServiceProvider.GetRequiredService<ImportPathRepairService>()
+            .RunOnceAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+        scope.ServiceProvider.GetRequiredService<SpineColorBackfillService>()
             .RunOnceAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         // Rewrites any pre-existing bare-sub AspNetUserLogins rows for the oidc provider to the

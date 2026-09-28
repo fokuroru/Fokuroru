@@ -62,6 +62,13 @@ public class Series
     public string FolderName { get; set; } = string.Empty;
 
     public string? CoverPath { get; set; }
+
+    /// <summary>
+    /// The spine colour sampled from the cover (<c>SpineColor.Sample</c>), <c>#rrggbb</c>. Set
+    /// whenever the cover is downloaded; null when there is no cover, or it has no usable colour,
+    /// and the client then uses the default spine.
+    /// </summary>
+    public string? SpineColor { get; set; }
     public int? TotalChapters { get; set; }
     public int? TotalVolumes { get; set; }
     public string? AuthorStory { get; set; }

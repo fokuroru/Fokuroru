@@ -136,7 +136,12 @@ public record SeriesDto(
     /// "Default" (follow their global setting), "All", "Reading" or "Muted". Per-user like
     /// <see cref="Rating"/>, so it is passed in rather than read off the shared entity.
     /// </summary>
-    string NotificationMode = "Default")
+    string NotificationMode = "Default",
+    /// <summary>
+    /// <see cref="Series.SpineColor"/>: the colour sampled from the cover, <c>#rrggbb</c>, or null
+    /// for the default spine. The client derives the text and line variants per theme.
+    /// </summary>
+    string? SpineColor = null)
 {
     /// <summary>
     /// Non-fatal problems from <c>Add</c> — the series exists, but something best-effort around it
@@ -259,7 +264,8 @@ public record SeriesDto(
         readChapterCount,
         s.SourceMatchPending,
         s.Incognito.ToString(),
-        notificationMode.ToString());
+        notificationMode.ToString(),
+        s.SpineColor);
 
     /// <summary>
     /// The title to render for a caller preferring <paramref name="titleLanguage"/>. Considers the

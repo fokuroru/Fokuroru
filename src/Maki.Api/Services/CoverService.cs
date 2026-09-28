@@ -3,7 +3,9 @@ using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Notifications;
 using SixLabors.ImageSharp;
+using Maki.Core.Imaging;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 namespace Maki.Api.Services;
@@ -41,6 +43,27 @@ public class CoverService(
     {
         var path = CoverPathFor(seriesId);
         return File.Exists(path) ? path : null;
+    }
+
+    /// <summary>The spine colour of the stored poster, or null when there is none or it has no usable colour.</summary>
+    public async Task<string?> SampleSpineAsync(int seriesId, CancellationToken ct = default)
+    {
+        var path = CoverPathFor(seriesId);
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var image = await Image.LoadAsync<Rgb24>(path, ct);
+            return SpineColor.Sample(image);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not sample a spine colour for series {SeriesId}", seriesId);
+            return null;
+        }
     }
 
     public async Task<string?> DownloadCoverAsync(int seriesId, string coverUrl, CancellationToken ct = default)
