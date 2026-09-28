@@ -228,7 +228,7 @@ msgstr "Bu oturum açma bilgileri yeni bir hesaba bağlanamadı"
 #. English: No Maki account is linked to that login
 #, fuzzy
 msgid "error.auth.ssoNoAccountLinked"
-msgstr "Bu oturum açma bilgilerine bağlı bir Maki hesabı yok"
+msgstr "Bu oturum açma bilgilerine bağlı bir Fōkurōru hesabı yok"
 
 #. Shared by AuthController (the sign-in and link callbacks) and OidcSignInService: the provider's
 #. token carried no "sub" claim to identify the account by.
@@ -737,7 +737,7 @@ msgstr "Kavita'ya bağlı kullanıcı veya yönetici dışında kimse Kavita iç
 #. English: No Maki user is bound to Kavita (Settings → Reader → Kavita user)
 #, fuzzy
 msgid "error.reader.kavitaNoBoundUser"
-msgstr "Kavita'ya bağlı bir Maki kullanıcısı yok (Ayarlar → Okuyucu → Kavita kullanıcısı)"
+msgstr "Kavita'ya bağlı bir Fōkurōru kullanıcısı yok (Ayarlar → Okuyucu → Kavita kullanıcısı)"
 
 #: src/Maki.Api/Services/KavitaReadImportService.cs
 #. English: Kavita is not configured (Settings → Kavita)
@@ -1076,7 +1076,7 @@ msgstr "Hedef klasör zaten var: {folder}"
 #. English: Files not moved: {folder} doesn't exist. Move the files there first, or let Maki move them.
 #, fuzzy
 msgid "error.series.filesNotMoved"
-msgstr "Dosyalar taşınmadı: {folder} mevcut değil. Önce dosyaları oraya taşıyın veya Maki'nin taşımasına izin verin."
+msgstr "Dosyalar taşınmadı: {folder} mevcut değil. Önce dosyaları oraya taşıyın veya Fōkurōru'nin taşımasına izin verin."
 
 #. {folder} is a folder name inside the root folder and is never translated.
 #: src/Maki.Api/Controllers/SeriesController.cs
@@ -1442,7 +1442,7 @@ msgstr "İndirme artık qBittorrent'te yok"
 #. English: Download path not accessible from Maki: {path}
 #, fuzzy
 msgid "error.torrentImport.pathNotAccessible"
-msgstr "İndirme yoluna Maki erişemiyor: {path}"
+msgstr "İndirme yoluna Fōkurōru erişemiyor: {path}"
 
 #: src/Maki.Api/Controllers/UsersController.cs
 #. English: You cannot delete your own account
@@ -1816,7 +1816,7 @@ msgstr "Sıralama başlığı, ör. baştaki tanımlık sona taşınır"
 #. English: The series title as Maki has it
 #, fuzzy
 msgid "naming.token.seriestitle.description"
-msgstr "Maki'deki seri başlığı"
+msgstr "Fōkurōru'deki seri başlığı"
 
 #: src/Maki.Core/Naming/NamingTokens.cs
 #. English: Title with the release year in brackets; just the title when the year is unknown
@@ -1840,26 +1840,26 @@ msgstr "Yayın yılı; bilinmiyorsa boş"
 #. English: Backup is missing maki.db. This is not a Maki backup.
 #, fuzzy
 msgid "error.system.backupMissingDb"
-msgstr "Yedekte maki.db yok. Bu bir Maki yedeği değil."
+msgstr "Yedekte maki.db yok. Bu bir Fōkurōru yedeği değil."
 
 #: src/Maki.Api/Services/BackupService.cs
 #. English: The database in this backup is damaged or is not a Maki database. Nothing was changed.
 #, fuzzy
 msgid "error.system.backupInvalidDb"
-msgstr "Bu yedekteki veritabanı hasarlı veya bir Maki veritabanı değil. Hiçbir şey değiştirilmedi."
+msgstr "Bu yedekteki veritabanı hasarlı veya bir Fōkurōru veritabanı değil. Hiçbir şey değiştirilmedi."
 
 #. {migration} is the unrecognised EF migration name the backup's manifest carries.
 #: src/Maki.Api/Services/BackupService.cs
 #. English: Backup is from a newer version (migration "{migration}" unknown to this build). Upgrade Maki before restoring it.
 #, fuzzy
 msgid "error.system.backupTooNew"
-msgstr "Yedek daha yeni bir sürümden alınmış (bu derlemede \"{migration}\" geçişi bilinmiyor). Geri yüklemeden önce Maki'yi güncelle."
+msgstr "Yedek daha yeni bir sürümden alınmış (bu derlemede \"{migration}\" geçişi bilinmiyor). Geri yüklemeden önce Fōkurōru'yi güncelle."
 
 #: src/Maki.Api/Services/BackupService.cs
 #. English: This file is not a readable Maki backup. The zip or its manifest is damaged. Nothing was changed.
 #, fuzzy
 msgid "error.system.backupUnreadable"
-msgstr "Bu dosya okunabilir bir Maki yedeği değil. ZIP dosyası ya da manifest dosyası hasarlı. Hiçbir şey değiştirilmedi."
+msgstr "Bu dosya okunabilir bir Fōkurōru yedeği değil. ZIP dosyası ya da manifest dosyası hasarlı. Hiçbir şey değiştirilmedi."
 
 #: src/Maki.Api/Controllers/SystemController.cs
 #. English: No file uploaded.
@@ -2180,7 +2180,7 @@ msgstr "Güncelleme mevcut"
 #. English: Maki {latest} is available (running {current}).
 #, fuzzy
 msgid "inbox.update.available.body"
-msgstr "Maki {latest} kullanılabilir (şu an {current} çalışıyor)."
+msgstr "Fōkurōru {latest} kullanılabilir (şu an {current} çalışıyor)."
 
 #. The six tier names, in order. They are the rungs of a graded achievement and read as
 #. medal names, not as adjectives.
@@ -2479,7 +2479,7 @@ msgstr "Seçtiğiniz kaynak bu bölümü sağlayamadı"
 #. English: Something went wrong, Maki will try again
 #, fuzzy
 msgid "error.download.unexpected"
-msgstr "Bir şeyler ters gitti, Maki tekrar deneyecek"
+msgstr "Bir şeyler ters gitti, Fōkurōru tekrar deneyecek"
 
 #. {source} is a site name (MangaDex, Weeb Central), never translated. The queue row shows when the
 #. next attempt is as its own field, in the reader's own zone, so it is not repeated here.
@@ -2495,7 +2495,7 @@ msgstr "{source} tarafından hız sınırlandı, bir sonraki denemeden önce bek
 #. English: Still early access on {source}, Maki will check again later
 #, fuzzy
 msgid "error.download.earlyAccess"
-msgstr "{source} üzerinde hâlâ erken erişimde, Maki daha sonra tekrar kontrol edecek"
+msgstr "{source} üzerinde hâlâ erken erişimde, Fōkurōru daha sonra tekrar kontrol edecek"
 
 #: src/Maki.Api/Services/DownloadQueueService.cs
 #. English: Took too long to find a source
@@ -2616,7 +2616,7 @@ msgstr "Güncelleme mevcut"
 #. English: Maki {latest} is available (running {current}).
 #, fuzzy
 msgid "notify.update.available.body"
-msgstr "Maki {latest} kullanılabilir (şu an {current} çalışıyor)."
+msgstr "Fōkurōru {latest} kullanılabilir (şu an {current} çalışıyor)."
 
 #: src/Maki.Api/Jobs/RefreshMonitoredSeriesJob.cs
 #. English: New chapters available
@@ -2752,7 +2752,7 @@ msgstr "{series} için eşleşen kaynak bulunamadı. Seri sayfasından elle bir 
 #. English: Maki test notification
 #, fuzzy
 msgid "notify.test.title"
-msgstr "Maki test bildirimi"
+msgstr "Fōkurōru test bildirimi"
 
 #: src/Maki.Api/Controllers/NotificationsController.cs
 #. English: This is a test from your {name} connection. If you can read this, it works.
@@ -2812,7 +2812,7 @@ msgstr "Arama: {query}"
 #. English: Search the Maki library
 #, fuzzy
 msgid "opds.search.description"
-msgstr "Maki kitaplığında ara"
+msgstr "Fōkurōru kitaplığında ara"
 
 #. The scrobble activity log, read by the person whose sync it was. Roughly half the log is Maki
 #. narrating what it did, which these cover; the other half is a tracker's or Kavita's own response

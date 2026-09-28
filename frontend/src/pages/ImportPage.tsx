@@ -218,7 +218,7 @@ export default function ImportPage() {
       <PageHeader
         compact
         title={t`Import library`}
-        description={t`Scans a root folder for series Maki doesn't know yet, matches them to metadata, renames each folder to the English title, and links existing comic files to chapters. Files keep their original names; a PDF is kept as it is, never converted.`}
+        description={t`Scans a root folder for series Fōkurōru doesn't know yet, matches them to metadata, renames each folder to the English title, and links existing comic files to chapters. Files keep their original names; a PDF is kept as it is, never converted.`}
       />
 
       <div className="import-workspace">
@@ -292,10 +292,10 @@ export default function ImportPage() {
         <Text size="xs" c="var(--ink-3)" mb="lg">
           <Trans>
             Rewrites the metadata embedded in each CBZ (title, summary, authors, genres, chapter
-            numbers) to Maki's standard so Kavita groups these files with future downloads and
+            numbers) to Fōkurōru's standard so Kavita groups these files with future downloads and
             imports; PDFs are skipped, since there is nowhere in a PDF to put it. If Kavita
             already indexed this library, its existing entries may reshuffle; skipping keeps the
-            files byte-for-byte untouched, but they may not group consistently with chapters Maki
+            files byte-for-byte untouched, but they may not group consistently with chapters Fōkurōru
             adds later.
           </Trans>
         </Text>

@@ -200,7 +200,7 @@ export function ImportReviewModal({
 
           <Text size="xs" c="var(--ink-3)">
             <Trans>The torrent keeps seeding whichever you pick.</Trans>{' '}
-            <Trans>Deleted files are removed from disk and cannot be recovered from Maki.</Trans>
+            <Trans>Deleted files are removed from disk and cannot be recovered from Fōkurōru.</Trans>
           </Text>
         </Stack>
       )}

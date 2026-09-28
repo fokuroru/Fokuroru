@@ -375,8 +375,8 @@ public class ReadingProgressService(
     }
 
     /// <summary>
-    /// "Finished" = the reader reached the highest chapter Maki knows for a series whose
-    /// publication status is Completed. Unmatched Kavita series can never finish (no local
+    /// "Finished" = the reader reached the highest chapter Maki knows for a series that has ended
+    /// or is on hiatus (<see cref="ReadingStatuses.Ended"/>). Caught up on a running series is not finished. Unmatched Kavita series can never finish (no local
     /// chapter list to compare against) — acceptable.
     /// </summary>
     private async Task<bool> IsSeriesFinishedAsync(int? localSeriesId, double maxChapter, CancellationToken ct)
@@ -388,7 +388,7 @@ public class ReadingProgressService(
 
         var status = await db.Series.Where(s => s.Id == sid)
             .Select(s => (SeriesStatus?)s.Status).FirstOrDefaultAsync(ct);
-        if (status != SeriesStatus.Completed)
+        if (status is not { } st || !ReadingStatuses.Ended(st))
         {
             return false;
         }

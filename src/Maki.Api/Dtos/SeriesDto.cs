@@ -141,7 +141,15 @@ public record SeriesDto(
     /// <see cref="Series.SpineColor"/>: the colour sampled from the cover, <c>#rrggbb</c>, or null
     /// for the default spine. The client derives the text and line variants per theme.
     /// </summary>
-    string? SpineColor = null)
+    string? SpineColor = null,
+    /// <summary>
+    /// <em>This user's</em> <see cref="Maki.Core.Entities.ReadingStatus"/> against the whole series:
+    /// "Reading", "UpToDate" (every main release read, series still running) or "Completed" (every
+    /// main release read, series ended or on hiatus). Null when they have read nothing.
+    /// </summary>
+    string? ReadingStatus = null,
+    /// <summary>When this user last touched a chapter of the series in any reader, for the "Last read" sort. Null if never.</summary>
+    DateTime? LastReadAt = null)
 {
     /// <summary>
     /// Non-fatal problems from <c>Add</c> — the series exists, but something best-effort around it

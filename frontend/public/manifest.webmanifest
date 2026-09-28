@@ -1,6 +1,6 @@
 {
-  "name": "Maki - Manga manager",
-  "short_name": "Maki",
+  "name": "Fōkurōru - Manga manager",
+  "short_name": "Fōkurōru",
   "description": "Monitors manga sources for new chapters, downloads them as CBZ, and reads them.",
   "start_url": "/",
   "scope": "/",

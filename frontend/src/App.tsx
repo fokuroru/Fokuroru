@@ -394,7 +394,7 @@ function AppShellRoutes() {
           </span>
           <div>
             <Text fz="lg" lh={1} className="brand-wordmark">
-              Maki
+              Fōkurōru
             </Text>
             <Text fz={10} c="var(--ink-3)" fw={600}>
               <Trans>Manga manager</Trans>

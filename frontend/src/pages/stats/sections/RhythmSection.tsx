@@ -68,7 +68,7 @@ export default function RhythmSection({ userId, range, windowLabel }: StatsSecti
       <EmptyState
         compact
         title={t`Reading stats need Kavita`}
-        description={t`Connect it in Settings and Maki will start tracking chapters you read. Downloads and library changes are tracked either way.`}
+        description={t`Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way.`}
       />
     )
   }
@@ -95,7 +95,7 @@ export default function RhythmSection({ userId, range, windowLabel }: StatsSecti
       <EmptyState
         compact
         title={t`No timed reading yet`}
-        description={t`Only Maki's reader records when you read. Chapters marked read from Kavita or OPDS apps do not carry a time.`}
+        description={t`Only Fōkurōru's reader records when you read. Chapters marked read from Kavita or OPDS apps do not carry a time.`}
       />
     )
   }

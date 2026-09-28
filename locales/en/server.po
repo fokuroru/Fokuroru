@@ -164,7 +164,7 @@ msgstr "Could not link that login to a new account"
 
 #: src/Maki.Api/Auth/OidcSignInService.cs
 msgid "error.auth.ssoNoAccountLinked"
-msgstr "No Maki account is linked to that login"
+msgstr "No Fōkurōru account is linked to that login"
 
 #. Shared by AuthController (the sign-in and link callbacks) and OidcSignInService: the provider's
 #. token carried no "sub" claim to identify the account by.
@@ -515,7 +515,7 @@ msgstr "Only the user bound to Kavita or an administrator can run the Kavita imp
 #. The Kavita read-status import found no user bound in Settings → Reader → Kavita user.
 #: src/Maki.Api/Services/KavitaReadImportService.cs
 msgid "error.reader.kavitaNoBoundUser"
-msgstr "No Maki user is bound to Kavita (Settings → Reader → Kavita user)"
+msgstr "No Fōkurōru user is bound to Kavita (Settings → Reader → Kavita user)"
 
 #: src/Maki.Api/Services/KavitaReadImportService.cs
 msgid "error.reader.kavitaNotConfigured"
@@ -748,7 +748,7 @@ msgstr "Destination folder already exists: {folder}"
 #. {folder} is an absolute filesystem path and is never translated.
 #: src/Maki.Api/Controllers/SeriesController.cs
 msgid "error.series.filesNotMoved"
-msgstr "Files not moved: {folder} doesn't exist. Move the files there first, or let Maki move them."
+msgstr "Files not moved: {folder} doesn't exist. Move the files there first, or let Fōkurōru move them."
 
 #. {folder} is a folder name inside the root folder and is never translated.
 #: src/Maki.Api/Controllers/SeriesController.cs
@@ -1002,7 +1002,7 @@ msgstr "The download is no longer in qBittorrent"
 #. {path} is a filesystem path and is never translated.
 #: src/Maki.Api/Services/TorrentImportService.cs
 msgid "error.torrentImport.pathNotAccessible"
-msgstr "Download path not accessible from Maki: {path}"
+msgstr "Download path not accessible from Fōkurōru: {path}"
 
 #: src/Maki.Api/Controllers/UsersController.cs
 msgid "error.users.cannotDeleteSelf"
@@ -1263,7 +1263,7 @@ msgstr "The sort title, e.g. leading article moved to the end"
 
 #: src/Maki.Core/Naming/NamingTokens.cs
 msgid "naming.token.seriestitle.description"
-msgstr "The series title as Maki has it"
+msgstr "The series title as Fōkurōru has it"
 
 #: src/Maki.Core/Naming/NamingTokens.cs
 msgid "naming.token.seriestitleyear.description"
@@ -1279,20 +1279,20 @@ msgstr "Release year; blank when unknown"
 
 #: src/Maki.Api/Services/BackupService.cs
 msgid "error.system.backupMissingDb"
-msgstr "Backup is missing maki.db. This is not a Maki backup."
+msgstr "Backup is missing maki.db. This is not a Fōkurōru backup."
 
 #: src/Maki.Api/Services/BackupService.cs
 msgid "error.system.backupInvalidDb"
-msgstr "The database in this backup is damaged or is not a Maki database. Nothing was changed."
+msgstr "The database in this backup is damaged or is not a Fōkurōru database. Nothing was changed."
 
 #. {migration} is the unrecognised EF migration name the backup's manifest carries.
 #: src/Maki.Api/Services/BackupService.cs
 msgid "error.system.backupTooNew"
-msgstr "Backup is from a newer version (migration \"{migration}\" unknown to this build). Upgrade Maki before restoring it."
+msgstr "Backup is from a newer version (migration \"{migration}\" unknown to this build). Upgrade Fōkurōru before restoring it."
 
 #: src/Maki.Api/Services/BackupService.cs
 msgid "error.system.backupUnreadable"
-msgstr "This file is not a readable Maki backup. The zip or its manifest is damaged. Nothing was changed."
+msgstr "This file is not a readable Fōkurōru backup. The zip or its manifest is damaged. Nothing was changed."
 
 #: src/Maki.Api/Controllers/SystemController.cs
 msgid "error.system.noFileUploaded"
@@ -1534,7 +1534,7 @@ msgstr "Update available"
 #. Maki is the product name and version numbers are never translated.
 #: src/Maki.Api/Services/UpdateCheckService.cs
 msgid "inbox.update.available.body"
-msgstr "Maki {latest} is available (running {current})."
+msgstr "Fōkurōru {latest} is available (running {current})."
 
 #. The six tier names, in order. They are the rungs of a graded achievement and read as
 #. medal names, not as adjectives.
@@ -1737,7 +1737,7 @@ msgstr "The source you picked could not provide this chapter"
 #: src/Maki.Api/Services/DownloadQueueService.cs
 #: src/Maki.Api/Services/DownloadWorkerHostedService.cs
 msgid "error.download.unexpected"
-msgstr "Something went wrong, Maki will try again"
+msgstr "Something went wrong, Fōkurōru will try again"
 
 #. {source} is a site name (MangaDex, Weeb Central), never translated. The queue row shows when the
 #. next attempt is as its own field, in the reader's own zone, so it is not repeated here.
@@ -1749,7 +1749,7 @@ msgstr "Rate limited by {source}, waiting before the next try"
 
 #: src/Maki.Api/Services/ChapterDownloadProcessor.cs
 msgid "error.download.earlyAccess"
-msgstr "Still early access on {source}, Maki will check again later"
+msgstr "Still early access on {source}, Fōkurōru will check again later"
 
 #: src/Maki.Api/Services/DownloadQueueService.cs
 msgid "error.download.resolveTimedOut"
@@ -1838,7 +1838,7 @@ msgstr "Update available"
 
 #: src/Maki.Api/Services/UpdateCheckService.cs
 msgid "notify.update.available.body"
-msgstr "Maki {latest} is available (running {current})."
+msgstr "Fōkurōru {latest} is available (running {current})."
 
 #: src/Maki.Api/Jobs/RefreshMonitoredSeriesJob.cs
 msgid "notify.chapters.available.title"
@@ -1938,7 +1938,7 @@ msgstr "No source matched {series}. Link one by hand from the series page."
 #. connection and is never translated.
 #: src/Maki.Api/Controllers/NotificationsController.cs
 msgid "notify.test.title"
-msgstr "Maki test notification"
+msgstr "Fōkurōru test notification"
 
 #: src/Maki.Api/Controllers/NotificationsController.cs
 msgid "notify.test.body"
@@ -1980,7 +1980,7 @@ msgstr "Search: {query}"
 #. and stays as it is.
 #: src/Maki.Api/Controllers/OpdsController.cs
 msgid "opds.search.description"
-msgstr "Search the Maki library"
+msgstr "Search the Fōkurōru library"
 
 #. The scrobble activity log, read by the person whose sync it was. Roughly half the log is Maki
 #. narrating what it did, which these cover; the other half is a tracker's or Kavita's own response

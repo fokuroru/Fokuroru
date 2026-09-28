@@ -781,7 +781,7 @@ function RecommendedTab() {
           description={
             isCustomized
               ? t`No matches for these seeds and filters. Try loosening them.`
-              : t`Add some series to your library first and Maki will suggest more like them.`
+              : t`Add some series to your library first and Fōkurōru will suggest more like them.`
           }
           actionLabel={isCustomized ? undefined : t`Go to library`}
           actionTo={isCustomized ? undefined : '/library'}

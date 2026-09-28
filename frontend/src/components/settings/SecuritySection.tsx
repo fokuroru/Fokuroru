@@ -52,20 +52,20 @@ export function SecuritySection() {
         <Trans>Security</Trans>
       </Title>
       <SettingsHelp mb="md">
-        <Trans>Changes take effect after Maki restarts.</Trans>
+        <Trans>Changes take effect after Fōkurōru restarts.</Trans>
       </SettingsHelp>
 
       <Stack gap="md">
         <Switch
           label={t`Require HTTPS`}
-          description={t`Redirects HTTP to HTTPS, sends HSTS and marks the session cookie Secure. Only turn this on once Maki is behind TLS: over plain HTTP, sign-in fails without saying why.`}
+          description={t`Redirects HTTP to HTTPS, sends HSTS and marks the session cookie Secure. Only turn this on once Fōkurōru is behind TLS: over plain HTTP, sign-in fails without saying why.`}
           checked={draft.requireHttps}
           onChange={(e) => setDraft({ ...draft, requireHttps: e.currentTarget.checked })}
         />
 
         <TextInput
           label={t`Trusted proxies`}
-          description={t`Comma-separated IPs or CIDR networks. Only these are trusted to set X-Forwarded-For. Leave empty if Maki is reached directly.`}
+          description={t`Comma-separated IPs or CIDR networks. Only these are trusted to set X-Forwarded-For. Leave empty if Fōkurōru is reached directly.`}
           placeholder="172.18.0.0/16, 10.0.0.5"
           value={draft.trustedProxies}
           onChange={(e) => setDraft({ ...draft, trustedProxies: e.currentTarget.value })}
@@ -116,7 +116,7 @@ export function SecuritySection() {
               save.mutate(draft, {
                 onSuccess: () =>
                   notifications.show({
-                    message: now`Security settings saved. Restart Maki to apply them.`,
+                    message: now`Security settings saved. Restart Fōkurōru to apply them.`,
                     color: 'var(--ok)',
                   }),
                 onError: (e) => notifications.show({ message: e.message, color: 'var(--danger)' }),
@@ -158,9 +158,9 @@ export function OidcSection() {
       <SettingsHelp mb="md">
         <Trans>
           Sign in through an OpenID Connect provider (Authelia, Keycloak, Authentik, Entra ID). Changes
-          take effect after Maki restarts. Register{' '}
+          take effect after Fōkurōru restarts. Register{' '}
           <Code>{redirectUrl}</Code> as this client&apos;s redirect URI.
-          If Maki is reached at another host too (a different domain, LAN IP, or reverse-proxy path),
+          If Fōkurōru is reached at another host too (a different domain, LAN IP, or reverse-proxy path),
           register that host&apos;s variant as well.
         </Trans>
       </SettingsHelp>
@@ -175,7 +175,7 @@ export function OidcSection() {
 
         <TextInput
           label={t`Issuer URL`}
-          description={t`The provider's issuer, without /.well-known/openid-configuration. Maki appends that itself.`}
+          description={t`The provider's issuer, without /.well-known/openid-configuration. Fōkurōru appends that itself.`}
           placeholder="https://auth.example.com"
           value={draft.authority}
           onChange={(e) => setDraft({ ...draft, authority: e.currentTarget.value })}
@@ -229,7 +229,7 @@ export function OidcSection() {
 
         <Switch
           label={t`Create accounts on first sign-in`}
-          description={t`Off by default: with it on, anyone your provider will authenticate gets a Maki account. New accounts start with no library access until you grant a root folder.`}
+          description={t`Off by default: with it on, anyone your provider will authenticate gets a Fōkurōru account. New accounts start with no library access until you grant a root folder.`}
           checked={draft.autoProvision}
           onChange={(e) => setDraft({ ...draft, autoProvision: e.currentTarget.checked })}
         />
@@ -277,7 +277,7 @@ export function OidcSection() {
               save.mutate(draft, {
                 onSuccess: () =>
                   notifications.show({
-                    message: now`Single sign-on saved. Restart Maki to apply it.`,
+                    message: now`Single sign-on saved. Restart Fōkurōru to apply it.`,
                     color: 'var(--ok)',
                   }),
                 onError: (e) => notifications.show({ message: e.message, color: 'var(--danger)' }),

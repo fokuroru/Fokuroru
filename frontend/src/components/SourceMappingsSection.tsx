@@ -532,7 +532,7 @@ export function SourceMappingsSection({
               <Stack gap="xs">
                 <Text size="sm">
                   <Trans>
-                    {missingSnapshotNames} must record a chapter snapshot before Maki can safely
+                    {missingSnapshotNames} must record a chapter snapshot before Fōkurōru can safely
                     clean the list. Later source removals use the stored snapshots and make no
                     source requests.
                   </Trans>

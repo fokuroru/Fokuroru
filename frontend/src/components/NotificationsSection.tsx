@@ -90,7 +90,7 @@ const EVENT_GROUPS: { title: MessageDescriptor; fields: EventField[] }[] = [
     title: msg`System`,
     fields: [
       { key: 'healthIssue', label: msg`Health issue`, description: msg`A new system health problem was detected.` },
-      { key: 'updateAvailable', label: msg`Update available`, description: msg`A newer Maki release was published.` },
+      { key: 'updateAvailable', label: msg`Update available`, description: msg`A newer Fōkurōru release was published.` },
     ],
   },
 ]

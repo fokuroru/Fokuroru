@@ -771,6 +771,19 @@ public class ScrobbleService(
     /// </summary>
     private readonly record struct PushTarget(int? KavitaSeriesId, int? SeriesId, string Title);
 
+    /// <summary>
+    /// Whether the local series is still coming out, so reaching the tracker's total means caught
+    /// up rather than completed. Kavita-driven pushes have no local series and keep the old rule.
+    /// </summary>
+    private async Task<bool> StillRunningAsync(int seriesId, CancellationToken ct)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<MakiDbContext>();
+        var status = await db.Series.IgnoreQueryFilters().Where(s => s.Id == seriesId)
+            .Select(s => (SeriesStatus?)s.Status).FirstOrDefaultAsync(ct);
+        return status is { } st && !ReadingStatuses.Ended(st);
+    }
+
     /// <summary>Forward-only update of one tracker. Returns true when a write happened.</summary>
     private async Task<bool> PushAsync(
         int userId, IScrobbleTracker tracker, string remoteId, PushTarget target,
@@ -778,7 +791,8 @@ public class ScrobbleService(
     {
         var title = target.Title;
         var entry = await tracker.GetEntryAsync(userId, remoteId, ct);
-        var plan = ScrobblePlanner.Decide(entry, chapter, volume, fallbackStatus);
+        var stillRunning = target.SeriesId is int sid && await StillRunningAsync(sid, ct);
+        var plan = ScrobblePlanner.Decide(entry, chapter, volume, fallbackStatus, stillRunning);
 
         if (!plan.Write)
         {

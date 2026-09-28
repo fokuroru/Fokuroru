@@ -251,7 +251,7 @@ function TwoFactorCard() {
             ) : status && !status.available ? (
               <Trans>This account has no password login for two-factor to protect.</Trans>
             ) : (
-              <Trans>The single biggest improvement if Maki is reachable from the internet.</Trans>
+              <Trans>The single biggest improvement if Fōkurōru is reachable from the internet.</Trans>
             )}
           </Text>
         </div>

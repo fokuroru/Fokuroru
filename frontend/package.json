@@ -18,6 +18,13 @@
   },
   "dependencies": {
     "@fontsource-variable/martian-mono": "^5.3.0",
+    "@fontsource/dela-gothic-one": "^5.3.0",
+    "@fontsource/mochiy-pop-one": "^5.3.0",
+    "@fontsource/potta-one": "^5.3.0",
+    "@fontsource/rampart-one": "^5.3.0",
+    "@fontsource/reggae-one": "^5.3.0",
+    "@fontsource/rubik-mono-one": "^5.3.0",
+    "@fontsource/train-one": "^5.3.0",
     "@fontsource/zen-kaku-gothic-new": "^5.3.0",
     "@lingui/core": "^6.7.0",
     "@lingui/react": "^6.7.0",

@@ -145,11 +145,24 @@ export const SeriesRow = memo(function SeriesRow({
           {unread === 0 && (
             <span
               className="cover-badge cover-badge-read"
-              data-tip={t`All downloaded chapters read`}
+              data-state={series.readingStatus ?? undefined}
+              data-tip={
+                series.readingStatus === 'Completed'
+                  ? t`Every chapter read, and the series has ended`
+                  : series.readingStatus === 'UpToDate'
+                    ? t`Every chapter out so far read, more to come`
+                    : t`All downloaded chapters read`
+              }
               style={{ flexShrink: 0 }}
             >
               <IconCircleCheckFilled size={11} />
-              <Trans>Read</Trans>
+              {series.readingStatus === 'Completed' ? (
+                <Trans>Completed</Trans>
+              ) : series.readingStatus === 'UpToDate' ? (
+                <Trans>Up to date</Trans>
+              ) : (
+                <Trans>Read</Trans>
+              )}
             </span>
           )}
           <div className="row-bar">

@@ -1,53 +1,298 @@
-import { Link } from 'react-router-dom'
-import { Trans, useLingui } from '@lingui/react/macro'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useLingui } from '@lingui/react/macro'
+import '@fontsource/dela-gothic-one/latin-400.css'
+import '@fontsource/rampart-one/latin-400.css'
+import '@fontsource/reggae-one/latin-400.css'
+import '@fontsource/train-one/latin-400.css'
+import '@fontsource/rubik-mono-one/latin-400.css'
+import '@fontsource/mochiy-pop-one/latin-400.css'
+import '@fontsource/potta-one/latin-400.css'
+import { api } from '../../api/client'
 import type { SeriesDto } from '../../api/types'
 import { seriesProgressVisual } from '../ui/status'
-import { DEFAULT_SPINE, spineInk } from '../../lib/spine'
+import { contrast, DEFAULT_SPINE, spineInk } from '../../lib/spine'
 
-const MAX_SPINES = 14
+const MAX_SERIES = 14
+const CHAPTERS_PER_BOOK = 20
+const MAX_BOOKS = 5
+/** Spines carrying cover art share one width, so the art sits in the same frame on every book. */
+const ART_WIDTH = 46
+const DARK = '#141210'
+const BONE = '#f5efe4'
+
+/** Display faces, with the average sideways advance per character in em, which decides whether a title fits. */
+const FACES: [string, number][] = [
+  ["'Dela Gothic One'", 0.95],
+  ["'Rampart One'", 0.95],
+  ["'Reggae One'", 0.95],
+  ["'Train One'", 0.95],
+  ["'Rubik Mono One'", 0.9],
+  ["'Mochiy Pop One'", 0.95],
+  ["'Potta One'", 0.95],
+]
+
+type Style = 'imprint' | 'type' | 'label' | 'twotone' | 'art'
+const STYLES: Style[] = ['imprint', 'type', 'label', 'twotone', 'art']
+type Shape = 'circle' | 'square' | 'diamond' | 'bare' | 'bar'
+const SHAPES: Shape[] = ['circle', 'square', 'diamond', 'bare', 'bar']
+
+/** Stable per series: the same series always draws the same style, face and shape. */
+function pick(id: number, salt: string, n: number): number {
+  let h = 2166136261
+  for (const c of `${id}:${salt}`) h = Math.imul(h ^ c.charCodeAt(0), 16777619)
+  return (h >>> 0) % n
+}
+
+function shade(hex: string, f: number): string {
+  const n = parseInt(hex.slice(1), 16)
+  const c = [n >> 16, (n >> 8) & 255, n & 255].map((x) => Math.max(0, Math.min(255, Math.round(x * f))))
+  return '#' + c.map((x) => x.toString(16).padStart(2, '0')).join('')
+}
+
+function isPale(hex: string): boolean {
+  return contrast(hex, '#ffffff') < 2.2
+}
+
+/** Each volume a step lighter or darker than the last, like a publisher cycling the series colour. */
+function tone(spine: string, i: number, n: number): string {
+  if (n === 1) return spine
+  return shade(spine, 1 + (i - (n - 1) / 2) * (isPale(spine) ? 0.05 : 0.07))
+}
+
+function sizeFor(title: string, room: number, width: number, adv: number, cap: number): [number, number] {
+  const n = Math.max(title.length, 1)
+  for (const [cols, lo] of [[1, 11], [2, 9], [3, 8]] as const) {
+    if (cols > 1 && width < 16 * cols + 6) continue
+    // Across the spine each column needs about 1.3em: the line box plus the display faces' overhang.
+    const size = Math.min((room * cols) / n / adv, (width - 10) / (cols * 1.3))
+    if (size >= lo) return [Math.min(cols === 1 ? cap : 15, size), cols]
+  }
+  return [8, 3]
+}
 
 /**
- * "Reading now" as a shelf of spines: the series you are partway through, each a block in the
- * colour sampled from its cover with its title running top to bottom. Height follows the chapter
- * count and width the volume count, so a long series reads as a thick book, the way it would on a
- * real shelf. Renders nothing when nothing is in progress.
+ * The title at the largest size that fits the room. A title too long for the spine falls back to
+ * the short form a spine logo would use: the part before a colon or comma, then the first words.
+ */
+function fitTitle(title: string, room: number, width: number, adv: number, cap = 19): [string, number, number] {
+  const [size, cols] = sizeFor(title, room, width, adv, cap)
+  if (cols < 3 && size >= 9) return [title, size, cols]
+  for (const cut of [':', ',']) {
+    if (!title.includes(cut)) continue
+    const short = title.split(cut)[0].trim()
+    const [s, c] = sizeFor(short, room, width, adv, cap)
+    if (s >= 9) return [short, s, c]
+  }
+  const words = title.split(/\s+/)
+  while (words.length > 2) {
+    words.pop()
+    const short = words.join(' ')
+    const [s, c] = sizeFor(short, room, width, adv, cap)
+    if (s >= 10) return [short, s, c]
+  }
+  return [title, size, cols]
+}
+
+interface Book {
+  n: number
+  /** 0 to 1: how much of the chapters this book stands for have been read. */
+  done: number
+}
+
+/** One book per 20 chapters, at most five; past a hundred chapters the five share them out. */
+function booksFor(total: number, read: number): Book[] {
+  const count = Math.min(MAX_BOOKS, Math.max(1, Math.ceil(total / CHAPTERS_PER_BOOK)))
+  const per = Math.ceil(Math.max(total, 1) / count)
+  return Array.from({ length: count }, (_, i) => {
+    const lo = i * per
+    const hi = Math.min(total, (i + 1) * per)
+    return { n: i + 1, done: Math.max(0, Math.min(1, (read - lo) / Math.max(hi - lo, 1))) }
+  })
+}
+
+function Numeral({ id, n, fg, bg }: { id: number; n: number; fg: string; bg: string }) {
+  const shape = SHAPES[pick(id, 'shape', SHAPES.length)]
+  const face = FACES[pick(id, 'numface', FACES.length)][0]
+  return (
+    <span className="spine-num" data-shape={shape} style={{ '--num-fg': fg, '--num-bg': bg, fontFamily: face } as CSSProperties}>
+      {n}
+    </span>
+  )
+}
+
+function VTitle({ text, size, cols, face, color }: { text: string; size: number; cols: number; face: string; color: string }) {
+  return (
+    <span
+      className="spine-book-title"
+      data-wrap={cols > 1 || undefined}
+      style={{ fontFamily: face, fontSize: size, color }}
+    >
+      {text}
+    </span>
+  )
+}
+
+/** Thickness of each book in a run. Cover-art spines share one width so the art sits in the same frame. */
+function widthsFor(s: SeriesDto, style: Style, count: number): number[] {
+  const art = style === 'art' && !!s.coverUrl
+  return Array.from({ length: count }, (_, i) => (art ? ART_WIDTH : 26 + pick(s.id, `thick${i}`, 7) * 5))
+}
+
+function SpineBook({ s, book, index, count, style, height, width, fitWidth }: {
+  s: SeriesDto
+  book: Book
+  index: number
+  count: number
+  style: Style
+  height: number
+  width: number
+  /** The thinnest book in the run: every book is fitted to it so the run carries one title, not several. */
+  fitWidth: number
+}) {
+  const base = s.spineColor ?? DEFAULT_SPINE
+  const spine = tone(base, index, count)
+  const ink = spineInk(spine)
+  const [face, adv] = FACES[pick(s.id, 'face', FACES.length)]
+  const art = style === 'art' && !!s.coverUrl
+  const title = s.displayTitle
+  let body: ReactNode
+  let ground = spine
+
+  if (style === 'twotone') {
+    ground = pick(s.id, 'paper', 3) ? '#ece5d8' : BONE
+    const text = isPale(base) ? '#1d1b19' : spine
+    const [t, size, cols] = fitTitle(title, height - 80, fitWidth, adv)
+    body = (
+      <>
+        <span className="spine-band" style={{ height: 40, background: spine }}>
+          <Numeral id={s.id} n={book.n} fg={ink} bg={spine} />
+        </span>
+        <span className="spine-col" style={{ padding: '8px 0' }}>
+          <VTitle text={t} size={size} cols={cols} face={face} color={text} />
+        </span>
+        <span className="spine-band" style={{ height: 12, background: spine }} />
+      </>
+    )
+  } else if (style === 'label') {
+    const dark = pick(s.id, 'label', 2) === 0
+    const [t, size, cols] = fitTitle(title, height - 76, fitWidth - 8, adv)
+    body = (
+      <span className="spine-col">
+        <Numeral id={s.id} n={book.n} fg={ink} bg={spine} />
+        <span className="spine-label" style={{ width: width - 8, background: dark ? DARK : BONE }}>
+          <VTitle text={t} size={size} cols={cols} face={face} color={dark ? BONE : DARK} />
+        </span>
+      </span>
+    )
+  } else if (style === 'type') {
+    const [t, size, cols] = fitTitle(title, height - 64, fitWidth, adv, 24)
+    const parts = [
+      <Numeral key="n" id={s.id} n={book.n} fg={ink} bg={spine} />,
+      <span key="r" className="spine-rule" style={{ background: ink }} />,
+      <VTitle key="t" text={t} size={size} cols={cols} face={face} color={ink} />,
+    ]
+    body = <span className="spine-col">{pick(s.id, 'num', 2) === 0 ? parts : parts.reverse()}</span>
+  } else if (art) {
+    const plateHeight = Math.round((width - 8) * 1.42)
+    const [t, size, cols] = fitTitle(title, height - plateHeight - 62, fitWidth, adv)
+    body = (
+      <>
+        <span
+          className="spine-art"
+          style={{ width: width - 8, height: plateHeight, backgroundImage: `url(${s.coverUrl})` }}
+        />
+        <span className="spine-col" style={{ padding: '8px 0 10px' }}>
+          <Numeral id={s.id} n={book.n} fg={ink} bg={spine} />
+          <VTitle text={t} size={size} cols={cols} face={face} color={ink} />
+        </span>
+      </>
+    )
+  } else {
+    const [t, size, cols] = fitTitle(title, height - 60, fitWidth, adv)
+    body = (
+      <span className="spine-col">
+        <Numeral id={s.id} n={book.n} fg={ink} bg={spine} />
+        <VTitle text={t} size={size} cols={cols} face={face} color={ink} />
+      </span>
+    )
+  }
+
+  return (
+    <span
+      className="spine-book"
+      data-read={book.done >= 1 || undefined}
+      style={{ width, height, background: ground, '--spine-edge': shade(ground, 0.72) } as CSSProperties}
+    >
+      {body}
+    </span>
+  )
+}
+
+/**
+ * "Reading now" as a shelf: the series you are partway through, most recently read first. Each is
+ * a short run of books (one per twenty chapters, at most five) in the colour sampled from its cover,
+ * and books you have finished fade like spines left in the sun. The whole run is one target: a click
+ * opens the next chapter to read, not a particular book. Renders nothing when nothing is in progress.
  */
 export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; readTracking: boolean }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
   if (!readTracking) return null
 
   const reading = series
     .map((s) => ({ s, p: seriesProgressVisual(s, readTracking) }))
-    .filter(({ s, p }) => (s.readChapterCount ?? 0) > 0 && (p.unread ?? 0) > 0)
-    .slice(0, MAX_SPINES)
+    .filter(({ s, p }) => {
+      if ((s.readChapterCount ?? 0) === 0) return false
+      if (s.readingStatus === 'Completed' || s.readingStatus === 'UpToDate') return false
+      return (p.unread ?? 0) > 0 || s.readingStatus === 'Reading'
+    })
+    .sort((a, b) => (b.s.lastReadAt ?? '').localeCompare(a.s.lastReadAt ?? ''))
+    .slice(0, MAX_SERIES)
   if (reading.length === 0) return null
 
-  const maxChapters = Math.max(...reading.map(({ p }) => p.total || p.have), 1)
+  const open = (e: MouseEvent, id: number) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    void api<{ chapterId: number } | null>(`/reader/series/${id}/continue`)
+      .catch(() => null)
+      .then((next) => navigate(next ? `/read/${next.chapterId}` : `/series/${id}`))
+  }
 
   return (
     <section className="spine-shelf" aria-label={t`Reading now`}>
-      <div className="spine-shelf-label">
-        <Trans>Reading now</Trans>
-      </div>
+      <div className="spine-shelf-label">{t`Reading now`}</div>
       <div className="spine-shelf-row">
         {reading.map(({ s, p }) => {
-          const spine = s.spineColor ?? DEFAULT_SPINE
-          const chapters = p.total || p.have
-          const height = 180 + Math.round((80 * chapters) / maxChapters)
-          const width = 36 + Math.min(20, Math.round((s.totalVolumes ?? 4) * 1.2))
-          const unread = p.unread ?? 0
+          const total = p.total || p.have
+          const books = booksFor(total, s.readChapterCount ?? 0)
+          const style = STYLES[pick(s.id, 'style', STYLES.length)]
+          const height = 250 + pick(s.id, 'height', 5) * 9
+          const seriesTitle = s.displayTitle
+          const widths = widthsFor(s, style, books.length)
+          const fitWidth = Math.min(...widths)
           return (
             <Link
               key={s.id}
               to={`/series/${s.id}`}
-              className="spine-book"
-              style={{ height, width, background: spine, color: spineInk(spine) }}
+              className="spine-run"
+              onClick={(e) => open(e, s.id)}
+              aria-label={t`Continue ${seriesTitle}`}
               title={s.displayTitle}
             >
-              <span className="spine-book-title">{s.displayTitle}</span>
-              <span className="spine-book-count tnum" aria-label={t`${unread} unread`}>
-                {unread}
-              </span>
+              {books.map((book, i) => (
+                <SpineBook
+                  key={book.n}
+                  s={s}
+                  book={book}
+                  index={i}
+                  count={books.length}
+                  style={style}
+                  height={height}
+                  width={widths[i]}
+                  fitWidth={fitWidth}
+                />
+              ))}
             </Link>
           )
         })}

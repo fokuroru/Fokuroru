@@ -83,7 +83,7 @@ public class OpdsCatalogService(
 
         return new OpdsFeed(
             "urn:maki:opds:root",
-            "Maki",
+            "Fōkurōru",
             now,
             OpdsFeedKind.Navigation,
             [

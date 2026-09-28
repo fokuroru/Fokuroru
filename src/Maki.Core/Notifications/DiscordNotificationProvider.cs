@@ -90,7 +90,7 @@ public class DiscordNotificationProvider(
 
     private static object Payload(NotificationMessage message, bool withPoster) => new
     {
-        username = "Maki",
+        username = "Fōkurōru",
         embeds = new[] { Embed(message, withPoster) }
     };
 
@@ -112,7 +112,7 @@ public class DiscordNotificationProvider(
         color = ColorFor(message),
         thumbnail = withPoster ? new { url = $"attachment://{PosterFileName}" } : null,
         fields = Fields(message),
-        footer = new { text = "Maki" },
+        footer = new { text = "Fōkurōru" },
         timestamp = DateTimeOffset.UtcNow.ToString("o")
     };
 

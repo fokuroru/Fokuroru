@@ -159,7 +159,9 @@ public class AccountController(
         }
 
         var label = UrlEncoder.Default.Encode(user.UserName ?? "user");
-        var uri = $"otpauth://totp/Maki:{label}?secret={key}&issuer=Maki&digits=6";
+        // The display name has a macron, so it is percent-encoded like the label.
+        var issuer = Uri.EscapeDataString("Fōkurōru");
+        var uri = $"otpauth://totp/{issuer}:{label}?secret={key}&issuer={issuer}&digits=6";
 
         return Ok(new TwoFactorSetupDto(FormatKey(key), uri));
     }

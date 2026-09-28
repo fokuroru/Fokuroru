@@ -73,7 +73,7 @@ export default function SidebarFooter() {
               <IconStarFilled size={16} className="nav-card-icon" />
               <div className="nav-card-body">
                 <div className="nav-card-title">
-                  <Trans>Enjoying Maki?</Trans>
+                  <Trans>Enjoying Fōkurōru?</Trans>
                 </div>
                 <div className="nav-card-sub">
                   <Trans>A star on GitHub helps others find it.</Trans>
@@ -126,7 +126,7 @@ function UpdateCard({
       <IconRocket size={16} stroke={1.8} className="nav-card-icon" />
       <div className="nav-card-body">
         <div className="nav-card-title">
-          <Trans>Maki {latestVersion} is out</Trans>
+          <Trans>Fōkurōru {latestVersion} is out</Trans>
         </div>
         <div className="nav-card-sub">
           <Trans>You're on {currentVersion}</Trans>
@@ -240,8 +240,8 @@ function VersionLabel({
     : latestVersion && isSkipped
       ? t`${latestVersion} available, skipped`
       : latestVersion
-        ? t`Maki ${latestVersion} available`
-        : t`Maki ${version}`
+        ? t`Fōkurōru ${latestVersion} available`
+        : t`Fōkurōru ${version}`
 
   return (
     <Tooltip label={tooltip} withArrow>

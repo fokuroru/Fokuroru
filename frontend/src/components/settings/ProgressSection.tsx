@@ -156,7 +156,7 @@ export function ProgressSection() {
             <Trans>Reading goals</Trans>
           </Text>
           <Text size="xs" c="var(--ink-3)">
-            <Trans>Optional, and yours to set. Maki never adds one for you.</Trans>
+            <Trans>Optional, and yours to set. Fōkurōru never adds one for you.</Trans>
           </Text>
 
           {(summary?.goals ?? []).map((goal) => (

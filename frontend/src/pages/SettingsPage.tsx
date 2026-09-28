@@ -606,7 +606,7 @@ function LibraryFilesSection() {
         <Trans>
           Writes a standard <Code>ComicInfo.xml</Code> into imported CBZs so Kavita groups and
           names chapters consistently. Off leaves torrent grabs and manual imports untouched.
-          Maki's own downloads always get one, and PDFs never do. A series page's "Update
+          Fōkurōru's own downloads always get one, and PDFs never do. A series page's "Update
           ComicInfo" action standardizes one series later.
         </Trans>
       </SettingsHelp>
@@ -674,7 +674,7 @@ function NamingSection() {
       </Title>
       <SettingsHelp mb="md">
         <Trans>
-          How Maki names series folders and the chapter files it downloads. The "?" button lists
+          How Fōkurōru names series folders and the chapter files it downloads. The "?" button lists
           every token. Changes apply to new series and downloads; files already on disk stay put
           until you rename them from a series' page or with the button below.
         </Trans>
@@ -691,7 +691,7 @@ function NamingSection() {
         />
         <NamingFormatInput
           label={t`Chapter Format`}
-          description={t`Used for chapters Maki downloads, and for imported files unless you keep their original names below`}
+          description={t`Used for chapters Fōkurōru downloads, and for imported files unless you keep their original names below`}
           value={chapterFormat}
           example={preview.data?.chapterFile}
           error={chapterError?.replace('Chapter format: ', '')}
@@ -768,10 +768,10 @@ function NamingSection() {
         onChange={(value) => patch({ folderNamingMode: value as FolderNamingMode })}
       >
         <Stack gap="xs" mt="xs">
-          <Radio value="rename" label={t`Rename folder to Maki standard`} />
+          <Radio value="rename" label={t`Rename folder to Fōkurōru standard`} />
           <Radio
             value="keep-new-standard"
-            label={t`Keep folder name, but put new downloads in a Maki standard folder`}
+            label={t`Keep folder name, but put new downloads in a Fōkurōru standard folder`}
           />
           <Radio value="keep-original" label={t`Keep folder name, and put new downloads there too`} />
         </Stack>
@@ -782,7 +782,7 @@ function NamingSection() {
       </Text>
       <SettingsHelp mb="sm">
         <Trans>
-          Off keeps a release's own file name, which often says more than the format can. Maki's
+          Off keeps a release's own file name, which often says more than the format can. Fōkurōru's
           own downloads always follow the format, and renaming a series from its page still
           renames everything in it.
         </Trans>
@@ -833,14 +833,14 @@ function KavitaSyncSection() {
           />
           <Text size="xs" c="var(--ink-3)" mt={4}>
             <Trans>
-              Finishing a chapter in Maki's reader also marks it read in Kavita. Only for series
+              Finishing a chapter in Fōkurōru's reader also marks it read in Kavita. Only for series
               matched to a Kavita series. Stats never count a chapter twice.
             </Trans>
           </Text>
           {ownsKavita ? null : (
             <Text size="xs" c="var(--ink-3)" mt={4}>
               <Trans>
-                Kavita's reading belongs to one Maki account, and it isn't yours. An admin can change
+                Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change
                 that under Settings → Integrations → Kavita.
               </Trans>
             </Text>
@@ -1279,8 +1279,8 @@ function DownloadSection() {
         <Trans>
           Seeding torrents stay in the download folder, so imports are linked or copied, never
           moved. A hardlink stores the files once but needs the download folder and library on the
-          same filesystem; otherwise Maki copies. Hardlinked files are left as released, without
-          Maki's ComicInfo.xml, so Kavita may group them apart from Maki's own downloads.
+          same filesystem; otherwise Fōkurōru copies. Hardlinked files are left as released, without
+          Fōkurōru's ComicInfo.xml, so Kavita may group them apart from Fōkurōru's own downloads.
         </Trans>
       </SettingsHelp>
       <Switch
@@ -1368,7 +1368,7 @@ function BackupSection() {
   const restarting = () =>
     notifications.show({
       title: now`Restore staged`,
-      message: now`Maki is restarting to apply it. Reload in a moment.`,
+      message: now`Fōkurōru is restarting to apply it. Reload in a moment.`,
       color: 'var(--info)',
       autoClose: false,
     })
@@ -1514,8 +1514,8 @@ function BackupSection() {
           <Text size="sm">
             <Trans>
               This replaces your current library and settings with <b>{backupName}</b>, then restarts
-              Maki. The current data is not kept, so take a backup first if you want a way back.
-              Docker and systemd bring Maki back up on their own; otherwise start it again yourself.
+              Fōkurōru. The current data is not kept, so take a backup first if you want a way back.
+              Docker and systemd bring Fōkurōru back up on their own; otherwise start it again yourself.
             </Trans>
           </Text>
           <Group justify="flex-end">
@@ -1966,7 +1966,7 @@ function StartPageSelect() {
   return (
     <Select
       label={t`Start page`}
-      description={t`Which page Maki opens on, on every device.`}
+      description={t`Which page Fōkurōru opens on, on every device.`}
       data={[
         // Disabled rather than hidden, mirroring how the nav drops these tabs: offering a
         // choice that silently degrades to somewhere else is worse than saying why it's out.
@@ -2011,7 +2011,7 @@ function LanguageSection() {
       </Title>
       <SettingsHelp mb="sm">
         <Trans>
-          The language of Maki's interface, on every device. Title language below is separate:
+          The language of Fōkurōru's interface, on every device. Title language below is separate:
           it sets the language of series titles.
         </Trans>
       </SettingsHelp>
@@ -2158,7 +2158,7 @@ function HomeSectionsSection() {
           <SettingsHelp>
             <Trans>
               Arrange Home and Discover on the pages themselves: pick which sections show, drag them
-              into order and add your own rails. Turn Home off if you don&apos;t read in Maki: the
+              into order and add your own rails. Turn Home off if you don&apos;t read in Fōkurōru: the
               tab disappears and Library becomes the start page.
             </Trans>
           </SettingsHelp>
@@ -2310,7 +2310,7 @@ function UpdatesSection() {
                   const checkedVersion = r.latestVersion ?? ''
                   notifications.show({
                     message: r.updateAvailable
-                      ? now`Maki ${checkedVersion} is available`
+                      ? now`Fōkurōru ${checkedVersion} is available`
                       : now`Already up to date`,
                     color: r.updateAvailable ? 'var(--warn)' : 'var(--ok)',
                   })
@@ -2628,14 +2628,14 @@ function useSectionNodes(): Record<string, ReactNode> {
         <ConnectionSettingsCard
           name="qbittorrent"
           title="qBittorrent"
-          description={t`Download client for grabbed releases. Finished torrents import into the library automatically. Fill the path mapping only if qBittorrent reports paths Maki can't reach, e.g. /downloads in Docker where Maki sees Z:\\downloads.`}
+          description={t`Download client for grabbed releases. Finished torrents import into the library automatically. Fill the path mapping only if qBittorrent reports paths Fōkurōru can't reach, e.g. /downloads in Docker where Fōkurōru sees Z:\\downloads.`}
           fields={[
             { key: 'url', label: t`URL`, placeholder: 'http://localhost:8080' },
             { key: 'username', label: t`Username` },
             { key: 'password', label: t`Password`, secret: true },
             { key: 'category', label: t`Category`, placeholder: 'maki' },
             { key: 'pathMapFrom', label: t`Path mapping - qBittorrent side`, placeholder: t`/downloads (optional)` },
-            { key: 'pathMapTo', label: t`Path mapping - Maki side`, placeholder: t`Z:\\downloads (optional)` },
+            { key: 'pathMapTo', label: t`Path mapping - Fōkurōru side`, placeholder: t`Z:\\downloads (optional)` },
           ]}
         />
       ),
@@ -2644,11 +2644,11 @@ function useSectionNodes(): Record<string, ReactNode> {
         <ConnectionSettingsCard
           name="kavita"
           title="Kavita"
-          description={t`Maki asks Kavita to scan a series after its files change, then pushes its poster, links and status. Covers you set in Kavita are kept. The API key is under User Settings → 3rd Party Clients in Kavita. Fill the path mapping only if Kavita sees the library under a different path, e.g. in Docker.`}
+          description={t`Fōkurōru asks Kavita to scan a series after its files change, then pushes its poster, links and status. Covers you set in Kavita are kept. The API key is under User Settings → 3rd Party Clients in Kavita. Fill the path mapping only if Kavita sees the library under a different path, e.g. in Docker.`}
           fields={[
             { key: 'url', label: t`URL`, placeholder: 'http://localhost:5000' },
             { key: 'apiKey', label: t`API key`, secret: true },
-            { key: 'pathMapFrom', label: t`Path mapping - Maki side`, placeholder: t`C:\\Manga (optional)` },
+            { key: 'pathMapFrom', label: t`Path mapping - Fōkurōru side`, placeholder: t`C:\\Manga (optional)` },
             { key: 'pathMapTo', label: t`Path mapping - Kavita side`, placeholder: t`/manga (optional)` },
           ]}
         >
@@ -2752,8 +2752,8 @@ export default function SettingsPage() {
         title={t`Settings`}
         description={
           isAdmin
-            ? t`Storage, metadata, download clients and integrations for your Maki instance.`
-            : t`Your account and how Maki looks.`
+            ? t`Storage, metadata, download clients and integrations for your Fōkurōru instance.`
+            : t`Your account and how Fōkurōru looks.`
         }
         actions={
           isAdmin && (

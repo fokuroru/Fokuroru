@@ -536,7 +536,7 @@ export function ManageSourcesModal({ opened, onClose }: { opened: boolean; onClo
         <div>
           <Text fw={600}><Trans>Manage sources</Trans></Text>
           <Text size="sm" c="var(--ink-3)">
-            <Trans>Turn sources on or off on the left. Drag the rail on the right to set which one Maki tries first.</Trans>
+            <Trans>Turn sources on or off on the left. Drag the rail on the right to set which one Fōkurōru tries first.</Trans>
           </Text>
         </div>
       }

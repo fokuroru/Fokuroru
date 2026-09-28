@@ -28,14 +28,14 @@ const ERROR_LABELS: Record<string, MessageDescriptor> = {
   'error.download.noPages': msg`The source returned no pages`,
   'error.download.approvedSourceNoPages': msg`The approved source no longer has these pages`,
   'error.download.noMoreSources': msg`Every source failed for this chapter`,
-  'error.download.unexpected': msg`Something went wrong, Maki will try again`,
+  'error.download.unexpected': msg`Something went wrong, Fōkurōru will try again`,
   'error.download.rateLimited': msg({
     message: `Rate limited by {source}, waiting before the next try`,
     comment: `{source} is a site name (MangaDex, Weeb Central) and is never translated. The row
       shows when the next attempt is as its own field, so it is not repeated here.`,
   }),
   'error.download.earlyAccess': msg({
-    message: `Still early access on {source}, Maki will check again later`,
+    message: `Still early access on {source}, Fōkurōru will check again later`,
     comment: `{source} is a site name and is never translated.`,
   }),
   'error.download.resolveTimedOut': msg`Took too long to find a source`,

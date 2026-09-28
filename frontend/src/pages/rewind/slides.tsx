@@ -132,7 +132,7 @@ export function buildSlides(stats: ActivityStats, label: string): RewindSlide[] 
     mosaic: covers.length >= 4 ? covers : undefined,
     node: (
       <Stack align="center" gap="xs">
-        <Reveal>{eyebrow('Maki Rewind')}</Reveal>
+        <Reveal>{eyebrow('Fōkurōru Rewind')}</Reveal>
         <Reveal delay={0.25}>
           <Text className="rewind-title">
             <Trans>Your {label}</Trans>

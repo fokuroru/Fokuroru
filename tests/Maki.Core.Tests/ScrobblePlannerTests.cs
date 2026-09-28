@@ -137,4 +137,25 @@ public class ScrobblePlannerTests
         Assert.Equal(ScrobbleStatus.Reading, plan.PushStatus);
         Assert.Equal(7, plan.Chapter);
     }
+
+    [Fact]
+    public void Reaching_the_total_of_a_running_series_stays_reading()
+    {
+        var entry = new RemoteEntry(ProgressChapter: 280, TotalChapters: 284, Status: ScrobbleStatus.Reading);
+
+        var plan = ScrobblePlanner.Decide(entry, 284, 0, stillRunning: true);
+
+        Assert.Equal(ScrobbleStatus.Reading, plan.PushStatus);
+        Assert.Equal(284, plan.Chapter);
+    }
+
+    [Fact]
+    public void A_running_series_never_demotes_an_entry_already_completed()
+    {
+        var entry = new RemoteEntry(ProgressChapter: 284, TotalChapters: 284, Status: ScrobbleStatus.Completed);
+
+        var plan = ScrobblePlanner.Decide(entry, 284, 0, stillRunning: true);
+
+        Assert.Equal(ScrobbleStatus.Completed, plan.RecordStatus);
+    }
 }

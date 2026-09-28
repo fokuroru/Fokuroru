@@ -704,14 +704,14 @@ public sealed class MangaFireBrowser(
                 case PageVerdict.Challenge:
                     throw new ChallengeException(
                         "MangaFire: the headless browser did not clear Cloudflare — the FlareSolverr clearance " +
-                        "cookie was rejected. This usually means Maki's network egress IP differs from " +
+                        "cookie was rejected. This usually means Fōkurōru's network egress IP differs from " +
                         "FlareSolverr's (the cookie is IP-bound); run both behind the same egress or proxy.");
                 case PageVerdict.Blocked:
                     throw new ChallengeException(
                         "MangaFire: Cloudflare served an 'Access denied' block page — this is a firewall/bot-score " +
                         "rejection, not a solvable challenge, so re-solving won't help on its own. It's driven by the " +
                         "egress IP's reputation (VPN/VPS ranges score badly) plus the headless browser's fingerprint; " +
-                        "route Maki's traffic through a residential-grade egress if it persists.");
+                        "route Fōkurōru's traffic through a residential-grade egress if it persists.");
             }
 
             var title = await SafeTitleAsync(page);

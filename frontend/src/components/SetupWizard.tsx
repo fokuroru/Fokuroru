@@ -112,7 +112,7 @@ function WelcomeStep() {
     <>
       <SettingRow
         label={<Trans>Language</Trans>}
-        description={<Trans>The language of Maki's interface, on every device you sign in on.</Trans>}
+        description={<Trans>The language of Fōkurōru's interface, on every device you sign in on.</Trans>}
         control={
           <Select
             aria-label={t`Language`}
@@ -195,7 +195,7 @@ function LibraryStep() {
         label={<Trans>Library folders</Trans>}
         description={
           <Trans>
-            Where your manga is stored, or should be. Maki creates one folder per series inside it.
+            Where your manga is stored, or should be. Fōkurōru creates one folder per series inside it.
             If you use Kavita, point it at the same place.
           </Trans>
         }
@@ -210,7 +210,7 @@ function LibraryStep() {
                   <Text className="setup-folder-path">{f.path}</Text>
                   <Text className="setup-folder-meta">
                     {!f.accessible ? (
-                      <Trans>Maki can't reach this folder</Trans>
+                      <Trans>Fōkurōru can't reach this folder</Trans>
                     ) : free ? (
                       <Trans>{free} free</Trans>
                     ) : null}
@@ -246,7 +246,7 @@ function LibraryStep() {
 
       <SettingRow
         label={<Trans>Existing folders on import</Trans>}
-        description={<Trans>What happens to a series folder you already have when you import it into Maki.</Trans>}
+        description={<Trans>What happens to a series folder you already have when you import it into Fōkurōru.</Trans>}
       >
         <Radio.Group
           value={settings?.folderNamingMode ?? 'rename'}
@@ -258,7 +258,7 @@ function LibraryStep() {
                 <Radio.Indicator />
                 <div>
                   <Text className="setup-choice-title">
-                    <Trans>Rename to the Maki standard</Trans>
+                    <Trans>Rename to the Fōkurōru standard</Trans>
                   </Text>
                   <Text className="setup-choice-description">
                     <Trans>Every series folder ends up named the same way.</Trans>
@@ -274,7 +274,7 @@ function LibraryStep() {
                     <Trans>Keep the name, download into a new standard folder</Trans>
                   </Text>
                   <Text className="setup-choice-description">
-                    <Trans>Your folder is left alone. New chapters go into a folder Maki names.</Trans>
+                    <Trans>Your folder is left alone. New chapters go into a folder Fōkurōru names.</Trans>
                   </Text>
                 </div>
               </Group>
@@ -301,7 +301,7 @@ function LibraryStep() {
         description={
           <Trans>
             Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and
-            manual imports untouched. Maki's own downloads always get one.
+            manual imports untouched. Fōkurōru's own downloads always get one.
           </Trans>
         }
         control={
@@ -411,7 +411,7 @@ function DownloadsStep() {
         label={<Trans>Languages to download</Trans>}
         description={
           <Trans>
-            Most preferred first. Maki matches new series to sources that publish your top language
+            Most preferred first. Fōkurōru matches new series to sources that publish your top language
             and skips sources that publish none of these. Drag to reorder.
           </Trans>
         }
@@ -494,23 +494,23 @@ function useServices(): ServiceSpec[] {
     {
       name: 'qbittorrent',
       title: 'qBittorrent',
-      description: t`Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Maki can't, as in Docker.`,
+      description: t`Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Fōkurōru can't, as in Docker.`,
       fields: [
         { key: 'url', label: t`URL`, placeholder: 'http://localhost:8080' },
         { key: 'username', label: t`Username` },
         { key: 'password', label: t`Password`, secret: true },
         { key: 'pathMapFrom', label: t`Path mapping - qBittorrent side`, placeholder: t`/downloads (optional)` },
-        { key: 'pathMapTo', label: t`Path mapping - Maki side`, placeholder: t`Z:\\downloads (optional)` },
+        { key: 'pathMapTo', label: t`Path mapping - Fōkurōru side`, placeholder: t`Z:\\downloads (optional)` },
       ],
     },
     {
       name: 'kavita',
       title: 'Kavita',
-      description: t`Maki asks Kavita to scan a series after its files change and sends it posters, links and status. The API key is under User Settings, 3rd Party Clients. Fill the path mapping only if Kavita sees the library under another path.`,
+      description: t`Fōkurōru asks Kavita to scan a series after its files change and sends it posters, links and status. The API key is under User Settings, 3rd Party Clients. Fill the path mapping only if Kavita sees the library under another path.`,
       fields: [
         { key: 'url', label: t`URL`, placeholder: 'http://localhost:5000' },
         { key: 'apiKey', label: t`API key`, secret: true },
-        { key: 'pathMapFrom', label: t`Path mapping - Maki side`, placeholder: t`C:\\Manga (optional)` },
+        { key: 'pathMapFrom', label: t`Path mapping - Fōkurōru side`, placeholder: t`C:\\Manga (optional)` },
         { key: 'pathMapTo', label: t`Path mapping - Kavita side`, placeholder: t`/manga (optional)` },
       ],
     },
@@ -712,7 +712,7 @@ function useSteps(): StepMeta[] {
     {
       id: 'welcome',
       label: t`Welcome`,
-      title: t`Welcome to Maki`,
+      title: t`Welcome to Fōkurōru`,
       lead: t`A few choices to get your library running. Everything saves as you go, and all of it is in Settings afterwards.`,
       hint: locales.find((l) => l.code === locale)?.label,
     },
@@ -720,7 +720,7 @@ function useSteps(): StepMeta[] {
       id: 'library',
       label: t`Library`,
       title: t`Where your manga lives`,
-      lead: t`Pick the folders Maki reads from and downloads into, and how it treats the files it finds there.`,
+      lead: t`Pick the folders Fōkurōru reads from and downloads into, and how it treats the files it finds there.`,
       hint: rootFolders
         ? folderCount > 0
           ? plural(folderCount, { one: '# folder', other: '# folders' })
@@ -732,21 +732,21 @@ function useSteps(): StepMeta[] {
       id: 'discovery',
       label: t`Discover`,
       title: t`Metadata and Discover`,
-      lead: t`Series details come from MangaBaka. Choose how much of it Maki keeps at hand, and what it may show you.`,
+      lead: t`Series details come from MangaBaka. Choose how much of it Fōkurōru keeps at hand, and what it may show you.`,
       hint: metadata ? (metadata.useLocalDb ? t`Local database` : t`API only`) : undefined,
     },
     {
       id: 'downloads',
       label: t`Downloads`,
       title: t`What to download`,
-      lead: t`Which languages Maki looks for, and which chapters it leaves alone.`,
+      lead: t`Which languages Fōkurōru looks for, and which chapters it leaves alone.`,
       hint: topLanguages || undefined,
     },
     {
       id: 'connections',
       label: t`Connections`,
       title: t`Tools you already run`,
-      lead: t`All optional. Maki downloads from its own sources without any of these. Open one to fill it in.`,
+      lead: t`All optional. Fōkurōru downloads from its own sources without any of these. Open one to fill it in.`,
       hint:
         connectedCount > 0
           ? plural(connectedCount, { one: '# connected', other: '# connected' })
@@ -756,7 +756,7 @@ function useSteps(): StepMeta[] {
       id: 'finish',
       label: t`Finish`,
       title: t`You're set`,
-      lead: t`Here is what Maki starts with. You can come back to this guide from the top of Settings.`,
+      lead: t`Here is what Fōkurōru starts with. You can come back to this guide from the top of Settings.`,
     },
   ]
 }
@@ -784,7 +784,7 @@ function GuideRail({
           <IconBrandMark />
         </span>
         <div>
-          <Text className="setup-rail-wordmark">Maki</Text>
+          <Text className="setup-rail-wordmark">Fōkurōru</Text>
           <Text className="setup-rail-caption">
             <Trans>Setup</Trans>
           </Text>

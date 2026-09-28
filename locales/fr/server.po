@@ -228,7 +228,7 @@ msgstr "Impossible d'associer cette connexion à un nouveau compte"
 #. English: No Maki account is linked to that login
 #, fuzzy
 msgid "error.auth.ssoNoAccountLinked"
-msgstr "Aucun compte Maki n'est associé à cette connexion"
+msgstr "Aucun compte Fōkurōru n'est associé à cette connexion"
 
 #. Shared by AuthController (the sign-in and link callbacks) and OidcSignInService: the provider's
 #. token carried no "sub" claim to identify the account by.
@@ -737,7 +737,7 @@ msgstr "Seul l'utilisateur associé à Kavita ou un administrateur peut lancer l
 #. English: No Maki user is bound to Kavita (Settings → Reader → Kavita user)
 #, fuzzy
 msgid "error.reader.kavitaNoBoundUser"
-msgstr "Aucun utilisateur Maki n'est associé à Kavita (Paramètres → Lecteur → Utilisateur Kavita)"
+msgstr "Aucun utilisateur Fōkurōru n'est associé à Kavita (Paramètres → Lecteur → Utilisateur Kavita)"
 
 #: src/Maki.Api/Services/KavitaReadImportService.cs
 #. English: Kavita is not configured (Settings → Kavita)
@@ -1076,7 +1076,7 @@ msgstr "Le dossier de destination existe déjà : {folder}"
 #. English: Files not moved: {folder} doesn't exist. Move the files there first, or let Maki move them.
 #, fuzzy
 msgid "error.series.filesNotMoved"
-msgstr "Fichiers non déplacés : {folder} n'existe pas. Déplacez d'abord les fichiers, ou laissez Maki s'en charger."
+msgstr "Fichiers non déplacés : {folder} n'existe pas. Déplacez d'abord les fichiers, ou laissez Fōkurōru s'en charger."
 
 #. {folder} is a folder name inside the root folder and is never translated.
 #: src/Maki.Api/Controllers/SeriesController.cs
@@ -1442,7 +1442,7 @@ msgstr "Ce téléchargement n'est plus dans qBittorrent"
 #. English: Download path not accessible from Maki: {path}
 #, fuzzy
 msgid "error.torrentImport.pathNotAccessible"
-msgstr "Le chemin de téléchargement est inaccessible depuis Maki : {path}"
+msgstr "Le chemin de téléchargement est inaccessible depuis Fōkurōru : {path}"
 
 #: src/Maki.Api/Controllers/UsersController.cs
 #. English: You cannot delete your own account
@@ -1816,7 +1816,7 @@ msgstr "Titre de tri, par exemple avec l'article initial déplacé à la fin"
 #. English: The series title as Maki has it
 #, fuzzy
 msgid "naming.token.seriestitle.description"
-msgstr "Titre de la série tel qu'il apparaît dans Maki"
+msgstr "Titre de la série tel qu'il apparaît dans Fōkurōru"
 
 #: src/Maki.Core/Naming/NamingTokens.cs
 #. English: Title with the release year in brackets; just the title when the year is unknown
@@ -1840,26 +1840,26 @@ msgstr "Année de sortie ; vide si elle est inconnue"
 #. English: Backup is missing maki.db. This is not a Maki backup.
 #, fuzzy
 msgid "error.system.backupMissingDb"
-msgstr "La sauvegarde ne contient pas maki.db. Ce n'est pas une sauvegarde Maki."
+msgstr "La sauvegarde ne contient pas maki.db. Ce n'est pas une sauvegarde Fōkurōru."
 
 #: src/Maki.Api/Services/BackupService.cs
 #. English: The database in this backup is damaged or is not a Maki database. Nothing was changed.
 #, fuzzy
 msgid "error.system.backupInvalidDb"
-msgstr "La base de données de cette sauvegarde est endommagée ou n'est pas une base Maki. Rien n'a été modifié."
+msgstr "La base de données de cette sauvegarde est endommagée ou n'est pas une base Fōkurōru. Rien n'a été modifié."
 
 #. {migration} is the unrecognised EF migration name the backup's manifest carries.
 #: src/Maki.Api/Services/BackupService.cs
 #. English: Backup is from a newer version (migration "{migration}" unknown to this build). Upgrade Maki before restoring it.
 #, fuzzy
 msgid "error.system.backupTooNew"
-msgstr "La sauvegarde provient d'une version plus récente (migration « {migration} » inconnue de cette version). Mettez Maki à jour avant de la restaurer."
+msgstr "La sauvegarde provient d'une version plus récente (migration « {migration} » inconnue de cette version). Mettez Fōkurōru à jour avant de la restaurer."
 
 #: src/Maki.Api/Services/BackupService.cs
 #. English: This file is not a readable Maki backup. The zip or its manifest is damaged. Nothing was changed.
 #, fuzzy
 msgid "error.system.backupUnreadable"
-msgstr "Ce fichier n'est pas une sauvegarde Maki lisible. Le fichier ZIP ou son manifeste est endommagé. Rien n'a été modifié."
+msgstr "Ce fichier n'est pas une sauvegarde Fōkurōru lisible. Le fichier ZIP ou son manifeste est endommagé. Rien n'a été modifié."
 
 #: src/Maki.Api/Controllers/SystemController.cs
 #. English: No file uploaded.
@@ -2180,7 +2180,7 @@ msgstr "Mise à jour disponible"
 #. English: Maki {latest} is available (running {current}).
 #, fuzzy
 msgid "inbox.update.available.body"
-msgstr "Maki {latest} est disponible (version actuelle : {current})."
+msgstr "Fōkurōru {latest} est disponible (version actuelle : {current})."
 
 #. The six tier names, in order. They are the rungs of a graded achievement and read as
 #. medal names, not as adjectives.
@@ -2479,7 +2479,7 @@ msgstr "La source sélectionnée ne peut pas fournir ce chapitre."
 #. English: Something went wrong, Maki will try again
 #, fuzzy
 msgid "error.download.unexpected"
-msgstr "Une erreur s'est produite, Maki réessaiera"
+msgstr "Une erreur s'est produite, Fōkurōru réessaiera"
 
 #. {source} is a site name (MangaDex, Weeb Central), never translated. The queue row shows when the
 #. next attempt is as its own field, in the reader's own zone, so it is not repeated here.
@@ -2495,7 +2495,7 @@ msgstr "Limité par le débit par {source}, attente avant la prochaine tentative
 #. English: Still early access on {source}, Maki will check again later
 #, fuzzy
 msgid "error.download.earlyAccess"
-msgstr "Toujours en accès anticipé sur {source}, Maki vérifiera à nouveau plus tard"
+msgstr "Toujours en accès anticipé sur {source}, Fōkurōru vérifiera à nouveau plus tard"
 
 #: src/Maki.Api/Services/DownloadQueueService.cs
 #. English: Took too long to find a source
@@ -2616,7 +2616,7 @@ msgstr "Mise à jour disponible"
 #. English: Maki {latest} is available (running {current}).
 #, fuzzy
 msgid "notify.update.available.body"
-msgstr "Maki {latest} est disponible (version actuelle : {current})."
+msgstr "Fōkurōru {latest} est disponible (version actuelle : {current})."
 
 #: src/Maki.Api/Jobs/RefreshMonitoredSeriesJob.cs
 #. English: New chapters available
@@ -2752,7 +2752,7 @@ msgstr "Aucune source ne correspond à {series}. Associez-en une manuellement de
 #. English: Maki test notification
 #, fuzzy
 msgid "notify.test.title"
-msgstr "Notification de test de Maki"
+msgstr "Notification de test de Fōkurōru"
 
 #: src/Maki.Api/Controllers/NotificationsController.cs
 #. English: This is a test from your {name} connection. If you can read this, it works.
@@ -2812,7 +2812,7 @@ msgstr "Recherche : {query}"
 #. English: Search the Maki library
 #, fuzzy
 msgid "opds.search.description"
-msgstr "Rechercher dans la bibliothèque Maki"
+msgstr "Rechercher dans la bibliothèque Fōkurōru"
 
 #. The scrobble activity log, read by the person whose sync it was. Roughly half the log is Maki
 #. narrating what it did, which these cover; the other half is a tracker's or Kavita's own response

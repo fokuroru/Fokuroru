@@ -389,7 +389,7 @@ export function SourceCompareModal({
             {pick ? (
               <Trans>
                 This chapter as each source scans it, heaviest first. Pick the one that looks best
-                and Maki downloads it again from there, replacing the file you have.
+                and Fōkurōru downloads it again from there, replacing the file you have.
               </Trans>
             ) : (
               <Trans>

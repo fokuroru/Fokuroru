@@ -300,7 +300,7 @@ export function RelinkFilesModal({
           <>
             <Text size="sm" c="var(--ink-3)">
               <Trans>
-                Maki checked the folder against the chapter list. Tick what to trust and watch the map.
+                Fōkurōru checked the folder against the chapter list. Tick what to trust and watch the map.
                 Nothing changes until you press Relink.
               </Trans>
             </Text>
@@ -352,8 +352,8 @@ export function RelinkFilesModal({
                     <>
                       <Plural
                         value={unmatched}
-                        one="# file Maki could not match to a chapter"
-                        other="# files Maki could not match to a chapter"
+                        one="# file Fōkurōru could not match to a chapter"
+                        other="# files Fōkurōru could not match to a chapter"
                       />
                       {'. '}
                       <Trans>Link those by hand on the Files tab.</Trans>

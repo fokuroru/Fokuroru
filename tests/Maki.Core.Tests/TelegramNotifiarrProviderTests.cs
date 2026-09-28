@@ -233,7 +233,7 @@ public class TelegramNotifiarrProviderTests
 
         using var payload = JsonDocument.Parse(handler.Body!);
         var root = payload.RootElement;
-        Assert.Equal("Maki", root.GetProperty("notification").GetProperty("name").GetString());
+        Assert.Equal("Fōkurōru", root.GetProperty("notification").GetProperty("name").GetString());
         Assert.Equal("ChapterDownloaded", root.GetProperty("notification").GetProperty("event").GetString());
         Assert.False(root.GetProperty("notification").GetProperty("update").GetBoolean());
 
@@ -241,7 +241,7 @@ public class TelegramNotifiarrProviderTests
         Assert.Equal("57F287", discord.GetProperty("color").GetString());
         Assert.Equal("Chapter downloaded", discord.GetProperty("text").GetProperty("title").GetString());
         Assert.Equal("Naruto — chapter 5", discord.GetProperty("text").GetProperty("description").GetString());
-        Assert.Equal("Maki", discord.GetProperty("text").GetProperty("footer").GetString());
+        Assert.Equal("Fōkurōru", discord.GetProperty("text").GetProperty("footer").GetString());
         Assert.Equal(789, discord.GetProperty("ids").GetProperty("channel").GetInt64());
 
         var fields = discord.GetProperty("text").GetProperty("fields");

@@ -46,7 +46,7 @@ export function SetupAccountPage() {
       footer={
         <div className="auth-note">
           <Text fz="sm" fw={600} mb={6}>
-            <Trans>Before exposing Maki to the internet</Trans>
+            <Trans>Before exposing Fōkurōru to the internet</Trans>
           </Text>
           <List fz="sm" c="var(--ink-3)" spacing={4}>
             <List.Item>

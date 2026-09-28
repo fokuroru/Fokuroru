@@ -93,10 +93,11 @@ import { TagManagerModal } from '../components/TagManagerModal'
 import { POSTER_COLS_BY_DENSITY, useDensityOptions } from '../components/ui/viewPrefs'
 import { formatNumber } from '../format'
 
-const SORT_VALUES = ['added', 'title', 'incomplete', 'status'] as const
+const SORT_VALUES = ['added', 'lastRead', 'title', 'incomplete', 'status'] as const
 
 const SORT_LABELS: Record<string, MessageDescriptor> = {
   added: msg`Recently added`,
+  lastRead: msg`Last read`,
   title: msg`Title A–Z`,
   incomplete: msg`Most missing`,
   status: msg`Status`,
@@ -400,6 +401,12 @@ export default function LibraryPage() {
           return missingCount(b) - missingCount(a)
         case 'status':
           return a.status.localeCompare(b.status)
+        case 'lastRead':
+          // Never-read series sink to the bottom, newest additions first among them.
+          return (
+            (b.lastReadAt ?? '').localeCompare(a.lastReadAt ?? '') ||
+            new Date(b.added).getTime() - new Date(a.added).getTime()
+          )
         default:
           return new Date(b.added).getTime() - new Date(a.added).getTime()
       }
@@ -719,7 +726,7 @@ export default function LibraryPage() {
     <SurfaceFrame width="full" pageStyle="editorial">
       <PageHeader
         title={t`Library`}
-        description={t`Every series Maki watches: cover art, download progress and status at a glance.`}
+        description={t`Every series Fōkurōru watches: cover art, download progress and status at a glance.`}
         actions={
           showChrome && !selectMode ? (
             <>
@@ -770,6 +777,8 @@ export default function LibraryPage() {
           ) : undefined
         }
       />
+
+      {series && series.length > 0 && !selectMode && <SpineShelf series={series} readTracking={readTracking} />}
 
       {showChrome && (
         <Panel p={0} className="library-index layer-sunken">
@@ -1368,7 +1377,7 @@ export default function LibraryPage() {
         title={t`Delete ${selectedCount} series?`}
       >
         <Text size="sm" mb="md">
-          <Trans>The selected series will be removed from Maki and stop being monitored.</Trans>
+          <Trans>The selected series will be removed from Fōkurōru and stop being monitored.</Trans>
         </Text>
         <Checkbox
           label={t`Also delete the folders and files on disk`}
@@ -1561,7 +1570,7 @@ export default function LibraryPage() {
       {series && series.length === 0 && (
         <EmptyState
           title={t`Your library is empty`}
-          description={t`Search MangaBaka and add your first series. Maki will monitor for new chapters and download them automatically.`}
+          description={t`Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically.`}
           actionLabel={t`Add a series`}
           actionTo="/add"
         />
@@ -1574,7 +1583,6 @@ export default function LibraryPage() {
           onAction={() => applySpec(DEFAULT_SPEC, null)}
         />
       )}
-      {series && series.length > 0 && !selectMode && <SpineShelf series={series} readTracking={readTracking} />}
       {/* Both views render a slice, not the whole filtered set, once the library is big enough to
           be worth it (see useWindowedRows for the threshold and what it costs). Bulk selection is
           unaffected: "select filtered" works off `visible`, never off what is mounted. */}

@@ -60,7 +60,7 @@ export const SETTINGS_TABS: SettingsTab[] = [
   {
     key: 'account',
     label: msg`My account`,
-    description: msg`Your login, your API keys, and how Maki looks and opens for you.`,
+    description: msg`Your login, your API keys, and how Fōkurōru looks and opens for you.`,
   },
   {
     key: 'reading',
@@ -80,7 +80,7 @@ export const SETTINGS_TABS: SettingsTab[] = [
   {
     key: 'integrations',
     label: msg`Integrations`,
-    description: msg`Kavita, the trackers Maki scrobbles to, and Discord and webhook alerts.`,
+    description: msg`Kavita, the trackers Fōkurōru scrobbles to, and Discord and webhook alerts.`,
   },
   {
     key: 'users',

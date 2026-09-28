@@ -58,7 +58,7 @@ public class SystemController(
     {
         return Ok(new
         {
-            appName = "Maki",
+            appName = "Fōkurōru",
             version = VersionInfo.Version,
             commit = VersionInfo.Commit,
             isDevBuild = VersionInfo.IsDevBuild,

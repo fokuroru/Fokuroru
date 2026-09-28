@@ -47,7 +47,7 @@ export default function LanguageAnnouncementModal() {
     <Modal
       opened={open}
       onClose={close}
-      title={t`Maki speaks your language`}
+      title={t`Fōkurōru speaks your language`}
       centered
       size="md"
       // Mantine zeroes the body's top padding whenever the modal has a header, which leaves the
@@ -62,7 +62,7 @@ export default function LanguageAnnouncementModal() {
           </ThemeIcon>
           <Text size="sm">
             <Trans>
-              Maki's interface is now translated into {languageCount} languages. Pick yours here, or
+              Fōkurōru's interface is now translated into {languageCount} languages. Pick yours here, or
               change it any time under Settings, Language.
             </Trans>
           </Text>

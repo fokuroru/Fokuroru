@@ -27,8 +27,12 @@ public static class ScrobblePlanner
     /// Status to list a not-yet-listed series under when there is no scrobbable
     /// progress (plan-to-read sync); null when that behavior is off.
     /// </param>
+    /// <param name="stillRunning">
+    /// The local series is still coming out. Reaching the tracker's total then means caught up,
+    /// not finished (a running series' total is often just today's count), so it stays reading.
+    /// </param>
     public static ScrobblePlan Decide(
-        RemoteEntry entry, int chapter, int volume, ScrobbleStatus? fallbackStatus = null)
+        RemoteEntry entry, int chapter, int volume, ScrobbleStatus? fallbackStatus = null, bool stillRunning = false)
     {
         if (chapter <= 0 && volume <= 0)
         {
@@ -49,12 +53,12 @@ public static class ScrobblePlanner
         var completed = false;
         if (entry.TotalChapters is > 0 && newCh >= entry.TotalChapters)
         {
-            completed = true;
+            completed = !stillRunning;
             newCh = entry.TotalChapters.Value;
         }
         else if (entry.TotalVolumes is > 0 && newVol >= entry.TotalVolumes && entry.TotalChapters is null)
         {
-            completed = true;
+            completed = !stillRunning;
         }
 
         if (entry.Status == ScrobbleStatus.Completed)

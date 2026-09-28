@@ -311,7 +311,7 @@ export default function SeriesDetailPage() {
       return { label: source.displayName, scraped: true, hint: '' }
     }
     if (name === 'import') {
-      return { label: t`Imported`, scraped: false, hint: t`Brought in from disk, not downloaded by Maki` }
+      return { label: t`Imported`, scraped: false, hint: t`Brought in from disk, not downloaded by Fōkurōru` }
     }
     if (name.startsWith('torrent:')) {
       const indexer = name.slice('torrent:'.length)
@@ -1809,7 +1809,7 @@ export default function SeriesDetailPage() {
           <Stack gap="md">
             <Text size="sm" c="var(--ink-3)">
               <Trans>Re-triggers a Kavita scan of both locations either way.</Trans>{' '}
-              <Trans>Blocked while a download for this series is in flight, unless Maki isn't touching the files
+              <Trans>Blocked while a download for this series is in flight, unless Fōkurōru isn't touching the files
                 itself.</Trans>
             </Text>
             <Select
@@ -2449,7 +2449,7 @@ export default function SeriesDetailPage() {
                                                       ? t`Marked watched, not read. Doesn't count toward reading stats`
                                                       : external
                                                           ? t`Read in Kavita`
-                                                          : t`Read in Maki`
+                                                          : t`Read in Fōkurōru`
                                                 }
                                                 withArrow
                                             >
@@ -2636,7 +2636,7 @@ export default function SeriesDetailPage() {
         >
           <Stack gap="md">
             <Text size="sm" c="var(--ink-3)">
-              <Trans>This removes "{seriesTitle}" and its chapters from Maki.</Trans>
+              <Trans>This removes "{seriesTitle}" and its chapters from Fōkurōru.</Trans>
             </Text>
             <Checkbox
                 label={t`Also delete files on disk`}

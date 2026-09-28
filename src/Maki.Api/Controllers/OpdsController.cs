@@ -192,7 +192,7 @@ public class OpdsController(
         return new ContentResult
         {
             Content = OpdsXml.RenderOpenSearch(
-                "Maki",
+                "Fōkurōru",
                 localizer.Get("opds.search.description"),
                 $"{Context(token).Base}/search?q={{searchTerms}}"),
             ContentType = OpdsXml.OpenSearchType,

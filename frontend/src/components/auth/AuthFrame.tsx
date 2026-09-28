@@ -33,7 +33,7 @@ export function AuthFrame({
           <span className="brand-mark auth-brand-mark">
             <IconBrandMark />
           </span>
-          <h1 className="auth-wordmark">Maki</h1>
+          <h1 className="auth-wordmark">Fōkurōru</h1>
           <Text className="auth-tagline">{t`Self-hosted manga library and downloader.`}</Text>
         </div>
 

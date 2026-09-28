@@ -98,10 +98,15 @@ export const CoverCard = memo(function CoverCard({
               <span
                 className="cover-ring"
                 data-complete={unread === 0 || undefined}
+                data-state={series.readingStatus ?? undefined}
                 data-tip={
-                  unread === 0
-                    ? t`All downloaded chapters read`
-                    : t`${readChapterCount} of ${have} downloaded read`
+                  unread !== 0
+                    ? t`${readChapterCount} of ${have} downloaded read`
+                    : series.readingStatus === 'Completed'
+                      ? t`Completed: every chapter read, and the series has ended`
+                      : series.readingStatus === 'UpToDate'
+                        ? t`Up to date: every chapter out so far read`
+                        : t`All downloaded chapters read`
                 }
                 style={{ '--ring-pct': `${readPct}%` } as React.CSSProperties}
               >

@@ -107,6 +107,13 @@ export interface SeriesDto {
   notificationMode: string
   /** The colour sampled from the cover, `#rrggbb`, or null for the default spine. See lib/spine.ts. */
   spineColor?: string | null
+  /**
+   * Where you stand against the whole series: `UpToDate` is every main chapter read while it is
+   * still coming out, `Completed` only once it has ended or is on hiatus. Null if nothing read.
+   */
+  readingStatus?: 'Reading' | 'UpToDate' | 'Completed' | null
+  /** When you last read any chapter of it, ISO. Null if never. */
+  lastReadAt?: string | null
   /** Personal time left from comparable timed chapters in the built-in reader. Detail endpoint only. */
   readTimeEstimate?: {
     seconds: number

@@ -39,7 +39,7 @@ public class NotifiarrNotificationProvider(IHttpClientFactory httpClientFactory)
         {
             notification = new
             {
-                name = "Maki",
+                name = "Fōkurōru",
                 @event = message.EventType.ToString(),
                 update = false
             },
@@ -51,7 +51,7 @@ public class NotifiarrNotificationProvider(IHttpClientFactory httpClientFactory)
                     title = message.Title,
                     description = message.Body,
                     fields = Fields(message),
-                    footer = "Maki"
+                    footer = "Fōkurōru"
                 },
                 ids = new { channel = channelId }
             }

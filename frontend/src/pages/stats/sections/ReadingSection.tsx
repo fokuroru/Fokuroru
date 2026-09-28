@@ -159,7 +159,7 @@ export default function ReadingSection({ userId, range, previous, windowLabel }:
       <EmptyState
         compact
         title={t`Reading stats need Kavita`}
-        description={t`Connect it in Settings and Maki will start tracking chapters you read. Downloads and library changes are tracked either way.`}
+        description={t`Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way.`}
       />
     )
   }

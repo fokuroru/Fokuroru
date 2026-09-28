@@ -156,7 +156,7 @@ export function LinkFileToChaptersModal({
           </Group>
         ) : sorted.length === 0 ? (
           <Text c="var(--ink-3)" size="sm" py="sm">
-            <Trans>This series has no chapters yet. Add a source mapping first so Maki knows what to link.</Trans>
+            <Trans>This series has no chapters yet. Add a source mapping first so Fōkurōru knows what to link.</Trans>
           </Text>
         ) : (
           <>

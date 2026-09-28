@@ -235,7 +235,7 @@ export default function HomePage() {
         {header}
         <EmptyState
           title={t`Nothing in your library yet`}
-          description={t`Add a series and Maki will start tracking chapters for it. This page fills up as you read and download.`}
+          description={t`Add a series and Fōkurōru will start tracking chapters for it. This page fills up as you read and download.`}
           actionLabel={t`Add series`}
           actionTo="/add"
         />
@@ -506,7 +506,7 @@ function StartReadingPrompt({ tracking }: { tracking: boolean }) {
             <Trans>Open a chapter and it will show up here, ready to resume.</Trans>
           ) : (
             <Trans>
-              Open any chapter in the built-in reader, or connect Kavita, and Maki starts tracking
+              Open any chapter in the built-in reader, or connect Kavita, and Fōkurōru starts tracking
               where you are.
             </Trans>
           )
