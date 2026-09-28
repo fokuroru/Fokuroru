@@ -2,6 +2,8 @@ import { Trans, Plural } from '@lingui/react/macro'
 import type { MidwaySeriesDto } from '../../api/stats'
 import { formatReadingTime } from '../../format'
 import { SeriesLink, SeriesThumb } from './SeriesLink'
+import { useComputedColorScheme } from '@mantine/core'
+import { DEFAULT_SPINE, spineFg } from '../../lib/spine'
 
 /** The right-hand small line: how much is left, and how long it would take at your own pace. */
 function MidwayHint({ held, etaSeconds }: { held: number; etaSeconds: number | null }) {
@@ -22,6 +24,7 @@ function MidwayHint({ held, etaSeconds }: { held: number; etaSeconds: number | n
  * "mid-way" only ever means read/held against a meter, whatever panel it sits in.
  */
 export function MidwayList({ items, emptyText }: { items: MidwaySeriesDto[]; emptyText: string }) {
+  const scheme = useComputedColorScheme('dark')
   if (items.length === 0) {
     return (
       <p className="stats-row-sub" style={{ margin: 0 }}>
@@ -43,7 +46,8 @@ export function MidwayList({ items, emptyText }: { items: MidwaySeriesDto[]; emp
                 <SeriesLink id={item.seriesId} title={item.title} />
               </div>
               <div className="stats-row-meter">
-                <span style={{ width: `${pct}%` }} />
+                {/* Reading progress, so each bar wears its own series' spine. */}
+                <span style={{ width: `${pct}%`, background: spineFg(item.spineColor ?? DEFAULT_SPINE, scheme) }} />
               </div>
             </div>
             <div className="stats-row-value tnum">

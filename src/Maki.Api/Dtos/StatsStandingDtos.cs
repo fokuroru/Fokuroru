@@ -27,8 +27,10 @@ public record BacklogSeriesDto(int SeriesId, string Title, string? CoverUrl, int
 /// <param name="Held">Downloaded chapters.</param>
 /// <param name="EtaSeconds">Time to read the rest at the reader's median pace; null without one.</param>
 /// <param name="LastReadAt">UTC.</param>
+/// <param name="SpineColor">The series' sampled spine colour, or null for the default.</param>
 public record MidwaySeriesDto(
-    int SeriesId, string Title, string? CoverUrl, int Read, int Held, int? EtaSeconds, DateTime LastReadAt);
+    int SeriesId, string Title, string? CoverUrl, int Read, int Held, int? EtaSeconds, DateTime LastReadAt,
+    string? SpineColor = null);
 
 /// <param name="Story">Credited as writer on at least one of the series.</param>
 /// <param name="Art">Credited as artist on at least one of the series.</param>

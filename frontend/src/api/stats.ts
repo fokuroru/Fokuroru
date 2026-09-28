@@ -81,6 +81,8 @@ export interface MidwaySeriesDto {
   held: number
   etaSeconds: number | null
   lastReadAt: string
+  /** The series' spine colour, or null for the default. See lib/spine.ts. */
+  spineColor?: string | null
 }
 
 export interface CreatorReturnDto {

@@ -39,7 +39,7 @@ public class StatsStandingService(
 
     private sealed record SeriesRow(
         int Id, string Title, string? CoverPath, DateTime? LastMetadataRefresh,
-        string? AuthorStory, string? AuthorArt, int? MangaBakaId);
+        string? AuthorStory, string? AuthorArt, int? MangaBakaId, string? SpineColor);
 
     private sealed record ProgressRow(int SeriesId, int ChapterId, bool Watched, DateTime UpdatedAt);
 
@@ -69,7 +69,8 @@ public class StatsStandingService(
         var series = await db.Series.AsNoTracking()
             .Where(s => s.Incognito != IncognitoMode.Full)
             .Select(s => new SeriesRow(
-                s.Id, s.Title, s.CoverPath, s.LastMetadataRefresh, s.AuthorStory, s.AuthorArt, s.MangaBakaId))
+                s.Id, s.Title, s.CoverPath, s.LastMetadataRefresh, s.AuthorStory, s.AuthorArt, s.MangaBakaId,
+                s.SpineColor))
             .ToDictionaryAsync(s => s.Id, ct);
 
         if (userId != currentUser.UserId)
@@ -152,7 +153,8 @@ public class StatsStandingService(
             .Select(p => new MidwaySeriesDto(
                 p.SeriesId, series[p.SeriesId].Title, Cover(series[p.SeriesId]), p.Read, p.Held,
                 pace is double secs ? (int)Math.Round(p.Unread * secs) : null,
-                DateTime.SpecifyKind(p.LastReadAt, DateTimeKind.Utc)))
+                DateTime.SpecifyKind(p.LastReadAt, DateTimeKind.Utc),
+                series[p.SeriesId].SpineColor))
             .ToList();
 
         // ---- creators ----

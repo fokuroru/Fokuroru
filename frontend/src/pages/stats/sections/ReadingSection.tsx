@@ -2,8 +2,6 @@ import { Skeleton, SegmentedControl, SimpleGrid, Stack, Group } from '@mantine/c
 import { BarChart } from '@mantine/charts'
 import {
   IconBook2,
-  IconBookmark,
-  IconCalendarStats,
   IconClock,
   IconHistory,
   IconHourglassLow,
@@ -265,7 +263,6 @@ export default function ReadingSection({ userId, range, previous, windowLabel }:
           <Panel p="md">
             <Group justify="space-between" align="flex-start" mb="sm">
               <p className="stats-panel-title">
-                <IconCalendarStats size={16} style={{ color: 'var(--brand)' }} />
                 {t`Day by day`}
               </p>
               <SegmentedControl
@@ -301,7 +298,6 @@ export default function ReadingSection({ userId, range, previous, windowLabel }:
 
           <Panel p="md">
             <p className="stats-panel-title">
-              <IconBookmark size={16} style={{ color: 'var(--brand)' }} />
               {t`Mid-way`}
             </p>
             <MidwayList items={midway} emptyText={t`Nothing sits half read right now.`} />

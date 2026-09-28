@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { RingProgress, SimpleGrid, Skeleton, Stack, Text } from '@mantine/core'
 import { Trans, Plural, Select, useLingui } from '@lingui/react/macro'
-import { IconArchive, IconBooks, IconChartHistogram, IconFlame } from '@tabler/icons-react'
 import { useActivityStats, useLibraryComposition } from '../../../api/hooks'
 import type { BehaviourSeries } from '../../../api/hooks'
 import { useStatsStanding } from '../../../api/stats'
@@ -128,7 +127,6 @@ export default function HabitsSection({ userId, range }: StatsSectionProps) {
         <div className="stats-grid-side">
           <Panel p="md">
             <p className="stats-panel-title">
-              <IconFlame size={16} style={{ color: 'var(--brand)' }} />
               {t`Finish rate`}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
@@ -170,7 +168,6 @@ export default function HabitsSection({ userId, range }: StatsSectionProps) {
 
           <Panel p="md">
             <p className="stats-panel-title">
-              <IconChartHistogram size={16} style={{ color: 'var(--brand)' }} />
               {t`Where you stop`}
             </p>
             <p className="stats-panel-sub">
@@ -242,7 +239,6 @@ export default function HabitsSection({ userId, range }: StatsSectionProps) {
 
             <Panel p="md">
               <p className="stats-panel-title">
-                <IconArchive size={16} style={{ color: 'var(--brand)' }} />
                 {t`Abandoned`}
               </p>
               <p className="stats-panel-sub">{t`Stopped before finishing`}</p>
@@ -275,7 +271,6 @@ export default function HabitsSection({ userId, range }: StatsSectionProps) {
         {backlog.unreadChapters > 0 && (
           <Panel p="md">
             <p className="stats-panel-title">
-              <IconBooks size={16} style={{ color: 'var(--brand)' }} />
               {t`Backlog`}
             </p>
             <p className="stats-panel-sub">

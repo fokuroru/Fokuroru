@@ -1,4 +1,4 @@
-import { Group, Stack, Text } from '@mantine/core'
+import { Stack, Text } from '@mantine/core'
 import type { Icon } from '@tabler/icons-react'
 import { Panel } from '../../components/ui/Panel'
 import { SeriesLink, SeriesThumb } from './SeriesLink'
@@ -19,22 +19,21 @@ export interface RankItem {
  * is how they drift apart.
  */
 export function RankList({
-  icon: RankIcon,
   title,
   items,
   emptyText,
 }: {
-  icon: Icon
+  /** Accepted and not drawn: Maki Spine sets headings by type alone. */
+  icon?: Icon
   title: string
   items: RankItem[]
   emptyText: string
 }) {
   return (
     <Panel p="md">
-      <Group gap={8} mb="xs" wrap="nowrap">
-        <RankIcon size={16} style={{ color: 'var(--brand)', flexShrink: 0 }} />
-        <Text fw={650}>{title}</Text>
-      </Group>
+      <Text fw={700} mb="xs">
+        {title}
+      </Text>
       {items.length === 0 ? (
         <Text c="var(--ink-3)" size="sm">
           {emptyText}

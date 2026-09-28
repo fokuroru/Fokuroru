@@ -4611,7 +4611,9 @@ body {
 
 /* --- Rewind --------------------------------------------------------------- */
 
-/* Fullscreen story overlay. Deliberately always dark, Wrapped-style, in both themes. */
+/* Fullscreen story overlay, always dark in both themes: a charcoal poster with the spine band
+   down its left edge, the same mark the series page carries. The one place in Maki where type is
+   set at poster scale. */
 .rewind-overlay {
   position: fixed;
   inset: 0;
@@ -4619,18 +4621,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 64px 24px 64px 96px;
   cursor: pointer;
   user-select: none;
-  color: #fff;
-  background:
-    var(--spine);
+  color: #f5efe4;
+  background: #141210;
+}
+.rewind-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  width: 72px;
+  background: var(--spine);
+  pointer-events: none;
 }
 
 .rewind-progress {
   position: absolute;
   top: 16px;
-  left: 16px;
+  left: 96px;
   right: 64px;
   display: flex;
   gap: 6px;
@@ -4655,40 +4665,41 @@ body {
 }
 
 .rewind-slide {
-  max-width: 640px;
+  max-width: min(1040px, 100%);
   text-align: center;
 }
 
 .rewind-eyebrow {
-  font-size: 0.8rem;
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.18em;
-  opacity: 0.75;
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  font-weight: 700;
+  color: #cfc7b8;
 }
 .rewind-title {
-  font-size: clamp(2rem, 6vw, 3.4rem);
-  font-weight: var(--fw-heavy);
-  line-height: 1.1;
+  font-size: clamp(2.5rem, 6.5vw, 6rem);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 .rewind-sub {
-  font-size: 1.05rem;
-  opacity: 0.8;
+  font-size: clamp(1.0625rem, 1.4vw, 1.375rem);
+  color: #cfc7b8;
 }
 .rewind-big-number {
-  font-size: clamp(3.5rem, 12vw, 6.5rem);
-  font-weight: var(--fw-heavy);
-  line-height: 1;
+  font-size: clamp(6rem, 20vw, 16rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 .rewind-big-suffix {
-  font-size: 1.1rem;
-  font-weight: var(--fw-semibold);
-  opacity: 0.8;
-  margin-top: 4px;
+  font-size: clamp(1.125rem, 1.6vw, 1.5rem);
+  font-weight: 700;
+  color: #cfc7b8;
+  margin-top: 10px;
 }
 .rewind-list-line {
-  font-size: 1rem;
-  opacity: 0.9;
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
 }
 .rewind-rank {
   display: inline-block;
@@ -4701,14 +4712,24 @@ body {
   white-space: nowrap;
 }
 .rewind-summary-number {
-  font-size: 2rem;
-  font-weight: var(--fw-heavy);
-  line-height: 1.1;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 .rewind-summary-label {
-  font-size: 0.8rem;
-  font-weight: var(--fw-semibold);
-  opacity: 0.7;
+  font-size: clamp(0.875rem, 1.1vw, 1rem);
+  font-weight: 500;
+  color: #cfc7b8;
+  margin-top: 6px;
+}
+/* A centred wrapping row rather than a fixed-column grid: four figures sit on one line instead of
+   three and one left over. */
+.rewind-slide .rewind-summary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 36px 64px;
 }
 
 /* The covers. A slide about one series puts its art behind it the way the series page does,
@@ -4726,7 +4747,8 @@ body {
   inset: -8%;
   background-size: cover;
   background-position: center 25%;
-  filter: blur(30px) saturate(1.2) brightness(0.48);
+  /* Sharp art pushed into the dark, not blurred: the cover is the subject, the scrim does the work. */
+  filter: saturate(0.9) brightness(0.42);
   will-change: transform;
 }
 .rewind-mosaic {
@@ -4738,20 +4760,19 @@ body {
   grid-template-columns: repeat(9, 1fr);
   gap: 14px;
   transform: rotate(-9deg);
-  opacity: 0.36;
 }
 .rewind-mosaic img {
   width: 100%;
   aspect-ratio: 2 / 3;
   object-fit: cover;
-  border-radius: var(--radius-surface);
+  border-radius: var(--radius-thumb);
 }
+/* One flat charcoal veil at a fixed strength: the covers stay themselves (no colour cast) and the
+   type on top holds contrast over any of them. */
 .rewind-scrim {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(20, 18, 16, 0.55), rgba(20, 18, 16, 0.2) 70%, transparent),
-    linear-gradient(180deg, rgba(20, 18, 16, 0.55), rgba(20, 18, 16, 0.1) 35%, rgba(20, 18, 16, 0.1) 65%, rgba(20, 18, 16, 0.8));
+  background: rgba(20, 18, 16, 0.72);
 }
 .rewind-slide,
 .rewind-progress,
@@ -4768,8 +4789,8 @@ body {
   margin: 0 auto 18px;
   object-fit: cover;
   border-radius: var(--radius-hero);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 30px 60px -18px rgba(0, 0, 0, 0.9);
+  border: 0;
+  box-shadow: 8px 0 0 var(--spine);
 }
 .rewind-fan {
   display: flex;
@@ -4781,9 +4802,9 @@ body {
   aspect-ratio: 2 / 3;
   margin-inline: -8px;
   object-fit: cover;
-  border-radius: var(--radius-surface);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 18px 36px -12px rgba(0, 0, 0, 0.85);
+  border-radius: var(--radius-thumb);
+  border: 2px solid #141210;
+  box-shadow: none;
 }
 .rewind-fan[data-muted] img {
   filter: grayscale(0.75) brightness(0.8);
@@ -6863,6 +6884,11 @@ body.reader-open {
     /* Bottom padding clears the progress rail and the close button. */
     padding: 40px 16px 84px;
   }
+  .rewind-overlay::before {
+    inset: 0 0 auto 0;
+    width: auto;
+    height: 6px;
+  }
   .rewind-progress {
     top: auto;
     bottom: 18px;
@@ -6875,22 +6901,24 @@ body.reader-open {
     right: 8px;
   }
   .rewind-eyebrow {
-    font-size: 0.72rem;
-    letter-spacing: 0.13em;
+    font-size: 0.9375rem;
   }
-  /* The desktop clamps floor at 2rem / 3.5rem, which is wider than 360px once a
-     four-digit count is drawn. */
+  /* The desktop clamps floor too wide for 360px once a four-digit count is drawn; these cap a
+     four-digit figure at the width of the screen. */
   .rewind-title {
-    font-size: clamp(1.6rem, 8.5vw, 2.4rem);
+    font-size: clamp(2rem, 10vw, 3rem);
   }
   .rewind-big-number {
-    font-size: clamp(2.6rem, 15vw, 4rem);
+    font-size: clamp(3.5rem, 21vw, 6rem);
   }
   .rewind-sub {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
   .rewind-summary-number {
-    font-size: 1.6rem;
+    font-size: 2.25rem;
+  }
+  .rewind-slide .rewind-summary-grid {
+    gap: 24px 36px;
   }
   .rewind-mosaic {
     grid-template-columns: repeat(5, 1fr);
