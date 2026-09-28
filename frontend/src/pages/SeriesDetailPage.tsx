@@ -138,6 +138,7 @@ import { useShellTitle } from '../lib/shellTitle'
 import { buildAnimeSpans, mergeAnimeMarkers, type AnimeSpan } from '../lib/animeCoverage'
 import { cleanSynopsis } from '../lib/synopsis'
 import { useSpineStyle } from '../lib/spine'
+import { DownloadSplash } from './reader/DownloadSplash'
 
 function chapterLabel(c: ChapterDto): string {
   if (c.isOneShot || c.number === null) return c.title ?? staticT`One-shot`
@@ -338,7 +339,6 @@ export default function SeriesDetailPage() {
   }, [series?.sourceMatchPending, seriesId, queryClient])
   const readTracking = useReadTracking()
   const { data: progressRows } = useSeriesReadProgress(seriesId)
-  const { data: continueAt } = useContinueReading(seriesId)
   const { data: files} = useSeriesFiles(seriesId, true)
   const setRead = useSetChapterRead(seriesId)
   // Only worth asking once there is an anime to have finished, and only meaningful with read
@@ -425,6 +425,9 @@ export default function SeriesDetailPage() {
   // Without DownloadChapters the two buttons that queue downloads become one that asks an admin to.
   const { can } = useAuth()
   const canDownload = can('DownloadChapters')
+  // Someone who can download is offered the next chapter whether or not it is on disk yet.
+  const { data: continueAt } = useContinueReading(seriesId, true, canDownload)
+  const [downloadSplash, setDownloadSplash] = useState(false)
   const canLinkFiles = can('EditMetadata')
   const createRequest = useCreateSeriesRequest()
   // Already in cache: the sources section below this page fetches the same query. Two enabled
@@ -1332,6 +1335,18 @@ export default function SeriesDetailPage() {
 
   return (
     <SurfaceFrame width="full" pageStyle="editorial">
+      {downloadSplash && continueAt && (
+          <DownloadSplash
+              chapterId={continueAt.chapterId}
+              chapterLabel={nextChapter}
+              seriesTitle={series.displayTitle}
+              coverUrl={series.coverUrl}
+              onClose={() => {
+                setDownloadSplash(false)
+                void queryClient.invalidateQueries({ queryKey: ['reader-continue', seriesId] })
+              }}
+          />
+      )}
       <Tabs
           className="series-detail-surface"
           style={spineStyle}
@@ -1348,7 +1363,17 @@ export default function SeriesDetailPage() {
             onRate={submitRating}
             actions={
               <>
-                {continueAt && (
+                {continueAt && !continueAt.downloaded && (
+                    <Button
+                        size="md"
+                        radius="md"
+                        leftSection={<IconDownload size={18} />}
+                        onClick={() => setDownloadSplash(true)}
+                    >
+                      {nextChapter ? <Trans>Download & read {nextChapter}</Trans> : <Trans>Download & read</Trans>}
+                    </Button>
+                )}
+                {continueAt?.downloaded && (
                     <Button
                         component={Link}
                         to={`/read/${continueAt.chapterId}`}
@@ -2168,13 +2193,12 @@ export default function SeriesDetailPage() {
             >
               <Stack gap="md">
                 <Text size="sm" c="var(--ink-3)">
-                  <Trans>This permanently removes {selectedCount} chapter row(s), not just their file link,
-                    along with any backing file on disk.</Trans>{' '}
-                  <Trans>Use this to clean up chapters pulled in by a wrong source match.</Trans>{' '}
-                  <Trans>Fix or remove the source mapping first, or a refresh will bring them right back.</Trans>
+                  <Trans>Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so
+                    they are not downloaded again.</Trans>{' '}
+                  <Trans>The chapters stay in the list. Tick them as wanted again to bring them back.</Trans>
                 </Text>
                 <Text size="sm" c="var(--danger)">
-                  <Trans>This action cannot be undone.</Trans>
+                  <Trans>The files are removed from disk and cannot be recovered.</Trans>
                 </Text>
                 <Group justify="flex-end">
                   <Button variant="default" onClick={() => setDeleteChaptersModalOpen(false)}>

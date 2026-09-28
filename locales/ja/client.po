@@ -2015,6 +2015,10 @@ msgstr "{windowLabel}に追加"
 msgid "Added manually"
 msgstr "手動で追加"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Adding it to your library…"
+msgstr ""
+
 #: src/components/settings/SecuritySection.tsx
 #, fuzzy
 msgid "Adds a button to the login page. Local passwords keep working unless you restrict them below."
@@ -3647,6 +3651,7 @@ msgstr "クライアントシークレット"
 #: src/components/SourceCompareModal.tsx
 #: src/components/TagBrowserModal.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -4092,6 +4097,10 @@ msgstr "進捗を読み込めませんでした。理由はサーバーログに
 msgid "Could not load your signals: {loadError}"
 msgstr "シグナルを読み込めませんでした: {loadError}"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Could not queue the chapter."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Could not read progress for {seriesFailed, plural, one {# series} other {# series}}"
@@ -4512,6 +4521,10 @@ msgstr "削除したファイルはディスクから除去され、Fōkurōru�
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr ""
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so they are not downloaded again."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Deleting"
@@ -4760,9 +4773,21 @@ msgid "Download {missingWanted} wanted chapters?"
 msgstr "希望した{missingWanted}章をダウンロードしますか？"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Download & read"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Download & read {nextChapter}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Download all wanted"
 msgstr "希望したものをすべてダウンロード"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download and read"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -4798,6 +4823,10 @@ msgstr "次の章をダウンロード"
 #, fuzzy
 msgid "Download order when a series matches several sources, highest first. Language ranking above comes first. Applies to new auto-matches and manual Auto-match runs; other series keep their order. Switching a source off pauses it for every series without touching their own toggles."
 msgstr "シリーズが複数のソースに一致した場合のダウンロード順です。上位ほど優先されます。上記の言語順位が先に適用されます。新しい自動照合と手動での自動照合に適用され、他のシリーズの順序は変わりません。ソースを無効にすると、各シリーズの個別設定は変えずに、そのソースをすべてのシリーズで一時停止します。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download progress"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4858,7 +4887,12 @@ msgstr "メタデータデータベースをダウンロード中"
 msgid "Downloading now"
 msgstr "現在ダウンロード中"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Downloading page {pagesDone} of {pagesTotal}"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #, fuzzy
 msgid "Downloading…"
 msgstr "ダウンロード中…"
@@ -5450,6 +5484,10 @@ msgstr "メタデータを取得中"
 msgid "Fetching pages…"
 msgstr "ページを取得中…"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Fetching the page list…"
+msgstr ""
+
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
 msgid "File"
@@ -5543,6 +5581,10 @@ msgstr "より良いファイルを探す"
 #, fuzzy
 msgid "Find more"
 msgstr "さらに検索"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Finding a source…"
+msgstr ""
 
 #: src/components/ui/status.tsx
 #: src/pages/ActivityPage.tsx
@@ -5648,11 +5690,6 @@ msgstr "幅に合わせる"
 #, fuzzy
 msgid "Fit width"
 msgstr "幅に合わせる"
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Fix or remove the source mapping first, or a refresh will bring them right back."
-msgstr "まずソースマッピングを修正または削除してください。そうしないと更新時に再び表示されます。"
 
 #: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/registry.ts
@@ -6791,6 +6828,10 @@ msgstr "Kavitaの読書情報は1つのFōkurōruアカウントに紐付いて�
 #, fuzzy
 msgid "Keep a local copy of MangaBaka"
 msgstr "MangaBakaのローカルコピーを保持"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Keep downloading in the background"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -9259,6 +9300,10 @@ msgstr "ページを開いて正しいシリーズか確認"
 msgid "Open the search with these filters from now on"
 msgstr "今後はこのフィルターを適用した状態で検索を開く"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Opening the reader…"
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Opens a deletion review. Nothing is removed until you confirm it there."
@@ -9357,6 +9402,10 @@ msgstr "ペース"
 #, fuzzy
 msgid "Packaging"
 msgstr "パッケージ化"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Packing the pages…"
+msgstr ""
 
 #: src/components/CommandPalette.tsx
 #, fuzzy
@@ -9878,6 +9927,10 @@ msgstr "{outstanding}をキューに追加"
 #, fuzzy
 msgid "Queued and downloading chapters show up here. Trigger a search from a series page or the library."
 msgstr "キューに入りダウンロード中の章がここに表示されます。シリーズページまたはライブラリから検索を開始してください。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Queuing the chapter…"
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -12837,10 +12890,26 @@ msgstr "カタログのレールにはローカルMangaBakaデータベースが
 msgid "The chapter numbers are in the archive's page file names. Certain."
 msgstr "アーカイブ内のページファイル名に章番号が記載されています。確実です。"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "The chapters stay in the list. Tick them as wanted again to bring them back."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "The current feed URL stops working immediately. Every app using it needs the new one."
 msgstr "現在のフィードURLはすぐに使えなくなります。利用中のすべてのアプリで新しいURLが必要です。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download failed."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download needs a decision before it can be imported. Check Activity."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download was cancelled."
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -12856,6 +12925,10 @@ msgstr "ファイル名から章を判別できます。"
 #, fuzzy
 msgid "The file name carries no chapter or volume number, so nothing can be matched to it. Rename it to the library's naming format and rescan, or link it by hand from the series' Files tab."
 msgstr "ファイル名に章番号または巻番号がないため、何も照合できません。ライブラリの名前付け形式に変更して再スキャンするか、シリーズのFilesタブから手動でリンクしてください。"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "The files are removed from disk and cannot be recovered."
+msgstr ""
 
 #: src/components/RenameSeriesModal.tsx
 #, fuzzy
@@ -12976,6 +13049,10 @@ msgstr "理由はサーバーログで確認できます。"
 #, fuzzy
 msgid "The single biggest improvement if Fōkurōru is reachable from the internet."
 msgstr "Fōkurōruをインターネットから利用できるようにする場合の、最大の改善策です。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The source asked us to slow down. Waiting to try again…"
+msgstr ""
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13150,11 +13227,6 @@ msgstr "これはディスクから{count, plural, other {これらのファイ�
 #, fuzzy
 msgid "This permanently deletes the archive. Chapter records and reading history remain."
 msgstr "これはアーカイブを完全に削除します。章の記録と読書履歴は残ります。"
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "This permanently removes {selectedCount} chapter row(s), not just their file link, along with any backing file on disk."
-msgstr "ファイルへのリンクだけでなく、{selectedCount}件の章の行とディスク上の実ファイルも完全に削除されます。"
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13545,6 +13617,7 @@ msgid "Try a shorter or alternative query."
 msgstr "短い、または別のクエリを試してください。"
 
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
 #, fuzzy
 msgid "Try again"
@@ -13936,11 +14009,6 @@ msgstr "このファイルを使う"
 msgid "Use this title for taste"
 msgstr "このタイトルを好みに使用"
 
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Use this to clean up chapters pulled in by a wrong source match."
-msgstr "誤ったソース照合で取り込まれた章を整理するために使用します。"
-
 #: src/components/settings/UsersSection.tsx
 #, fuzzy
 msgid "Use trackers"
@@ -14204,6 +14272,10 @@ msgstr "比較: {fromLabel}～{toLabel}"
 #, fuzzy
 msgid "Waiting for the MangaBaka snapshot to download first."
 msgstr "先にMangaBakaスナップショットがダウンロードされるのを待っています。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Waiting its turn in the download queue…"
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14505,6 +14577,10 @@ msgstr "今後おすすめされません"
 #, fuzzy
 msgid "Won't suggest resuming from this anime again."
 msgstr "このアニメからの再開は今後おすすめしません。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Working…"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 #: src/pages/SettingsPage.tsx

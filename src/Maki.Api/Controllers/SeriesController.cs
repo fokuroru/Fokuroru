@@ -342,7 +342,7 @@ public class SeriesController(
             .ToDictionaryAsync(x => x.SeriesId, ct);
 
         var readCounts = await ReadChapterCountsBySeriesAsync(ct);
-        var readingStatuses = await ReadingStatusesAsync(series.ToDictionary(s => s.Id, s => s.Status), ct);
+        var readingStatuses = await SeriesReadingService.ForAsync(db, series.ToDictionary(s => s.Id, s => s.Status), ct);
         var lastRead = await db.ChapterProgress
             .Where(p => p.UnreadAt == null)
             .GroupBy(p => p.SeriesId)
@@ -413,7 +413,9 @@ public class SeriesController(
                         .Order(),
                 ],
                 FileSources = fileSourcesBySeries.GetValueOrDefault(s.Id) ?? [],
-                ReadingStatus = readingStatuses.TryGetValue(s.Id, out var rs) ? rs.ToString() : null,
+                ReadingStatus = readingStatuses.TryGetValue(s.Id, out var rs) ? rs.Status.ToString() : null,
+                ReadMainChapters = rs?.ReadMain,
+                MainChapterCount = rs?.TotalMain,
                 LastReadAt = lastRead.TryGetValue(s.Id, out var at) ? DateTime.SpecifyKind(at, DateTimeKind.Utc) : null,
             };
         }));
@@ -470,43 +472,6 @@ public class SeriesController(
             .FirstOrDefaultAsync(ct);
 
         return (state?.Rating, state?.NotificationMode ?? SeriesNotificationMode.Default);
-    }
-
-    /// <summary>
-    /// The caller's <see cref="ReadingStatus"/> per series (see <see cref="ReadingStatuses.For"/>), for
-    /// series they have read at least one main chapter of. Measured against every chapter the series
-    /// lists, not only downloaded ones: "all downloaded read" with more still to fetch is neither
-    /// up to date nor completed. Chapter numbers are REAL in SQLite and can't be floored in SQL, so
-    /// the maximums are taken in memory over two narrow projections.
-    /// </summary>
-    private async Task<Dictionary<int, ReadingStatus>> ReadingStatusesAsync(
-        Dictionary<int, SeriesStatus> statuses, CancellationToken ct)
-    {
-        var ids = statuses.Keys.ToList();
-        var read = (await (from p in db.ChapterProgress
-                           join c in db.Chapters on p.ChapterId equals c.Id
-                           where p.Completed && c.Number != null && ids.Contains(c.SeriesId)
-                           select new { c.SeriesId, c.Number }).ToListAsync(ct))
-            .Where(x => ReadingStatuses.IsMain(x.Number))
-            .GroupBy(x => x.SeriesId)
-            .ToDictionary(g => g.Key, g => g.Max(x => x.Number));
-        if (read.Count == 0)
-        {
-            return [];
-        }
-
-        var readIds = read.Keys.ToList();
-        var highest = (await db.Chapters
-                .Where(c => c.Number != null && readIds.Contains(c.SeriesId))
-                .Select(c => new { c.SeriesId, c.Number })
-                .ToListAsync(ct))
-            .Where(x => ReadingStatuses.IsMain(x.Number))
-            .GroupBy(x => x.SeriesId)
-            .ToDictionary(g => g.Key, g => g.Max(x => x.Number));
-
-        return read.ToDictionary(
-            r => r.Key,
-            r => ReadingStatuses.For(statuses[r.Key], highest.GetValueOrDefault(r.Key), r.Value));
     }
 
     private async Task<Dictionary<int, int>> ReadChapterCountsBySeriesAsync(CancellationToken ct) =>
@@ -932,14 +897,16 @@ public class SeriesController(
             id, estimateTotal, readRows, estimateMode, ct);
 
         var userState = await UserStateForAsync(id, ct);
-        var detailStatus = await ReadingStatusesAsync(new Dictionary<int, SeriesStatus> { [id] = series.Status }, ct);
+        var detailStatus = await SeriesReadingService.ForAsync(db, new Dictionary<int, SeriesStatus> { [id] = series.Status }, ct);
         var dto = SeriesDto.FromEntity(
             series, total, withFile, known, queued, active.Count - queued, readCount,
             rating: userState.Rating, isAdmin: currentUser.Has(MakiPermission.Admin),
             notificationMode: userState.NotificationMode,
             titleLanguage: await TitleLanguageAsync(ct)) with
         {
-            ReadingStatus = detailStatus.TryGetValue(id, out var status) ? status.ToString() : null,
+            ReadingStatus = detailStatus.TryGetValue(id, out var reading) ? reading.Status.ToString() : null,
+            ReadMainChapters = reading?.ReadMain,
+            MainChapterCount = reading?.TotalMain,
             ReadTimeEstimate = estimate is null
                 ? null
                 : new ReadingTimeEstimateDto(

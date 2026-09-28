@@ -240,13 +240,11 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
   const navigate = useNavigate()
   if (!readTracking) return null
 
+  // Reading history decides, not files on disk: auto-delete removes read chapters' files, and a
+  // count of read files would drop to zero and hide a series someone is halfway through.
   const reading = series
     .map((s) => ({ s, p: seriesProgressVisual(s, readTracking) }))
-    .filter(({ s, p }) => {
-      if ((s.readChapterCount ?? 0) === 0) return false
-      if (s.readingStatus === 'Completed' || s.readingStatus === 'UpToDate') return false
-      return (p.unread ?? 0) > 0 || s.readingStatus === 'Reading'
-    })
+    .filter(({ s }) => s.readingStatus === 'Reading')
     .sort((a, b) => (b.s.lastReadAt ?? '').localeCompare(a.s.lastReadAt ?? ''))
     .slice(0, MAX_SERIES)
   if (reading.length === 0) return null
@@ -264,8 +262,8 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
       <div className="spine-shelf-label">{t`Reading now`}</div>
       <div className="spine-shelf-row">
         {reading.map(({ s, p }) => {
-          const total = p.total || p.have
-          const books = booksFor(total, s.readChapterCount ?? 0)
+          const total = s.mainChapterCount || p.total || p.have
+          const books = booksFor(total, s.readMainChapters ?? s.readChapterCount ?? 0)
           const style = STYLES[pick(s.id, 'style', STYLES.length)]
           const height = 250 + pick(s.id, 'height', 5) * 9
           const seriesTitle = s.displayTitle

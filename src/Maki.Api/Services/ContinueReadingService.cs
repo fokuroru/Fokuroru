@@ -7,10 +7,11 @@ namespace Maki.Api.Services;
 /// <summary>
 /// What to read next in a series, and how much of it is left.
 /// </summary>
-/// <param name="ChapterId">The next downloaded chapter that has not been read.</param>
+/// <param name="ChapterId">The next chapter that has not been read.</param>
 /// <param name="Label">Rendered server-side — see <see cref="ChapterLabel"/> for why.</param>
-/// <param name="UnreadChapters">Downloaded chapters in the series still unread, this one included.</param>
-public record NextChapter(int ChapterId, string Label, int UnreadChapters);
+/// <param name="UnreadChapters">Candidate chapters in the series still unread, this one included.</param>
+/// <param name="Downloaded">Whether it is on disk. Only ever false when missing chapters were asked for.</param>
+public record NextChapter(int ChapterId, string Label, int UnreadChapters, bool Downloaded = true);
 
 /// <summary>
 /// Resolves "what do I read next" for a <em>set</em> of series in a fixed number of queries.
@@ -34,8 +35,13 @@ public class ContinueReadingService(MakiDbContext db)
     /// The next unread downloaded chapter per series. Series with nothing left to read are absent
     /// from the result rather than present with a null — callers drop them from their rails.
     /// </summary>
+    /// <param name="includeMissing">
+    /// Also consider wanted chapters that are not downloaded yet, for a caller that can fetch one
+    /// before opening it (the series page's "Download &amp; read"). Rails leave this off: they can
+    /// only offer what opens straight away.
+    /// </param>
     public async Task<Dictionary<int, NextChapter>> NextForAsync(
-        IReadOnlyCollection<int> seriesIds, CancellationToken ct)
+        IReadOnlyCollection<int> seriesIds, CancellationToken ct, bool includeMissing = false)
     {
         if (seriesIds.Count == 0)
         {
@@ -54,14 +60,15 @@ public class ContinueReadingService(MakiDbContext db)
         // its volume sits, and those chapters may not be on disk.
         var chapters = await db.Chapters
             .Where(c => seriesIds.Contains(c.SeriesId))
-            .Select(c => new { c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, HasFile = c.ChapterFileId != null })
+            .Select(c => new { c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, c.Wanted, HasFile = c.ChapterFileId != null })
             .ToListAsync(ct);
 
         var result = new Dictionary<int, NextChapter>();
         foreach (var group in chapters.GroupBy(c => c.SeriesId))
         {
             var ordered = ChapterOrder.Sort(group, c => c.Number, c => c.Volume, c => c.Id);
-            var unread = ordered.Where(c => c.HasFile && !completed.Contains(c.Id)).ToList();
+            bool Candidate(bool hasFile, bool wanted) => hasFile || (includeMissing && wanted);
+            var unread = ordered.Where(c => Candidate(c.HasFile, c.Wanted) && !completed.Contains(c.Id)).ToList();
             if (unread.Count == 0)
             {
                 continue;
@@ -73,19 +80,26 @@ public class ContinueReadingService(MakiDbContext db)
             var furthestRead = ordered.FindLastIndex(c => c.Number is not null && completed.Contains(c.Id));
             var furthestNumber = furthestRead < 0 ? null : ordered[furthestRead].Number;
             var next = ordered.Skip(furthestRead + 1)
-                           .FirstOrDefault(c => c.HasFile && !completed.Contains(c.Id) && (furthestRead < 0 || c.Number != furthestNumber))
+                           .FirstOrDefault(c => Candidate(c.HasFile, c.Wanted) && !completed.Contains(c.Id) && (furthestRead < 0 || c.Number != furthestNumber))
                        ?? unread[0];
+
+            // Another language's copy of the same release already on disk beats fetching this one.
+            if (!next.HasFile && next.Number is not null)
+            {
+                next = unread.FirstOrDefault(c => c.HasFile && c.Number == next.Number && c.Volume == next.Volume) ?? next;
+            }
 
             result[group.Key] = new NextChapter(
                 next.Id,
                 ChapterLabel.For(next.Number, next.Volume, next.Title, next.IsOneShot),
-                unread.Count);
+                unread.Count,
+                next.HasFile);
         }
 
         return result;
     }
 
     /// <summary>Convenience wrapper for the single-series reader endpoint.</summary>
-    public async Task<NextChapter?> NextForAsync(int seriesId, CancellationToken ct) =>
-        (await NextForAsync(new[] { seriesId }, ct)).GetValueOrDefault(seriesId);
+    public async Task<NextChapter?> NextForAsync(int seriesId, CancellationToken ct, bool includeMissing = false) =>
+        (await NextForAsync(new[] { seriesId }, ct, includeMissing)).GetValueOrDefault(seriesId);
 }

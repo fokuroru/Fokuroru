@@ -8,6 +8,9 @@ paths:
   - "src/Maki.Api/Controllers/Reader*.cs"
   - "src/Maki.Api/Controllers/ReadingProfiles*.cs"
   - "frontend/src/pages/reader/**"
+  - "src/Maki.Api/Services/SeriesReading*.cs"
+  - "src/Maki.Core/Entities/ReadingStatus.cs"
+  - "frontend/src/components/library/SpineShelf.tsx"
 ---
 
 # Reader and reading progress
@@ -25,3 +28,4 @@ Migrated out of the root CLAUDE.md so this only loads when touching reader/progr
 - **`ReadingSession` rows are stitched server-side by gap** (`ReadingSessionService.Stitch`, shared with the backfill so the rule lives once): a report whose start lands within 10 minutes of the user's latest sitting extends it, otherwise a new row starts. The client resets its clock per chapter and sends no session id, so there is nothing better to key on; a two-tab overlap can drop a few seconds or split a sitting, accepted. Only native-reader time counts (`SaveProgressCoreAsync` records when the clamped report is > 0 or the chapter just completed; a zero-second completion only credits an already open sitting, so OPDS/`MarkRead` never create one). Recording runs after the completion events and a failure only logs, since a session never gates progress, and `IncognitoMode.Full` series are skipped. `RecordAsync` takes an explicit `userId` and ignores query filters. `ReadingSessionBackfillService` seeds history once from `ReadingTime` events (marker `stats.sessionsBackfillDone`, skips users that already have rows; backfilled sittings have `ChaptersCompleted = 0`, and include time on series later set to Full incognito, since sessions carry no series and it cannot be filtered afterwards). Never purged.
 - **Kavita read-status import is invisible to Rewind on purpose** (`KavitaReadImportService` → `ReadingProgressService.ImportSilentAsync`) — Kavita doesn't say *when* chapters were read, so dating them today would dump the whole back catalogue onto one day. Imported rows carry `PageCount = 0`; `Completed AND PageCount = 0` is how later code identifies an import.
 - **`ContinueReadingService.NextForAsync` is the only "what's next" resolver** — reads `ChapterProgress` only, never `ReadingState` (would double-count/multiply on duplicate rows).
+- **Reading status is per release, from history** (`SeriesReadingService`, `ReadingStatuses.For`). Completed/UpToDate need every whole-numbered chapter the series lists read, counting a number read when any language's row is completed; the highest number read is not enough (reading only the last chapter used to finish a series). It measures history, not files: `ReadMainChapters`/`MainChapterCount` on the DTO survive auto-delete, while `ReadChapterCount` (files on disk) drops with each deleted file. The Reading now shelf keys off the history pair for that reason.

@@ -265,7 +265,7 @@ public class ChapterControllerTests : IDisposable
 
             Assert.IsType<OkObjectResult>(result);
             Assert.True(File.Exists(outside));
-            Assert.Empty(db.Chapters);
+            AssertKeptUnwanted(db);
         }
         finally
         {
@@ -320,7 +320,7 @@ public class ChapterControllerTests : IDisposable
                 var result = await Controller(db).Delete([chapterId], default);
 
                 Assert.IsType<OkObjectResult>(result);
-                Assert.Empty(db.Chapters);
+                AssertKeptUnwanted(db);
             }
 
             Assert.True(File.Exists(external));
@@ -428,7 +428,7 @@ public class ChapterControllerTests : IDisposable
             var result = await Controller(db).Delete([chapterId], default);
 
             Assert.IsType<OkObjectResult>(result);
-            Assert.Null(await db.Chapters.FindAsync(chapterId));
+            AssertKeptUnwanted(db, chapterId);
             var remaining = Assert.Single(db.ChapterFiles);
             Assert.Equal(otherFileId, remaining.Id);
         }
@@ -476,5 +476,21 @@ public class ChapterControllerTests : IDisposable
         Assert.True(File.Exists(Path.Combine(_root, relativePath)));
         Assert.NotNull(await db.Chapters.FindAsync(chapterId));
         Assert.Single(db.ChapterFiles);
+    }
+
+    /// <summary>
+    /// Deleting keeps the row, unlinked and unwanted: a source refresh re-adds any chapter it still
+    /// lists, so a removed row came straight back as a wanted chapter and downloaded again.
+    /// </summary>
+    private static void AssertKeptUnwanted(MakiDbContext db, int? chapterId = null)
+    {
+        db.ChangeTracker.Clear();
+        var rows = db.Chapters.Where(c => chapterId == null || c.Id == chapterId).ToList();
+        Assert.NotEmpty(rows);
+        Assert.All(rows, c =>
+        {
+            Assert.False(c.Wanted);
+            Assert.Null(c.ChapterFileId);
+        });
     }
 }

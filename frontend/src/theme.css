@@ -7824,3 +7824,61 @@ body.reader-open {
     gap: 20px;
   }
 }
+
+/* --- "Download & read" splash ------------------------------------------- */
+.download-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: #141210;
+  color: #f5efe4;
+  overflow: hidden;
+}
+/* The cover, blown up and dimmed, so the wait feels like the book rather than a spinner. */
+.download-splash-art {
+  position: absolute;
+  inset: -40px;
+  background: center / cover no-repeat;
+  filter: blur(28px) saturate(0.8);
+  opacity: 0.28;
+}
+.download-splash-body {
+  position: relative;
+  width: min(420px, 100%);
+  text-align: center;
+}
+.download-splash-cover {
+  width: 132px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.download-splash-series {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--type-section);
+  line-height: 1.2;
+}
+.download-splash-chapter {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--type-meta);
+  color: rgba(245, 239, 228, 0.72);
+}
+.download-splash-progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.download-splash-status {
+  font-size: var(--type-meta);
+  color: rgba(245, 239, 228, 0.8);
+  min-height: 1.4em;
+}
+.download-splash-status[data-failed] {
+  color: #f4a39a;
+}

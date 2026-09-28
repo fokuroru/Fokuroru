@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { api } from './client'
 
 type SetupDoneHandler = () => void
@@ -136,23 +136,35 @@ export function useSetup() {
   })
 }
 
+function isIdentityQuery(key: readonly unknown[]): boolean {
+  return key.length === ME_QUERY_KEY.length && ME_QUERY_KEY.every((k, i) => key[i] === k)
+}
+
+/**
+ * Forgets everything cached for the account that was signed in, keeping only the identity query.
+ * The one cleanup for logout, a 401 from an expired session, and a sign-in as someone else: most
+ * query keys carry no user, so without it the next account is shown the last one's library until
+ * each query happens to refetch, and forever if that refetch fails.
+ *
+ *
+ * Everything except the identity query: qc.clear() tears down every Query instance, including the
+ * one the mounted useMe observer is attached to, so a setQueryData right after builds a fresh
+ * instance the observer was never subscribed to and AuthGate never swaps to the login screen.
+ * In-flight requests are cancelled first; one that still lands writes into a removed instance
+ * nothing reads, not into the new account's cache.
+ */
+export function clearAccountData(qc: QueryClient, signOut: boolean) {
+  const predicate = (query: { queryKey: readonly unknown[] }) => !isIdentityQuery(query.queryKey)
+  void qc.cancelQueries({ predicate })
+  qc.removeQueries({ predicate })
+  if (signOut) qc.setQueryData(ME_QUERY_KEY, null)
+}
+
 export function useLogout() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: () => api<void>('/auth/logout', { method: 'POST' }),
-    onSuccess: () => {
-      // Clear everything except the identity query itself: qc.clear() tears down every Query
-      // instance, including the one the mounted useMe observer is attached to, so a setQueryData
-      // right after builds a fresh instance the observer was never subscribed to: data updates
-      // in the cache, but nothing re-renders and AuthGate never swaps to the login screen. Keeping
-      // ME_QUERY_KEY's instance alive lets setData below notify that same observer directly.
-      qc.removeQueries({
-        predicate: (query) =>
-          query.queryKey.length !== ME_QUERY_KEY.length ||
-          !ME_QUERY_KEY.every((k, i) => query.queryKey[i] === k),
-      })
-      qc.setQueryData(ME_QUERY_KEY, null)
-    },
+    onSuccess: () => clearAccountData(qc, true),
   })
 }
 

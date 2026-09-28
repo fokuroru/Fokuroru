@@ -13,7 +13,8 @@ namespace Maki.Api.Jobs;
 /// wanted chapter with no file is exactly what Smart Download and "Download N wanted" go looking for.
 /// <para>
 /// A file backing several chapters (a volume) goes only once every one of them qualifies, and a file
-/// another row in the same root also points at (a manual link) is left alone.
+/// any other row points at, in this root or through an overlapping one, is left alone
+/// (<see cref="FileClaims"/>).
 /// </para>
 /// </summary>
 [DisallowConcurrentExecution]
@@ -71,13 +72,7 @@ public class AutoDeleteReadChaptersJob(
                            select new { File = f, Root = s.RootFolder })
             .ToListAsync(ct);
 
-        var rootIds = files.Where(f => f.Root != null).Select(f => f.Root!.Id).Distinct().ToList();
-        var pathClaims = (await (from f in db.ChapterFiles
-                                 join s in db.Series on f.SeriesId equals s.Id
-                                 where rootIds.Contains(s.RootFolderId)
-                                 select new { f.Id, RootId = s.RootFolderId, f.RelativePath })
-                .ToListAsync(ct))
-            .ToLookup(f => (f.RootId, LibraryPaths.ComparisonKey(f.RelativePath)));
+        var claims = await FileClaims.LoadAsync(db, ct);
 
         var deleted = 0;
         foreach (var (file, root) in files.Select(f => (f.File, f.Root)))
@@ -93,7 +88,7 @@ public class AutoDeleteReadChaptersJob(
                 continue;
             }
 
-            if (pathClaims[(root.Id, LibraryPaths.ComparisonKey(file.RelativePath))].Any(f => f.Id != file.Id))
+            if (claims.ClaimedByOthers(root.Path, file.RelativePath, new HashSet<int> { file.Id }))
             {
                 continue;
             }

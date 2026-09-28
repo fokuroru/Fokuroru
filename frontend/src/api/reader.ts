@@ -150,13 +150,17 @@ export function useSeriesReadProgress(seriesId: number, enabled = true) {
   })
 }
 
-export function useContinueReading(seriesId: number, enabled = true) {
+/**
+ * Where "Read" goes. With `includeMissing`, the next unread wanted chapter even when it is not on
+ * disk yet (`downloaded: false`), for a caller that can fetch it first.
+ */
+export function useContinueReading(seriesId: number, enabled = true, includeMissing = false) {
   return useQuery({
-    queryKey: ['reader-continue', seriesId],
+    queryKey: ['reader-continue', seriesId, includeMissing],
     queryFn: () =>
-      api<{ chapterId: number; page: number } | null>(`/reader/series/${seriesId}/continue`).catch(
-        () => null,
-      ),
+      api<{ chapterId: number; page: number; downloaded: boolean } | null>(
+        `/reader/series/${seriesId}/continue${includeMissing ? '?includeMissing=true' : ''}`,
+      ).catch(() => null),
     enabled: enabled && Number.isFinite(seriesId) && seriesId > 0,
     meta: { silent: true },
   })

@@ -1,4 +1,5 @@
-﻿using Maki.Api.Configuration;
+﻿using Maki.Api.Auth;
+using Maki.Api.Configuration;
 using Maki.Api.Dtos;
 using Maki.Api.Localization;
 using Maki.Api.Services;
@@ -9,6 +10,7 @@ using Maki.Core.Reading;
 using Maki.Core.Security;
 using Maki.Data;
 using Maki.Data.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
@@ -718,10 +720,12 @@ public class ReaderController(
 
     /// <summary>
     /// Where to resume: the most recently touched unfinished chapter, else the first
-    /// downloaded chapter that has not been read.
+    /// downloaded chapter that has not been read. With <paramref name="includeMissing"/>, the next
+    /// unread wanted chapter whether or not it is on disk, flagged with <c>downloaded</c> so the
+    /// caller can fetch it first.
     /// </summary>
     [HttpGet("series/{seriesId:int}/continue")]
-    public async Task<IActionResult> Continue(int seriesId, CancellationToken ct)
+    public async Task<IActionResult> Continue(int seriesId, CancellationToken ct, [FromQuery] bool includeMissing = false)
     {
         // Tombstones excluded: a chapter the user just marked unread is the most recently touched
         // incomplete row, and resuming into it would hijack "Continue reading". It is still unread,
@@ -733,13 +737,75 @@ public class ReaderController(
             .FirstOrDefaultAsync(ct);
         if (inProgress is not null)
         {
-            return Ok(new { chapterId = inProgress.ChapterId, page = inProgress.PageIndex });
+            return Ok(new { chapterId = inProgress.ChapterId, page = inProgress.PageIndex, downloaded = true });
         }
 
-        var next = await continueReading.NextForAsync(seriesId, ct);
+        var next = await continueReading.NextForAsync(seriesId, ct, includeMissing);
 
         return next is null
             ? this.NotFoundMessage(localizer, "error.reader.nothingToRead")
-            : Ok(new { chapterId = next.ChapterId, page = 0 });
+            : Ok(new { chapterId = next.ChapterId, page = 0, downloaded = next.Downloaded });
+    }
+
+    /// <summary>
+    /// "Download &amp; read": queues one chapter so the reader can open it once it lands. Ignores
+    /// <see cref="Chapter.Wanted"/> like every other hand-picked download, and is a no-op for a
+    /// chapter already on disk or already in the queue, so a double click or a reload of the splash
+    /// just resumes watching.
+    /// </summary>
+    [Authorize(Policy = Policies.DownloadChapters)]
+    [HttpPost("chapters/{chapterId:int}/prepare")]
+    public async Task<IActionResult> Prepare(
+        int chapterId, [FromServices] DownloadQueueService queue, CancellationToken ct)
+    {
+        var chapter = await db.Chapters.AsNoTracking()
+            .Where(c => c.Id == chapterId)
+            .Select(c => new { c.ChapterFileId })
+            .FirstOrDefaultAsync(ct);
+        if (chapter is null)
+        {
+            return NotFound();
+        }
+
+        if (chapter.ChapterFileId is null)
+        {
+            try
+            {
+                await queue.EnqueueChapterAsync(chapterId, ct, DownloadOrigin.Manual, currentUser.UserId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        return await DownloadState(chapterId, ct);
+    }
+
+    /// <summary>
+    /// What the "Download &amp; read" splash polls: whether the chapter is on disk yet, and the latest
+    /// queue row for it (status, pages, error) while it isn't.
+    /// </summary>
+    [HttpGet("chapters/{chapterId:int}/download-state")]
+    public async Task<IActionResult> DownloadState(int chapterId, CancellationToken ct)
+    {
+        var chapter = await db.Chapters.AsNoTracking()
+            .Include(c => c.Series)
+            .FirstOrDefaultAsync(c => c.Id == chapterId, ct);
+        if (chapter is null)
+        {
+            return NotFound();
+        }
+
+        var item = await db.DownloadQueue.AsNoTracking()
+            .Where(q => q.ChapterId == chapterId)
+            .OrderByDescending(q => q.Id)
+            .FirstOrDefaultAsync(ct);
+
+        return Ok(new
+        {
+            downloaded = chapter.ChapterFileId != null,
+            item = item is null ? null : QueueItemDto.FromEntity(item, chapter, chapter.Series!, ""),
+        });
     }
 }

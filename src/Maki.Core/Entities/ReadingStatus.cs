@@ -16,21 +16,24 @@ public enum ReadingStatus
 public static class ReadingStatuses
 {
     /// <summary>
-    /// A series is completed only when the reader has reached its last main release <em>and</em> the
-    /// series is no longer running (completed, cancelled or on hiatus). Reaching the last main release
-    /// of an ongoing series is up to date, never completed: trackers and the library used to call
-    /// that completed, because a tracker's chapter total for a running series is just today's count.
+    /// A series is completed only when the reader has read every main release <em>and</em> the series
+    /// is no longer running (completed, cancelled or on hiatus). Every main release read on an
+    /// ongoing series is up to date, never completed: trackers and the library used to call that
+    /// completed, because a tracker's chapter total for a running series is just today's count.
     /// <para>
-    /// "Main" means whole-numbered chapters. Specials (10.5, 12.1) are optional reading, so an unread
-    /// omake must not keep a finished series reading as unfinished. A series with no numbered
-    /// chapters at all has nothing to measure against and reads as <see cref="ReadingStatus.Reading"/>.
+    /// Judged per release, not by the highest number read: reading only the last chapter, or
+    /// marking a middle one unread again, leaves the series reading. "Main" means whole-numbered
+    /// chapters; specials (10.5, 12.1) are optional, so an unread omake does not hold a finished
+    /// series back. A release counts as read when any of its rows is, so a second language's copy of
+    /// the same chapter never has to be read twice. A series with no numbered chapters has nothing
+    /// to measure against and reads as <see cref="ReadingStatus.Reading"/>.
     /// </para>
     /// </summary>
-    /// <param name="highestMainChapter">The highest whole chapter number the series lists.</param>
-    /// <param name="highestReadMainChapter">The highest whole chapter number the reader has completed.</param>
-    public static ReadingStatus For(SeriesStatus status, decimal? highestMainChapter, decimal? highestReadMainChapter)
+    /// <param name="mainReleases">Every whole chapter number the series lists.</param>
+    /// <param name="readReleases">The chapter numbers the reader has completed, in any language.</param>
+    public static ReadingStatus For(SeriesStatus status, IReadOnlyCollection<decimal> mainReleases, IReadOnlySet<decimal> readReleases)
     {
-        if (highestMainChapter is not { } last || last <= 0 || highestReadMainChapter is not { } read || read < last)
+        if (mainReleases.Count == 0 || mainReleases.Any(n => !readReleases.Contains(n)))
         {
             return ReadingStatus.Reading;
         }

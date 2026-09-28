@@ -114,6 +114,13 @@ export interface SeriesDto {
   readingStatus?: 'Reading' | 'UpToDate' | 'Completed' | null
   /** When you last read any chapter of it, ISO. Null if never. */
   lastReadAt?: string | null
+  /**
+   * Main releases you have read, from history: a chapter whose file auto-delete removed still
+   * counts. `readChapterCount` is the on-disk count and drops with each deleted file.
+   */
+  readMainChapters?: number | null
+  /** Main releases the series lists, downloaded or not. */
+  mainChapterCount?: number | null
   /** Personal time left from comparable timed chapters in the built-in reader. Detail endpoint only. */
   readTimeEstimate?: {
     seconds: number

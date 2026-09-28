@@ -225,7 +225,7 @@ msgid "error.auth.ssoLinkNewAccountFailed"
 msgstr "无法将此登录方式关联到新账户"
 
 #: src/Maki.Api/Auth/OidcSignInService.cs
-#. English: No Maki account is linked to that login
+#. English: No Fōkurōru account is linked to that login
 #, fuzzy
 msgid "error.auth.ssoNoAccountLinked"
 msgstr "此登录方式尚未关联 Fōkurōru 账户"
@@ -734,7 +734,7 @@ msgstr "只有绑定到 Kavita 的用户或管理员才能运行 Kavita 导入"
 
 #. The Kavita read-status import found no user bound in Settings → Reader → Kavita user.
 #: src/Maki.Api/Services/KavitaReadImportService.cs
-#. English: No Maki user is bound to Kavita (Settings → Reader → Kavita user)
+#. English: No Fōkurōru user is bound to Kavita (Settings → Reader → Kavita user)
 #, fuzzy
 msgid "error.reader.kavitaNoBoundUser"
 msgstr "Kavita 尚未绑定 Fōkurōru 用户（“设置”→“阅读器”→“Kavita 用户”）"
@@ -1073,7 +1073,7 @@ msgstr "目标文件夹已存在：{folder}"
 
 #. {folder} is an absolute filesystem path and is never translated.
 #: src/Maki.Api/Controllers/SeriesController.cs
-#. English: Files not moved: {folder} doesn't exist. Move the files there first, or let Maki move them.
+#. English: Files not moved: {folder} doesn't exist. Move the files there first, or let Fōkurōru move them.
 #, fuzzy
 msgid "error.series.filesNotMoved"
 msgstr "文件未移动：{folder} 不存在。请先将文件移到那里，或让 Fōkurōru 移动文件。"
@@ -1439,7 +1439,7 @@ msgstr "下载任务已不在 qBittorrent 中"
 
 #. {path} is a filesystem path and is never translated.
 #: src/Maki.Api/Services/TorrentImportService.cs
-#. English: Download path not accessible from Maki: {path}
+#. English: Download path not accessible from Fōkurōru: {path}
 #, fuzzy
 msgid "error.torrentImport.pathNotAccessible"
 msgstr "Fōkurōru 无法访问下载路径：{path}"
@@ -1813,7 +1813,7 @@ msgid "naming.token.seriessorttitle.description"
 msgstr "用于排序的标题，例如将开头的冠词移至末尾"
 
 #: src/Maki.Core/Naming/NamingTokens.cs
-#. English: The series title as Maki has it
+#. English: The series title as Fōkurōru has it
 #, fuzzy
 msgid "naming.token.seriestitle.description"
 msgstr "Fōkurōru 中保存的作品标题"
@@ -1837,26 +1837,26 @@ msgid "naming.token.seriesyear.description"
 msgstr "发行年份；未知时留空"
 
 #: src/Maki.Api/Services/BackupService.cs
-#. English: Backup is missing maki.db. This is not a Maki backup.
+#. English: Backup is missing maki.db. This is not a Fōkurōru backup.
 #, fuzzy
 msgid "error.system.backupMissingDb"
 msgstr "备份缺少 maki.db，不是有效的 Fōkurōru 备份。"
 
 #: src/Maki.Api/Services/BackupService.cs
-#. English: The database in this backup is damaged or is not a Maki database. Nothing was changed.
+#. English: The database in this backup is damaged or is not a Fōkurōru database. Nothing was changed.
 #, fuzzy
 msgid "error.system.backupInvalidDb"
 msgstr "此备份中的数据库已损坏，或不是 Fōkurōru 数据库。未更改任何内容。"
 
 #. {migration} is the unrecognised EF migration name the backup's manifest carries.
 #: src/Maki.Api/Services/BackupService.cs
-#. English: Backup is from a newer version (migration "{migration}" unknown to this build). Upgrade Maki before restoring it.
+#. English: Backup is from a newer version (migration "{migration}" unknown to this build). Upgrade Fōkurōru before restoring it.
 #, fuzzy
 msgid "error.system.backupTooNew"
 msgstr "备份来自较新版本（此构建版本无法识别迁移 \"{migration}\"）。请升级 Fōkurōru 后再恢复。"
 
 #: src/Maki.Api/Services/BackupService.cs
-#. English: This file is not a readable Maki backup. The zip or its manifest is damaged. Nothing was changed.
+#. English: This file is not a readable Fōkurōru backup. The zip or its manifest is damaged. Nothing was changed.
 #, fuzzy
 msgid "error.system.backupUnreadable"
 msgstr "此文件不是可读取的 Fōkurōru 备份。ZIP 文件或其清单已损坏。未更改任何内容。"
@@ -2177,7 +2177,7 @@ msgstr "有可用更新"
 
 #. Maki is the product name and version numbers are never translated.
 #: src/Maki.Api/Services/UpdateCheckService.cs
-#. English: Maki {latest} is available (running {current}).
+#. English: Fōkurōru {latest} is available (running {current}).
 #, fuzzy
 msgid "inbox.update.available.body"
 msgstr "Fōkurōru {latest} 可用（当前运行 {current}）。"
@@ -2476,7 +2476,7 @@ msgstr "你选择的来源无法提供此章节"
 #: src/Maki.Api/Services/ChapterDownloadProcessor.cs
 #: src/Maki.Api/Services/DownloadQueueService.cs
 #: src/Maki.Api/Services/DownloadWorkerHostedService.cs
-#. English: Something went wrong, Maki will try again
+#. English: Something went wrong, Fōkurōru will try again
 #, fuzzy
 msgid "error.download.unexpected"
 msgstr "出现问题，Fōkurōru 将重试"
@@ -2492,7 +2492,7 @@ msgid "error.download.rateLimited"
 msgstr "{source} 触发速率限制，等待后再试"
 
 #: src/Maki.Api/Services/ChapterDownloadProcessor.cs
-#. English: Still early access on {source}, Maki will check again later
+#. English: Still early access on {source}, Fōkurōru will check again later
 #, fuzzy
 msgid "error.download.earlyAccess"
 msgstr "{source} 仍处于抢先访问阶段，Fōkurōru 稍后会再次检查"
@@ -2613,7 +2613,7 @@ msgid "notify.update.available.title"
 msgstr "有可用更新"
 
 #: src/Maki.Api/Services/UpdateCheckService.cs
-#. English: Maki {latest} is available (running {current}).
+#. English: Fōkurōru {latest} is available (running {current}).
 #, fuzzy
 msgid "notify.update.available.body"
 msgstr "Fōkurōru {latest} 可用（当前运行 {current}）。"
@@ -2749,7 +2749,7 @@ msgstr "没有来源匹配 {series}。请在系列页面手动关联一个来源
 #. so it renders in their language rather than the instance's. {name} is what they called the
 #. connection and is never translated.
 #: src/Maki.Api/Controllers/NotificationsController.cs
-#. English: Maki test notification
+#. English: Fōkurōru test notification
 #, fuzzy
 msgid "notify.test.title"
 msgstr "Fōkurōru 测试通知"
@@ -2809,7 +2809,7 @@ msgstr "搜索：{query}"
 #. The OpenSearch description a reader app shows next to its search box. "Maki" is the product name
 #. and stays as it is.
 #: src/Maki.Api/Controllers/OpdsController.cs
-#. English: Search the Maki library
+#. English: Search the Fōkurōru library
 #, fuzzy
 msgid "opds.search.description"
 msgstr "搜索 Fōkurōru 库"

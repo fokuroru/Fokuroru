@@ -2015,6 +2015,10 @@ msgstr "{windowLabel}에 추가"
 msgid "Added manually"
 msgstr "수동으로 추가됨"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Adding it to your library…"
+msgstr ""
+
 #: src/components/settings/SecuritySection.tsx
 #, fuzzy
 msgid "Adds a button to the login page. Local passwords keep working unless you restrict them below."
@@ -3647,6 +3651,7 @@ msgstr "클라이언트 시크릿"
 #: src/components/SourceCompareModal.tsx
 #: src/components/TagBrowserModal.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -4092,6 +4097,10 @@ msgstr "진행 상황을 불러오지 못했습니다. 이유는 서버 로그�
 msgid "Could not load your signals: {loadError}"
 msgstr "신호를 불러오지 못했습니다: {loadError}"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Could not queue the chapter."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Could not read progress for {seriesFailed, plural, one {# series} other {# series}}"
@@ -4512,6 +4521,10 @@ msgstr "삭제한 파일은 디스크에서 제거되며 Fōkurōru에서 복구
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr ""
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so they are not downloaded again."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Deleting"
@@ -4760,9 +4773,21 @@ msgid "Download {missingWanted} wanted chapters?"
 msgstr "{missingWanted}개 원하는 챕터를 다운로드할까요?"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Download & read"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Download & read {nextChapter}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Download all wanted"
 msgstr "원하는 항목 모두 다운로드"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download and read"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -4798,6 +4823,10 @@ msgstr "다음 챕터 다운로드"
 #, fuzzy
 msgid "Download order when a series matches several sources, highest first. Language ranking above comes first. Applies to new auto-matches and manual Auto-match runs; other series keep their order. Switching a source off pauses it for every series without touching their own toggles."
 msgstr "시리즈가 여러 소스에 있으면 다운로드 순서를 지정합니다. 위쪽이 먼저입니다. 위의 언어 순위가 우선 적용됩니다. 새 자동 매칭과 수동 자동 매칭에 적용되며 다른 시리즈의 순서는 유지됩니다. 소스를 끄면 시리즈별 설정은 바꾸지 않고 모든 시리즈에서 일시 중지됩니다."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download progress"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4858,7 +4887,12 @@ msgstr "메타데이터 데이터베이스 다운로드 중"
 msgid "Downloading now"
 msgstr "지금 다운로드 중"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Downloading page {pagesDone} of {pagesTotal}"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #, fuzzy
 msgid "Downloading…"
 msgstr "다운로드 중…"
@@ -5450,6 +5484,10 @@ msgstr "메타데이터 가져오는 중"
 msgid "Fetching pages…"
 msgstr "페이지 가져오는 중…"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Fetching the page list…"
+msgstr ""
+
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
 msgid "File"
@@ -5543,6 +5581,10 @@ msgstr "더 나은 파일 찾기"
 #, fuzzy
 msgid "Find more"
 msgstr "더 찾기"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Finding a source…"
+msgstr ""
 
 #: src/components/ui/status.tsx
 #: src/pages/ActivityPage.tsx
@@ -5648,11 +5690,6 @@ msgstr "너비에 맞춤"
 #, fuzzy
 msgid "Fit width"
 msgstr "너비에 맞춤"
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Fix or remove the source mapping first, or a refresh will bring them right back."
-msgstr "먼저 소스 매핑을 수정하거나 제거하세요. 그렇지 않으면 새로 고침할 때 다시 나타납니다."
 
 #: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/registry.ts
@@ -6791,6 +6828,10 @@ msgstr "Kavita의 읽기 기록은 본인 계정이 아닌 한 Fōkurōru 계정
 #, fuzzy
 msgid "Keep a local copy of MangaBaka"
 msgstr "MangaBaka 로컬 사본 유지"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Keep downloading in the background"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -9259,6 +9300,10 @@ msgstr "페이지를 열어 올바른 시리즈인지 확인"
 msgid "Open the search with these filters from now on"
 msgstr "이제부터 이 필터로 검색 열기"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Opening the reader…"
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Opens a deletion review. Nothing is removed until you confirm it there."
@@ -9357,6 +9402,10 @@ msgstr "속도"
 #, fuzzy
 msgid "Packaging"
 msgstr "패키징"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Packing the pages…"
+msgstr ""
 
 #: src/components/CommandPalette.tsx
 #, fuzzy
@@ -9878,6 +9927,10 @@ msgstr "{outstanding} 대기열에 추가됨"
 #, fuzzy
 msgid "Queued and downloading chapters show up here. Trigger a search from a series page or the library."
 msgstr "대기열에 추가되었거나 다운로드 중인 챕터가 여기에 표시됩니다. 시리즈 페이지나 라이브러리에서 검색을 시작하세요."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Queuing the chapter…"
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -12837,10 +12890,26 @@ msgstr "카탈로그 레일에는 로컬 MangaBaka 데이터베이스가 필요�
 msgid "The chapter numbers are in the archive's page file names. Certain."
 msgstr "압축 파일 안의 페이지 파일명에서 챕터 번호를 확인했습니다. 확실합니다."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "The chapters stay in the list. Tick them as wanted again to bring them back."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "The current feed URL stops working immediately. Every app using it needs the new one."
 msgstr "현재 피드 URL은 즉시 작동하지 않게 됩니다. 이를 사용하는 모든 앱에 새 URL을 설정해야 합니다."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download failed."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download needs a decision before it can be imported. Check Activity."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download was cancelled."
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -12856,6 +12925,10 @@ msgstr "파일 이름에서 챕터를 확인했습니다."
 #, fuzzy
 msgid "The file name carries no chapter or volume number, so nothing can be matched to it. Rename it to the library's naming format and rescan, or link it by hand from the series' Files tab."
 msgstr "파일 이름에 챕터 또는 볼륨 번호가 없어 일치시킬 수 없습니다. 라이브러리 이름 지정 형식으로 이름을 변경한 다음 다시 스캔하거나 시리즈의 파일 탭에서 수동으로 연결하세요."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "The files are removed from disk and cannot be recovered."
+msgstr ""
 
 #: src/components/RenameSeriesModal.tsx
 #, fuzzy
@@ -12976,6 +13049,10 @@ msgstr "이유는 서버 로그에서 확인할 수 있습니다."
 #, fuzzy
 msgid "The single biggest improvement if Fōkurōru is reachable from the internet."
 msgstr "Fōkurōru를 인터넷에서 접속할 수 있게 할 때 가장 큰 개선입니다."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The source asked us to slow down. Waiting to try again…"
+msgstr ""
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13150,11 +13227,6 @@ msgstr "이 작업은 디스크에서 {count, plural, other {이 파일들}}을 
 #, fuzzy
 msgid "This permanently deletes the archive. Chapter records and reading history remain."
 msgstr "보관 파일을 영구 삭제합니다. 챕터 기록과 읽기 기록은 유지됩니다."
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "This permanently removes {selectedCount} chapter row(s), not just their file link, along with any backing file on disk."
-msgstr "파일 연결만이 아니라 {selectedCount}개 챕터 행과 디스크의 해당 파일을 영구적으로 삭제합니다."
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13545,6 +13617,7 @@ msgid "Try a shorter or alternative query."
 msgstr "더 짧거나 다른 검색어를 사용해 보세요."
 
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
 #, fuzzy
 msgid "Try again"
@@ -13936,11 +14009,6 @@ msgstr "이 파일 사용"
 msgid "Use this title for taste"
 msgstr "이 작품을 취향에 반영"
 
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Use this to clean up chapters pulled in by a wrong source match."
-msgstr "잘못된 소스 일치로 가져온 챕터를 정리할 때 사용하세요."
-
 #: src/components/settings/UsersSection.tsx
 #, fuzzy
 msgid "Use trackers"
@@ -14204,6 +14272,10 @@ msgstr "{fromLabel}~{toLabel} 대비"
 #, fuzzy
 msgid "Waiting for the MangaBaka snapshot to download first."
 msgstr "먼저 MangaBaka 스냅샷이 다운로드되기를 기다리는 중입니다."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Waiting its turn in the download queue…"
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14505,6 +14577,10 @@ msgstr "다시 추천되지 않음"
 #, fuzzy
 msgid "Won't suggest resuming from this anime again."
 msgstr "이 애니메이션을 기준으로 다시 읽기를 이어가도록 제안하지 않습니다."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Working…"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 #: src/pages/SettingsPage.tsx

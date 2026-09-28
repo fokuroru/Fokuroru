@@ -335,11 +335,11 @@ public class ChapterController(
     }
 
     /// <summary>
-    /// Permanently removes chapter rows — not just their file link — for cases like a
-    /// broken auto-match that pulled in the wrong show: chapter data is otherwise
-    /// additive-only, so bad rows would sit in the library forever. Also deletes the
-    /// backing CBZ from disk when this batch drops the last chapter referencing it
-    /// (a volume CBZ can back several chapters).
+    /// Deletes the chapters' downloaded files and marks the chapters not wanted. The rows stay:
+    /// a source refresh re-adds any chapter it still lists, so removing the row used to bring it
+    /// straight back as a new wanted chapter and download it again. Unwanted is what keeps it gone.
+    /// The backing CBZ is only removed from disk when this batch drops the last chapter
+    /// referencing it (a volume CBZ can back several chapters).
     /// </summary>
     [Authorize(Policy = Policies.DeleteSeries)]
     [HttpDelete]
@@ -374,13 +374,10 @@ public class ChapterController(
             .ToList();
 
         // A manual link (see Link above) can point a second row, in this series or another, at the
-        // same physical file, so ChapterFileId alone can't tell if the file is still claimed elsewhere.
-        var filesInRoot = series?.RootFolderId is int rootFolderId
-            ? await (from f in db.ChapterFiles
-                     join s in db.Series on f.SeriesId equals s.Id
-                     where s.RootFolderId == rootFolderId
-                     select new { f.Id, f.RelativePath }).ToListAsync(ct)
-            : [];
+        // same physical file, and overlapping root folders can too, so ChapterFileId alone can't
+        // tell if the file is still claimed elsewhere.
+        var claims = await FileClaims.LoadAsync(db, ct);
+        var releasing = fileIds.ToHashSet();
 
         // Collected here instead of deleted in place: rows are saved first, and only a successful
         // save unlocks touching the filesystem.
@@ -403,10 +400,8 @@ public class ChapterController(
             // fileIds is this same batch: a row also being deleted here doesn't count as a claim,
             // or two rows pointing at one file that are both removed would each see the other as
             // still holding it and the file would never actually be deleted from disk.
-            var key = LibraryPaths.ComparisonKey(file.RelativePath);
-            var pathStillClaimed = filesInRoot.Any(f =>
-                f.Id != file.Id && !fileIds.Contains(f.Id) &&
-                LibraryPaths.FolderComparer.Equals(LibraryPaths.ComparisonKey(f.RelativePath), key));
+            var pathStillClaimed = series?.RootFolder is not null &&
+                                   claims.ClaimedByOthers(series.RootFolder.Path, file.RelativePath, releasing);
 
             if (!pathStillClaimed)
             {
@@ -431,7 +426,12 @@ public class ChapterController(
             db.ChapterFiles.Remove(file);
         }
 
-        db.Chapters.RemoveRange(chapters);
+        foreach (var chapter in chapters)
+        {
+            chapter.ChapterFileId = null;
+            chapter.Wanted = false;
+        }
+
         await db.SaveChangesAsync(ct);
 
         // Rows are already committed, so a failure here just orphans a file for Health's "unlinked"

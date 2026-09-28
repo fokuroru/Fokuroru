@@ -149,7 +149,14 @@ public record SeriesDto(
     /// </summary>
     string? ReadingStatus = null,
     /// <summary>When this user last touched a chapter of the series in any reader, for the "Last read" sort. Null if never.</summary>
-    DateTime? LastReadAt = null)
+    DateTime? LastReadAt = null,
+    /// <summary>
+    /// Main releases this user has read, from history: a chapter whose file auto-delete removed
+    /// still counts, unlike <see cref="ReadChapterCount"/>, which counts files on disk. Null if nothing read.
+    /// </summary>
+    int? ReadMainChapters = null,
+    /// <summary>Main releases the series lists, downloaded or not. The denominator for <see cref="ReadMainChapters"/>.</summary>
+    int? MainChapterCount = null)
 {
     /// <summary>
     /// Non-fatal problems from <c>Add</c> — the series exists, but something best-effort around it

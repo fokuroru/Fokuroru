@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { getInitialize, setUnauthorizedHandler } from '../api/client'
-import { ME_QUERY_KEY, setSetupDoneHandler, useMe, type Me, type Permission } from '../api/auth'
+import { clearAccountData, setSetupDoneHandler, useMe, type Me, type Permission } from '../api/auth'
 
 interface AuthState {
   me: Me | null
@@ -45,10 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Any 401 from anywhere drops the cached identity, which re-renders the guard below into the
-    // login screen. Registered here so the ~150 query hooks need no 401 handling of their own.
-    setUnauthorizedHandler(() => qc.setQueryData(ME_QUERY_KEY, null))
+    // login screen, and with it everything cached for that account (see clearAccountData).
+    // Registered here so the ~150 query hooks need no 401 handling of their own.
+    setUnauthorizedHandler(() => clearAccountData(qc, true))
     return () => setUnauthorizedHandler(null)
   }, [qc])
+
+  // A different account signing in without a 401 in between (a second tab, an SSO round trip)
+  // must not inherit the first one's cache either.
+  const lastUserId = useRef<number | null>(null)
+  useEffect(() => {
+    if (me?.id == null) return
+    if (lastUserId.current != null && lastUserId.current !== me.id) clearAccountData(qc, false)
+    lastUserId.current = me.id
+  }, [qc, me?.id])
 
   useEffect(() => {
     setSetupDoneHandler(() => setSetupNeeded(false))

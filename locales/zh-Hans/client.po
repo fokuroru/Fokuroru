@@ -2015,6 +2015,10 @@ msgstr "{windowLabel}新增"
 msgid "Added manually"
 msgstr "手动添加"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Adding it to your library…"
+msgstr ""
+
 #: src/components/settings/SecuritySection.tsx
 #, fuzzy
 msgid "Adds a button to the login page. Local passwords keep working unless you restrict them below."
@@ -3647,6 +3651,7 @@ msgstr "客户端密钥"
 #: src/components/SourceCompareModal.tsx
 #: src/components/TagBrowserModal.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -4092,6 +4097,10 @@ msgstr "无法加载你的进度。服务器日志会说明原因。"
 msgid "Could not load your signals: {loadError}"
 msgstr "无法加载你的信号：{loadError}"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Could not queue the chapter."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Could not read progress for {seriesFailed, plural, one {# series} other {# series}}"
@@ -4512,6 +4521,10 @@ msgstr "已删除的文件会从磁盘移除，无法通过 Fōkurōru 恢复。
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr ""
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so they are not downloaded again."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Deleting"
@@ -4760,9 +4773,21 @@ msgid "Download {missingWanted} wanted chapters?"
 msgstr "下载想要的 {missingWanted} 个章节？"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Download & read"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Download & read {nextChapter}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Download all wanted"
 msgstr "下载所有想要的章节"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download and read"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -4798,6 +4823,10 @@ msgstr "下载后续章节"
 #, fuzzy
 msgid "Download order when a series matches several sources, highest first. Language ranking above comes first. Applies to new auto-matches and manual Auto-match runs; other series keep their order. Switching a source off pauses it for every series without touching their own toggles."
 msgstr "某个系列匹配到多个来源时的下载顺序，排名最高的优先。上方的语言排名优先级更高。此设置适用于新的自动匹配和手动运行的自动匹配；其他系列保留各自的顺序。停用来源会暂停所有系列使用它，但不会更改系列各自的开关。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download progress"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4858,7 +4887,12 @@ msgstr "正在下载元数据数据库"
 msgid "Downloading now"
 msgstr "正在下载"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Downloading page {pagesDone} of {pagesTotal}"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #, fuzzy
 msgid "Downloading…"
 msgstr "下载中……"
@@ -5450,6 +5484,10 @@ msgstr "正在获取元数据"
 msgid "Fetching pages…"
 msgstr "正在获取页面……"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Fetching the page list…"
+msgstr ""
+
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
 msgid "File"
@@ -5543,6 +5581,10 @@ msgstr "查找更好的版本"
 #, fuzzy
 msgid "Find more"
 msgstr "查看更多"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Finding a source…"
+msgstr ""
 
 #: src/components/ui/status.tsx
 #: src/pages/ActivityPage.tsx
@@ -5648,11 +5690,6 @@ msgstr "适应宽度"
 #, fuzzy
 msgid "Fit width"
 msgstr "适应宽度"
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Fix or remove the source mapping first, or a refresh will bring them right back."
-msgstr "请先修复或移除来源映射，否则刷新后它们会再次出现。"
 
 #: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/registry.ts
@@ -6791,6 +6828,10 @@ msgstr "Kavita 的阅读进度归属于一个 Fōkurōru 账户，而这个账�
 #, fuzzy
 msgid "Keep a local copy of MangaBaka"
 msgstr "在本地保存 MangaBaka 数据副本"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Keep downloading in the background"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -9259,6 +9300,10 @@ msgstr "打开页面以确认这是正确的系列"
 msgid "Open the search with these filters from now on"
 msgstr "以后用这些筛选条件打开搜索"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Opening the reader…"
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Opens a deletion review. Nothing is removed until you confirm it there."
@@ -9357,6 +9402,10 @@ msgstr "阅读速度"
 #, fuzzy
 msgid "Packaging"
 msgstr "打包中"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Packing the pages…"
+msgstr ""
 
 #: src/components/CommandPalette.tsx
 #, fuzzy
@@ -9878,6 +9927,10 @@ msgstr "已排队 {outstanding}"
 #, fuzzy
 msgid "Queued and downloading chapters show up here. Trigger a search from a series page or the library."
 msgstr "已排队和正在下载的章节会显示在这里。从系列页面或资料库触发搜索。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Queuing the chapter…"
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -12837,10 +12890,26 @@ msgstr "目录横栏需要本地 MangaBaka 数据库（设置 → 元数据 → 
 msgid "The chapter numbers are in the archive's page file names. Certain."
 msgstr "压缩包内的页面文件名包含章节编号，这个判断很确定。"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "The chapters stay in the list. Tick them as wanted again to bring them back."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "The current feed URL stops working immediately. Every app using it needs the new one."
 msgstr "当前订阅源 URL 会立即失效。所有正在使用它的应用都需要更新为新 URL。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download failed."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download needs a decision before it can be imported. Check Activity."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download was cancelled."
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -12856,6 +12925,10 @@ msgstr "文件名对应其章节编号。"
 #, fuzzy
 msgid "The file name carries no chapter or volume number, so nothing can be matched to it. Rename it to the library's naming format and rescan, or link it by hand from the series' Files tab."
 msgstr "文件名不包含章节或卷号，因此无法与任何内容匹配。将其重命名为资料库的命名格式并重新扫描，或从系列的文件标签页手动关联。"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "The files are removed from disk and cannot be recovered."
+msgstr ""
 
 #: src/components/RenameSeriesModal.tsx
 #, fuzzy
@@ -12976,6 +13049,10 @@ msgstr "服务器日志会说明原因。"
 #, fuzzy
 msgid "The single biggest improvement if Fōkurōru is reachable from the internet."
 msgstr "如果可以从互联网访问 Fōkurōru，这是最重要的一项改进。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The source asked us to slow down. Waiting to try again…"
+msgstr ""
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13150,11 +13227,6 @@ msgstr "这会从磁盘永久删除 {count, plural, other {这些文件}}。章�
 #, fuzzy
 msgid "This permanently deletes the archive. Chapter records and reading history remain."
 msgstr "这会永久删除归档。章节记录和阅读历史会保留。"
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "This permanently removes {selectedCount} chapter row(s), not just their file link, along with any backing file on disk."
-msgstr "这会永久删除 {selectedCount} 条章节记录（不只是文件链接），并删除磁盘上的对应文件。"
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13545,6 +13617,7 @@ msgid "Try a shorter or alternative query."
 msgstr "尝试更短或不同的查询。"
 
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
 #, fuzzy
 msgid "Try again"
@@ -13936,11 +14009,6 @@ msgstr "使用此版本"
 msgid "Use this title for taste"
 msgstr "使用此标题影响品味"
 
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Use this to clean up chapters pulled in by a wrong source match."
-msgstr "使用此选项清理因来源匹配错误而导入的章节。"
-
 #: src/components/settings/UsersSection.tsx
 #, fuzzy
 msgid "Use trackers"
@@ -14204,6 +14272,10 @@ msgstr "与 {fromLabel} 至 {toLabel} 相比"
 #, fuzzy
 msgid "Waiting for the MangaBaka snapshot to download first."
 msgstr "正在等待 MangaBaka 快照先完成下载。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Waiting its turn in the download queue…"
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14505,6 +14577,10 @@ msgstr "不会再次推荐"
 #, fuzzy
 msgid "Won't suggest resuming from this anime again."
 msgstr "不再建议从这部动画继续阅读。"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Working…"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 #: src/pages/SettingsPage.tsx

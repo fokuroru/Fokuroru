@@ -104,6 +104,60 @@ public class AutoDeleteReadChaptersJobTests : IDisposable
         Assert.True(File.Exists(Path.Combine(_root, "Berserk", "Berserk v01.cbz")));
     }
 
+    /// <summary>
+    /// Root B sits inside root A, so B's <c>ch1.cbz</c> and A's <c>Berserk/ch1.cbz</c> are one file.
+    /// The old same-root check could not see B's claim and deleted the file out from under an
+    /// unread chapter. Root B is spelled with a trailing separator and a "." segment on purpose.
+    /// </summary>
+    [Fact]
+    public async Task Keeps_a_file_another_root_folder_also_points_at()
+    {
+        var fileA = SeedFile("ch1.cbz", (1m, 30));
+        var otherSeries = _db.SeedSeries(title: "Berserk (nested root)");
+        int chapterB;
+        using (var db = _db.NewContext())
+        {
+            var series = db.Series.Single(s => s.Id == otherSeries);
+            db.RootFolders.Single(r => r.Id == series.RootFolderId).Path =
+                Path.Combine(_root, ".", "Berserk") + Path.DirectorySeparatorChar;
+            var file = new ChapterFile { SeriesId = otherSeries, RelativePath = "ch1.cbz", DateAdded = Now.UtcDateTime };
+            db.ChapterFiles.Add(file);
+            db.SaveChanges();
+            var chapter = new Chapter { SeriesId = otherSeries, Number = 1m, Language = "en", ChapterFileId = file.Id };
+            db.Chapters.Add(chapter);
+            db.SaveChanges();
+            chapterB = chapter.Id;
+        }
+
+        Assert.Equal(0, await Run(days: 7));
+
+        Assert.True(File.Exists(Path.Combine(_root, "Berserk", "ch1.cbz")));
+        using var check = _db.NewContext();
+        Assert.Contains(check.ChapterFiles, f => f.Id == fileA);
+        Assert.NotNull(check.Chapters.Single(c => c.Id == chapterB).ChapterFileId);
+        Assert.All(check.Chapters, c => Assert.NotNull(c.ChapterFileId));
+    }
+
+    [Fact]
+    public async Task Keeps_a_file_a_second_row_in_the_same_root_points_at()
+    {
+        SeedFile("ch1.cbz", (1m, 30));
+        using (var db = _db.NewContext())
+        {
+            var file = new ChapterFile
+            {
+                SeriesId = _seriesId, RelativePath = Path.Combine("Berserk", "CH1.cbz"), DateAdded = Now.UtcDateTime,
+            };
+            db.ChapterFiles.Add(file);
+            db.SaveChanges();
+            db.Chapters.Add(new Chapter { SeriesId = _seriesId, Number = 1m, Language = "es", ChapterFileId = file.Id });
+            db.SaveChanges();
+        }
+
+        Assert.Equal(0, await Run(days: 7));
+        Assert.True(File.Exists(Path.Combine(_root, "Berserk", "ch1.cbz")));
+    }
+
     [Fact]
     public async Task Days_setting_reads_zero_as_off_and_rejects_nonsense()
     {

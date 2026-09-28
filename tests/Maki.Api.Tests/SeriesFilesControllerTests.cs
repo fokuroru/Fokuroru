@@ -136,7 +136,9 @@ public sealed class SeriesFilesControllerTests : IDisposable
     [Fact]
     public async Task A_failed_second_folder_puts_the_first_back()
     {
-        if (OperatingSystem.IsWindows())
+        // Relies on Linux's limits: macOS refuses to create the deep source folder itself, before
+        // the move under test ever runs.
+        if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS())
         {
             return;
         }

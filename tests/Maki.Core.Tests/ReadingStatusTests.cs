@@ -4,29 +4,44 @@ namespace Maki.Core.Tests;
 
 public class ReadingStatusTests
 {
+    private static decimal[] Main(int last) => Enumerable.Range(1, last).Select(n => (decimal)n).ToArray();
+
+    private static HashSet<decimal> Read(params decimal[] numbers) => [.. numbers];
+
     [Theory]
     [InlineData(SeriesStatus.Completed)]
     [InlineData(SeriesStatus.Cancelled)]
     [InlineData(SeriesStatus.Hiatus)]
     public void Every_main_release_read_on_an_ended_or_paused_series_is_completed(SeriesStatus status) =>
-        Assert.Equal(ReadingStatus.Completed, ReadingStatuses.For(status, 126m, 126m));
+        Assert.Equal(ReadingStatus.Completed, ReadingStatuses.For(status, Main(10), Read(Main(10))));
 
     [Theory]
     [InlineData(SeriesStatus.Ongoing)]
     [InlineData(SeriesStatus.Unknown)]
     public void Every_main_release_read_on_a_running_series_is_up_to_date_not_completed(SeriesStatus status) =>
-        Assert.Equal(ReadingStatus.UpToDate, ReadingStatuses.For(status, 284m, 284m));
+        Assert.Equal(ReadingStatus.UpToDate, ReadingStatuses.For(status, Main(10), Read(Main(10))));
 
     [Fact]
-    public void Main_releases_left_is_reading_whatever_the_series_status()
+    public void Reading_only_the_last_chapter_is_still_reading() =>
+        Assert.Equal(ReadingStatus.Reading, ReadingStatuses.For(SeriesStatus.Completed, Main(10), Read(10m)));
+
+    [Fact]
+    public void A_middle_chapter_marked_unread_again_is_reading()
     {
-        Assert.Equal(ReadingStatus.Reading, ReadingStatuses.For(SeriesStatus.Completed, 126m, 125m));
-        Assert.Equal(ReadingStatus.Reading, ReadingStatuses.For(SeriesStatus.Ongoing, 284m, null));
+        var read = Read(Main(10));
+        read.Remove(5m);
+
+        Assert.Equal(ReadingStatus.Reading, ReadingStatuses.For(SeriesStatus.Completed, Main(10), read));
     }
 
     [Fact]
+    public void Unread_specials_do_not_hold_a_series_back() =>
+        // The caller only passes whole numbers as main releases; 5.5 read or not makes no difference.
+        Assert.Equal(ReadingStatus.Completed, ReadingStatuses.For(SeriesStatus.Completed, Main(10), Read(Main(10))));
+
+    [Fact]
     public void A_series_with_no_numbered_chapters_is_reading() =>
-        Assert.Equal(ReadingStatus.Reading, ReadingStatuses.For(SeriesStatus.Completed, null, 3m));
+        Assert.Equal(ReadingStatus.Reading, ReadingStatuses.For(SeriesStatus.Completed, [], Read(3m)));
 
     [Fact]
     public void Specials_are_not_main_releases()

@@ -2015,6 +2015,10 @@ msgstr "Añadido en {windowLabel}"
 msgid "Added manually"
 msgstr "Añadido manualmente"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Adding it to your library…"
+msgstr ""
+
 #: src/components/settings/SecuritySection.tsx
 #, fuzzy
 msgid "Adds a button to the login page. Local passwords keep working unless you restrict them below."
@@ -3647,6 +3651,7 @@ msgstr "Secreto de cliente"
 #: src/components/SourceCompareModal.tsx
 #: src/components/TagBrowserModal.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -4092,6 +4097,10 @@ msgstr "No se pudo cargar tu progreso. Los registros del servidor indicarán el 
 msgid "Could not load your signals: {loadError}"
 msgstr "No se pudieron cargar tus señales: {loadError}"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Could not queue the chapter."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Could not read progress for {seriesFailed, plural, one {# series} other {# series}}"
@@ -4512,6 +4521,10 @@ msgstr "Los archivos eliminados se quitan del disco y no se pueden recuperar des
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr ""
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so they are not downloaded again."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Deleting"
@@ -4760,9 +4773,21 @@ msgid "Download {missingWanted} wanted chapters?"
 msgstr "¿Descargar los {missingWanted} capítulos solicitados?"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Download & read"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Download & read {nextChapter}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Download all wanted"
 msgstr "Descargar todos los solicitados"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download and read"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -4798,6 +4823,10 @@ msgstr "Descargar capítulos siguientes"
 #, fuzzy
 msgid "Download order when a series matches several sources, highest first. Language ranking above comes first. Applies to new auto-matches and manual Auto-match runs; other series keep their order. Switching a source off pauses it for every series without touching their own toggles."
 msgstr "Orden de descarga cuando una serie coincide con varias fuentes, primero la de mayor prioridad. La clasificación por idioma anterior tiene prioridad. Se aplica a las nuevas coincidencias automáticas y a las ejecuciones manuales de coincidencia automática; las demás series conservan su orden. Al desactivar una fuente, se pausa para todas las series sin cambiar sus propios interruptores."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Download progress"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4858,7 +4887,12 @@ msgstr "Descargando base de datos de metadatos"
 msgid "Downloading now"
 msgstr "Descargando ahora"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Downloading page {pagesDone} of {pagesTotal}"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #, fuzzy
 msgid "Downloading…"
 msgstr "Descargando…"
@@ -5450,6 +5484,10 @@ msgstr "Obteniendo metadatos"
 msgid "Fetching pages…"
 msgstr "Obteniendo páginas…"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Fetching the page list…"
+msgstr ""
+
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
 msgid "File"
@@ -5543,6 +5581,10 @@ msgstr "Buscar una copia mejor"
 #, fuzzy
 msgid "Find more"
 msgstr "Buscar más"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Finding a source…"
+msgstr ""
 
 #: src/components/ui/status.tsx
 #: src/pages/ActivityPage.tsx
@@ -5648,11 +5690,6 @@ msgstr "ajustar ancho"
 #, fuzzy
 msgid "Fit width"
 msgstr "Ajustar ancho"
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Fix or remove the source mapping first, or a refresh will bring them right back."
-msgstr "Corrige o elimina primero la asignación de fuente, o una actualización las devolverá inmediatamente."
 
 #: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/registry.ts
@@ -6791,6 +6828,10 @@ msgstr "El progreso de lectura de Kavita está vinculado a una cuenta de Fōkur�
 #, fuzzy
 msgid "Keep a local copy of MangaBaka"
 msgstr "Guardar una copia local de MangaBaka"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Keep downloading in the background"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -9259,6 +9300,10 @@ msgstr "Abre la página para comprobar que es la serie correcta"
 msgid "Open the search with these filters from now on"
 msgstr "Abrir la búsqueda con estos filtros a partir de ahora"
 
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Opening the reader…"
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Opens a deletion review. Nothing is removed until you confirm it there."
@@ -9357,6 +9402,10 @@ msgstr "Ritmo"
 #, fuzzy
 msgid "Packaging"
 msgstr "Empaquetado"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Packing the pages…"
+msgstr ""
 
 #: src/components/CommandPalette.tsx
 #, fuzzy
@@ -9878,6 +9927,10 @@ msgstr "En cola {outstanding}"
 #, fuzzy
 msgid "Queued and downloading chapters show up here. Trigger a search from a series page or the library."
 msgstr "Los capítulos en cola y en descarga aparecen aquí. Activa una búsqueda desde la página de una serie o desde la biblioteca."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Queuing the chapter…"
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -12837,10 +12890,26 @@ msgstr "Los raíles del catálogo necesitan la base de datos local de MangaBaka 
 msgid "The chapter numbers are in the archive's page file names. Certain."
 msgstr "Los números de capítulo aparecen en los nombres de archivo de las páginas del archivo. Certeza alta."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "The chapters stay in the list. Tick them as wanted again to bring them back."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "The current feed URL stops working immediately. Every app using it needs the new one."
 msgstr "La URL actual del feed dejará de funcionar de inmediato. Todas las apps que la usan necesitarán la nueva."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download failed."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download needs a decision before it can be imported. Check Activity."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The download was cancelled."
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -12856,6 +12925,10 @@ msgstr "El archivo lleva el nombre de su capítulo."
 #, fuzzy
 msgid "The file name carries no chapter or volume number, so nothing can be matched to it. Rename it to the library's naming format and rescan, or link it by hand from the series' Files tab."
 msgstr "El nombre del archivo no contiene ningún número de capítulo o volumen, así que no se puede asociar. Cámbiale el nombre al formato de nomenclatura de la biblioteca y vuelve a analizarlo, o vincúlalo manualmente desde la pestaña Archivos de la serie."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "The files are removed from disk and cannot be recovered."
+msgstr ""
 
 #: src/components/RenameSeriesModal.tsx
 #, fuzzy
@@ -12976,6 +13049,10 @@ msgstr "Los registros del servidor indicarán el motivo."
 #, fuzzy
 msgid "The single biggest improvement if Fōkurōru is reachable from the internet."
 msgstr "La mejora individual más importante si Fōkurōru es accesible desde internet."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The source asked us to slow down. Waiting to try again…"
+msgstr ""
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13150,11 +13227,6 @@ msgstr "Esto elimina permanentemente {count, plural, one {el archivo} many {esto
 #, fuzzy
 msgid "This permanently deletes the archive. Chapter records and reading history remain."
 msgstr "Esta acción elimina permanentemente el archivo. Los registros de capítulos y el historial de lectura se conservan."
-
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "This permanently removes {selectedCount} chapter row(s), not just their file link, along with any backing file on disk."
-msgstr "Esto elimina permanentemente {selectedCount} entradas de capítulo, no solo sus vínculos a los archivos, y también elimina cualquier archivo correspondiente del disco."
 
 #: src/api/queue.ts
 #, fuzzy
@@ -13545,6 +13617,7 @@ msgid "Try a shorter or alternative query."
 msgstr "Prueba una consulta más corta o alternativa."
 
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/DownloadSplash.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
 #, fuzzy
 msgid "Try again"
@@ -13936,11 +14009,6 @@ msgstr "Usar esta copia"
 msgid "Use this title for taste"
 msgstr "Usar este título para tus gustos"
 
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-msgid "Use this to clean up chapters pulled in by a wrong source match."
-msgstr "Usa esto para limpiar capítulos incorporados por una coincidencia de fuente incorrecta."
-
 #: src/components/settings/UsersSection.tsx
 #, fuzzy
 msgid "Use trackers"
@@ -14204,6 +14272,10 @@ msgstr "frente a {fromLabel} y {toLabel}"
 #, fuzzy
 msgid "Waiting for the MangaBaka snapshot to download first."
 msgstr "Esperando a que se descargue primero la instantánea de MangaBaka."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Waiting its turn in the download queue…"
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14505,6 +14577,10 @@ msgstr "no se volverá a recomendar"
 #, fuzzy
 msgid "Won't suggest resuming from this anime again."
 msgstr "No volverá a sugerir que continúes desde este anime."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Working…"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 #: src/pages/SettingsPage.tsx
