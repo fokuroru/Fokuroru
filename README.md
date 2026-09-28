@@ -1,22 +1,36 @@
-# <img src="https://github.com/OrbitMPGH/Maki/blob/main/frontend/public/favicon.svg?raw=true" width="50" alt=""> Maki
+# <img src="frontend/public/brand/fokuroru-icon-colour-light.svg" width="50" alt=""> Fōkurōru
 
-**Maki** is a manga collection manager in the spirit of [Sonarr](https://sonarr.tv) and
-[Radarr](https://radarr.video): add a series once and Maki keeps it complete. It watches sites
+> **This is a fork.** Fōkurōru is a personal fork of [Maki](https://github.com/OrbitMPGH/Maki) by
+> OrbitMPGH, renamed and restyled. All credit for the underlying application goes to the Maki
+> project; report problems with Maki itself upstream, not here. The code, folders and container
+> names still say Maki, and the GPLv3 licence carries over unchanged.
+
+**Fōkurōru** is a manga collection manager in the spirit of [Sonarr](https://sonarr.tv) and
+[Radarr](https://radarr.video): add a series once and it keeps the series complete. It watches sites
 for new chapters, downloads the pages, and writes CBZ files with ComicInfo.xml metadata, which
 [Kavita](https://www.kavitareader.com) and most comic readers understand. You can also read them
-in Maki's built-in reader or over OPDS.
+in the built-in reader or over OPDS.
 
-[![Latest Tag](https://badgen.net/github/tag/OrbitMPGH/Maki)](https://github.com/OrbitMPGH/Maki/releases)
-[![CI](https://github.com/OrbitMPGH/Maki/actions/workflows/ci.yml/badge.svg)](https://github.com/OrbitMPGH/Maki/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Translation status](https://hosted.weblate.org/widget/maki/svg-badge.svg)](https://hosted.weblate.org/engage/maki/)
 
-> Maki is almost entirely AI-slop-built, developed with Anthropic's latest Claude models.
+> Like Maki, it is almost entirely AI-built, developed with Anthropic's Claude models.
 
-<p>
-  <img width="49%" alt="Library" src="https://github.com/user-attachments/assets/f5bf91c8-0074-4151-9e50-8197c6a4f9ee" />
-  <img width="49%" alt="Discover" src="https://github.com/user-attachments/assets/9ff8aeb2-426e-4994-ba6c-33b2644e9c3c" />
-</p>
+## What the fork changes
+
+- **New look and name.** The Spine design: warm charcoal and bone, a per-series colour sampled
+  from each cover, a manga-spine "Reading now" shelf, and the Fōkurōru logo.
+- **Smart Download by default, and it starts on its own.** New series download their first batch
+  without anyone reading a chapter first.
+- **Auto-delete read chapters** after a number of days you choose. Read history is kept and the
+  chapter is marked not wanted, so it is not downloaded again. Deleting chapters by hand works the
+  same way.
+- **Completed vs up to date.** A series only counts as completed when every main chapter is read
+  and it has ended or is on hiatus; caught up on a running series reads as up to date, locally and
+  on trackers.
+- **Reader:** vertical navigation and smooth scrolling for long strips, a zoom slider that works
+  with every fit (narrow a webtoon strip on a wide screen), and **Download & read** for the next
+  chapter when it is not on disk yet.
+- **Library:** a "Last read" sort, and the mobile/foldable layout fixes.
 
 ## Highlights
 
