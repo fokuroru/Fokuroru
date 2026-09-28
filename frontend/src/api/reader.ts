@@ -30,6 +30,8 @@ export interface ReaderManifest {
   nextChapterLabel: string | null
   nextChapterNumber: number | null
   seriesCoverUrl: string | null
+  /** The series' spine colour, or null for the default. The reader always uses the dark variants. */
+  seriesSpineColor?: string | null
   /** Whatever won: the series override, a reading profile, or the global defaults. */
   prefs: ReaderPrefs
   prefsSource: PrefsSource

@@ -81,6 +81,7 @@ import { CoverCard } from '../components/ui/CoverCard'
 import { SeriesRow } from '../components/ui/SeriesRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { PageHeader } from '../components/ui/PageHeader'
+import { SpineShelf } from '../components/library/SpineShelf'
 import { Panel } from '../components/ui/Panel'
 import { FigureStrip } from '../components/ui/FigureStrip'
 import { TagChip } from '../components/ui/TagChip'
@@ -1573,6 +1574,7 @@ export default function LibraryPage() {
           onAction={() => applySpec(DEFAULT_SPEC, null)}
         />
       )}
+      {series && series.length > 0 && !selectMode && <SpineShelf series={series} readTracking={readTracking} />}
       {/* Both views render a slice, not the whole filtered set, once the library is big enough to
           be worth it (see useWindowedRows for the threshold and what it costs). Bulk selection is
           unaffected: "select filtered" works off `visible`, never off what is mounted. */}

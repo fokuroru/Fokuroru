@@ -25,7 +25,8 @@ public record HomeReadingItem(
     int Page,
     int PageCount,
     DateTime LastReadAt,
-    int UnreadChapters);
+    int UnreadChapters,
+    string? SpineColor = null);
 
 public record HomeReadingResponse(
     IReadOnlyList<HomeReadingItem> ContinueReading,
@@ -151,7 +152,7 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
         var titles = await db.Series
             .AsNoTracking()
             .Where(s => allIds.Contains(s.Id))
-            .Select(s => new { s.Id, s.Title, s.CoverPath, s.LastMetadataRefresh })
+            .Select(s => new { s.Id, s.Title, s.CoverPath, s.LastMetadataRefresh, s.SpineColor })
             .ToDictionaryAsync(s => s.Id, ct);
 
         var next = await continueReading.NextForAsync(allIds, ct);
@@ -186,7 +187,8 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
                 row.PageIndex,
                 row.PageCount,
                 row.UpdatedAt,
-                next.GetValueOrDefault(entry.SeriesId)?.UnreadChapters ?? 0));
+                next.GetValueOrDefault(entry.SeriesId)?.UnreadChapters ?? 0,
+                series.SpineColor));
         }
 
         var jumpRail = new List<HomeReadingItem>();
@@ -207,7 +209,8 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
                 0,
                 0,
                 entry.Last,
-                upNext.UnreadChapters));
+                upNext.UnreadChapters,
+                series.SpineColor));
 
             if (jumpRail.Count == limit)
             {

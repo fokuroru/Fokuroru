@@ -31,7 +31,6 @@ import { msg } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useLabel } from '../../i18n-context'
 import { useBackTarget } from '../../lib/navHistory'
-import {HeroBackdrop} from './HeroBackdrop'
 import { GENRE_LABELS, TYPE_LABELS } from '../CatalogueFilters'
 
 /** Where the back link points for a series nobody navigated to: a bookmark, or a pasted link. */
@@ -48,9 +47,10 @@ const MAX_HERO_ALT_TITLES = 4
  * check and modal stays in SeriesDetailPage, which is what keeps this file readable while the page
  * it serves is not.
  *
- * The backdrop is the series' own poster filled to the band and lightly blurred, with a corner
- * falloff and two scrims over it rather than one flat wash. The recipe, and the reason a flat wash
- * looks like a smudge, are in .claude/rules/design-system.md.
+ * The left edge is the series' spine: a band in the colour sampled from its cover, carrying the
+ * title vertically the way a tankobon spine does. The original title when it is Japanese, Chinese
+ * or Korean (it stands upright in vertical-rl), the display title otherwise. The page sets the
+ * spine variables (lib/spine.ts); this only reads them.
  */
 export function SeriesHero({
                                series,
@@ -151,10 +151,14 @@ export function SeriesHero({
     // `overflow` also makes the message identical to the one TagBuckets already produces, which
     // means this reuses that translation in all ten languages instead of adding a new entry.
     const overflow = altTitles.length - MAX_HERO_ALT_TITLES
+    const spineTitle =
+        series.originalTitle && /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(series.originalTitle)
+            ? series.originalTitle
+            : series.displayTitle
 
     return (
         <Box className="series-hero">
-            <HeroBackdrop coverUrl={series.coverUrl} />
+            <div className="series-spine-band" aria-hidden="true">{spineTitle}</div>
 
             <div className="series-hero-body">
                 {/* Arrow inside the link, not beside it: the arrow is the part of this people aim at. */}
@@ -305,7 +309,7 @@ export function SeriesHero({
                                 <Progress
                                     mt={12}
                                     value={Math.min(100, (series.readChapterCount / progress.have) * 100)}
-                                    color="brand"
+                                    color="var(--spine-fg)"
                                     radius="xl"
                                 />
                                 <Group justify="space-between" mt={9}>
@@ -334,7 +338,7 @@ export function SeriesHero({
                                 mt={12}
                                 value={progress.pct}
                                 // Warn wins while a source gap exists, a separate claim the alert below already spells out.
-                                color={sourceGap ? 'var(--warn)' : progress.complete ? 'var(--ok)' : 'var(--brand)'}
+                                color={sourceGap ? 'var(--warn)' : progress.complete ? 'var(--ok)' : 'var(--ink)'}
                                 radius="xl"
                             />
                             <Group justify="space-between" mt={9}>

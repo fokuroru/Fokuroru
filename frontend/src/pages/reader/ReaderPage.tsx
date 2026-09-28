@@ -25,6 +25,7 @@ import { useReaderPrefs } from './prefs'
 import { usePageUrls, usePreload } from './usePageUrls'
 import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
+import { spineVars } from '../../lib/spine'
 import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
 
 const ZOOM_STEP = 0.25
@@ -434,7 +435,7 @@ export default function ReaderPage() {
     !incognito && !manifest.completed && (finished || shownTo >= manifest.pageCount - 1)
 
   return (
-    <div className="reader-root" style={{ background: prefs.background }}>
+    <div className="reader-root" style={{ ...spineVars(manifest.seriesSpineColor, 'dark'), background: prefs.background }}>
       <ReaderToolbar
         manifest={manifest}
         page={page}

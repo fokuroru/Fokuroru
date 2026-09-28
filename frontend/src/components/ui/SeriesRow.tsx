@@ -60,6 +60,11 @@ export const SeriesRow = memo(function SeriesRow({
     >
       {selectMode && <span className="row-check" data-checked={selected || undefined} />}
 
+      <span
+        className="row-spine"
+        style={{ height: thumbH, background: series.spineColor ?? 'var(--spine)' }}
+        aria-hidden="true"
+      />
       <div
         className="row-cover"
         style={{ width: thumbSize, height: thumbH, flexShrink: 0 }}

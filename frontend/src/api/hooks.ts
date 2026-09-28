@@ -790,6 +790,8 @@ export interface HomeReadingItem {
   pageCount: number
   lastReadAt: string
   unreadChapters: number
+  /** The series' spine colour, or null for the default. See lib/spine.ts. */
+  spineColor?: string | null
 }
 
 export interface HomeReadingResponse {

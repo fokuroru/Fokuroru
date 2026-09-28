@@ -209,6 +209,7 @@ public class ReaderController(
             nextChapterLabel = nextChapter is null ? null : ChapterLabel.For(nextChapter),
             nextChapterNumber = nextChapter?.Number,
             seriesCoverUrl = SeriesDto.CoverUrlFor(slice.Series.Id, slice.Series.CoverPath, slice.Series.LastMetadataRefresh),
+            seriesSpineColor = slice.Series.SpineColor,
             prefs = resolved.Prefs,
             prefsSource = resolved.Source.ToString(),
             profileId = resolved.ProfileId,

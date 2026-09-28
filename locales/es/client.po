@@ -1306,6 +1306,10 @@ msgstr "{unread, plural, one {# restante} many {# restantes} other {# restantes}
 msgid "{unread, plural, one {# unread} other {# unread}}"
 msgstr "{unread, plural, one {# sin leer} many {# sin leer} other {# sin leer}}"
 
+#: src/components/library/SpineShelf.tsx
+msgid "{unread} unread"
+msgstr ""
+
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
 #, fuzzy
@@ -10061,6 +10065,10 @@ msgstr "Objetivos de lectura"
 #, fuzzy
 msgid "Reading history stays visible when a source is excluded from recommendations."
 msgstr "El historial de lectura sigue visible cuando una fuente está excluida de las recomendaciones."
+
+#: src/components/library/SpineShelf.tsx
+msgid "Reading now"
+msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy

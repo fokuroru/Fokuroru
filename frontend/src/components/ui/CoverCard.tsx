@@ -63,6 +63,7 @@ export const CoverCard = memo(function CoverCard({
     <Link
       to={`/series/${series.id}`}
       className="cover-card"
+      style={{ '--card-spine': series.spineColor ?? 'var(--spine)' } as React.CSSProperties}
       data-selected={selected || undefined}
       onClick={(e) => {
         if (selectMode) {

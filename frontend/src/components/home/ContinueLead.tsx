@@ -5,7 +5,7 @@ import { IconPlayerPlay } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { plural } from '@lingui/core/macro'
 import type { HomeReadingItem } from '../../api/hooks'
-import { HeroBackdrop } from '../series/HeroBackdrop'
+import { useSpineStyle } from '../../lib/spine'
 import { relativeTime } from '../ui/time'
 import { ReadingCardMenu, type ReadingRailKind } from './ReadingCardMenu'
 
@@ -20,9 +20,8 @@ export const CONTINUE_LEAD_MAX = 3
  * switchable in settings, so Continue reading is not reliably first and may be absent entirely;
  * a page-level hero would either move around or vanish.
  *
- * The backdrop is `HeroBackdrop`, the same component the series page and the Discover detail
- * modal use. Those gradients are tuned as one recipe, so a local copy drifts the moment any of
- * them is touched.
+ * Each tile wears its series' spine: a strip down its left edge, and the spine variables on the
+ * tile so its progress bar and Resume button match (lib/spine.ts).
  */
 export function ContinueLead({ items, rail }: { items: HomeReadingItem[]; rail: ReadingRailKind }) {
   return (
@@ -54,10 +53,11 @@ const ContinueTile = memo(function ContinueTile({
   const lastRead = relativeTime(item.lastReadAt)
   const { seriesTitle, chapterLabel, unreadChapters, pageCount } = item
   const pageNumber = item.page + 1
+  const spineStyle = useSpineStyle(item.spineColor)
 
   return (
-    <div className="continue-tile">
-      <HeroBackdrop coverUrl={item.coverUrl} />
+    <div className="continue-tile" style={spineStyle}>
+      <span className="continue-tile-spine" aria-hidden="true" />
       <ReadingCardMenu item={item} rail={rail} className="continue-tile-menu" />
 
       <div className="continue-tile-content">

@@ -707,10 +707,10 @@ body {
 .cover-card {
   position: relative;
   display: block;
-  border-radius: var(--mantine-radius-lg);
+  border-radius: var(--radius-thumb);
   overflow: hidden;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0;
   text-decoration: none;
   color: inherit;
   /* A library of a few hundred posters is the heaviest thing the app paints. This lets the
@@ -723,19 +723,25 @@ body {
   content-visibility: auto;
   contain-intrinsic-size: auto 320px;
   container-type: inline-size;
-  transition:
-    transform var(--dur-medium) var(--ease),
-    box-shadow var(--dur-medium) var(--ease),
-    border-color var(--dur-medium) var(--ease);
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+/* The series' spine along the foot of its cover, the way a book shows its spine on the shelf. */
+.cover-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  height: 5px;
+  background: var(--card-spine, var(--spine));
+  pointer-events: none;
 }
 .cover-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-strong);
-  box-shadow: var(--mantine-shadow-lg);
+  box-shadow: 0 0 0 2px var(--ink-3);
 }
 .cover-card[data-selected='true'] {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 1px var(--brand), 0 12px 30px -10px var(--brand-glow);
+  box-shadow: 0 0 0 3px var(--spine-fg);
 }
 .cover-poster {
   position: relative;
@@ -760,13 +766,7 @@ body {
     width var(--dur-slow) var(--ease),
     height var(--dur-slow) var(--ease);
 }
-.cover-card:hover .cover-poster img,
-.reading-card:hover > .cover-card .cover-poster img {
-  top: -2.5%;
-  left: -2.5%;
-  width: 105%;
-  height: 105%;
-}
+
 .cover-scrim {
   position: absolute;
   inset: 0;
@@ -2760,6 +2760,55 @@ body {
   align-items: flex-end;
   background: var(--surface);
 }
+/* The series page's hero: no art behind it, just the ground and the spine band down its left
+   edge. The Discover modal keeps the art band (`[data-compact]`). */
+.series-hero:not([data-compact]) {
+  min-height: 0;
+  align-items: stretch;
+  background: var(--app-bg);
+}
+.series-hero:not([data-compact]) .series-hero-body {
+  padding-bottom: var(--mantine-spacing-md);
+}
+.series-spine-band {
+  flex: none;
+  width: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  background: var(--spine);
+  color: var(--spine-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2.25rem;
+  letter-spacing: 0.1em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .series-spine-band {
+    animation: spine-in var(--dur-medium) var(--ease) both;
+  }
+}
+@keyframes spine-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+/* Under the nav breakpoint the band is a strip across the top; the title stays in the header. */
+@media (max-width: 47.9375em) {
+  .series-hero:not([data-compact]) {
+    flex-direction: column;
+  }
+  .series-spine-band {
+    width: auto;
+    height: 6px;
+    font-size: 0;
+    writing-mode: horizontal-tb;
+    animation: none;
+  }
+}
 
 /* 1. The art. The poster filled to a band four times its aspect ratio, so it is always a crop;
       the blur is what stops that crop reading as a mistake. */
@@ -2858,21 +2907,11 @@ body {
   height: 336px;
   object-fit: cover;
   border-radius: var(--radius-hero);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 26px 58px -16px rgba(0, 0, 0, 0.9);
+  border: 0;
+  /* The dust jacket over the spine: a hard offset in the series' own colour, not a drop shadow. */
+  box-shadow: 8px 0 0 var(--spine);
   flex-shrink: 0;
 }
-/* Anton is the only face that takes the distress. It is a poster face carrying the identity of the
-   thing on screen, and a poster is printed; Inter has to stay legible at 12.5px and gets none of it.
-
-   A mask rather than `background-clip: text`: it erodes the edge and speckles the fill in one pass,
-   it leaves `color` on the token where the theme can still reach it, and it fails safe. A browser
-   without mask support renders clean type, where background-clip would have rendered none at all.
-
-   The tile is sized per use. At one size for both, a 34px page title sits inside a single region of
-   the texture and comes out either untouched or chewed, when the point is that it varies across the
-   word. */
-
 .series-hero-title {
   color: var(--ink-hi);
   font-size: var(--type-display);
@@ -4968,6 +5007,7 @@ body.reader-open {
 }
 .reader-bar-top {
   top: 0;
+  border-top: 3px solid var(--spine);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .reader-bar-bottom {
@@ -5410,6 +5450,10 @@ body.reader-open {
   clip-path: polygon(14% 48%, 0 65%, 40% 100%, 100% 20%, 84% 4%, 38% 65%);
 }
 
+.row-spine {
+  flex: none;
+  width: 6px;
+}
 .row-cover {
   border-radius: var(--radius-thumb);
   overflow: hidden;
@@ -6592,13 +6636,14 @@ body.reader-open {
   display: flex;
   min-height: 188px;
   align-items: stretch;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-surface);
-  background: var(--surface-raised);
+  border: 0;
+  border-radius: 0;
+  background: var(--surface);
 }
-.continue-tile .series-hero-art {
-  background-position: 82% 22%;
-  background-size: 118%;
+.continue-tile-spine {
+  flex: none;
+  width: 8px;
+  background: var(--spine);
 }
 .continue-tile-content {
   position: relative;
@@ -6732,7 +6777,7 @@ body.reader-open {
 }
 .continue-tile-fill {
   height: 100%;
-  background: var(--brand);
+  background: var(--spine-fg);
 }
 .continue-tile-pages {
   color: var(--ink-3);
@@ -7617,4 +7662,58 @@ body.reader-open {
   border-top: 1px solid var(--border);
   font-size: var(--type-micro);
   color: var(--ink-4);
+}
+
+/* --- Library: Reading now shelf ------------------------------------------ */
+.spine-shelf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  margin-bottom: var(--mantine-spacing-xl);
+}
+.spine-shelf-label {
+  font-size: var(--type-section);
+  font-weight: 700;
+  color: var(--ink-hi);
+}
+.spine-shelf-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 3px solid var(--surface);
+  scrollbar-width: none;
+}
+.spine-book {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 0;
+  text-decoration: none;
+  writing-mode: vertical-rl;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  letter-spacing: 0.04em;
+}
+.spine-book:focus-visible {
+  outline: 2px solid var(--focus, var(--ink-hi));
+  outline-offset: 2px;
+}
+.spine-book-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-height: 0;
+}
+.spine-book-count {
+  flex: none;
+  writing-mode: horizontal-tb;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
 }

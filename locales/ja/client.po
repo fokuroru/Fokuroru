@@ -1306,6 +1306,10 @@ msgstr "{unread, plural, other {残り # 件}}"
 msgid "{unread, plural, one {# unread} other {# unread}}"
 msgstr "{unread, plural, other {#件未読}}"
 
+#: src/components/library/SpineShelf.tsx
+msgid "{unread} unread"
+msgstr ""
+
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
 #, fuzzy
@@ -10061,6 +10065,10 @@ msgstr "読書目標"
 #, fuzzy
 msgid "Reading history stays visible when a source is excluded from recommendations."
 msgstr "ソースをおすすめから除外しても読書履歴は表示されたままです。"
+
+#: src/components/library/SpineShelf.tsx
+msgid "Reading now"
+msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy

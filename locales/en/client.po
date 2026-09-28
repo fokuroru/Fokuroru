@@ -1059,6 +1059,10 @@ msgstr "{unread, plural, one {# left} other {# left}}"
 msgid "{unread, plural, one {# unread} other {# unread}}"
 msgstr "{unread, plural, one {# unread} other {# unread}}"
 
+#: src/components/library/SpineShelf.tsx
+msgid "{unread} unread"
+msgstr "{unread} unread"
+
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
 msgid "{unreadChapters, plural, one {# unread} other {# unread}}"
@@ -8163,6 +8167,10 @@ msgstr "Reading goals"
 #: src/pages/discover/TasteTab.tsx
 msgid "Reading history stays visible when a source is excluded from recommendations."
 msgstr "Reading history stays visible when a source is excluded from recommendations."
+
+#: src/components/library/SpineShelf.tsx
+msgid "Reading now"
+msgstr "Reading now"
 
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Reading profile"

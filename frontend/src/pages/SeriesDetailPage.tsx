@@ -137,6 +137,7 @@ import { isUnfinished } from '../lib/lucky'
 import { useShellTitle } from '../lib/shellTitle'
 import { buildAnimeSpans, mergeAnimeMarkers, type AnimeSpan } from '../lib/animeCoverage'
 import { cleanSynopsis } from '../lib/synopsis'
+import { useSpineStyle } from '../lib/spine'
 
 function chapterLabel(c: ChapterDto): string {
   if (c.isOneShot || c.number === null) return c.title ?? staticT`One-shot`
@@ -1135,6 +1136,9 @@ export default function SeriesDetailPage() {
     />
   ) : null
 
+  // The page wears the series' spine: buttons, tabs, progress and the band all read it from here.
+  const spineStyle = useSpineStyle(series?.spineColor)
+
   if (isLoading) {
     return (
         <SurfaceFrame width="full" pageStyle="editorial">
@@ -1330,6 +1334,7 @@ export default function SeriesDetailPage() {
     <SurfaceFrame width="full" pageStyle="editorial">
       <Tabs
           className="series-detail-surface"
+          style={spineStyle}
           value={tab}
           onChange={changeTab}
           variant="unstyled"
