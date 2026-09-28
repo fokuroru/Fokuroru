@@ -2,130 +2,132 @@
    Maki - global design tokens & base styles
    ========================================================================== */
 
+/* Maki Spine. Token names are the ones the rest of this file already reads; the values are
+   the design system's (claude.ai Design System "Maki Spine"). `--brand*` is the fallback spine:
+   a series page overrides it with the colour sampled from its own cover (see --spine below). */
 :root {
-  --app-bg: #0b0d13;
-  --surface: #161922;
-  --surface-2: #1b1f2a;
-  --surface-hover: #20242f;
-  --border: #262b36;
-  --border-strong: #333947;
+  --app-bg: #1d1b19;
+  --surface: #2a2724;
+  --surface-2: #332f2b;
+  --surface-hover: #383430;
+  --border: #2f2c28;
+  --border-strong: #4a453e;
 
-  /* Text hierarchy used by the series page. */
-  --ink-hi: #f1f3f5;
-  --ink: #dee2e6;
-  --ink-2: #c7cad4;
-  --ink-3: #a6adbb;
-  --ink-4: #9098a8;
+  --ink-hi: #f5efe4;
+  --ink: #ece5d8;
+  --ink-2: #cfc7b8;
+  --ink-3: #a39c8e;
+  /* 4.7:1 on the ground; below 4.5:1 on --surface, so use --ink-3 for small text there. */
+  --ink-4: #8c8578;
   --hairline: var(--border);
   --mantine-color-dimmed: var(--ink-3);
-  --rating: #f5c518;
-  --tier-1: #a1662f;
+  --rating: #d9b75c;
+  --tier-1: #c08a5a;
   --tier-1-soft: color-mix(in srgb, var(--tier-1) 15%, transparent);
-  --tier-2: #9aa4ad;
+  --tier-2: #a9a399;
   --tier-2-soft: color-mix(in srgb, var(--tier-2) 15%, transparent);
-  --tier-3: #d4a017;
+  --tier-3: #d9b75c;
   --tier-3-soft: color-mix(in srgb, var(--tier-3) 15%, transparent);
-  --tier-4: #4fb0c6;
+  --tier-4: #6fb3c1;
   --tier-4-soft: color-mix(in srgb, var(--tier-4) 15%, transparent);
-  --tier-5: #7f6fd6;
+  --tier-5: #b9a7d8;
   --tier-5-soft: color-mix(in srgb, var(--tier-5) 15%, transparent);
-  --tier-6: #d64f7f;
+  --tier-6: #e393ab;
   --tier-6-soft: color-mix(in srgb, var(--tier-6) 15%, transparent);
 
-  --brand: #6d7dff;
-  --brand-hover: #5c6cf0;
-  --brand-on: #ffffff;
-  --brand-fg: #b8c1ff;
+  /* The spine. `--spine` is the fill (white text on it holds 4.5:1), `--spine-fg` the same hue as
+     a line or text on the ground, lifted for dark. */
+  --spine: #a3322b;
+  --spine-fg: #e8867c;
+  --spine-ink: #ffffff;
+  --brand: var(--spine);
+  --brand-hover: #8a2a24;
+  --brand-on: var(--spine-ink);
+  --brand-fg: var(--spine-fg);
   /* Brand text that sits on cover art under a dark scrim, which stays dark in the light theme too. */
-  --brand-fg-on-art: var(--brand-fg);
-  --brand-glow: rgba(109, 125, 255, 0.35);
+  --brand-fg-on-art: #e8867c;
+  /* Selection fill only. There are no glow halos in Spine. */
+  --brand-glow: color-mix(in srgb, var(--spine-fg) 28%, transparent);
 
-  --ok: #3fb950;
-  --ok-on: #071a10;
-  --warn: #d6a327;
-  --info: #4c8dff;
-  --danger: #f2554c;
-  /* Filled danger buttons carry white text, which --danger is too light for in the dark themes. */
-  --danger-fill: #c0322b;
-  --watched: #b197fc;
-  --suggestive: #b0bd52;
-  --suggestive-soft: color-mix(in srgb, var(--suggestive) 15%, transparent);
-  --neutral: #a6adbb;
-  --ok-soft: color-mix(in srgb, var(--ok) 15%, transparent);
-  --warn-soft: color-mix(in srgb, var(--warn) 15%, transparent);
-  --info-soft: color-mix(in srgb, var(--info) 15%, transparent);
-  --danger-soft: color-mix(in srgb, var(--danger) 15%, transparent);
-  --watched-soft: color-mix(in srgb, var(--watched) 15%, transparent);
-  --neutral-soft: color-mix(in srgb, var(--neutral) 15%, transparent);
+  --ok: #8fc49a;
+  --ok-on: #10200f;
+  --warn: #e0b25a;
+  --info: #8fb2d6;
+  --danger: #ef8a7a;
+  --danger-fill: #a8322a;
+  --watched: #b9a7d8;
+  /* Suggestive is a neutral word in Spine, not a colour. */
+  --suggestive: #cfc7b8;
+  --suggestive-soft: color-mix(in srgb, var(--suggestive) 12%, transparent);
+  --neutral: #a39c8e;
+  --ok-soft: color-mix(in srgb, var(--ok) 14%, transparent);
+  --warn-soft: color-mix(in srgb, var(--warn) 14%, transparent);
+  --info-soft: color-mix(in srgb, var(--info) 14%, transparent);
+  --danger-soft: color-mix(in srgb, var(--danger) 14%, transparent);
+  --watched-soft: color-mix(in srgb, var(--watched) 14%, transparent);
+  --neutral-soft: color-mix(in srgb, var(--neutral) 14%, transparent);
 
   --content-wide: 72rem;
   --content-prose: 42rem;
   --section-space: clamp(2rem, 4vw, 4.5rem);
   --control-height-xs: 1.875rem;
-  --control-height-md: 2.625rem;
-  --radius-control: 6px;
-  --radius-surface: 9px;
-  --radius-overlay: 13px;
-  --radius-2xs: 2px;
-  --radius-chip: 7px;
-  --radius-thumb: 8px;
-  --radius-hero: 12px;
-  /* Bars, badges and anything whose ends should be fully round, whatever its height. */
-  --radius-pill: 999px;
+  --control-height-md: 2.75rem;
+  /* Square system. Only cover art keeps a 2px edge, to stop the image edge shimmering. */
+  --radius-control: 0px;
+  --radius-surface: 0px;
+  --radius-overlay: 0px;
+  --radius-2xs: 0px;
+  --radius-chip: 0px;
+  --radius-thumb: 2px;
+  --radius-hero: 2px;
+  --radius-pill: 0px;
   --line-soft: color-mix(in srgb, var(--border) 76%, transparent);
 
-  /* Type scale. Sizes are per role, so pick the tier by what the text *is*; if none
-     fits, the scale is wrong and should gain a tier rather than the call site an
-     off-scale value. */
-  --type-display: clamp(2rem, 5vw, 4rem);
-  --type-route: clamp(2rem, 3vw, 2.8rem);
-  --type-feature: clamp(1.25rem, 1.8vw, 1.625rem);
-  --type-figure: 1.3125rem;
-  --type-section: 1.125rem;
+  --type-display: clamp(2.25rem, 5vw, 4.25rem);
+  --type-route: clamp(2rem, 3vw, 2.5rem);
+  --type-feature: clamp(1.25rem, 1.8vw, 1.5rem);
+  --type-figure: 1.375rem;
+  --type-section: 1.0625rem;
   --type-subhead: 1rem;
-  --type-body: 0.875rem;
+  --type-body: 0.9375rem;
   --type-meta: 0.8125rem;
   --type-micro: 0.75rem;
-  --type-label: 0.6875rem;
-  --type-badge: 0.625rem;
+  --type-label: 0.75rem;
+  --type-badge: 0.6875rem;
 
-  /* Weight scale. Same rule as the type scale: a weight between two steps belongs on one of them. */
   --fw-regular: 400;
   --fw-medium: 500;
-  --fw-semibold: 600;
-  --fw-strong: 650;
+  --fw-semibold: 500;
+  --fw-strong: 700;
   --fw-bold: 700;
-  --fw-heavy: 800;
+  --fw-heavy: 900;
 
-  /* Layer ladder. The two themes elevate by opposite means, so "raised" and "sunken"
-     are defined per theme instead of assuming one direction reads in both. Dark
-     elevates by lightening (shadow on near-black is invisible); light elevates by
-     staying white and casting a real shadow, and recedes by going grey. */
-  --surface-raised: var(--surface-2);
+  --surface-raised: #332f2b;
   --surface-sunken: var(--app-bg);
-  --border-raised: var(--border);
+  --border-raised: var(--border-strong);
   --shadow-raised: none;
 
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: none;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 0.12s;
   --dur-base: 0.15s;
-  --dur-medium: 0.18s;
-  --dur-slow: 0.35s;
+  --dur-medium: 0.16s;
+  --dur-slow: 0.3s;
 
-  --font-display: 'Bricolage Grotesque Variable', 'Inter Variable', ui-sans-serif, -apple-system,
-    'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Zen Kaku Gothic New', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', system-ui, sans-serif;
+  --font-body: var(--font-display);
+  --font-mono: 'Martian Mono Variable', 'Martian Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
-/* Titles only: a series, a page or the product names itself in the display face. Everything read
-   or operated stays in Inter. No Cyrillic or CJK in Bricolage, so those titles fall through to Inter. */
+/* Titles: the same family as the body, at 900. Zen Kaku Gothic New sets Latin, Cyrillic and
+   kana in one voice, so a title like "Dandadan ダンダダン" needs no fallback face. */
 .series-hero-title,
 .page-header .mantine-Title-root,
 .auth-panel-title,
 .brand-wordmark {
   font-family: var(--font-display);
-  font-weight: var(--fw-bold);
-  letter-spacing: -0.025em;
+  font-weight: 900;
+  letter-spacing: -0.01em;
 }
 
 /* Mantine centres each slider mark label on its mark, so the end labels hang past the track and
@@ -143,89 +145,55 @@
   transform: translate(calc(-100% + var(--slider-size)), calc(var(--mantine-spacing-xs) / 2));
 }
 
-/* --- Selectable accents -------------------------------------------------- */
-/* The Mantine `brand` colour is swapped in JS (theme-context); these keep the custom
-   CSS tokens (glows, nav rail, brand mark) in sync so accent changes are visible app-wide. */
-:root[data-accent='rose'] {
-  --brand: #f52069;
-  --brand-hover: #e0175c;
-  --brand-on: #ffffff;
-  --brand-glow: rgba(245, 32, 105, 0.32);
-  --brand-fg: #ff9fbd;
-}
-:root[data-accent='emerald'] {
-  --brand: #1bc97a;
-  --brand-hover: #16b36c;
-  --brand-on: #071a10;
-  --brand-glow: rgba(27, 201, 122, 0.3);
-  --brand-fg: #96efc4;
-}
-:root[data-accent='amber'] {
-  --brand: #f0ad14;
-  --brand-hover: #dc9c0e;
-  --brand-on: #1f1600;
-  --brand-glow: rgba(240, 173, 20, 0.3);
-  --brand-fg: #ffdf85;
-}
-
 /* --- Light theme --------------------------------------------------------- */
 :root[data-theme='light'] {
-  --app-bg: #f3f4fa;
-  --surface: #ffffff;
-  --surface-2: #f7f8fc;
-  --surface-hover: #eceef6;
-  --border: #e3e6f0;
-  --border-strong: #ccd1e0;
-  --ink-hi: #111420;
-  --ink: #252a38;
-  --ink-2: #3d4454;
-  --ink-3: #4a5162;
-  --ink-4: #606879;
-  --brand-fg: #4553e6;
-  --brand-fg-on-art: #b8c1ff;
-  --ok: #237b36;
+  --app-bg: #f2ede3;
+  --surface: #e6dfd2;
+  --surface-2: #ddd5c6;
+  --surface-hover: #ddd5c6;
+  --border: #ddd5c6;
+  --border-strong: #8f8779;
+  --ink-hi: #141210;
+  --ink: #1d1b19;
+  --ink-2: #3f3a33;
+  --ink-3: #5e574c;
+  --ink-4: #6e675b;
+  --spine-fg: #a3322b;
+  --brand-fg-on-art: #e8867c;
+  --ok: #2f6b3f;
   --ok-on: #ffffff;
-  --warn: #876000;
-  --info: #245fbd;
-  --danger: #c0322b;
-  --watched: #7040bd;
-  --suggestive: #657018;
-  --neutral: #606879;
-  --rating: #b8860b;
+  --warn: #7d5200;
+  --info: #2d5b86;
+  --danger: #a8322a;
+  --watched: #5f4b86;
+  --suggestive: #3f3a33;
+  --neutral: #5e574c;
+  --rating: #7a5d00;
   --tier-1: #7a4a1e;
-  --tier-2: #6b7480;
-  --tier-3: #8a6a0a;
-  --tier-4: #1f7a8c;
-  --tier-5: #5b4bab;
-  --tier-6: #a83660;
-  --shadow-card: 0 1px 2px rgba(20, 24, 40, 0.08);
-  --surface-raised: #ffffff;
-  --surface-sunken: #eceef6;
-  --border-raised: var(--border);
-  --shadow-raised:
-    0 6px 20px -8px rgba(20, 24, 40, 0.18),
-    0 2px 5px -2px rgba(20, 24, 40, 0.1);
-}
-[data-theme='light'] body {
-  background-image:
-    radial-gradient(1100px 620px at 82% -12%, rgba(85, 102, 245, 0.1), transparent 60%),
-    radial-gradient(900px 520px at 5% 0%, rgba(120, 110, 220, 0.08), transparent 55%);
+  --tier-2: #5e574c;
+  --tier-3: #7a5d00;
+  --tier-4: #1f6a78;
+  --tier-5: #5f4b86;
+  --tier-6: #9c3a5c;
+  --surface-raised: #fbf8f2;
+  --surface-sunken: #e6dfd2;
+  --border-raised: #ddd5c6;
+  --shadow-raised: 0 10px 28px -14px rgba(20, 18, 16, 0.35);
 }
 [data-theme='light'] .app-navbar {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(247, 248, 252, 0.75));
-  border-right: 1px solid var(--border);
+  background: var(--surface);
+  border-right: 0;
 }
 [data-theme='light'] .app-header {
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--app-bg);
   border-bottom: 1px solid var(--border);
 }
-/* The resting colour is a dark-theme grey; left alone on white it lands around 2.5:1. */
 [data-theme='light'] .nav-link {
-  color: #4a5162;
+  color: var(--ink-2);
 }
 [data-theme='light'] .nav-link:hover,
 [data-theme='light'] .nav-link[data-active='true'] {
-  color: #111420;
+  color: var(--ink-hi);
 }
 /* The exclusions live in :where() so they add no specificity. Written as a plain
    :not() chain this selector quietly beats every later override, including the
@@ -238,7 +206,6 @@
   background-color: var(--surface);
 }
 
-/* Deep, subtly-lit app background sitting behind the Mantine shell. */
 html,
 body,
 #root {
@@ -247,11 +214,7 @@ body,
 
 body {
   background-color: var(--app-bg);
-  background-image:
-    radial-gradient(1100px 620px at 82% -12%, rgba(85, 102, 245, 0.12), transparent 60%),
-    radial-gradient(900px 520px at 5% 0%, rgba(63, 46, 128, 0.1), transparent 55%);
-  background-attachment: fixed;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -360,12 +323,11 @@ body {
    costing a full-height composited layer on every scrolled frame. The header keeps its blur;
    there content genuinely passes underneath. */
 .app-navbar {
-  background: linear-gradient(180deg, rgba(22, 25, 34, 0.6), rgba(11, 13, 19, 0.6));
-  border-right: 1px solid var(--border);
+  background: var(--surface);
+  border-right: 0;
 }
 .app-header {
-  background: rgba(11, 13, 19, 0.72);
-  backdrop-filter: blur(12px);
+  background: var(--app-bg);
   border-bottom: 1px solid var(--border);
 }
 .app-header-title {
@@ -423,8 +385,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 99;
-  background: rgba(6, 7, 11, 0.55);
-  backdrop-filter: blur(2px);
+  background: rgba(20, 18, 16, 0.55);
 }
 
 .brand-mark {
@@ -463,25 +424,11 @@ body {
   color: #fff;
 }
 .nav-link[data-active='true'] {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--brand) 20%, transparent),
-    color-mix(in srgb, var(--brand) 6%, transparent)
-  );
-  color: #fff;
+  background: var(--app-bg);
+  color: var(--ink-hi);
+  font-weight: 700;
 }
-.nav-link[data-active='true']::before {
-  content: '';
-  position: absolute;
-  left: -5px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 18px;
-  border-radius: var(--radius-pill);
-  background: var(--brand);
-  box-shadow: 0 0 10px var(--brand-glow);
-}
+
 .nav-link .nav-icon {
   opacity: 0.75;
 }
@@ -795,7 +742,7 @@ body {
   height: 100%;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: linear-gradient(160deg, #1c2030, #10131b);
+  background: var(--surface-2);
 }
 /* The hover zoom grows the box instead of using transform: scale. A transformed image gets its own
    compositor layer whose clip snaps to different pixels than the scrim, which flashed a thin
@@ -823,7 +770,7 @@ body {
 .cover-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(6, 7, 11, 0.92) 4%, rgba(6, 7, 11, 0.35) 34%, transparent 60%);
+  background: linear-gradient(to top, rgba(20, 18, 16, 0.92) 4%, rgba(20, 18, 16, 0.35) 34%, transparent 60%);
   pointer-events: none;
 }
 .cover-placeholder {
@@ -951,8 +898,7 @@ body {
      over a pale one: the unfilled track was white at 20%, i.e. nothing at all on white. Tinting
      the backdrop instead of just recolouring the track keeps the glass look and makes the ring
      read the same over any cover, which is the same trick the status badges use. */
-  background: rgba(6, 7, 11, 0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(20, 18, 16, 0.55);
 }
 .cover-ring::before {
   content: '';
@@ -984,7 +930,7 @@ body {
   height: 20px;
   border-radius: var(--mantine-radius-sm);
   border: 1px solid color-mix(in srgb, white 35%, transparent);
-  background: rgba(6, 7, 11, 0.65);
+  background: rgba(20, 18, 16, 0.65);
 }
 .cover-check[data-checked] {
   border-color: var(--brand);
@@ -1320,13 +1266,13 @@ body {
   position: absolute;
   z-index: 3;
   color: #fff;
-  background: rgba(6, 7, 11, 0.62);
+  background: rgba(20, 18, 16, 0.62);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   transition: opacity var(--dur-base) var(--ease), transform var(--dur-medium) var(--ease), background var(--dur-base) var(--ease);
 }
 .reading-card-menu:hover,
 .continue-tile-menu:hover {
-  background: rgba(6, 7, 11, 0.85);
+  background: rgba(20, 18, 16, 0.85);
 }
 /* Left of the play cue, centred on it. */
 .reading-card-menu {
@@ -1640,7 +1586,7 @@ body {
   font-size: var(--type-micro);
   font-weight: var(--fw-medium);
   color: var(--ink-2);
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background: var(--surface);
   border: 1px solid var(--border-strong);
 }
 
@@ -1654,11 +1600,10 @@ body {
 }
 .discover-hero-strip,
 .series-hero-glass-panel {
-  border: 1px solid color-mix(in srgb, var(--border-strong) 86%, transparent);
-  border-radius: var(--radius-hero);
-  background: color-mix(in srgb, var(--surface) 86%, transparent);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(18px) saturate(0.85);
+  border: 0;
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
 }
 .discover-hero-strip-label {
   font-size: var(--type-label);
@@ -2158,27 +2103,7 @@ body {
 .auth-backdrop-art {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(
-      95% 85% at 86% 4%,
-      color-mix(in srgb, var(--brand-glow) 55%, transparent) 0%,
-      color-mix(in srgb, var(--brand-glow) 49.7%, transparent) 15%,
-      color-mix(in srgb, var(--brand-glow) 36.5%, transparent) 30%,
-      color-mix(in srgb, var(--brand-glow) 21.7%, transparent) 45%,
-      color-mix(in srgb, var(--brand-glow) 10.4%, transparent) 60%,
-      color-mix(in srgb, var(--brand-glow) 3.8%, transparent) 75%,
-      transparent 100%
-    ),
-    radial-gradient(
-      50% 45% at 66% 80%,
-      color-mix(in srgb, var(--brand) 6%, transparent) 0%,
-      color-mix(in srgb, var(--brand) 5.4%, transparent) 15%,
-      color-mix(in srgb, var(--brand) 4%, transparent) 30%,
-      color-mix(in srgb, var(--brand) 2.4%, transparent) 45%,
-      color-mix(in srgb, var(--brand) 1.1%, transparent) 60%,
-      color-mix(in srgb, var(--brand) 0.4%, transparent) 75%,
-      transparent 100%
-    );
+  background: none;
 }
 /* Dither. A faint glow stretched over the whole viewport on near-black only has a handful of
    8-bit steps to work with, so without grain it bands into visible blocks. */
@@ -2248,8 +2173,7 @@ body {
   padding: 14px 16px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-surface);
-  background: color-mix(in srgb, var(--surface) 62%, transparent);
-  backdrop-filter: blur(12px);
+  background: var(--surface);
   color: var(--ink-2);
 }
 .auth-error {
@@ -2306,8 +2230,7 @@ body {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(56% 48% at 94% 0%, color-mix(in srgb, var(--brand) 16%, transparent) 0%, transparent 70%),
-    radial-gradient(40% 44% at 22% 104%, color-mix(in srgb, var(--brand) 8%, transparent) 0%, transparent 70%);
+    none;
 }
 
 .setup-rail {
@@ -2319,7 +2242,6 @@ body {
   padding: 28px 18px 20px;
   border-right: 1px solid var(--hairline);
   background: color-mix(in srgb, var(--surface) 55%, transparent);
-  backdrop-filter: blur(14px);
 }
 .setup-rail-brand {
   display: flex;
@@ -2570,7 +2492,7 @@ body {
   padding: 10px 8px 10px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-surface);
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background: var(--surface);
 }
 .setup-folder-icon {
   flex-shrink: 0;
@@ -2670,7 +2592,7 @@ body {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-surface);
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background: var(--surface);
 }
 .setup-summary-line {
   display: flex;
@@ -2729,8 +2651,7 @@ body {
 .setup-footer {
   padding: 14px clamp(24px, 5vw, 72px);
   border-top: 1px solid var(--hairline);
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
-  backdrop-filter: blur(12px);
+  background: var(--surface);
 }
 .setup-footer-inner {
   display: flex;
@@ -2772,7 +2693,7 @@ body {
     gap: 8px;
     padding: 12px 16px 10px;
     border-bottom: 1px solid var(--hairline);
-    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    background: var(--surface);
   }
   .setup-mobile-step {
     font-size: var(--type-label);
@@ -4683,9 +4604,7 @@ body {
   user-select: none;
   color: #fff;
   background:
-    radial-gradient(90rem 60rem at 85% -10%, color-mix(in srgb, var(--brand) 34%, transparent), transparent 60%),
-    radial-gradient(70rem 50rem at -10% 110%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 55%),
-    #0b0d12;
+    var(--spine);
 }
 
 .rewind-progress {
@@ -4813,8 +4732,8 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(11, 13, 18, 0.55), rgba(11, 13, 18, 0.2) 70%, transparent),
-    linear-gradient(180deg, rgba(11, 13, 18, 0.55), rgba(11, 13, 18, 0.1) 35%, rgba(11, 13, 18, 0.1) 65%, rgba(11, 13, 18, 0.8));
+    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(20, 18, 16, 0.55), rgba(20, 18, 16, 0.2) 70%, transparent),
+    linear-gradient(180deg, rgba(20, 18, 16, 0.55), rgba(20, 18, 16, 0.1) 35%, rgba(20, 18, 16, 0.1) 65%, rgba(20, 18, 16, 0.8));
 }
 .rewind-slide,
 .rewind-progress,
@@ -5006,8 +4925,7 @@ body.reader-open {
   gap: 8px;
   padding: 10px 18px;
   border-radius: var(--radius-pill);
-  background: rgba(10, 10, 11, 0.86);
-  backdrop-filter: blur(8px);
+  background: rgba(20, 18, 16, 0.86);
   color: #fff;
   font-size: var(--type-meta);
   pointer-events: none;
@@ -5041,8 +4959,7 @@ body.reader-open {
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur-base) var(--ease);
-  background: rgba(10, 10, 11, 0.86);
-  backdrop-filter: blur(8px);
+  background: rgba(20, 18, 16, 0.86);
   color: #fff;
 }
 .reader-bar[data-visible='true'] {
@@ -5071,7 +4988,7 @@ body.reader-open {
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur-base) var(--ease);
-  background: rgba(10, 10, 11, 0.9);
+  background: rgba(20, 18, 16, 0.9);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 .reader-strip-wrap[data-visible='true'] {
@@ -5141,8 +5058,7 @@ body.reader-open {
   padding: 10px 20px;
   border-radius: var(--radius-hero);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 10, 11, 0.86);
-  backdrop-filter: blur(8px);
+  background: rgba(20, 18, 16, 0.86);
   text-align: center;
   pointer-events: none;
   animation: reader-chapter-banner 2400ms var(--ease) both;
@@ -5325,7 +5241,6 @@ body.reader-open {
   place-items: center;
   padding: 16px;
   background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: blur(3px);
 }
 .reader-shortcuts-panel {
   width: min(800px, 100%);
@@ -5415,7 +5330,7 @@ body.reader-open {
   font-size: var(--type-micro);
   font-variant-numeric: tabular-nums;
   color: rgba(255, 255, 255, 0.75);
-  background: rgba(10, 10, 11, 0.7);
+  background: rgba(20, 18, 16, 0.7);
   pointer-events: none;
 }
 

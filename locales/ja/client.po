@@ -2249,11 +2249,6 @@ msgstr "このタグの下に分類されたタグもすべて一致させる"
 msgid "Alt titles"
 msgstr "別名タイトル"
 
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Amber"
-msgstr "アンバー"
-
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Ambiguous names"
@@ -4289,6 +4284,7 @@ msgstr "画像の破損"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
+#: src/theme-context.tsx
 #, fuzzy
 msgid "Dark"
 msgstr "ダーク"
@@ -4991,11 +4987,6 @@ msgstr "メール"
 #, fuzzy
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "埋め込み、埋め込みモデル、意味検索、ベクトル、Discover検索"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Emerald"
-msgstr "エメラルド"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -6581,11 +6572,6 @@ msgstr "インデクサー、torrent検索、APIキー、リリース、イン�
 #, fuzzy
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "インデックス作成中… {scanned}{totalPart}{freshPart}{etaPart}"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Indigo"
-msgstr "インディゴ"
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -10974,11 +10960,6 @@ msgstr "ルートフォルダー"
 #, fuzzy
 msgid "Root Folders"
 msgstr "ルートフォルダー"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Rose"
-msgstr "ローズ"
 
 #: src/components/SourceCompareModal.tsx
 #, fuzzy

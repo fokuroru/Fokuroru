@@ -2249,11 +2249,6 @@ msgstr "Также учитывать все теги, вложенные в э�
 msgid "Alt titles"
 msgstr "Альтернативные названия"
 
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Amber"
-msgstr "Янтарный"
-
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Ambiguous names"
@@ -4289,6 +4284,7 @@ msgstr "Повреждённое изображение"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
+#: src/theme-context.tsx
 #, fuzzy
 msgid "Dark"
 msgstr "Тёмная"
@@ -4991,11 +4987,6 @@ msgstr "Электронная почта"
 #, fuzzy
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "эмбеддинги, модель эмбеддингов, семантический поиск, векторы, поиск Discover"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Emerald"
-msgstr "Изумрудный"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -6581,11 +6572,6 @@ msgstr "индексатор, поиск торрентов, ключ API, ре�
 #, fuzzy
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "Индексация… {scanned}{totalPart}{freshPart}{etaPart}"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Indigo"
-msgstr "Индиго"
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -10974,11 +10960,6 @@ msgstr "Корневая папка"
 #, fuzzy
 msgid "Root Folders"
 msgstr "Корневые папки"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Rose"
-msgstr "Розовый"
 
 #: src/components/SourceCompareModal.tsx
 #, fuzzy

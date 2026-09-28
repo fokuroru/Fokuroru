@@ -2249,11 +2249,6 @@ msgstr "이 태그에 속한 태그도 모두 일치시킵니다"
 msgid "Alt titles"
 msgstr "대체 제목"
 
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Amber"
-msgstr "앰버"
-
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Ambiguous names"
@@ -4289,6 +4284,7 @@ msgstr "손상된 이미지"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
+#: src/theme-context.tsx
 #, fuzzy
 msgid "Dark"
 msgstr "어두운"
@@ -4991,11 +4987,6 @@ msgstr "이메일"
 #, fuzzy
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "임베딩, 임베딩 모델, 의미 검색, 벡터, Discover 검색"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Emerald"
-msgstr "에메랄드"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -6581,11 +6572,6 @@ msgstr "인덱서, 토렌트 검색, API 키, 릴리스, 인덱서, Torznab, 카
 #, fuzzy
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "인덱싱 중… {scanned}{totalPart}{freshPart}{etaPart}"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Indigo"
-msgstr "인디고"
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -10974,11 +10960,6 @@ msgstr "루트 폴더"
 #, fuzzy
 msgid "Root Folders"
 msgstr "루트 폴더"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Rose"
-msgstr "장미"
 
 #: src/components/SourceCompareModal.tsx
 #, fuzzy

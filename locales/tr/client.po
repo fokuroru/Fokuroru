@@ -2249,11 +2249,6 @@ msgstr "Bu etiketin altındaki tüm etiketleri de eşleştir"
 msgid "Alt titles"
 msgstr "Alternatif başlıklar"
 
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Amber"
-msgstr "Kehribar"
-
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Ambiguous names"
@@ -4289,6 +4284,7 @@ msgstr "Hasarlı görsel"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
+#: src/theme-context.tsx
 #, fuzzy
 msgid "Dark"
 msgstr "Koyu"
@@ -4991,11 +4987,6 @@ msgstr "E-posta"
 #, fuzzy
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "gömmeler, gömme modeli, anlamsal arama, vektörler, keşfet araması"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Emerald"
-msgstr "Zümrüt"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -6581,11 +6572,6 @@ msgstr "dizinleyici, torrent araması, api anahtarı, sürümler, dizinleyiciler
 #, fuzzy
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "Dizin oluşturuluyor… {scanned}{totalPart}{freshPart}{etaPart}"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Indigo"
-msgstr "Çivit"
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -10974,11 +10960,6 @@ msgstr "Kök klasör"
 #, fuzzy
 msgid "Root Folders"
 msgstr "Kök Klasörler"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Rose"
-msgstr "Gül"
 
 #: src/components/SourceCompareModal.tsx
 #, fuzzy

@@ -5,9 +5,9 @@ import type { MessageDescriptor } from '@lingui/core'
 import { accents, createAppTheme } from './theme'
 
 /**
- * User-selectable themes. Each preset pairs an accent palette (drives Mantine's `brand`
- * colour and the CSS `--brand*` variables via `[data-accent]` in theme.css) with a colour
- * scheme. The choice persists in localStorage and is applied before first paint.
+ * User-selectable themes: dark, light or the OS setting. The accent is no longer a choice (each
+ * series brings its own spine colour), so ids from the retired accent presets (indigo, rose,
+ * emerald, amber) fall through `presetFor` to dark. The choice persists in localStorage and is applied before first paint.
  *
  * `label` is a descriptor, not a string: this table is built once when the module loads, so a
  * rendered string here would be stuck in whichever language was active at that moment. Render
@@ -25,22 +25,19 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: 'indigo', label: msg`Indigo`, accent: 'indigo', scheme: 'dark', swatch: '#6d7dff' },
-  { id: 'rose', label: msg`Rose`, accent: 'rose', scheme: 'dark', swatch: '#f52069' },
-  { id: 'emerald', label: msg`Emerald`, accent: 'emerald', scheme: 'dark', swatch: '#1bc97a' },
-  { id: 'amber', label: msg`Amber`, accent: 'amber', scheme: 'dark', swatch: '#f0ad14' },
-  { id: 'light', label: msg`Light`, accent: 'indigo', scheme: 'light', swatch: '#f4f5fa' },
+  { id: 'dark', label: msg`Dark`, accent: 'spine', scheme: 'dark', swatch: '#1d1b19' },
+  { id: 'light', label: msg`Light`, accent: 'spine', scheme: 'light', swatch: '#f2ede3' },
   {
     id: 'system',
     label: msg`Match system`,
-    accent: 'indigo',
+    accent: 'spine',
     scheme: 'system',
-    swatch: 'linear-gradient(135deg, #f4f5fa 50%, #0b0d13 50%)',
+    swatch: 'linear-gradient(135deg, #f2ede3 50%, #1d1b19 50%)',
   },
 ]
 
 const STORAGE_KEY = 'maki-theme'
-const DEFAULT_ID = 'indigo'
+const DEFAULT_ID = 'dark'
 
 function presetFor(id: string): ThemePreset {
   return THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0]

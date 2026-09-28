@@ -1821,10 +1821,6 @@ msgstr "Also match every tag filed under this one"
 msgid "Alt titles"
 msgstr "Alt titles"
 
-#: src/theme-context.tsx
-msgid "Amber"
-msgstr "Amber"
-
 #: src/pages/HealthPage.tsx
 msgid "Ambiguous names"
 msgstr "Ambiguous names"
@@ -3480,6 +3476,7 @@ msgstr "Damaged image"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
+#: src/theme-context.tsx
 msgid "Dark"
 msgstr "Dark"
 
@@ -4053,10 +4050,6 @@ msgstr "Email"
 #: src/pages/settings/registry.ts
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "embeddings, embedding model, semantic search, vectors, discover search"
-
-#: src/theme-context.tsx
-msgid "Emerald"
-msgstr "Emerald"
 
 #: src/pages/HealthPage.tsx
 msgid "Empty"
@@ -5341,10 +5334,6 @@ msgstr "indexer, torrent search, api key, releases, indexers, torznab, categorie
 #: src/components/RecommendationModelSwitch.tsx
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
-
-#: src/theme-context.tsx
-msgid "Indigo"
-msgstr "Indigo"
 
 #: src/components/SourceMappingsSection.tsx
 msgid "Indonesian"
@@ -8903,10 +8892,6 @@ msgstr "Root folder"
 #: src/pages/SettingsPage.tsx
 msgid "Root Folders"
 msgstr "Root Folders"
-
-#: src/theme-context.tsx
-msgid "Rose"
-msgstr "Rose"
 
 #: src/components/SourceCompareModal.tsx
 msgid "Row {zoomRowNumber} of {zoomTotalPages}"

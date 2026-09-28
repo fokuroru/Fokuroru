@@ -2249,11 +2249,6 @@ msgstr "同时匹配归在此项下的所有标签"
 msgid "Alt titles"
 msgstr "别名标题"
 
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Amber"
-msgstr "琥珀色"
-
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Ambiguous names"
@@ -4289,6 +4284,7 @@ msgstr "图像已损坏"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
+#: src/theme-context.tsx
 #, fuzzy
 msgid "Dark"
 msgstr "深色"
@@ -4991,11 +4987,6 @@ msgstr "电子邮件"
 #, fuzzy
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "嵌入，嵌入模型，语义搜索，向量，Discover 搜索"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Emerald"
-msgstr "翡翠色"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -6581,11 +6572,6 @@ msgstr "索引器，种子搜索，API 密钥，发布内容，索引器，Torzn
 #, fuzzy
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "建立索引中…… {scanned}{totalPart}{freshPart}{etaPart}"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Indigo"
-msgstr "靛蓝色"
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -10974,11 +10960,6 @@ msgstr "根文件夹"
 #, fuzzy
 msgid "Root Folders"
 msgstr "根文件夹"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Rose"
-msgstr "玫瑰色"
 
 #: src/components/SourceCompareModal.tsx
 #, fuzzy

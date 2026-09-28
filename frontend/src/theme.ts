@@ -14,136 +14,93 @@ import type { ReactNode } from 'react'
 const ModalPassthrough = ({ children }: { children?: ReactNode }) => children
 
 /**
- * Maki design system.
+ * Maki Spine.
  *
- * Content-first, cinematic dark UI for a self-hosted collection manager. The
- * dark scale is overridden to a cohesive near-black elevation ramp so every
- * Mantine surface picks up the look for free; `brand` (indigo/periwinkle) is
- * the single accent. Semantic status hues live in ./status.ts.
+ * The library is a shelf: every series carries a spine colour sampled from its cover, and the
+ * chrome stays warm charcoal and bone so covers and spines carry the colour. `brand` is the
+ * fallback spine for screens that belong to no series; a series page overrides the CSS
+ * `--spine` variables with its own. Corners are square throughout. Semantic status hues live
+ * in ./status.ts.
  */
 
-const brand: MantineColorsTuple = [
-  '#eef1ff',
-  '#dde2ff',
-  '#b8c1ff',
-  '#8f9cff',
-  '#6d7dff',
-  '#5566f5',
-  '#4553e6',
-  '#3742c4',
-  '#2d38a0',
-  '#232c80',
+const spine: MantineColorsTuple = [
+  '#fbeceb',
+  '#f4d3d0',
+  '#e9a8a2',
+  '#e8867c',
+  '#d4584d',
+  '#b83d33',
+  '#a3322b',
+  '#8a2a24',
+  '#71221d',
+  '#581b17',
 ]
 
-const rose: MantineColorsTuple = [
-  '#ffe9f0',
-  '#ffd0de',
-  '#ff9fbd',
-  '#ff6a99',
-  '#ff3d7c',
-  '#f52069',
-  '#e11060',
-  '#be0a52',
-  '#970c45',
-  '#7a0f3b',
-]
+/** One palette now: the per-series spine replaced the accent picker. Kept as a map so stored ids resolve. */
+export const accents: Record<string, MantineColorsTuple> = { spine }
 
-const emerald: MantineColorsTuple = [
-  '#e6fcf1',
-  '#c9f7e0',
-  '#96efc4',
-  '#5fe6a6',
-  '#33dd8d',
-  '#1bc97a',
-  '#0fb46c',
-  '#08935a',
-  '#0a7449',
-  '#0a5d3c',
-]
-
-const amber: MantineColorsTuple = [
-  '#fff8e1',
-  '#ffecb3',
-  '#ffdf85',
-  '#ffd257',
-  '#ffc531',
-  '#f0ad14',
-  '#d1930a',
-  '#a5730a',
-  '#7f590c',
-  '#674709',
-]
-
-/** Selectable accent palettes; the CSS-variable side lives in theme.css under [data-accent]. */
-export const accents: Record<string, MantineColorsTuple> = { indigo: brand, rose, emerald, amber }
-
-// Near-black elevation ramp. 7 = app body, 6 = cards, 5 = elevated (modals),
-// 4 = borders, 2 = dimmed text, 0 = primary text.
+// Warm charcoal ramp. 7 = app ground, 6 = shelf, 5 = raised, 4 = rules, 2 = dimmed, 0 = text.
 const dark: MantineColorsTuple = [
-  '#c7cad4',
-  '#a9adba',
-  '#8b90a0',
-  '#5d6373',
-  '#2b303b',
-  '#1f232d',
-  '#161922',
-  '#0f121a',
-  '#0a0c12',
-  '#06070b',
+  '#ece5d8',
+  '#cfc7b8',
+  '#a39c8e',
+  '#7d766a',
+  '#4a453e',
+  '#332f2b',
+  '#2a2724',
+  '#1d1b19',
+  '#171513',
+  '#100f0e',
 ]
 
-/** Builds the Mantine theme for a given accent palette (defaults to indigo). */
-export function createAppTheme(accent: MantineColorsTuple = brand) {
-  // Rose's shade 5 only reaches 4:1 under white text; one shade down clears 4.5:1.
-  const primaryShade = accent === rose ? ({ light: 6, dark: 6 } as const) : themeBase.primaryShade
-  return createTheme({ ...themeBase, primaryShade, colors: { brand: accent, dark } })
+export function createAppTheme(accent: MantineColorsTuple = spine) {
+  return createTheme({ ...themeBase, colors: { brand: accent, dark } })
 }
 
 const themeBase: MantineThemeOverride = {
   primaryColor: 'brand',
-  primaryShade: { light: 6, dark: 5 },
-  // Emerald and amber fills are too light for white labels; this flips them to black.
+  primaryShade: { light: 6, dark: 6 },
   autoContrast: true,
-  colors: { brand, dark },
-  defaultRadius: 'md',
+  colors: { brand: spine, dark },
+  defaultRadius: 0,
   fontFamily:
-    '"Inter Variable", InterVariable, Inter, ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  fontFamilyMonospace:
-    'ui-monospace, "JetBrains Mono", "SFMono-Regular", "Cascadia Code", Menlo, monospace',
+    '"Zen Kaku Gothic New", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", system-ui, sans-serif',
+  fontFamilyMonospace: '"Martian Mono Variable", "Martian Mono", ui-monospace, "SF Mono", Menlo, monospace',
   headings: {
     fontWeight: '700',
     sizes: {
-      h1: { fontSize: '1.9rem', lineHeight: '1.2', fontWeight: '800' },
-      h2: { fontSize: '1.5rem', lineHeight: '1.25', fontWeight: '800' },
+      h1: { fontSize: '2.5rem', lineHeight: '1.05', fontWeight: '900' },
+      h2: { fontSize: '1.5rem', lineHeight: '1.2', fontWeight: '700' },
       h3: { fontSize: '1.2rem', lineHeight: '1.3' },
       h4: { fontSize: '1rem', lineHeight: '1.4' },
     },
   },
+  // Square system: every step is 0 so a stray radius="lg" at a call site stays square too.
   radius: {
-    xs: '4px',
-    sm: '6px',
-    md: '9px',
-    lg: '13px',
-    xl: '20px',
+    xs: '0px',
+    sm: '0px',
+    md: '0px',
+    lg: '0px',
+    xl: '0px',
   },
   shadows: {
-    sm: '0 1px 2px rgba(0,0,0,.4)',
-    md: '0 4px 16px -4px rgba(0,0,0,.5)',
-    lg: '0 12px 40px -8px rgba(0,0,0,.6)',
+    sm: 'none',
+    md: 'none',
+    lg: 'none',
   },
   cursorType: 'pointer',
   components: {
     Card: Card.extend({
-      defaultProps: { radius: 'lg', withBorder: true },
+      defaultProps: { radius: 0, withBorder: false },
     }),
     Paper: Paper.extend({
-      defaultProps: { radius: 'lg' },
+      defaultProps: { radius: 0 },
     }),
     Button: Button.extend({
-      defaultProps: { radius: 'md' },
+      defaultProps: { radius: 0 },
     }),
     Badge: Badge.extend({
-      defaultProps: { radius: 'sm', fw: 600 },
+      defaultProps: { radius: 0, fw: 500 },
     }),
     /**
      * The utility tier: every ordinary dialog gets the raised card, the sectioned header over a
@@ -157,11 +114,11 @@ const themeBase: MantineThemeOverride = {
      */
     Modal: Modal.extend({
       defaultProps: {
-        radius: 'lg',
+        radius: 0,
         padding: 'lg',
         centered: true,
         scrollAreaComponent: ModalPassthrough,
-        overlayProps: { blur: 3, backgroundOpacity: 0.55 },
+        overlayProps: { blur: 0, backgroundOpacity: 0.72, color: '#141210' },
         classNames: {
           content: 'utility-modal-content',
           header: 'utility-modal-header',
@@ -177,5 +134,5 @@ const themeBase: MantineThemeOverride = {
   },
 }
 
-/** Default (indigo) theme, kept as a named export for any non-dynamic consumers. */
+/** Default theme, kept as a named export for any non-dynamic consumers. */
 export const theme = createAppTheme()

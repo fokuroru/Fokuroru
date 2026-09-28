@@ -234,7 +234,7 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
                             <Badge
                               size="sm"
                               variant="light"
-                              color={f.isVolume ? 'indigo' : 'gray'}
+                              color={f.isVolume ? 'var(--info)' : 'gray'}
                               className="tnum"
                             >
                               {f.parsedLabel}

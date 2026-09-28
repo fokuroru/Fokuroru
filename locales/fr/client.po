@@ -2249,11 +2249,6 @@ msgstr "Inclure aussi tous les tags associés à celui-ci"
 msgid "Alt titles"
 msgstr "Titres alternatifs"
 
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Amber"
-msgstr "Amber"
-
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Ambiguous names"
@@ -4289,6 +4284,7 @@ msgstr "Image endommagée"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
+#: src/theme-context.tsx
 #, fuzzy
 msgid "Dark"
 msgstr "Sombre"
@@ -4991,11 +4987,6 @@ msgstr "E-mail"
 #, fuzzy
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "embeddings, modèle d'embeddings, recherche sémantique, vecteurs, recherche Discover"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Emerald"
-msgstr "Emerald"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -6581,11 +6572,6 @@ msgstr "indexeur, recherche de torrents, clé API, versions, indexeurs, torznab,
 #, fuzzy
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "Indexation… {scanned}{totalPart}{freshPart}{etaPart}"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Indigo"
-msgstr "Indigo"
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -10974,11 +10960,6 @@ msgstr "Dossier racine"
 #, fuzzy
 msgid "Root Folders"
 msgstr "Dossiers racines"
-
-#: src/theme-context.tsx
-#, fuzzy
-msgid "Rose"
-msgstr "Rose"
 
 #: src/components/SourceCompareModal.tsx
 #, fuzzy
