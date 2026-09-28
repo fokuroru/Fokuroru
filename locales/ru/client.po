@@ -10751,6 +10751,7 @@ msgstr "Повторное сканирование: новых: {newFiles}, п�
 
 #: src/components/CatalogueFilters.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Reset"
 msgstr "Сбросить"
@@ -11186,11 +11187,6 @@ msgstr "Неспешное чтение"
 #, fuzzy
 msgid "Scale"
 msgstr "Масштаб"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-msgid "Scale ({scale}%)"
-msgstr "Масштаб ({scale}%)"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -12024,6 +12020,10 @@ msgstr "Показывается тому, кто отправил запрос"
 #, fuzzy
 msgid "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 msgstr "Показывает ваше имя, уровень, прочитанные главы и серию дней всем, кто тоже согласился. Никаких сведений о прочитанных вами сериях."
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14818,6 +14818,10 @@ msgstr "Только вы - это меняет содержимое вашег�
 #, fuzzy
 msgid "Z:\\downloads (optional)"
 msgstr "Z:/downloads (необязательно)"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Zoom ({scale}%)"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy

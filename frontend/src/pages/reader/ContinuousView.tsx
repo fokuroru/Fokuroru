@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import type { ReaderFit } from './prefs'
+import { pageSizeStyle, type ReaderFit } from './prefs'
 
 const FIT_CLASS: Record<ReaderFit, string> = {
   width: 'reader-fit-width',
@@ -47,7 +47,7 @@ export default function ContinuousView({
    *  on the last chapter, an inert "no more chapters" one that never advances anywhere. */
   hasNext: boolean
   fit: ReaderFit
-  /** Percent scale on top of the '1:1' fit; ignored for the other fits. */
+  /** Zoom in percent on top of the fit, see pageSizeStyle. */
   scale: number
   gap: number
   label: string
@@ -233,7 +233,7 @@ export default function ContinuousView({
         ref={container}
         // Only a deliberate zoom past 100% is allowed to make a page wider than the strip; see
         // the width clamp in theme.css.
-        data-zoomed={fit === 'original' && scale > 100}
+        data-zoomed={scale > 100}
         style={{ gap: `${gap}px` }}
       >
         {urls.map((src, index) => {
@@ -248,7 +248,7 @@ export default function ContinuousView({
               src={src}
               alt={t`${label} - page ${pageNumber}`}
               className={`reader-page ${FIT_CLASS[fit]}`}
-              style={fit === 'original' && scale !== 100 ? { zoom: scale / 100 } : undefined}
+              style={pageSizeStyle(fit === 'screen' ? 'width' : fit, scale)}
               // A window around the current page rather than the whole prefix: resuming at page 300
               // of a webtoon strip would otherwise fetch and decode 300 pages at once. Only the
               // pages close enough to shift the target's offset need forcing.

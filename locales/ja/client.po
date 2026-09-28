@@ -10751,6 +10751,7 @@ msgstr "再スキャン完了：新規{newFiles}件、再リンク{relinked}件�
 
 #: src/components/CatalogueFilters.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Reset"
 msgstr "リセット"
@@ -11186,11 +11187,6 @@ msgstr "じっくり読んだ"
 #, fuzzy
 msgid "Scale"
 msgstr "倍率"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-msgid "Scale ({scale}%)"
-msgstr "倍率（{scale}%）"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -12024,6 +12020,10 @@ msgstr "依頼者に表示"
 #, fuzzy
 msgid "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 msgstr "名前、レベル、読んだ章、連続記録を、参加を選んだ全員に表示します。読んだシリーズの情報は一切表示しません。"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14818,6 +14818,10 @@ msgstr "自分だけの設定です。ベルに届く内容が変わりますが
 #, fuzzy
 msgid "Z:\\downloads (optional)"
 msgstr "Z:\\downloads（任意）"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Zoom ({scale}%)"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy

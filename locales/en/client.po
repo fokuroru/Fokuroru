@@ -8732,6 +8732,7 @@ msgstr "Rescanned: {newFiles} new, {relinked} relinked, {removed} removed"
 
 #: src/components/CatalogueFilters.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 msgid "Reset"
 msgstr "Reset"
 
@@ -9087,10 +9088,6 @@ msgstr "Savoured"
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "Scale"
 msgstr "Scale"
-
-#: src/pages/reader/ReaderToolbar.tsx
-msgid "Scale ({scale}%)"
-msgstr "Scale ({scale}%)"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -9765,6 +9762,10 @@ msgstr "Shown to whoever asked"
 #: src/components/settings/ProgressSection.tsx
 msgid "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 msgstr "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
+msgstr "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
 
 #: src/api/hooks.ts
 msgid "Side interests"
@@ -12026,6 +12027,10 @@ msgstr "Yours alone - this changes what lands in your bell, not anybody else's."
 #: src/pages/SettingsPage.tsx
 msgid "Z:\\downloads (optional)"
 msgstr "Z:\\downloads (optional)"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Zoom ({scale}%)"
+msgstr "Zoom ({scale}%)"
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Zoom in and out"

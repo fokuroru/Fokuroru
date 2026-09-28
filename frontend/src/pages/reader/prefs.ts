@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { api } from '../../api/client'
 import type { PrefsSource, ReaderManifest, ResolvedReaderPrefs } from '../../api/reader'
 import { useReadingProfiles, type ReadingProfile } from '../../api/readingProfiles'
@@ -25,7 +25,10 @@ export interface ReaderPrefs {
   /** Flash the chapter name over the page on entering it. */
   chapterBanner: boolean
   background: string
-  /** Percent scale on top of the '1:1' fit; meaningless for the other fits, which already size to the viewport. */
+  /**
+   * Zoom in percent on top of the fit. 1:1 scales the image's own size; the other fits scale the
+   * box they fit to, so fit-width at 60% makes a webtoon strip 60% of the screen wide.
+   */
   scale: number
   navigation: ReaderNavigation
   /** Animate vertical navigation's screen-sized steps instead of jumping. */
@@ -35,6 +38,35 @@ export interface ReaderPrefs {
 /** Whether "next" scrolls down rather than turning a page sideways. */
 export function navigatesVertically(prefs: Pick<ReaderPrefs, 'navigation' | 'mode'>): boolean {
   return prefs.navigation === 'vertical' || (prefs.navigation === 'auto' && prefs.mode === 'vertical')
+}
+
+/**
+ * How big one page is drawn: the fit's box scaled by the zoom. `double` halves the width box so a
+ * spread's two pages share it. Past 100% a page may outgrow the viewport, which is what lets the
+ * reader pan around a zoomed page.
+ */
+export function pageSizeStyle(
+  fit: ReaderFit,
+  scale: number,
+  double = false,
+): CSSProperties | undefined {
+  if (scale === 100) return undefined
+  if (fit === 'original') return { zoom: scale / 100 }
+  const across = double ? scale / 2 : scale
+  const grow = scale > 100 ? { maxWidth: 'none' } : { maxWidth: `${across}%` }
+  switch (fit) {
+    case 'width':
+      return { ...grow, width: `${across}%` }
+    case 'height':
+      return { ...grow, maxHeight: `${scale}dvh` }
+    case 'screen':
+      return { ...grow, maxHeight: `${scale}dvh`, maxWidth: `${across}%` }
+  }
+}
+
+/** 1:1 can go to 400%; the fits already fill the screen, so doubling them is plenty. */
+export function scaleMax(fit: ReaderFit): number {
+  return fit === 'original' ? 400 : 200
 }
 
 /** The two page backgrounds. OLED is true black so the panel edge disappears on an OLED panel. */

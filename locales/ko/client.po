@@ -10751,6 +10751,7 @@ msgstr "다시 스캔 완료: 새 파일 {newFiles}개, 다시 연결됨 {relink
 
 #: src/components/CatalogueFilters.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Reset"
 msgstr "초기화"
@@ -11186,11 +11187,6 @@ msgstr "음미하며 읽음"
 #, fuzzy
 msgid "Scale"
 msgstr "크기 조정"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-msgid "Scale ({scale}%)"
-msgstr "크기 조정 ({scale}%)"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -12024,6 +12020,10 @@ msgstr "요청한 사람에게 표시됨"
 #, fuzzy
 msgid "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 msgstr "참여를 선택한 모든 사용자에게 내 이름, 레벨, 읽은 챕터 및 연속 기록을 표시합니다. 내가 읽은 시리즈에 관한 내용은 전혀 표시하지 않습니다."
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14818,6 +14818,10 @@ msgstr "나만 볼 수 있음 - 내 알림 벨에 표시되는 내용만 변경�
 #, fuzzy
 msgid "Z:\\downloads (optional)"
 msgstr "Z:\\downloads (선택 사항)"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Zoom ({scale}%)"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy

@@ -1,5 +1,5 @@
 import { useLingui } from '@lingui/react/macro'
-import type { ReaderDirection, ReaderFit } from './prefs'
+import { pageSizeStyle, type ReaderDirection, type ReaderFit } from './prefs'
 import type { Spread } from './useSpreads'
 
 const FIT_CLASS: Record<ReaderFit, string> = {
@@ -28,7 +28,7 @@ export default function PagedView({
   fit: ReaderFit
   direction: ReaderDirection
   zoom: number
-  /** Percent scale on top of the '1:1' fit; ignored for the other fits. */
+  /** Zoom in percent on top of the fit, see pageSizeStyle. */
   scale: number
   label: string
   onMeasure: (index: number, image: HTMLImageElement) => void
@@ -53,7 +53,7 @@ export default function PagedView({
             src={src}
             alt={t`${label} - page ${pageNumber}`}
             className={`reader-page ${FIT_CLASS[fit]}`}
-            style={fit === 'original' && scale !== 100 ? { zoom: scale / 100 } : undefined}
+            style={pageSizeStyle(fit, scale, spread.length > 1)}
             decoding="async"
             draggable={false}
             onLoad={(event) => onMeasure(page, event.currentTarget)}

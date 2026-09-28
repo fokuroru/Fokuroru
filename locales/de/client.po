@@ -10751,6 +10751,7 @@ msgstr "Erneut gescannt: {newFiles} neu, {relinked} erneut verknüpft, {removed}
 
 #: src/components/CatalogueFilters.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Reset"
 msgstr "Zurücksetzen"
@@ -11186,11 +11187,6 @@ msgstr "Genussvoll gelesen"
 #, fuzzy
 msgid "Scale"
 msgstr "Skalierung"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-msgid "Scale ({scale}%)"
-msgstr "Skalierung ({scale}%)"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -12024,6 +12020,10 @@ msgstr "Dem Anfragenden angezeigt"
 #, fuzzy
 msgid "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 msgstr "Zeigt deinen Namen, dein Level, gelesene Kapitel und deine Streak allen, die ebenfalls zugestimmt haben. Nie, welche Serien du liest."
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14818,6 +14818,10 @@ msgstr "Nur für dich - das ändert, welche Benachrichtigungen du erhältst, nic
 #, fuzzy
 msgid "Z:\\downloads (optional)"
 msgstr "Z:\\downloads (optional)"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Zoom ({scale}%)"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy

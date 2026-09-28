@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Button,
   Group,
   Popover,
   Progress,
@@ -29,7 +30,7 @@ import { Link } from 'react-router-dom'
 import { Trans, Plural, useLingui } from '@lingui/react/macro'
 import type { PrefsSource, ReaderManifest } from '../../api/reader'
 import type { ReadingProfile } from '../../api/readingProfiles'
-import { BACKGROUNDS, type PrefsSelection, type ReaderPrefs } from './prefs'
+import { BACKGROUNDS, scaleMax, type PrefsSelection, type ReaderPrefs } from './prefs'
 
 /**
  * The reader renders above Mantine's popover layer, so anything that portals to <body> has to
@@ -369,7 +370,8 @@ export default function ReaderToolbar({
                     fullWidth
                     size="xs"
                     value={prefs.fit}
-                    onChange={(value) => onPrefs({ fit: value as ReaderPrefs['fit'] })}
+                    // A zoom tuned for one fit means something else under another, so switching starts again at 100%.
+                    onChange={(value) => onPrefs({ fit: value as ReaderPrefs['fit'], scale: 100 })}
                     data={[
                       { label: t`Width`, value: 'width' },
                       { label: t`Height`, value: 'height' },
@@ -394,21 +396,31 @@ export default function ReaderToolbar({
                     ]}
                   />
                 </div>
-                {prefs.fit === 'original' && (
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Scale ({scale}%)</Trans>
+                <div>
+                  <Group justify="space-between" mb={4} wrap="nowrap">
+                    <Text fz="xs" c="var(--ink-3)">
+                      <Trans>Zoom ({scale}%)</Trans>
                     </Text>
-                    <Slider
-                      size="xs"
-                      min={25}
-                      max={400}
-                      step={5}
-                      value={prefs.scale}
-                      onChange={(value) => onPrefs({ scale: value })}
-                    />
-                  </div>
-                )}
+                    {scale !== 100 && (
+                      <Button size="compact-xs" variant="subtle" onClick={() => onPrefs({ scale: 100 })}>
+                        <Trans>Reset</Trans>
+                      </Button>
+                    )}
+                  </Group>
+                  <Slider
+                    size="xs"
+                    min={25}
+                    max={scaleMax(prefs.fit)}
+                    step={5}
+                    value={prefs.scale}
+                    onChange={(value) => onPrefs({ scale: value })}
+                    marks={[{ value: 100 }]}
+                    label={(value) => `${value}%`}
+                  />
+                  <Text fz="xs" c="var(--ink-4)" mt={6}>
+                    <Trans>Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably.</Trans>
+                  </Text>
+                </div>
                 <div>
                   <Text fz="xs" c="var(--ink-3)" mb={4}>
                     <Trans>Background</Trans>

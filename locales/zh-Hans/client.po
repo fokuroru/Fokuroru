@@ -10751,6 +10751,7 @@ msgstr "重新扫描完成：新增 {newFiles} 个，重新关联 {relinked} 个
 
 #: src/components/CatalogueFilters.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Reset"
 msgstr "重置"
@@ -11186,11 +11187,6 @@ msgstr "慢慢品读"
 #, fuzzy
 msgid "Scale"
 msgstr "缩放"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-msgid "Scale ({scale}%)"
-msgstr "缩放（{scale}%）"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -12024,6 +12020,10 @@ msgstr "显示给提出请求的人"
 #, fuzzy
 msgid "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 msgstr "向同样选择加入的所有人显示你的名称、等级、已读章节和连续记录。绝不会显示你阅读了哪些系列。"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -14818,6 +14818,10 @@ msgstr "仅你可见 - 这会改变出现在你铃铛中的内容，不会影响
 #, fuzzy
 msgid "Z:\\downloads (optional)"
 msgstr "Z:\\downloads（可选）"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Zoom ({scale}%)"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy

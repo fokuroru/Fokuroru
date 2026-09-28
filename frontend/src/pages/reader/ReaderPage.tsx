@@ -21,7 +21,7 @@ import ContinuousView from './ContinuousView'
 import PagedView from './PagedView'
 import PageStrip from './PageStrip'
 import ReaderToolbar from './ReaderToolbar'
-import { navigatesVertically, useReaderPrefs } from './prefs'
+import { navigatesVertically, scaleMax, useReaderPrefs } from './prefs'
 import { usePageUrls, usePreload } from './usePageUrls'
 import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
@@ -417,15 +417,20 @@ export default function ReaderPage() {
         case '3':
           update({ mode: 'vertical' })
           break
+        // Paged views magnify for the moment; a continuous strip has no such lens, so there the
+        // keys move the saved zoom instead, the same one the settings slider sets.
         case '+':
         case '=':
-          setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))
+          if (prefs.mode === 'vertical') update({ scale: Math.min(scaleMax(prefs.fit), prefs.scale + 10) })
+          else setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))
           break
         case '-':
-          setZoom((z) => Math.max(1, z - ZOOM_STEP))
+          if (prefs.mode === 'vertical') update({ scale: Math.max(25, prefs.scale - 10) })
+          else setZoom((z) => Math.max(1, z - ZOOM_STEP))
           break
         case '0':
-          setZoom(1)
+          if (prefs.mode === 'vertical') update({ scale: 100 })
+          else setZoom(1)
           break
         case '?':
           setShortcutsOpen(true)
@@ -563,7 +568,7 @@ export default function ReaderPage() {
           // Continuous mode scrolls one way only, unless the reader has been zoomed past 100%,
           // which is the one case where panning across a page is what was asked for.
           data-scroll={
-            prefs.mode === 'vertical' && !(prefs.fit === 'original' && prefs.scale > 100)
+            prefs.mode === 'vertical' && !(prefs.scale > 100)
               ? 'vertical'
               : undefined
           }
