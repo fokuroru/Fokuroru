@@ -35,7 +35,7 @@ import { AuthProvider, useAuth } from './auth/AuthProvider'
 import { LoginPage } from './pages/LoginPage'
 import { SetupAccountPage } from './pages/SetupAccountPage'
 import CommandPalette from './components/CommandPalette'
-import { IconBrandMark } from './components/IconBrandMark'
+import { BrandWordmark, IconBrandMark } from './components/IconBrandMark'
 import { NotificationBell } from './components/NotificationBell'
 import MetadataDumpProgress from './components/MetadataDumpProgress'
 import SetupWizard from './components/SetupWizard'
@@ -392,14 +392,7 @@ function AppShellRoutes() {
           <span className="brand-mark">
             <IconBrandMark />
           </span>
-          <div>
-            <Text fz="lg" lh={1} className="brand-wordmark">
-              Fōkurōru
-            </Text>
-            <Text fz={10} c="var(--ink-3)" fw={600}>
-              <Trans>Manga manager</Trans>
-            </Text>
-          </div>
+          <BrandWordmark height={22} className="brand-wordmark" />
         </Group>
         <AppShell.Section grow component={ScrollArea} type="never">
           <NavLinks

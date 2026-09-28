@@ -6083,10 +6083,6 @@ msgstr "manga"
 msgid "Manga"
 msgstr "Manga"
 
-#: src/App.tsx
-msgid "Manga manager"
-msgstr "Manga manager"
-
 #: src/components/discover/DiscoverDetailModal.tsx
 msgid "MangaBaka aggregate score"
 msgstr "MangaBaka aggregate score"

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Paper, Text, Title } from '@mantine/core'
 import { useLingui } from '@lingui/react/macro'
-import { IconBrandMark } from '../IconBrandMark'
+import { BrandWordmark, IconBrandMark } from '../IconBrandMark'
 
 /**
  * The band behind sign-in and first-run setup, so the first screen anyone sees belongs to the same
@@ -33,7 +33,9 @@ export function AuthFrame({
           <span className="brand-mark auth-brand-mark">
             <IconBrandMark />
           </span>
-          <h1 className="auth-wordmark">Fōkurōru</h1>
+          <h1 className="auth-wordmark">
+            <BrandWordmark height={64} />
+          </h1>
           <Text className="auth-tagline">{t`Self-hosted manga library and downloader.`}</Text>
         </div>
 

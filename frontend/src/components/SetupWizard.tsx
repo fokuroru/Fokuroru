@@ -59,7 +59,7 @@ import { useLabel, useLanguageChoice } from '../i18n-context'
 import { useThemeChoice } from '../theme-context'
 import { ConnectionForm, type ConnectionField } from './ConnectionSettingsCard'
 import { ContentRatingCards } from './ContentRatingCards'
-import { IconBrandMark } from './IconBrandMark'
+import { BrandWordmark, IconBrandMark } from './IconBrandMark'
 import { DumpProgressBar } from './MetadataDumpProgress'
 import { PriorityList } from './PriorityList'
 import { RecommendationModelSwitch } from './RecommendationModelSwitch'
@@ -784,7 +784,7 @@ function GuideRail({
           <IconBrandMark />
         </span>
         <div>
-          <Text className="setup-rail-wordmark">Fōkurōru</Text>
+          <BrandWordmark height={22} className="setup-rail-wordmark" />
           <Text className="setup-rail-caption">
             <Trans>Setup</Trans>
           </Text>

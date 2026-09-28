@@ -7486,11 +7486,6 @@ msgstr "манга"
 msgid "Manga"
 msgstr "Манга"
 
-#: src/App.tsx
-#, fuzzy
-msgid "Manga manager"
-msgstr "Менеджер манги"
-
 #: src/components/discover/DiscoverDetailModal.tsx
 #, fuzzy
 msgid "MangaBaka aggregate score"

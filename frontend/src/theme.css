@@ -391,15 +391,25 @@ body {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-hero);
-  background: color-mix(in srgb, var(--brand) 16%, var(--surface-2));
-  border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--border));
+  width: 40px;
+  height: 40px;
+  flex: none;
 }
 .brand-mark svg {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
+}
+/* The logo handover's dark-surface adaptation: a slate keyline where the nori meets a dark ground. */
+[data-mantine-color-scheme='dark'] {
+  --logo-keyline: #5b6466;
+}
+/* Letters take the theme's ink; the macrons stay coral inside the SVG. */
+svg.brand-wordmark,
+.auth-wordmark svg,
+svg.setup-rail-wordmark {
+  display: block;
+  width: auto;
+  color: var(--ink-hi);
 }
 
 /* Sidebar nav link */
@@ -2121,15 +2131,15 @@ body {
   margin-bottom: 20px;
 }
 .auth-brand-mark svg {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
 }
 .auth-wordmark {
   margin: 0;
-  color: var(--ink-hi);
-  font-size: var(--type-display);
-  line-height: 0.9;
-  letter-spacing: 0.01em;
+  line-height: 0;
+}
+.auth-wordmark svg {
+  height: clamp(44px, 6vw, 72px);
 }
 .auth-tagline {
   margin-top: 14px;
@@ -2239,8 +2249,8 @@ body {
   height: 40px;
 }
 .setup-brand-mark svg {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
 }
 .setup-rail-wordmark {
   font-family: var(--font-display);
