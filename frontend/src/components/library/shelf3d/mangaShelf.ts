@@ -46,6 +46,9 @@ interface Row {
   camera: T.PerspectiveCamera
   physics: ShelfPhysics
   index: number
+  shelf: T.Mesh
+  /** A shudder from a heavy landing: how big, and since when. */
+  shake?: { at: number; amplitude: number }
 }
 
 /** Height of one shelf row in world units; the camera is framed on exactly this. */
@@ -69,6 +72,10 @@ const FLUTTER_CHANCE = 0.25
 const FLUTTER_COOLDOWN_MS = 1200
 /** Later leaves start and finish a little behind the board, so the pages trail it. */
 const LEAF_LAG_MS = 55
+/** Landings softer than this (see `ShelfPhysics.onImpact`) do not shake the shelf. */
+const IMPACT_MIN = 60
+const SHAKE_MS = 450
+const SHAKE_MAX = 3.5
 
 /**
  * The Reading now shelf as solid volumes: Three.js books over Matter.js bodies, one camera per shelf
@@ -512,7 +519,15 @@ export class MangaShelf {
     wall.position.set(0, 217, -151)
     wall.receiveShadow = true
     scene.add(wall)
-    const row: Row = { scene, camera, physics: new ShelfPhysics(width), index: this.rows.length }
+    const row: Row = { scene, camera, physics: new ShelfPhysics(width), index: this.rows.length, shelf }
+    // A heavy landing sets the plank, and everything on it, shuddering; the wall stays put.
+    row.physics.onImpact = (strength) => {
+      if (strength < IMPACT_MIN || this.reduced.matches) return
+      const amplitude = Math.min(SHAKE_MAX, (strength - IMPACT_MIN) / 120)
+      const now = performance.now()
+      const left = row.shake ? row.shake.amplitude * Math.exp(-(now - row.shake.at) / 110) : 0
+      if (amplitude > left) row.shake = { at: now, amplitude }
+    }
     this.rows.push(row)
     return row
   }
@@ -628,6 +643,13 @@ export class MangaShelf {
     return false
   }
 
+  /** Vertical offset of a shudder at `now`: about 22 Hz, dying away over a few tenths of a second. */
+  private shakeAt(shake: { at: number; amplitude: number }, now: number): number {
+    const t = now - shake.at
+    if (t > SHAKE_MS) return 0
+    return shake.amplitude * Math.exp(-t / 110) * Math.sin((t / 1000) * 2 * Math.PI * 22)
+  }
+
   private hit(e: PointerEvent): Item | undefined {
     const rect = this.renderer.domElement.getBoundingClientRect()
     const rowPx = ROW * this.scale
@@ -688,6 +710,17 @@ export class MangaShelf {
         i.model.rotation.y = -e * 0.35
         pulling ||= t < 1
       }
+    }
+    // Shelf shudder: a fast decaying bounce applied to the plank and every book on it.
+    for (const r of this.rows) {
+      const dy = r.shake ? this.shakeAt(r.shake, performance.now()) : 0
+      if (r.shake && performance.now() - r.shake.at > SHAKE_MS) r.shake = undefined
+      r.shelf.position.y = 12 + dy
+      if (dy) {
+        pulling = true
+        for (const i of this.items) if (i.row === r) i.model.position.y += dy
+      }
+      if (r.shake) pulling = true
     }
     const rowPx = ROW * this.scale
     this.renderer.setScissorTest(true)

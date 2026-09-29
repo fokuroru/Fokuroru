@@ -1,6 +1,6 @@
 import Matter from 'matter-js'
 
-const { Engine, Bodies, Body, Composite, Constraint, Query, Sleeping, Vector } = Matter
+const { Engine, Bodies, Body, Composite, Constraint, Events, Query, Sleeping, Vector } = Matter
 
 /** Three times Matter's default: at shelf scale the default had books drifting down like paper. */
 const GRAVITY_SCALE = 0.003
@@ -28,6 +28,14 @@ export class ShelfPhysics {
 
   readonly floor: number
   readonly width: number
+  /** The plank books stand on. */
+  readonly plank: Matter.Body
+  /**
+   * Called when a book lands on the plank, with how hard: its speed times its mass. Measured here:
+   * settling in place is 0, a book tipping over about 100, a slim book dropped from the top of the
+   * row about 200, a thick one about 460.
+   */
+  onImpact: ((strength: number) => void) | null = null
 
   constructor(width: number, floor = 360) {
     this.floor = floor
@@ -35,8 +43,15 @@ export class ShelfPhysics {
     this.engine = Engine.create({ enableSleeping: true, positionIterations: 12, velocityIterations: 10, constraintIterations: 6 })
     this.engine.gravity.y = 1
     this.engine.gravity.scale = GRAVITY_SCALE
+    this.plank = Bodies.rectangle(width / 2, floor + 35, width + 100, 70, { isStatic: true, friction: 0.75, restitution: 0 })
+    Events.on(this.engine, 'collisionStart', (event) => {
+      for (const pair of event.pairs) {
+        const book = pair.bodyA === this.plank ? pair.bodyB : pair.bodyB === this.plank ? pair.bodyA : null
+        if (book && this.onImpact) this.onImpact(book.speed * book.mass)
+      }
+    })
     Composite.add(this.engine.world, [
-      Bodies.rectangle(width / 2, floor + 35, width + 100, 70, { isStatic: true, friction: 0.75, restitution: 0 }),
+      this.plank,
       Bodies.rectangle(-30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5 }),
       Bodies.rectangle(width + 30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5 }),
     ])
@@ -172,6 +187,8 @@ export class ShelfPhysics {
   }
 
   destroy() {
+    this.onImpact = null
+    Events.off(this.engine, 'collisionStart')
     this.release()
     Composite.clear(this.engine.world, false)
     Engine.clear(this.engine)
