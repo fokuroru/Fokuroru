@@ -6,9 +6,9 @@ export interface ShelfBook {
   id: number
   title: string
   author: string
-  /** The big number in the spine's band. */
+  /** The chapter number in the spine's band. */
   number: string
-  /** The small line under it. */
+  /** The short label above it ("Ch."). */
   caption: string
   width: number
   height: number
@@ -34,6 +34,8 @@ interface Item {
   model: T.Object3D
   row: Row
   book: ShelfBook
+  /** Set once clicked: the book slides out towards the viewer while the next page loads. */
+  pulledAt?: number
 }
 
 interface Row {
@@ -49,6 +51,7 @@ const ROW = 420
 const MIN_LOGICAL_WIDTH = 640
 const DEPTH = 132
 const CLICK_SLOP = 6
+const PULL_MS = 550
 
 /**
  * The Reading now shelf as solid volumes: Three.js books over Matter.js bodies, one camera per shelf
@@ -109,7 +112,7 @@ export class MangaShelf {
         const dx = (e.clientX - this.drag.x) / this.scale
         const dy = (e.clientY - this.drag.y) / this.scale
         if (Math.hypot(dx, dy) > CLICK_SLOP) this.drag.moved = true
-        this.selected?.row.physics.move(dx, dy)
+        if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row))
         this.wake()
         return
       }
@@ -122,7 +125,13 @@ export class MangaShelf {
     canvas.addEventListener('pointerdown', (e) => {
       const item = this.hit(e)
       if (!item) return
-      this.select(item, e)
+      // Re-grip where the pointer is, so a drag carries the book from that spot.
+      if (!this.reduced.matches) {
+        this.selected?.row.physics.release()
+        this.selected = item
+        item.row.physics.grab(item.body, 1, this.worldPoint(e, item.row))
+        this.wake()
+      }
       this.drag = { x: e.clientX, y: e.clientY, moved: false, at: performance.now() }
       canvas.setPointerCapture(e.pointerId)
       e.preventDefault()
@@ -131,7 +140,7 @@ export class MangaShelf {
       const drag = this.drag
       const item = this.selected ?? this.hit(e)
       this.release()
-      if (drag && !drag.moved && item && performance.now() - drag.at < 600) this.onOpen(item.book.id)
+      if (drag && !drag.moved && item && performance.now() - drag.at < 600) this.pull(item)
     }, options)
     for (const event of ['pointercancel', 'lostpointercapture'] as const) {
       canvas.addEventListener(event, () => this.release(), options)
@@ -268,8 +277,8 @@ export class MangaShelf {
       const band = b.bandTop ? 0 : h - 43
       ctx.fillStyle = b.accent
       ctx.fillRect(0, band, w, 43)
-      this.text(ctx, b.number, 2, band + 1, w - 4, 27, 25, b.face, b.fg)
-      this.text(ctx, b.caption, 1, band + 29, w - 2, 10, 6, "'Martian Mono', monospace", b.fg)
+      this.text(ctx, b.caption, 1, band + 3, w - 2, 9, 7, "'Martian Mono', monospace", b.fg)
+      this.text(ctx, b.number, 2, band + 13, w - 4, 28, 25, b.face, b.fg)
       const y = b.bandTop ? 48 : 25
       const titleH = h - 99
       ctx.save()
@@ -417,24 +426,36 @@ export class MangaShelf {
     return row
   }
 
+  /**
+   * Lays the books out afresh on every load: shuffled, most standing, some lying in small piles and
+   * some tipped against a neighbour. Only the starting pose is chosen here; gravity does the rest, so
+   * a tipped book either comes to rest leaning or falls over, as it would on a real shelf. A lying
+   * book takes a lot of shelf, so a dozen arrangements are drawn and one needing the fewest shelves
+   * is kept: randomness should never leave one book alone on a shelf of its own.
+   */
   private layout() {
     this.clear()
     const width = this.logicalWidth
-    let row: Row | null = null
-    let x = 18
-    this.books.forEach((b, i) => {
-      if (!row || x + b.width > width - 32) {
-        row = this.newRow(width)
-        x = 18
+    let best: Placement[] = []
+    let bestRows = Infinity
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const plan = planShelf(this.books, width, attempt === 0 ? 0 : 0.18)
+      const rows = plan.reduce((n, p) => Math.max(n, p.row + 1), 0)
+      if (rows < bestRows || (rows === bestRows && Math.random() < 0.5)) {
+        best = plan
+        bestRows = rows
       }
-      const body = row.physics.add(x, 360 - b.height, b.width, b.height)
-      const model = this.model(b)
+    }
+    for (const p of best) {
+      while (this.rows.length <= p.row) this.newRow(width)
+      const row = this.rows[p.row]
+      const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
+      const model = this.model(p.book)
       row.scene.add(model)
-      const item: Item = { body, model, row, book: b }
+      const item: Item = { body, model, row, book: p.book }
       model.traverse((n) => (n.userData.item = item))
       this.items.push(item)
-      x += b.width + [5, 9, 4, 7, 14][i % 5]
-    })
+    }
 
     const rowPx = ROW * this.scale
     this.renderer.setSize(this.cssWidth, this.rows.length * rowPx, false)
@@ -451,7 +472,7 @@ export class MangaShelf {
       button.textContent = this.label(item.book)
       button.addEventListener('focus', () => this.select(item))
       button.addEventListener('blur', () => this.select(null))
-      button.addEventListener('click', () => this.onOpen(item.book.id))
+      button.addEventListener('click', () => this.pull(item))
       this.access.append(button)
     }
     this.container.append(this.access)
@@ -459,6 +480,26 @@ export class MangaShelf {
   }
 
   // ---- interaction and the frame loop -----------------------------------
+
+  /** A pointer position as a point in a row's physics world (the spine plane, y down from the top). */
+  private worldPoint(e: PointerEvent, row: Row) {
+    const rect = this.renderer.domElement.getBoundingClientRect()
+    const rowPx = ROW * this.scale
+    return {
+      x: (e.clientX - rect.left) / this.scale,
+      y: (e.clientY - rect.top - row.index * rowPx) / this.scale - 40,
+    }
+  }
+
+  /** Clicked: the book leaves the simulation and slides out towards the viewer, then it opens. */
+  private pull(item: Item) {
+    if (item.pulledAt !== undefined) return
+    if (this.selected === item) this.release()
+    item.row.physics.remove(item.body)
+    item.pulledAt = performance.now()
+    this.onOpen(item.book.id)
+    this.wake()
+  }
 
   private hit(e: PointerEvent): Item | undefined {
     const rect = this.renderer.domElement.getBoundingClientRect()
@@ -507,9 +548,18 @@ export class MangaShelf {
       for (const r of this.rows) r.physics.step()
       this.acc -= 1000 / 120
     }
+    let pulling = false
     for (const i of this.items) {
       i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, 0)
       i.model.rotation.z = -i.body.angle
+      if (i.pulledAt !== undefined) {
+        const t = Math.min(1, (performance.now() - i.pulledAt) / PULL_MS)
+        const e = 1 - (1 - t) ** 3
+        i.model.position.z = e * 320
+        i.model.position.y += e * 30
+        i.model.rotation.y = -e * 0.35
+        pulling ||= t < 1
+      }
     }
     const rowPx = ROW * this.scale
     this.renderer.setScissorTest(true)
@@ -521,7 +571,62 @@ export class MangaShelf {
     }
     // Stop once everything has been still for about a second and a half; the next hover, drag,
     // cover load or layout wakes it again.
-    this.quietFrames = this.rows.every((r) => r.physics.still) ? this.quietFrames + 1 : 0
+    this.quietFrames = !pulling && this.rows.every((r) => r.physics.still) ? this.quietFrames + 1 : 0
     this.frame = this.quietFrames > 90 ? 0 : requestAnimationFrame(this.tick)
   }
+}
+
+interface Placement {
+  book: ShelfBook
+  row: number
+  /** Bottom-left corner of the upright book's box, before `angle` is applied about its centre. */
+  x: number
+  y: number
+  angle: number
+}
+
+/**
+ * One random arrangement: shuffled order, a share of books lying in piles of up to three
+ * (`lyingShare`, 0 for all standing), a third of the standing ones tipped to lean on a neighbour.
+ */
+function planShelf(books: ShelfBook[], width: number, lyingShare: number): Placement[] {
+  const order = [...books].sort(() => Math.random() - 0.5)
+  const out: Placement[] = []
+  let row = -1
+  let x = 0
+  let pile: { x: number; top: number; length: number; count: number } | null = null
+  const room = (need: number) => {
+    if (row < 0 || x + need > width - 32) {
+      row++
+      x = 18
+      pile = null
+    }
+  }
+  order.forEach((b, i) => {
+    const roll = Math.random()
+    if (roll < lyingShare) {
+      const length = b.height
+      if (!pile || pile.count >= 3 || length > pile.length + 20) {
+        room(length + 10)
+        pile = { x, top: 360, length, count: 0 }
+        x += length + 10
+      }
+      const cx = pile.x + pile.length / 2 + (Math.random() - 0.5) * 12
+      const cy = pile.top - b.width / 2
+      out.push({
+        book: b, row, x: cx - b.width / 2, y: cy - b.height / 2,
+        angle: Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2,
+      })
+      pile.top -= b.width + 1
+      pile.count++
+      return
+    }
+    room(b.width + 14)
+    pile = null
+    const lean = roll < lyingShare + 0.3 ? (Math.random() < 0.5 ? -1 : 1) * (0.12 + Math.random() * 0.2) : 0
+    const shift = lean ? Math.abs(lean) * b.height * 0.35 : 0
+    out.push({ book: b, row, x: x + (lean > 0 ? shift : 0), y: 360 - b.height - (lean ? 8 : 0), angle: lean })
+    x += b.width + shift + [5, 9, 4, 7, 14][i % 5]
+  })
+  return out
 }

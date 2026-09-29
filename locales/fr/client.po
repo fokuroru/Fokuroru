@@ -941,10 +941,6 @@ msgstr "{rated} notés"
 msgid "{ratioValue} more than the MangaBaka catalogue carries, weighted toward titles more people read"
 msgstr "{ratioValue} de plus que le catalogue MangaBaka, pondéré en faveur des titres les plus lus"
 
-#: src/components/library/SpineShelf.tsx
-msgid "{read} of {total} read"
-msgstr ""
-
 #: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
 #, fuzzy
@@ -3091,6 +3087,10 @@ msgstr "chap. {maxChapter}"
 #, fuzzy
 msgid "ch {read} of {total}"
 msgstr "chap. {read} sur {total}"
+
+#: src/components/library/SpineShelf.tsx
+msgid "Ch."
+msgstr ""
 
 #: src/components/SeriesScrobbleSection.tsx
 #, fuzzy

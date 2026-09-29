@@ -1,6 +1,9 @@
 import Matter from 'matter-js'
 
-const { Engine, Bodies, Composite, Constraint, Sleeping, Vector } = Matter
+const { Engine, Bodies, Body, Composite, Constraint, Sleeping, Vector } = Matter
+
+/** Three times Matter's default: at shelf scale the default had books drifting down like paper. */
+const GRAVITY_SCALE = 0.003
 
 export type BookBody = Matter.Body & { bookWidth: number; bookHeight: number }
 
@@ -8,8 +11,8 @@ interface Hand {
   start: Matter.Vector
   time: number
   direction: number
-  dx: number
-  dy: number
+  /** Set while the pointer is down: the grip then follows the pointer instead of hovering. */
+  target: Matter.Vector | null
 }
 
 /**
@@ -24,11 +27,14 @@ export class ShelfPhysics {
   private hand: Hand | null = null
 
   readonly floor: number
+  readonly width: number
 
   constructor(width: number, floor = 360) {
     this.floor = floor
+    this.width = width
     this.engine = Engine.create({ enableSleeping: true, positionIterations: 12, velocityIterations: 10, constraintIterations: 6 })
     this.engine.gravity.y = 1
+    this.engine.gravity.scale = GRAVITY_SCALE
     Composite.add(this.engine.world, [
       Bodies.rectangle(width / 2, floor + 35, width + 100, 70, { isStatic: true, friction: 0.75, restitution: 0 }),
       Bodies.rectangle(-30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5 }),
@@ -36,7 +42,8 @@ export class ShelfPhysics {
     ])
   }
 
-  add(x: number, y: number, w: number, h: number): BookBody {
+  /** Adds an upright book whose bottom-left corner is at (x, y), optionally already tipped by `angle`. */
+  add(x: number, y: number, w: number, h: number, angle = 0): BookBody {
     const body = Bodies.rectangle(x + w / 2, y + h / 2, w, h, {
       friction: 0.55,
       frictionStatic: 0.9,
@@ -47,27 +54,50 @@ export class ShelfPhysics {
     }) as BookBody
     body.bookWidth = w
     body.bookHeight = h
+    if (angle) Body.setAngle(body, angle)
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
     return body
   }
 
-  /** Picks the book up at a point off-centre near the top, on the side the pointer came from. */
-  grab(body: BookBody, direction = 1) {
+  /**
+   * Takes hold of a book. Hovering grips it off-centre near the top and lifts it a little; pressing
+   * grips it where the pointer is (`at`, a world point), so a drag carries it from that spot.
+   */
+  grab(body: BookBody, direction = 1, at?: Matter.Vector) {
     this.release()
     Sleeping.set(body, false)
-    const local = { x: body.bookWidth * 0.24 * direction, y: -body.bookHeight * 0.34 }
-    const rotated = Vector.rotate(local, body.angle)
-    const anchor = Vector.add(body.position, rotated)
-    this.hand = { start: anchor, time: 0, direction, dx: 0, dy: 0 }
-    this.constraint = Constraint.create({ bodyB: body, pointB: rotated, pointA: { ...anchor }, length: 0, stiffness: 0.11, damping: 0.16 })
+    const offset = at
+      ? Vector.sub(at, body.position)
+      : Vector.rotate({ x: body.bookWidth * 0.24 * direction, y: -body.bookHeight * 0.34 }, body.angle)
+    const anchor = Vector.add(body.position, offset)
+    this.hand = { start: anchor, time: 0, direction, target: at ? { ...at } : null }
+    this.constraint = Constraint.create({
+      bodyB: body,
+      pointB: offset,
+      pointA: { ...anchor },
+      length: 0,
+      stiffness: at ? 0.25 : 0.14,
+      damping: 0.18,
+    })
     Composite.add(this.engine.world, this.constraint)
   }
 
-  move(dx: number, dy: number) {
-    if (!this.hand) return
-    this.hand.dx = Math.max(-35, Math.min(35, dx))
-    this.hand.dy = Math.max(-30, Math.min(35, dy))
+  /** Moves a pressed grip to a world point, kept inside the row so a book cannot be lost off-screen. */
+  moveTo(point: Matter.Vector) {
+    if (!this.hand?.target) return
+    this.hand.target = {
+      x: Math.max(0, Math.min(this.width, point.x)),
+      y: Math.max(-40, Math.min(this.floor, point.y)),
+    }
+  }
+
+  /** Takes a book out of the simulation (it is being pulled off the shelf) without disturbing the rest. */
+  remove(body: BookBody) {
+    if (this.constraint?.bodyB === body) this.release()
+    Composite.remove(this.engine.world, body)
+    const i = this.bodies.indexOf(body)
+    if (i >= 0) this.bodies.splice(i, 1)
   }
 
   release() {
@@ -92,9 +122,14 @@ export class ShelfPhysics {
     const hand = this.hand
     if (hand && this.constraint) {
       hand.time += dt / 1000
-      const lift = 1 - Math.exp(-hand.time * 5)
-      this.constraint.pointA.x = hand.start.x + hand.dx + Math.sin(hand.time * 4.2) * 4.2 * lift * hand.direction
-      this.constraint.pointA.y = hand.start.y - 42 * lift + hand.dy + Math.sin(hand.time * 5.3) * 1.3 * lift
+      if (hand.target) {
+        this.constraint.pointA.x = hand.target.x
+        this.constraint.pointA.y = hand.target.y
+      } else {
+        const lift = 1 - Math.exp(-hand.time * 5)
+        this.constraint.pointA.x = hand.start.x + Math.sin(hand.time * 4.2) * 4.2 * lift * hand.direction
+        this.constraint.pointA.y = hand.start.y - 42 * lift + Math.sin(hand.time * 5.3) * 1.3 * lift
+      }
     }
     Engine.update(this.engine, dt)
   }

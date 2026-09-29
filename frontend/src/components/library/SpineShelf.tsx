@@ -254,10 +254,12 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
     .slice(0, MAX_SERIES)
   if (reading.length === 0) return null
 
-  const goTo = (id: number) =>
-    void api<{ chapterId: number } | null>(`/reader/series/${id}/continue`)
-      .catch(() => null)
-      .then((next) => navigate(next ? `/read/${next.chapterId}` : `/series/${id}`))
+  // `settle` gives the 3D shelf's pull-out animation time to play; the lookup runs alongside it.
+  const goTo = (id: number, settle = 0) =>
+    void Promise.all([
+      api<{ chapterId: number } | null>(`/reader/series/${id}/continue`).catch(() => null),
+      new Promise((resolve) => setTimeout(resolve, settle)),
+    ]).then(([next]) => navigate(next ? `/read/${next.chapterId}` : `/series/${id}`))
 
   const open = (e: MouseEvent, id: number) => {
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
@@ -274,7 +276,7 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
       title: s.displayTitle,
       author: s.authorStory ?? s.authorArt ?? '',
       number: String(read + 1).padStart(2, '0'),
-      caption: t`${read} of ${total} read`,
+      caption: t`Ch.`,
       width: 30 + Math.min(34, Math.round(total / 6)),
       height: 250 + pick(s.id, 'height', 6) * 8,
       pattern: pick(s.id, 'pattern', 6),
@@ -293,7 +295,7 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
       {flat ? (
         <FlatShelf reading={reading.map(({ s, p }) => ({ s, total: s.mainChapterCount || p.total || p.have }))} open={open} />
       ) : (
-        <Shelf3D books={books} dark={scheme === 'dark'} onOpen={goTo} onFail={() => setFlat(true)} />
+        <Shelf3D books={books} dark={scheme === 'dark'} onOpen={(id) => goTo(id, 500)} onFail={() => setFlat(true)} />
       )}
     </section>
   )
