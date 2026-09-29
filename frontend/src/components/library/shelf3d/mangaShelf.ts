@@ -38,12 +38,19 @@ interface Item {
 }
 
 interface Prop {
-  /** The pot: what is dragged and what the model follows. */
+  /** The plant's one rigid body: what is dragged and what the model follows. */
   body: BookBody
   model: T.Object3D
   row: Row
-  /** Each drawn leaf follows the bend of the physics leaf nearest it (left, centre or right). */
-  leaves: { pivot: T.Group; source: import('matter-js').Body; rest: number; gain: number }[]
+  /** Height of the body's centre of mass above the pot's base. */
+  centreAboveFloor: number
+  lastVx: number
+  /**
+   * Drawn leaves. `swing` is inertial sway (a damped spring driven by the plant's acceleration);
+   * `pressed` is how far the leaf is bent to stay out of a book overlapping it, eased towards the
+   * smallest bend that clears it.
+   */
+  leaves: { pivot: T.Group; height: number; stiffness: number; swing: number; speed: number; pressed: number }[]
 }
 
 interface Hinges {
@@ -544,10 +551,10 @@ export class MangaShelf {
       return
     }
     const x = from + Math.random() * (to - from)
-    const { pot: body, leaves, rests, centreAboveFloor } = row.physics.addPlant(
-      x, plant.potWidth, plant.potHeight, Math.min(plant.leafSpread, plant.potWidth * 0.8), plant.leafHeight,
+    const { body, centreAboveFloor } = row.physics.addPlant(
+      x, plant.potWidth, plant.potHeight, plant.leafSpread, plant.leafHeight,
     )
-    // The model's origin is its base; the body's is the pot's centre.
+    // The model's origin is its base; the body's is its centre of mass.
     const model = new T.Group()
     plant.group.position.y = -centreAboveFloor
     model.add(plant.group)
@@ -556,11 +563,9 @@ export class MangaShelf {
       body,
       model,
       row,
-      leaves: plant.leaves.map((l) => {
-        // Left third of the clump follows the left body, and so on; stiffer leaves bend a bit less.
-        const side = l.pivot.position.x < -4 ? 0 : l.pivot.position.x > 4 ? 2 : 1
-        return { pivot: l.pivot, source: leaves[side], rest: rests[side], gain: 1 / l.stiffness }
-      }),
+      centreAboveFloor,
+      lastVx: 0,
+      leaves: plant.leaves.map((l) => ({ ...l, swing: 0, speed: 0, pressed: 0 })),
     }
     model.traverse((n) => (n.userData.prop = prop))
     this.props.push(prop)
@@ -721,18 +726,66 @@ export class MangaShelf {
   }
 
   /**
-   * The drawn leaves follow the plant's physics leaves: however far a leaf body has bent from its
-   * resting pose relative to the pot, pressed by a book, knocked or left behind as the pot moves,
-   * the leaves drawn on that side bend by the same amount. Returns true while they are moving.
+   * Moves the drawn leaves. Each sways on a damped spring driven by the plant's sideways
+   * acceleration, so they trail when it is moved or knocked, and each bends just far enough to stay
+   * out of any book lying across it, so a book resting on the plant visibly presses the leaves over.
+   * The physics body under the leaves is rigid; all of this is drawn only, so nothing in the
+   * simulation can fight it. Returns true while any leaf is still moving.
    */
-  private sway(p: Prop): boolean {
+  private sway(p: Prop, elapsedMs: number): boolean {
+    const dt = Math.max(1, elapsedMs) / 1000
+    const vx = p.body.velocity.x * 120
+    const ax = (vx - p.lastVx) / dt
+    p.lastVx = vx
+    const ease = 1 - Math.exp(-dt * 14)
+    // Only bodies near the plant can touch a leaf; skip the search when none are.
+    const reach = Math.max(...p.leaves.map((l) => l.height)) + 20
+    const near = p.row.physics.bodiesExcept(p.body).filter((b) =>
+      b.bounds.max.x > p.body.position.x - reach && b.bounds.min.x < p.body.position.x + reach &&
+      b.bounds.max.y > p.body.position.y - reach - p.centreAboveFloor && b.bounds.min.y < p.body.position.y + reach)
     let moving = false
     for (const leaf of p.leaves) {
-      const bend = leaf.source.angle - p.body.angle - leaf.rest
-      leaf.pivot.rotation.z = -Math.max(-1.3, Math.min(1.3, bend * leaf.gain))
-      if (Math.abs(leaf.source.angularVelocity) > 0.0005) moving = true
+      const k = 70 * leaf.stiffness
+      const push = this.reduced.matches ? 0 : Math.max(-4000, Math.min(4000, ax)) * 0.00045 * (leaf.height / 200)
+      leaf.speed += (-k * leaf.swing - 3.2 * leaf.speed + push) * dt
+      leaf.swing = Math.max(-0.45, Math.min(0.45, leaf.swing + leaf.speed * dt))
+
+      const target = near.length ? this.clearBend(p, leaf, near) : 0
+      leaf.pressed += (target - leaf.pressed) * ease
+      leaf.pivot.rotation.z = leaf.swing - leaf.pressed
+      if (Math.abs(leaf.swing) > 0.002 || Math.abs(leaf.speed) > 0.01 || Math.abs(target - leaf.pressed) > 0.002) moving = true
     }
     return moving
+  }
+
+  /**
+   * The smallest bend (physics radians, positive tipping the leaf towards +x) that keeps a leaf out
+   * of the given bodies, trying either way in small steps; up to about 75 degrees, after which the
+   * leaf is as flat as it gets.
+   */
+  private clearBend(p: Prop, leaf: Prop['leaves'][number], bodies: import('matter-js').Body[]): number {
+    const a = p.body.angle
+    const local = { x: leaf.pivot.position.x, y: -(leaf.pivot.position.y - p.centreAboveFloor) }
+    const base = {
+      x: p.body.position.x + local.x * Math.cos(a) - local.y * Math.sin(a),
+      y: p.body.position.y + local.x * Math.sin(a) + local.y * Math.cos(a),
+    }
+    const blocked = (bend: number) => [0.45, 0.7, 0.95].some((f) => {
+      const len = f * leaf.height
+      return p.row.physics.occupied(bodies, { x: base.x + Math.sin(a + bend) * len, y: base.y - Math.cos(a + bend) * len })
+    })
+    if (!blocked(leaf.pressed)) {
+      // Still clear where it is: relax back towards upright only as far as stays clear.
+      for (let bend = 0; Math.abs(bend) < Math.abs(leaf.pressed); bend += Math.sign(leaf.pressed) * 0.08) {
+        if (!blocked(bend)) return bend
+      }
+      return leaf.pressed
+    }
+    for (let step = 0.08; step <= 1.3; step += 0.08) {
+      if (!blocked(step)) return step
+      if (!blocked(-step)) return -step
+    }
+    return leaf.pressed
   }
 
   private hitProp(e: PointerEvent): Prop | undefined {
@@ -814,7 +867,7 @@ export class MangaShelf {
     for (const p of this.props) {
       p.model.position.set(p.body.position.x - this.logicalWidth / 2, 380 - p.body.position.y, 0)
       p.model.rotation.z = -p.body.angle
-      pulling = this.sway(p) || pulling
+      pulling = this.sway(p, elapsed) || pulling
     }
     // Shelf shudder: a fast decaying bounce applied to the plank and everything on it.
     for (const r of this.rows) {

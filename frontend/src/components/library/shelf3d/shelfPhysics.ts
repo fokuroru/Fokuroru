@@ -24,8 +24,6 @@ export class ShelfPhysics {
   readonly engine: Matter.Engine
   readonly bodies: BookBody[] = []
   private constraint: Matter.Constraint | null = null
-  /** Each plant's pot and leaves, whose bending `step` drives. */
-  private readonly plants: { pot: Matter.Body; leaves: { body: Matter.Body; rest: number }[] }[] = []
   private hand: Hand | null = null
 
   readonly floor: number
@@ -52,6 +50,7 @@ export class ShelfPhysics {
         if (book && this.onImpact) this.onImpact(book.speed * book.mass)
       }
     })
+
     Composite.add(this.engine.world, [
       this.plank,
       Bodies.rectangle(-30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5 }),
@@ -78,61 +77,40 @@ export class ShelfPhysics {
   }
 
   /**
-   * A potted plant standing on the plank at `x` (its centre). The pot is a heavy rigid body; the
-   * leaves are three light, thin bodies (left, centre, right) pinned to the rim, kept upright by a
-   * bending torque applied in `step` rather than by a constraint (Matter's solver makes even a
-   * "soft" spring effectively rigid under load, and a book sat on the leaves as if on a post). The
-   * torque is gentle for small bends and stiffens steeply towards 65 degrees, so a book presses the
-   * leaves most of the way over and comes to rest tipped across the plant. Leaves and pot share a
-   * collision group, so they never push against each other; everything else collides with both.
+   * A potted plant standing on the plank at `x` (its centre): one rigid compound body, a heavy pot
+   * with a light, narrow, pointed column for the leaves. Rigid, because leaves built as separate
+   * pinned bodies fought Matter's contact solver whenever a book pressed them, and whatever rested
+   * on the plant shook without end; pointed, so a book cannot lie level on the plant but tips off
+   * the point or rests tilted against it. The drawn leaves bend out of the way of books themselves
+   * (see the renderer). Returns the body and how far its centre of mass sits above the plank.
    */
   addPlant(x: number, potWidth: number, potHeight: number, leafSpread: number, leafHeight: number) {
-    const group = Body.nextGroup(true)
-    const pot = Bodies.rectangle(x, this.floor - potHeight / 2, potWidth, potHeight, {
-      density: 0.006,
+    const column = leafHeight * 0.75
+    const pot = Bodies.rectangle(x, this.floor - potHeight / 2, potWidth, potHeight, { density: 0.006 })
+    const leaves = Bodies.trapezoid(x, this.floor - potHeight - column / 2, Math.min(leafSpread, potWidth) * 0.7, column, 0.92, { density: 0.0004 })
+    const body = Body.create({
+      parts: [pot, leaves],
       friction: 0.8,
       frictionStatic: 1,
       frictionAir: 0.02,
       restitution: 0.02,
       sleepThreshold: 90,
-      collisionFilter: { group },
     }) as BookBody
-    pot.bookWidth = potWidth
-    pot.bookHeight = potHeight
-    this.bodies.push(pot)
-    Composite.add(this.engine.world, pot)
+    body.bookWidth = potWidth
+    body.bookHeight = potHeight + column
+    this.bodies.push(body)
+    Composite.add(this.engine.world, body)
+    return { body, centreAboveFloor: this.floor - body.position.y }
+  }
 
-    const leaves: Matter.Body[] = []
-    const strip = Math.max(8, leafSpread / 3)
-    for (const [i, offset] of [-1, 0, 1].entries()) {
-      const length = leafHeight * (offset === 0 ? 0.85 : 0.68)
-      const dx = offset * Math.min(potWidth / 2 - strip / 2, leafSpread / 3)
-      // Pointed at the top, like the leaves: a flat book resting on a square tip would balance on
-      // it like a post, while a point tips over under any weight.
-      const leaf = Bodies.trapezoid(x + dx, this.floor - potHeight - length / 2, strip, length, 0.9, {
-        density: 0.0004,
-        friction: 0.4,
-        frictionAir: 0.05,
-        sleepThreshold: 90,
-        collisionFilter: { group },
-      }) as BookBody
-      leaf.bookWidth = strip
-      leaf.bookHeight = length
-      // Pinned at its base on the rim...
-      Composite.add(this.engine.world, Constraint.create({
-        bodyA: pot, pointA: { x: dx, y: -potHeight / 2 },
-        bodyB: leaf, pointB: { x: 0, y: length / 2 },
-        length: 0, stiffness: 0.9, damping: 0.1,
-      }))
-      this.bodies.push(leaf)
-      Composite.add(this.engine.world, leaf)
-      leaves[i] = leaf
-    }
-    // No leaf rests exactly upright: outer ones splay, the centre one leans a touch either way.
-    const centreLean = (Math.random() < 0.5 ? -1 : 1) * 0.06
-    const rests = leaves.map((_, i) => (i === 1 ? centreLean : (i - 1) * 0.1))
-    this.plants.push({ pot, leaves: leaves.map((body, i) => ({ body, rest: rests[i] })) })
-    return { pot, leaves, rests, centreAboveFloor: potHeight / 2 }
+  /** Every body except `except`, for a renderer asking what occupies a point. */
+  bodiesExcept(except: Matter.Body): Matter.Body[] {
+    return Composite.allBodies(this.engine.world).filter((b) => b !== except && !b.isStatic)
+  }
+
+  /** Whether any of `bodies` covers a point. */
+  occupied(bodies: Matter.Body[], point: Matter.Vector): boolean {
+    return Query.point(bodies, point).length > 0
   }
 
   /**
@@ -221,12 +199,16 @@ export class ShelfPhysics {
     return this.hand !== null
   }
 
+  /** Largest distance and turn any body made in the last step, measured from real positions. */
+  private lastMove = { distance: Infinity, turn: Infinity }
+
   /**
-   * Nothing held and every book asleep or all but still. Matter's own sleeping is not enough on its
-   * own: books resting against each other keep trading tiny contact impulses and some never sleep.
+   * Nothing held and nothing actually moving. Measured from how far bodies moved in the last step,
+   * not from Matter's speed: a pinned body (the plant's leaves) is dragged by gravity and pulled
+   * back by its pin every step, which reads as speed while it stays exactly where it is.
    */
   get still(): boolean {
-    return !this.hand && this.bodies.every((b) => b.isSleeping || (b.speed < 0.02 && Math.abs(b.angularSpeed) < 0.0005))
+    return !this.hand && this.lastMove.distance < 0.02 && this.lastMove.turn < 0.0005
   }
 
   step(dt = 1000 / 120) {
@@ -243,18 +225,15 @@ export class ShelfPhysics {
         this.constraint.pointA.y = hand.start.y - 10 * lift + Math.sin(hand.time * 4) * 0.5 * lift
       }
     }
-    for (const plant of this.plants) {
-      for (const leaf of plant.leaves) {
-        const bend = leaf.body.angle - plant.pot.angle - leaf.rest
-        const spin = leaf.body.angularVelocity - plant.pot.angularVelocity
-        const inertia = leaf.body.inertia
-        // Stiffness scaled by the leaf's own inertia so tall and short leaves feel alike.
-        const torque = -inertia * (0.0009 * bend + 0.012 * bend ** 3 + 0.002 * spin)
-        leaf.body.torque += torque
-        plant.pot.torque -= torque
-      }
-    }
+    const before = this.bodies.map((body) => ({ x: body.position.x, y: body.position.y, a: body.angle }))
     Engine.update(this.engine, dt)
+    let distance = 0
+    let turn = 0
+    this.bodies.forEach((body, i) => {
+      distance = Math.max(distance, Math.hypot(body.position.x - before[i].x, body.position.y - before[i].y))
+      turn = Math.max(turn, Math.abs(body.angle - before[i].a))
+    })
+    this.lastMove = { distance, turn }
   }
 
   destroy() {
