@@ -46,6 +46,7 @@ import { DiscoverLibraryRail } from './DiscoverLibraryRail'
 import { DiscoverReviews } from './DiscoverReviews'
 import { RecommendationFeedbackMenu } from './RecommendationFeedbackMenu'
 import { DiscoverTags } from './DiscoverTags'
+import { SourcePreviewPanel } from './SourcePreviewPanel'
 import { DiceIcon } from '../LuckyButton'
 import { prefersReducedMotion, useDiceTumble } from '../../lib/lucky'
 import { cleanSynopsis } from '../../lib/synopsis'
@@ -472,6 +473,8 @@ export function DiscoverDetailModal({
 
                   </Stack>
                 </Paper>
+
+                <SourcePreviewPanel key={item.providerId} providerId={item.providerId} />
 
                 {detail && detail.tags.length > 0 && <DiscoverTags tags={detail.tags} />}
               </div>

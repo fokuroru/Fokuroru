@@ -661,10 +661,6 @@ msgstr "{minutesPerChapter} min / ch"
 msgid "{missingSnapshotNames} must record a chapter snapshot before Fōkurōru can safely clean the list. Later source removals use the stored snapshots and make no source requests."
 msgstr "{missingSnapshotNames} must record a chapter snapshot before Fōkurōru can safely clean the list. Later source removals use the stored snapshots and make no source requests."
 
-#: src/components/SourceMappingsSection.tsx
-#~ msgid "{missingSnapshotNames} must record a chapter snapshot before Maki can safely clean the list. Later source removals use the stored snapshots and make no source requests."
-#~ msgstr "{missingSnapshotNames} must record a chapter snapshot before Maki can safely clean the list. Later source removals use the stored snapshots and make no source requests."
-
 #: src/components/series/SeriesHero.tsx
 msgid "{missingWanted, plural, one {# wanted, not fetched} other {# wanted, not fetched}}"
 msgstr "{missingWanted, plural, one {# wanted, not fetched} other {# wanted, not fetched}}"
@@ -1042,10 +1038,6 @@ msgstr "{unmatched, plural, one {# file could not be matched to a chapter. Link 
 msgid "{unmatched, plural, one {# file Fōkurōru could not match to a chapter} other {# files Fōkurōru could not match to a chapter}}"
 msgstr "{unmatched, plural, one {# file Fōkurōru could not match to a chapter} other {# files Fōkurōru could not match to a chapter}}"
 
-#: src/components/RelinkFilesModal.tsx
-#~ msgid "{unmatched, plural, one {# file Maki could not match to a chapter} other {# files Maki could not match to a chapter}}"
-#~ msgstr "{unmatched, plural, one {# file Maki could not match to a chapter} other {# files Maki could not match to a chapter}}"
-
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "{unread, plural, one {# chapter} other {# chapters}} you own but have not read."
 msgstr "{unread, plural, one {# chapter} other {# chapters}} you own but have not read."
@@ -1369,10 +1361,6 @@ msgstr "A new system health problem was detected."
 msgid "A newer Fōkurōru release was published."
 msgstr "A newer Fōkurōru release was published."
 
-#: src/components/NotificationsSection.tsx
-#~ msgid "A newer Maki release was published."
-#~ msgstr "A newer Maki release was published."
-
 #: src/components/RelinkFilesModal.tsx
 msgid "A proportional guess for a finished series whose volumes are all on disk. Only used when nothing better covers the chapter."
 msgstr "A proportional guess for a finished series whose volumes are all on disk. Only used when nothing better covers the chapter."
@@ -1563,10 +1551,6 @@ msgstr "Add a series"
 msgid "Add a series and Fōkurōru will start tracking chapters for it. This page fills up as you read and download."
 msgstr "Add a series and Fōkurōru will start tracking chapters for it. This page fills up as you read and download."
 
-#: src/pages/HomePage.tsx
-#~ msgid "Add a series and Maki will start tracking chapters for it. This page fills up as you read and download."
-#~ msgstr "Add a series and Maki will start tracking chapters for it. This page fills up as you read and download."
-
 #: src/components/NotificationsSection.tsx
 msgid "Add connection"
 msgstr "Add connection"
@@ -1607,10 +1591,6 @@ msgstr "Add series"
 #: src/pages/DiscoverPage.tsx
 msgid "Add some series to your library first and Fōkurōru will suggest more like them."
 msgstr "Add some series to your library first and Fōkurōru will suggest more like them."
-
-#: src/pages/DiscoverPage.tsx
-#~ msgid "Add some series to your library first and Maki will suggest more like them."
-#~ msgstr "Add some series to your library first and Maki will suggest more like them."
 
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/DiscoverLibraryRail.tsx
@@ -1756,10 +1736,6 @@ msgstr "All libraries"
 msgid "All optional. Fōkurōru downloads from its own sources without any of these. Open one to fill it in."
 msgstr "All optional. Fōkurōru downloads from its own sources without any of these. Open one to fill it in."
 
-#: src/components/SetupWizard.tsx
-#~ msgid "All optional. Maki downloads from its own sources without any of these. Open one to fill it in."
-#~ msgstr "All optional. Maki downloads from its own sources without any of these. Open one to fill it in."
-
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "all read"
 msgstr "all read"
@@ -1848,10 +1824,6 @@ msgstr "Also match every tag filed under this one"
 #: src/pages/SeriesDetailPage.tsx
 msgid "Alt titles"
 msgstr "Alt titles"
-
-#: src/theme-context.tsx
-#~ msgid "Amber"
-#~ msgstr "Amber"
 
 #: src/pages/HealthPage.tsx
 msgid "Ambiguous names"
@@ -2047,10 +2019,6 @@ msgstr "Archives inventoried"
 #: src/pages/SettingsPage.tsx
 msgid "Arrange Home and Discover on the pages themselves: pick which sections show, drag them into order and add your own rails. Turn Home off if you don't read in Fōkurōru: the tab disappears and Library becomes the start page."
 msgstr "Arrange Home and Discover on the pages themselves: pick which sections show, drag them into order and add your own rails. Turn Home off if you don't read in Fōkurōru: the tab disappears and Library becomes the start page."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Arrange Home and Discover on the pages themselves: pick which sections show, drag them into order and add your own rails. Turn Home off if you don't read in Maki: the tab disappears and Library becomes the start page."
-#~ msgstr "Arrange Home and Discover on the pages themselves: pick which sections show, drag them into order and add your own rails. Turn Home off if you don't read in Maki: the tab disappears and Library becomes the start page."
 
 #: src/components/CreditPicker.tsx
 #: src/components/discover/DiscoverGlance.tsx
@@ -2291,10 +2259,6 @@ msgstr "becomes readable"
 msgid "Before exposing Fōkurōru to the internet"
 msgstr "Before exposing Fōkurōru to the internet"
 
-#: src/pages/SetupAccountPage.tsx
-#~ msgid "Before exposing Maki to the internet"
-#~ msgstr "Before exposing Maki to the internet"
-
 #: src/pages/LibraryPage.tsx
 msgid "Behind (missing chapters)"
 msgstr "Behind (missing chapters)"
@@ -2319,10 +2283,6 @@ msgstr "Biggest on disk"
 #: src/pages/SeriesDetailPage.tsx
 msgid "Blocked while a download for this series is in flight, unless Fōkurōru isn't touching the files itself."
 msgstr "Blocked while a download for this series is in flight, unless Fōkurōru isn't touching the files itself."
-
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "Blocked while a download for this series is in flight, unless Maki isn't touching the files itself."
-#~ msgstr "Blocked while a download for this series is in flight, unless Maki isn't touching the files itself."
 
 #: src/components/settings/UsersSection.tsx
 msgid "Blocks sign-in and kills existing sessions. Keeps the account and its history."
@@ -2357,10 +2317,6 @@ msgstr "Boys Love"
 msgid "Brought in from disk, not downloaded by Fōkurōru"
 msgstr "Brought in from disk, not downloaded by Fōkurōru"
 
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "Brought in from disk, not downloaded by Maki"
-#~ msgstr "Brought in from disk, not downloaded by Maki"
-
 #: src/pages/HomePage.tsx
 msgid "Browse library"
 msgstr "Browse library"
@@ -2372,10 +2328,6 @@ msgstr "Browse or search MangaBaka and ask an admin for a title. You can ask for
 #: src/pages/AddSeriesPage.tsx
 msgid "Browse or search MangaBaka, pick a title, choose where it lives, and Fōkurōru handles the rest."
 msgstr "Browse or search MangaBaka, pick a title, choose where it lives, and Fōkurōru handles the rest."
-
-#: src/pages/AddSeriesPage.tsx
-#~ msgid "Browse or search MangaBaka, pick a title, choose where it lives, and Maki handles the rest."
-#~ msgstr "Browse or search MangaBaka, pick a title, choose where it lives, and Maki handles the rest."
 
 #: src/components/CatalogueRules.tsx
 msgid "Browse tags"
@@ -2715,10 +2667,6 @@ msgstr "Changes retune \"{inForceName}\", so every series using it."
 #: src/components/settings/SecuritySection.tsx
 msgid "Changes take effect after Fōkurōru restarts."
 msgstr "Changes take effect after Fōkurōru restarts."
-
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "Changes take effect after Maki restarts."
-#~ msgstr "Changes take effect after Maki restarts."
 
 #: src/components/NotificationsSection.tsx
 msgid "Channel"
@@ -3091,10 +3039,6 @@ msgstr "Comma separated Apprise URLs, used when there is no config key."
 msgid "Comma-separated IPs or CIDR networks. Only these are trusted to set X-Forwarded-For. Leave empty if Fōkurōru is reached directly."
 msgstr "Comma-separated IPs or CIDR networks. Only these are trusted to set X-Forwarded-For. Leave empty if Fōkurōru is reached directly."
 
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "Comma-separated IPs or CIDR networks. Only these are trusted to set X-Forwarded-For. Leave empty if Maki is reached directly."
-#~ msgstr "Comma-separated IPs or CIDR networks. Only these are trusted to set X-Forwarded-For. Leave empty if Maki is reached directly."
-
 #: src/components/ui/viewPrefs.tsx
 msgid "Compact"
 msgstr "Compact"
@@ -3200,13 +3144,6 @@ msgstr "Connect an AniList or MyAnimeList tracker to use this. <0>Open tracker s
 #: src/pages/stats/sections/TasteSection.tsx
 msgid "Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way."
 msgstr "Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way."
-
-#: src/pages/stats/sections/HabitsSection.tsx
-#: src/pages/stats/sections/ReadingSection.tsx
-#: src/pages/stats/sections/RhythmSection.tsx
-#: src/pages/stats/sections/TasteSection.tsx
-#~ msgid "Connect it in Settings and Maki will start tracking chapters you read. Downloads and library changes are tracked either way."
-#~ msgstr "Connect it in Settings and Maki will start tracking chapters you read. Downloads and library changes are tracked either way."
 
 #: src/components/TrackerSyncControls.tsx
 msgid "Connect on the Scrobble page to import."
@@ -3762,10 +3699,6 @@ msgstr "Deleted \"{name}\""
 msgid "Deleted files are removed from disk and cannot be recovered from Fōkurōru."
 msgstr "Deleted files are removed from disk and cannot be recovered from Fōkurōru."
 
-#: src/components/ImportReviewModal.tsx
-#~ msgid "Deleted files are removed from disk and cannot be recovered from Maki."
-#~ msgstr "Deleted files are removed from disk and cannot be recovered from Maki."
-
 #. placeholder {0}: deleteFileChapter.label
 #: src/pages/SeriesDetailPage.tsx
 msgid "Deleted the file for {0}"
@@ -4018,10 +3951,6 @@ msgstr "Download chapters"
 msgid "Download client for grabbed releases. Finished torrents import into the library automatically. Fill the path mapping only if qBittorrent reports paths Fōkurōru can't reach, e.g. /downloads in Docker where Fōkurōru sees Z:\\downloads."
 msgstr "Download client for grabbed releases. Finished torrents import into the library automatically. Fill the path mapping only if qBittorrent reports paths Fōkurōru can't reach, e.g. /downloads in Docker where Fōkurōru sees Z:\\downloads."
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "Download client for grabbed releases. Finished torrents import into the library automatically. Fill the path mapping only if qBittorrent reports paths Maki can't reach, e.g. /downloads in Docker where Maki sees Z:\\downloads."
-#~ msgstr "Download client for grabbed releases. Finished torrents import into the library automatically. Fill the path mapping only if qBittorrent reports paths Maki can't reach, e.g. /downloads in Docker where Maki sees Z:\\downloads."
-
 #: src/components/NotificationsSection.tsx
 msgid "Download failed"
 msgstr "Download failed"
@@ -4108,17 +4037,9 @@ msgstr "Downloads"
 msgid "Downloads the next chapters of a series when you're down to a few unread, starting with the first batch as soon as a series is set to Smart. Checks every five minutes against progress from Kavita or the built-in reader. Turn it on per series in its monitoring options."
 msgstr "Downloads the next chapters of a series when you're down to a few unread, starting with the first batch as soon as a series is set to Smart. Checks every five minutes against progress from Kavita or the built-in reader. Turn it on per series in its monitoring options."
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "Downloads the next chapters of a series when you're down to a few unread. Checks every five minutes against progress from Kavita or the built-in reader. Turn it on per series in its monitoring options."
-#~ msgstr "Downloads the next chapters of a series when you're down to a few unread. Checks every five minutes against progress from Kavita or the built-in reader. Turn it on per series in its monitoring options."
-
 #: src/components/SetupWizard.tsx
 msgid "Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Fōkurōru can't, as in Docker."
 msgstr "Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Fōkurōru can't, as in Docker."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Maki can't, as in Docker."
-#~ msgstr "Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Maki can't, as in Docker."
 
 #: src/components/layout/PageLayoutEditor.tsx
 msgid "Drag to reorder. Click a section to change it."
@@ -4217,10 +4138,6 @@ msgstr "Email"
 msgid "embeddings, embedding model, semantic search, vectors, discover search"
 msgstr "embeddings, embedding model, semantic search, vectors, discover search"
 
-#: src/theme-context.tsx
-#~ msgid "Emerald"
-#~ msgstr "Emerald"
-
 #: src/pages/HealthPage.tsx
 msgid "Empty"
 msgstr "Empty"
@@ -4279,10 +4196,6 @@ msgstr "English (provider default)"
 #: src/components/layout/SidebarFooter.tsx
 msgid "Enjoying Fōkurōru?"
 msgstr "Enjoying Fōkurōru?"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Enjoying Maki?"
-#~ msgstr "Enjoying Maki?"
 
 #: src/pages/LoginPage.tsx
 msgid "Enter your authenticator code"
@@ -4387,10 +4300,6 @@ msgstr "Every series Fōkurōru watches: cover art, download progress and status
 #: src/components/SetupWizard.tsx
 msgid "Every series folder ends up named the same way."
 msgstr "Every series folder ends up named the same way."
-
-#: src/pages/LibraryPage.tsx
-#~ msgid "Every series Maki watches: cover art, download progress and status at a glance."
-#~ msgstr "Every series Maki watches: cover art, download progress and status at a glance."
 
 #: src/api/queue.ts
 msgid "Every source failed for this chapter"
@@ -4674,6 +4583,10 @@ msgstr "Find a better copy of {0}"
 msgid "Find better copy"
 msgstr "Find better copy"
 
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Find chapter 1 on your sources"
+msgstr "Find chapter 1 on your sources"
+
 #: src/pages/HomePage.tsx
 msgid "Find more"
 msgstr "Find more"
@@ -4723,10 +4636,6 @@ msgstr "Finished in a rush"
 msgid "Finishing a chapter in Fōkurōru's reader also marks it read in Kavita. Only for series matched to a Kavita series. Stats never count a chapter twice."
 msgstr "Finishing a chapter in Fōkurōru's reader also marks it read in Kavita. Only for series matched to a Kavita series. Stats never count a chapter twice."
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "Finishing a chapter in Maki's reader also marks it read in Kavita. Only for series matched to a Kavita series. Stats never count a chapter twice."
-#~ msgstr "Finishing a chapter in Maki's reader also marks it read in Kavita. Only for series matched to a Kavita series. Stats never count a chapter twice."
-
 #: src/pages/RequestsPage.tsx
 msgid "first"
 msgstr "first"
@@ -4770,10 +4679,6 @@ msgstr "fit width"
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "Fit width"
 msgstr "Fit width"
-
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "Fix or remove the source mapping first, or a refresh will bring them right back."
-#~ msgstr "Fix or remove the source mapping first, or a refresh will bring them right back."
 
 #: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/registry.ts
@@ -5163,16 +5068,8 @@ msgid "Helps Kavita and other readers group and name chapters. Off leaves torren
 msgstr "Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and manual imports untouched. Fōkurōru's own downloads always get one."
 
 #: src/components/SetupWizard.tsx
-#~ msgid "Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and manual imports untouched. Maki's own downloads always get one."
-#~ msgstr "Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and manual imports untouched. Maki's own downloads always get one."
-
-#: src/components/SetupWizard.tsx
 msgid "Here is what Fōkurōru starts with. You can come back to this guide from the top of Settings."
 msgstr "Here is what Fōkurōru starts with. You can come back to this guide from the top of Settings."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Here is what Maki starts with. You can come back to this guide from the top of Settings."
-#~ msgstr "Here is what Maki starts with. You can come back to this guide from the top of Settings."
 
 #: src/components/CatalogueFilters.tsx
 #: src/components/ui/status.tsx
@@ -5328,10 +5225,6 @@ msgstr "How far through a series you were when it stalled. Median {stopPointPct}
 #: src/pages/SettingsPage.tsx
 msgid "How Fōkurōru names series folders and the chapter files it downloads. The \"?\" button lists every token. Changes apply to new series and downloads; files already on disk stay put until you rename them from a series' page or with the button below."
 msgstr "How Fōkurōru names series folders and the chapter files it downloads. The \"?\" button lists every token. Changes apply to new series and downloads; files already on disk stay put until you rename them from a series' page or with the button below."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "How Maki names series folders and the chapter files it downloads. The \"?\" button lists every token. Changes apply to new series and downloads; files already on disk stay put until you rename them from a series' page or with the button below."
-#~ msgstr "How Maki names series folders and the chapter files it downloads. The \"?\" button lists every token. Changes apply to new series and downloads; files already on disk stay put until you rename them from a series' page or with the button below."
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "How many"
@@ -5609,10 +5502,6 @@ msgstr "indexer, torrent search, api key, releases, indexers, torznab, categorie
 msgid "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 msgstr "Indexing… {scanned}{totalPart}{freshPart}{etaPart}"
 
-#: src/theme-context.tsx
-#~ msgid "Indigo"
-#~ msgstr "Indigo"
-
 #: src/components/SourceMappingsSection.tsx
 msgid "Indonesian"
 msgstr "Indonesian"
@@ -5710,17 +5599,9 @@ msgstr "Kavita sync"
 msgid "Kavita, the trackers Fōkurōru scrobbles to, and Discord and webhook alerts."
 msgstr "Kavita, the trackers Fōkurōru scrobbles to, and Discord and webhook alerts."
 
-#: src/pages/settings/registry.ts
-#~ msgid "Kavita, the trackers Maki scrobbles to, and Discord and webhook alerts."
-#~ msgstr "Kavita, the trackers Maki scrobbles to, and Discord and webhook alerts."
-
 #: src/pages/SettingsPage.tsx
 msgid "Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
 msgstr "Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Kavita's reading belongs to one Maki account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
-#~ msgstr "Kavita's reading belongs to one Maki account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
 
 #: src/components/SetupWizard.tsx
 msgid "Keep a local copy of MangaBaka"
@@ -5741,10 +5622,6 @@ msgstr "Keep folder name, and put new downloads there too"
 #: src/pages/SettingsPage.tsx
 msgid "Keep folder name, but put new downloads in a Fōkurōru standard folder"
 msgstr "Keep folder name, but put new downloads in a Fōkurōru standard folder"
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Keep folder name, but put new downloads in a Maki standard folder"
-#~ msgstr "Keep folder name, but put new downloads in a Maki standard folder"
 
 #: src/components/SetupWizard.tsx
 msgid "Keep the name, download into a new standard folder"
@@ -6268,50 +6145,6 @@ msgstr "Main story of {relatedTo}"
 msgid "mainstream"
 msgstr "mainstream"
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "Maki {checkedVersion} is available"
-#~ msgstr "Maki {checkedVersion} is available"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Maki {latestVersion} available"
-#~ msgstr "Maki {latestVersion} available"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Maki {latestVersion} is out"
-#~ msgstr "Maki {latestVersion} is out"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Maki {version}"
-#~ msgstr "Maki {version}"
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Maki asks Kavita to scan a series after its files change and sends it posters, links and status. The API key is under User Settings, 3rd Party Clients. Fill the path mapping only if Kavita sees the library under another path."
-#~ msgstr "Maki asks Kavita to scan a series after its files change and sends it posters, links and status. The API key is under User Settings, 3rd Party Clients. Fill the path mapping only if Kavita sees the library under another path."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Maki asks Kavita to scan a series after its files change, then pushes its poster, links and status. Covers you set in Kavita are kept. The API key is under User Settings → 3rd Party Clients in Kavita. Fill the path mapping only if Kavita sees the library under a different path, e.g. in Docker."
-#~ msgstr "Maki asks Kavita to scan a series after its files change, then pushes its poster, links and status. Covers you set in Kavita are kept. The API key is under User Settings → 3rd Party Clients in Kavita. Fill the path mapping only if Kavita sees the library under a different path, e.g. in Docker."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Maki can't reach this folder"
-#~ msgstr "Maki can't reach this folder"
-
-#: src/components/RelinkFilesModal.tsx
-#~ msgid "Maki checked the folder against the chapter list. Tick what to trust and watch the map. Nothing changes until you press Relink."
-#~ msgstr "Maki checked the folder against the chapter list. Tick what to trust and watch the map. Nothing changes until you press Relink."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Maki is restarting to apply it. Reload in a moment."
-#~ msgstr "Maki is restarting to apply it. Reload in a moment."
-
-#: src/components/LanguageAnnouncementModal.tsx
-#~ msgid "Maki speaks your language"
-#~ msgstr "Maki speaks your language"
-
-#: src/components/LanguageAnnouncementModal.tsx
-#~ msgid "Maki's interface is now translated into {languageCount} languages. Pick yours here, or change it any time under Settings, Language."
-#~ msgstr "Maki's interface is now translated into {languageCount} languages. Pick yours here, or change it any time under Settings, Language."
-
 #: src/components/discover/FollowingRail.tsx
 msgid "Manage"
 msgstr "Manage"
@@ -6346,10 +6179,6 @@ msgstr "manga"
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Manga"
 msgstr "Manga"
-
-#: src/App.tsx
-#~ msgid "Manga manager"
-#~ msgstr "Manga manager"
 
 #: src/components/discover/DiscoverDetailModal.tsx
 msgid "MangaBaka aggregate score"
@@ -6687,10 +6516,6 @@ msgstr "Most popular"
 #: src/components/SetupWizard.tsx
 msgid "Most preferred first. Fōkurōru matches new series to sources that publish your top language and skips sources that publish none of these. Drag to reorder."
 msgstr "Most preferred first. Fōkurōru matches new series to sources that publish your top language and skips sources that publish none of these. Drag to reorder."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Most preferred first. Maki matches new series to sources that publish your top language and skips sources that publish none of these. Drag to reorder."
-#~ msgstr "Most preferred first. Maki matches new series to sources that publish your top language and skips sources that publish none of these. Drag to reorder."
 
 #: src/pages/stats/sections/ReadingSection.tsx
 msgid "Most read"
@@ -7260,6 +7085,10 @@ msgstr "None of the {total} chapters wanted"
 msgid "None of their titles match these filters. Try loosening one of them."
 msgstr "None of their titles match these filters. Try loosening one of them."
 
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "None of your enabled sources has this title."
+msgstr "None of your enabled sources has this title."
+
 #: src/pages/SettingsPage.tsx
 msgid "none yet"
 msgstr "none yet"
@@ -7615,10 +7444,6 @@ msgstr "Off"
 msgid "Off by default: with it on, anyone your provider will authenticate gets a Fōkurōru account. New accounts start with no library access until you grant a root folder."
 msgstr "Off by default: with it on, anyone your provider will authenticate gets a Fōkurōru account. New accounts start with no library access until you grant a root folder."
 
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "Off by default: with it on, anyone your provider will authenticate gets a Maki account. New accounts start with no library access until you grant a root folder."
-#~ msgstr "Off by default: with it on, anyone your provider will authenticate gets a Maki account. New accounts start with no library access until you grant a root folder."
-
 #: src/components/settings/ProgressSection.tsx
 msgid "Off hides the Home section, the all-time tab on Stats, and unlock notifications."
 msgstr "Off hides the Home section, the all-time tab on Stats, and unlock notifications."
@@ -7626,10 +7451,6 @@ msgstr "Off hides the Home section, the all-time tab on Stats, and unlock notifi
 #: src/pages/SettingsPage.tsx
 msgid "Off keeps a release's own file name, which often says more than the format can. Fōkurōru's own downloads always follow the format, and renaming a series from its page still renames everything in it."
 msgstr "Off keeps a release's own file name, which often says more than the format can. Fōkurōru's own downloads always follow the format, and renaming a series from its page still renames everything in it."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Off keeps a release's own file name, which often says more than the format can. Maki's own downloads always follow the format, and renaming a series from its page still renames everything in it."
-#~ msgstr "Off keeps a release's own file name, which often says more than the format can. Maki's own downloads always follow the format, and renaming a series from its page still renames everything in it."
 
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Official"
@@ -7715,10 +7536,6 @@ msgstr "Only Fōkurōru's reader records when you read. Chapters marked read fro
 msgid "Only for tagged series"
 msgstr "Only for tagged series"
 
-#: src/pages/stats/sections/RhythmSection.tsx
-#~ msgid "Only Maki's reader records when you read. Chapters marked read from Kavita or OPDS apps do not carry a time."
-#~ msgstr "Only Maki's reader records when you read. Chapters marked read from Kavita or OPDS apps do not carry a time."
-
 #: src/components/NotificationsSection.tsx
 msgid "Only needed for protected topics."
 msgstr "Only needed for protected topics."
@@ -7755,6 +7572,7 @@ msgstr "Only you can see this."
 msgid "OPDS"
 msgstr "OPDS"
 
+#: src/components/discover/SourcePreviewPanel.tsx
 #: src/pages/HealthPage.tsx
 msgid "Open"
 msgstr "Open"
@@ -7779,10 +7597,6 @@ msgstr "Open a chapter and it will show up here, ready to resume."
 msgid "Open any chapter in the built-in reader, or connect Kavita, and Fōkurōru starts tracking where you are."
 msgstr "Open any chapter in the built-in reader, or connect Kavita, and Fōkurōru starts tracking where you are."
 
-#: src/pages/HomePage.tsx
-#~ msgid "Open any chapter in the built-in reader, or connect Kavita, and Maki starts tracking where you are."
-#~ msgstr "Open any chapter in the built-in reader, or connect Kavita, and Maki starts tracking where you are."
-
 #: src/components/SeriesScrobbleSection.tsx
 msgid "Open entry"
 msgstr "Open entry"
@@ -7802,6 +7616,10 @@ msgstr "Open on"
 #: src/components/MetadataLinks.tsx
 msgid "Open on {label}"
 msgstr "Open on {label}"
+
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Open on {site}"
+msgstr "Open on {site}"
 
 #: src/pages/DiscoverPage.tsx
 msgid "Open Recommended with these filters from now on"
@@ -7849,10 +7667,6 @@ msgstr "Optional"
 #: src/components/settings/ProgressSection.tsx
 msgid "Optional, and yours to set. Fōkurōru never adds one for you."
 msgstr "Optional, and yours to set. Fōkurōru never adds one for you."
-
-#: src/components/settings/ProgressSection.tsx
-#~ msgid "Optional, and yours to set. Maki never adds one for you."
-#~ msgstr "Optional, and yours to set. Maki never adds one for you."
 
 #: src/pages/LoginPage.tsx
 msgid "or"
@@ -8049,11 +7863,6 @@ msgstr "Path mapping - Kavita side"
 
 #: src/components/SetupWizard.tsx
 #: src/pages/SettingsPage.tsx
-#~ msgid "Path mapping - Maki side"
-#~ msgstr "Path mapping - Maki side"
-
-#: src/components/SetupWizard.tsx
-#: src/pages/SettingsPage.tsx
 msgid "Path mapping - qBittorrent side"
 msgstr "Path mapping - qBittorrent side"
 
@@ -8118,10 +7927,6 @@ msgstr "Pick the file in the series folder these chapters are actually contained
 #: src/components/SetupWizard.tsx
 msgid "Pick the folders Fōkurōru reads from and downloads into, and how it treats the files it finds there."
 msgstr "Pick the folders Fōkurōru reads from and downloads into, and how it treats the files it finds there."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Pick the folders Maki reads from and downloads into, and how it treats the files it finds there."
-#~ msgstr "Pick the folders Maki reads from and downloads into, and how it treats the files it finds there."
 
 #: src/pages/HomePage.tsx
 msgid "Pick up where you left off."
@@ -8430,6 +8235,7 @@ msgstr "Reached for {ratioValue} more than owning it would predict, across {seri
 msgid "read"
 msgstr "read"
 
+#: src/components/discover/SourcePreviewPanel.tsx
 #: src/components/home/RecentlyAddedRail.tsx
 #: src/components/ui/SeriesRow.tsx
 #: src/pages/discover/FeedbackLab.tsx
@@ -8439,6 +8245,14 @@ msgstr "read"
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Read"
 msgstr "Read"
+
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Read {chapter}"
+msgstr "Read {chapter}"
+
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Read {chapter} on {site}"
+msgstr "Read {chapter} on {site}"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Read {chapterLbl}"
@@ -8456,6 +8270,10 @@ msgstr "Read {nextChapterLabel}"
 msgid "Read a few chapters and this fills in."
 msgstr "Read a few chapters and this fills in."
 
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Read before adding"
+msgstr "Read before adding"
+
 #: src/components/series/AnimeResumeCallout.tsx
 msgid "Read ch. {resumeAt}"
 msgstr "Read ch. {resumeAt}"
@@ -8467,10 +8285,6 @@ msgstr "Read in Fōkurōru"
 #: src/pages/SeriesDetailPage.tsx
 msgid "Read in Kavita"
 msgstr "Read in Kavita"
-
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "Read in Maki"
-#~ msgstr "Read in Maki"
 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
 msgid "Read manga elsewhere"
@@ -8687,10 +8501,6 @@ msgstr "Recurrent"
 #: src/components/settings/SecuritySection.tsx
 msgid "Redirects HTTP to HTTPS, sends HSTS and marks the session cookie Secure. Only turn this on once Fōkurōru is behind TLS: over plain HTTP, sign-in fails without saying why."
 msgstr "Redirects HTTP to HTTPS, sends HSTS and marks the session cookie Secure. Only turn this on once Fōkurōru is behind TLS: over plain HTTP, sign-in fails without saying why."
-
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "Redirects HTTP to HTTPS, sends HSTS and marks the session cookie Secure. Only turn this on once Maki is behind TLS: over plain HTTP, sign-in fails without saying why."
-#~ msgstr "Redirects HTTP to HTTPS, sends HSTS and marks the session cookie Secure. Only turn this on once Maki is behind TLS: over plain HTTP, sign-in fails without saying why."
 
 #: src/components/SeriesFilesSection.tsx
 #: src/pages/DiscoverPage.tsx
@@ -8949,20 +8759,12 @@ msgid "Rename folder to Fōkurōru standard"
 msgstr "Rename folder to Fōkurōru standard"
 
 #: src/pages/SettingsPage.tsx
-#~ msgid "Rename folder to Maki standard"
-#~ msgstr "Rename folder to Maki standard"
-
-#: src/pages/SettingsPage.tsx
 msgid "Rename imported files to the Chapter Format"
 msgstr "Rename imported files to the Chapter Format"
 
 #: src/components/SetupWizard.tsx
 msgid "Rename to the Fōkurōru standard"
 msgstr "Rename to the Fōkurōru standard"
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Rename to the Maki standard"
-#~ msgstr "Rename to the Maki standard"
 
 #: src/components/RenameSeriesModal.tsx
 msgid "Renamed"
@@ -9257,10 +9059,6 @@ msgstr "revoked"
 msgid "Rewrites the metadata embedded in each CBZ (title, summary, authors, genres, chapter numbers) to Fōkurōru's standard so Kavita groups these files with future downloads and imports; PDFs are skipped, since there is nowhere in a PDF to put it. If Kavita already indexed this library, its existing entries may reshuffle; skipping keeps the files byte-for-byte untouched, but they may not group consistently with chapters Fōkurōru adds later."
 msgstr "Rewrites the metadata embedded in each CBZ (title, summary, authors, genres, chapter numbers) to Fōkurōru's standard so Kavita groups these files with future downloads and imports; PDFs are skipped, since there is nowhere in a PDF to put it. If Kavita already indexed this library, its existing entries may reshuffle; skipping keeps the files byte-for-byte untouched, but they may not group consistently with chapters Fōkurōru adds later."
 
-#: src/pages/ImportPage.tsx
-#~ msgid "Rewrites the metadata embedded in each CBZ (title, summary, authors, genres, chapter numbers) to Maki's standard so Kavita groups these files with future downloads and imports; PDFs are skipped, since there is nowhere in a PDF to put it. If Kavita already indexed this library, its existing entries may reshuffle; skipping keeps the files byte-for-byte untouched, but they may not group consistently with chapters Maki adds later."
-#~ msgstr "Rewrites the metadata embedded in each CBZ (title, summary, authors, genres, chapter numbers) to Maki's standard so Kavita groups these files with future downloads and imports; PDFs are skipped, since there is nowhere in a PDF to put it. If Kavita already indexed this library, its existing entries may reshuffle; skipping keeps the files byte-for-byte untouched, but they may not group consistently with chapters Maki adds later."
-
 #: src/pages/stats/sectionList.ts
 msgid "Rhythm"
 msgstr "Rhythm"
@@ -9297,10 +9095,6 @@ msgstr "Root folder"
 #: src/pages/SettingsPage.tsx
 msgid "Root Folders"
 msgstr "Root Folders"
-
-#: src/theme-context.tsx
-#~ msgid "Rose"
-#~ msgstr "Rose"
 
 #: src/components/SourceCompareModal.tsx
 msgid "Row {zoomRowNumber} of {zoomTotalPages}"
@@ -9339,6 +9133,10 @@ msgstr "Safe"
 #: src/components/ui/DiscoverRail.tsx
 msgid "same author"
 msgstr "same author"
+
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Same work"
+msgstr "Same work"
 
 #: src/components/SourceCompareModal.tsx
 msgid "Sample chapter"
@@ -9442,10 +9240,6 @@ msgstr "Savoured"
 msgid "Scale"
 msgstr "Scale"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#~ msgid "Scale ({scale}%)"
-#~ msgstr "Scale ({scale}%)"
-
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
 msgid "Scan"
@@ -9492,10 +9286,6 @@ msgstr "Scanning the MangaBaka database for matches…"
 #: src/pages/ImportPage.tsx
 msgid "Scans a root folder for series Fōkurōru doesn't know yet, matches them to metadata, renames each folder to the English title, and links existing comic files to chapters. Files keep their original names; a PDF is kept as it is, never converted."
 msgstr "Scans a root folder for series Fōkurōru doesn't know yet, matches them to metadata, renames each folder to the English title, and links existing comic files to chapters. Files keep their original names; a PDF is kept as it is, never converted."
-
-#: src/pages/ImportPage.tsx
-#~ msgid "Scans a root folder for series Maki doesn't know yet, matches them to metadata, renames each folder to the English title, and links existing comic files to chapters. Files keep their original names; a PDF is kept as it is, never converted."
-#~ msgstr "Scans a root folder for series Maki doesn't know yet, matches them to metadata, renames each folder to the English title, and links existing comic files to chapters. Files keep their original names; a PDF is kept as it is, never converted."
 
 #: src/components/CatalogueFilters.tsx
 msgid "School Life"
@@ -9626,10 +9416,6 @@ msgstr "Search genres, tags or groups like Character Traits"
 msgid "Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically."
 msgstr "Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically."
 
-#: src/pages/LibraryPage.tsx
-#~ msgid "Search MangaBaka and add your first series. Maki will monitor for new chapters and download them automatically."
-#~ msgstr "Search MangaBaka and add your first series. Maki will monitor for new chapters and download them automatically."
-
 #: src/components/SetupWizard.tsx
 msgid "Search MangaBaka and start downloading."
 msgstr "Search MangaBaka and start downloading."
@@ -9690,6 +9476,10 @@ msgstr "Search…"
 msgid "searched as “{cleanedTitle}”"
 msgstr "searched as “{cleanedTitle}”"
 
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Searches each enabled source for this title and links the first chapter on the site, so you can try it before adding it."
+msgstr "Searches each enabled source for this title and links the first chapter on the site, so you can try it before adding it."
+
 #: src/pages/SettingsPage.tsx
 msgid "Searches your indexers for manga releases through Prowlarr's search API. No app sync needed."
 msgstr "Searches your indexers for manga releases through Prowlarr's search API. No app sync needed."
@@ -9705,6 +9495,10 @@ msgstr "Searching indexers…"
 #: src/components/SourceMappingsSection.tsx
 msgid "Searching sources for a match…"
 msgstr "Searching sources for a match…"
+
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "Searching your sources…"
+msgstr "Searching your sources…"
 
 #: src/components/AnimeCoverageBar.tsx
 msgid "Season"
@@ -9723,10 +9517,6 @@ msgstr "Security"
 msgid "Security settings saved. Restart Fōkurōru to apply them."
 msgstr "Security settings saved. Restart Fōkurōru to apply them."
 
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "Security settings saved. Restart Maki to apply them."
-#~ msgstr "Security settings saved. Restart Maki to apply them."
-
 #: src/components/NotificationBell.tsx
 msgid "See all notifications"
 msgstr "See all notifications"
@@ -9742,10 +9532,6 @@ msgstr "Seeded from"
 #: src/pages/SettingsPage.tsx
 msgid "Seeding torrents stay in the download folder, so imports are linked or copied, never moved. A hardlink stores the files once but needs the download folder and library on the same filesystem; otherwise Fōkurōru copies. Hardlinked files are left as released, without Fōkurōru's ComicInfo.xml, so Kavita may group them apart from Fōkurōru's own downloads."
 msgstr "Seeding torrents stay in the download folder, so imports are linked or copied, never moved. A hardlink stores the files once but needs the download folder and library on the same filesystem; otherwise Fōkurōru copies. Hardlinked files are left as released, without Fōkurōru's ComicInfo.xml, so Kavita may group them apart from Fōkurōru's own downloads."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Seeding torrents stay in the download folder, so imports are linked or copied, never moved. A hardlink stores the files once but needs the download folder and library on the same filesystem; otherwise Maki copies. Hardlinked files are left as released, without Maki's ComicInfo.xml, so Kavita may group them apart from Maki's own downloads."
-#~ msgstr "Seeding torrents stay in the download folder, so imports are linked or copied, never moved. A hardlink stores the files once but needs the download folder and library on the same filesystem; otherwise Maki copies. Hardlinked files are left as released, without Maki's ComicInfo.xml, so Kavita may group them apart from Maki's own downloads."
 
 #: src/components/ReleaseSearchModal.tsx
 msgid "Seeds"
@@ -9885,10 +9671,6 @@ msgstr "Series and chapters you have asked an admin for."
 #: src/components/SetupWizard.tsx
 msgid "Series details come from MangaBaka. Choose how much of it Fōkurōru keeps at hand, and what it may show you."
 msgstr "Series details come from MangaBaka. Choose how much of it Fōkurōru keeps at hand, and what it may show you."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Series details come from MangaBaka. Choose how much of it Maki keeps at hand, and what it may show you."
-#~ msgstr "Series details come from MangaBaka. Choose how much of it Maki keeps at hand, and what it may show you."
 
 #: src/components/settings/ProgressSection.tsx
 msgid "series finished"
@@ -10169,10 +9951,6 @@ msgstr "Sign in"
 msgid "Sign in through an OpenID Connect provider (Authelia, Keycloak, Authentik, Entra ID). Changes take effect after Fōkurōru restarts. Register <0>{redirectUrl}</0> as this client's redirect URI. If Fōkurōru is reached at another host too (a different domain, LAN IP, or reverse-proxy path), register that host's variant as well."
 msgstr "Sign in through an OpenID Connect provider (Authelia, Keycloak, Authentik, Entra ID). Changes take effect after Fōkurōru restarts. Register <0>{redirectUrl}</0> as this client's redirect URI. If Fōkurōru is reached at another host too (a different domain, LAN IP, or reverse-proxy path), register that host's variant as well."
 
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "Sign in through an OpenID Connect provider (Authelia, Keycloak, Authentik, Entra ID). Changes take effect after Maki restarts. Register <0>{redirectUrl}</0> as this client's redirect URI. If Maki is reached at another host too (a different domain, LAN IP, or reverse-proxy path), register that host's variant as well."
-#~ msgstr "Sign in through an OpenID Connect provider (Authelia, Keycloak, Authentik, Entra ID). Changes take effect after Maki restarts. Register <0>{redirectUrl}</0> as this client's redirect URI. If Maki is reached at another host too (a different domain, LAN IP, or reverse-proxy path), register that host's variant as well."
-
 #: src/pages/LoginPage.tsx
 msgid "Sign in with a password"
 msgstr "Sign in with a password"
@@ -10236,10 +10014,6 @@ msgstr "Single sign-on linked to your account"
 #: src/components/settings/SecuritySection.tsx
 msgid "Single sign-on saved. Restart Fōkurōru to apply it."
 msgstr "Single sign-on saved. Restart Fōkurōru to apply it."
-
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "Single sign-on saved. Restart Maki to apply it."
-#~ msgstr "Single sign-on saved. Restart Maki to apply it."
 
 #: src/pages/HealthPage.tsx
 msgid "Sits in <0>{seriesTitle}</0> and parses to {chapterCount, plural, one {1 chapter} other {# chapters}} in it."
@@ -10339,10 +10113,6 @@ msgstr "Someone asked for a series."
 #: src/api/queue.ts
 msgid "Something went wrong, Fōkurōru will try again"
 msgstr "Something went wrong, Fōkurōru will try again"
-
-#: src/api/queue.ts
-#~ msgid "Something went wrong, Maki will try again"
-#~ msgstr "Something went wrong, Maki will try again"
 
 #: src/components/CatalogueBrowser.tsx
 #: src/pages/CreatorPage.tsx
@@ -10578,11 +10348,6 @@ msgstr "Step {stepNumber} of {stepTotal}"
 msgid "Still early access on {source}, Fōkurōru will check again later"
 msgstr "Still early access on {source}, Fōkurōru will check again later"
 
-#. {source} is a site name and is never translated.
-#: src/api/queue.ts
-#~ msgid "Still early access on {source}, Maki will check again later"
-#~ msgstr "Still early access on {source}, Maki will check again later"
-
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Still going"
 msgstr "Still going"
@@ -10598,10 +10363,6 @@ msgstr "Stopped before finishing"
 #: src/pages/SettingsPage.tsx
 msgid "Storage, metadata, download clients and integrations for your Fōkurōru instance."
 msgstr "Storage, metadata, download clients and integrations for your Fōkurōru instance."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Storage, metadata, download clients and integrations for your Maki instance."
-#~ msgstr "Storage, metadata, download clients and integrations for your Maki instance."
 
 #: src/components/CreditPicker.tsx
 #: src/components/discover/DiscoverGlance.tsx
@@ -10906,14 +10667,6 @@ msgstr "The language of Fōkurōru's interface, on every device you sign in on."
 msgid "The language of Fōkurōru's interface, on every device. Title language below is separate: it sets the language of series titles."
 msgstr "The language of Fōkurōru's interface, on every device. Title language below is separate: it sets the language of series titles."
 
-#: src/components/SetupWizard.tsx
-#~ msgid "The language of Maki's interface, on every device you sign in on."
-#~ msgstr "The language of Maki's interface, on every device you sign in on."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "The language of Maki's interface, on every device. Title language below is separate: it sets the language of series titles."
-#~ msgstr "The language of Maki's interface, on every device. Title language below is separate: it sets the language of series titles."
-
 #: src/pages/stats/StatsRange.ts
 msgid "the last 12 months"
 msgstr "the last 12 months"
@@ -10971,10 +10724,6 @@ msgstr "The provider assigns these chapters to this volume. Usually right, compi
 msgid "The provider's issuer, without /.well-known/openid-configuration. Fōkurōru appends that itself."
 msgstr "The provider's issuer, without /.well-known/openid-configuration. Fōkurōru appends that itself."
 
-#: src/components/settings/SecuritySection.tsx
-#~ msgid "The provider's issuer, without /.well-known/openid-configuration. Maki appends that itself."
-#~ msgstr "The provider's issuer, without /.well-known/openid-configuration. Maki appends that itself."
-
 #: src/pages/RequestsPage.tsx
 msgid "The request for {removingTitle} is removed. This can't be undone."
 msgstr "The request for {removingTitle} is removed. This can't be undone."
@@ -10987,13 +10736,13 @@ msgstr "The same chapter as each source scans it, heaviest first. Drag the colum
 msgid "The same counts the Stats page shows, kept here so the groups above have something to sit against."
 msgstr "The same counts the Stats page shows, kept here so the groups above have something to sit against."
 
+#: src/components/discover/SourcePreviewPanel.tsx
+msgid "The search failed."
+msgstr "The search failed."
+
 #: src/pages/LibraryPage.tsx
 msgid "The selected series will be removed from Fōkurōru and stop being monitored."
 msgstr "The selected series will be removed from Fōkurōru and stop being monitored."
-
-#: src/pages/LibraryPage.tsx
-#~ msgid "The selected series will be removed from Maki and stop being monitored."
-#~ msgstr "The selected series will be removed from Maki and stop being monitored."
 
 #: src/pages/HealthPage.tsx
 msgid "the series' sources"
@@ -11006,10 +10755,6 @@ msgstr "The server logs will say why."
 #: src/components/settings/AccountSection.tsx
 msgid "The single biggest improvement if Fōkurōru is reachable from the internet."
 msgstr "The single biggest improvement if Fōkurōru is reachable from the internet."
-
-#: src/components/settings/AccountSection.tsx
-#~ msgid "The single biggest improvement if Maki is reachable from the internet."
-#~ msgstr "The single biggest improvement if Maki is reachable from the internet."
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "The source asked us to slow down. Waiting to try again…"
@@ -11118,10 +10863,6 @@ msgstr "This archive is not inside any series folder in its root, so there is no
 msgid "This chapter as each source scans it, heaviest first. Pick the one that looks best and Fōkurōru downloads it again from there, replacing the file you have."
 msgstr "This chapter as each source scans it, heaviest first. Pick the one that looks best and Fōkurōru downloads it again from there, replacing the file you have."
 
-#: src/components/SourceCompareModal.tsx
-#~ msgid "This chapter as each source scans it, heaviest first. Pick the one that looks best and Maki downloads it again from there, replacing the file you have."
-#~ msgstr "This chapter as each source scans it, heaviest first. Pick the one that looks best and Maki downloads it again from there, replacing the file you have."
-
 #: src/pages/reader/ReaderPage.tsx
 msgid "This chapter has no readable file."
 msgstr "This chapter has no readable file."
@@ -11159,10 +10900,6 @@ msgstr "This permanently deletes {count, plural, one {the file} other {these fil
 msgid "This permanently deletes the archive. Chapter records and reading history remain."
 msgstr "This permanently deletes the archive. Chapter records and reading history remain."
 
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "This permanently removes {selectedCount} chapter row(s), not just their file link, along with any backing file on disk."
-#~ msgstr "This permanently removes {selectedCount} chapter row(s), not just their file link, along with any backing file on disk."
-
 #: src/api/queue.ts
 msgid "This queue item has no chapter to find a source for"
 msgstr "This queue item has no chapter to find a source for"
@@ -11179,10 +10916,6 @@ msgstr "This re-downloads the poster for all {seriesTotalLabel} series, one meta
 msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
 msgstr "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
 
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "This removes \"{seriesTitle}\" and its chapters from Maki."
-#~ msgstr "This removes \"{seriesTitle}\" and its chapters from Maki."
-
 #: src/components/SourceMappingsSection.tsx
 msgid "This removes only the source mapping. Existing chapter rows and files will stay exactly as they are and may need manual cleanup later."
 msgstr "This removes only the source mapping. Existing chapter rows and files will stay exactly as they are and may need manual cleanup later."
@@ -11195,17 +10928,9 @@ msgstr "This repair needs a source chosen by hand"
 msgid "This replaces your current library and settings with <0>{backupName}</0>, then restarts Fōkurōru. The current data is not kept, so take a backup first if you want a way back. Docker and systemd bring Fōkurōru back up on their own; otherwise start it again yourself."
 msgstr "This replaces your current library and settings with <0>{backupName}</0>, then restarts Fōkurōru. The current data is not kept, so take a backup first if you want a way back. Docker and systemd bring Fōkurōru back up on their own; otherwise start it again yourself."
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "This replaces your current library and settings with <0>{backupName}</0>, then restarts Maki. The current data is not kept, so take a backup first if you want a way back. Docker and systemd bring Maki back up on their own; otherwise start it again yourself."
-#~ msgstr "This replaces your current library and settings with <0>{backupName}</0>, then restarts Maki. The current data is not kept, so take a backup first if you want a way back. Docker and systemd bring Maki back up on their own; otherwise start it again yourself."
-
 #: src/components/LinkFileToChaptersModal.tsx
 msgid "This series has no chapters yet. Add a source mapping first so Fōkurōru knows what to link."
 msgstr "This series has no chapters yet. Add a source mapping first so Fōkurōru knows what to link."
-
-#: src/components/LinkFileToChaptersModal.tsx
-#~ msgid "This series has no chapters yet. Add a source mapping first so Maki knows what to link."
-#~ msgstr "This series has no chapters yet. Add a source mapping first so Maki knows what to link."
 
 #: src/components/SourceCompareModal.tsx
 msgid "This source's images don't match the others, usually a different edition or scanlation. Its pages are shown as served, so the rows don't line up with the other columns."
@@ -11496,6 +11221,7 @@ msgstr "Trusted proxies"
 msgid "Try a shorter or alternative query."
 msgstr "Try a shorter or alternative query."
 
+#: src/components/discover/SourcePreviewPanel.tsx
 #: src/pages/DiscoverPage.tsx
 #: src/pages/reader/DownloadSplash.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
@@ -11517,10 +11243,6 @@ msgstr "Turn on anime signals on the Taste tab to use this."
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Turn sources on or off on the left. Drag the rail on the right to set which one Fōkurōru tries first."
 msgstr "Turn sources on or off on the left. Drag the rail on the right to set which one Fōkurōru tries first."
-
-#: src/pages/settings/ManageSourcesModal.tsx
-#~ msgid "Turn sources on or off on the left. Drag the rail on the right to set which one Maki tries first."
-#~ msgstr "Turn sources on or off on the left. Drag the rail on the right to set which one Maki tries first."
 
 #: src/components/settings/NotificationPrefsSection.tsx
 msgid "Turn this off to only see them in the bell."
@@ -11829,10 +11551,6 @@ msgstr "Use this copy"
 msgid "Use this title for taste"
 msgstr "Use this title for taste"
 
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "Use this to clean up chapters pulled in by a wrong source match."
-#~ msgstr "Use this to clean up chapters pulled in by a wrong source match."
-
 #: src/components/settings/UsersSection.tsx
 msgid "Use trackers"
 msgstr "Use trackers"
@@ -11840,10 +11558,6 @@ msgstr "Use trackers"
 #: src/pages/SettingsPage.tsx
 msgid "Used for chapters Fōkurōru downloads, and for imported files unless you keep their original names below"
 msgstr "Used for chapters Fōkurōru downloads, and for imported files unless you keep their original names below"
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Used for chapters Maki downloads, and for imported files unless you keep their original names below"
-#~ msgstr "Used for chapters Maki downloads, and for imported files unless you keep their original names below"
 
 #: src/pages/SettingsPage.tsx
 msgid "Used when adding a series, importing one, or renaming its folder"
@@ -12131,10 +11845,6 @@ msgstr "Welcome"
 msgid "Welcome to Fōkurōru"
 msgstr "Welcome to Fōkurōru"
 
-#: src/components/SetupWizard.tsx
-#~ msgid "Welcome to Maki"
-#~ msgstr "Welcome to Maki"
-
 #: src/pages/SettingsPage.tsx
 msgid "What a series starts with when it is added or imported. Changing these never touches series already in the library."
 msgstr "What a series starts with when it is added or imported. Changing these never touches series already in the library."
@@ -12146,10 +11856,6 @@ msgstr "What happened in your library while you were away."
 #: src/components/SetupWizard.tsx
 msgid "What happens to a series folder you already have when you import it into Fōkurōru."
 msgstr "What happens to a series folder you already have when you import it into Fōkurōru."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "What happens to a series folder you already have when you import it into Maki."
-#~ msgstr "What happens to a series folder you already have when you import it into Maki."
 
 #: src/components/series/SeriesActionsMenu.tsx
 msgid "What happens to chapters released later"
@@ -12236,10 +11942,6 @@ msgid "Where your manga is stored, or should be. Fōkurōru creates one folder p
 msgstr "Where your manga is stored, or should be. Fōkurōru creates one folder per series inside it. If you use Kavita, point it at the same place."
 
 #: src/components/SetupWizard.tsx
-#~ msgid "Where your manga is stored, or should be. Maki creates one folder per series inside it. If you use Kavita, point it at the same place."
-#~ msgstr "Where your manga is stored, or should be. Maki creates one folder per series inside it. If you use Kavita, point it at the same place."
-
-#: src/components/SetupWizard.tsx
 msgid "Where your manga lives"
 msgstr "Where your manga lives"
 
@@ -12255,17 +11957,9 @@ msgstr "Which language series titles are shown in, where the metadata provider h
 msgid "Which languages Fōkurōru looks for, and which chapters it leaves alone."
 msgstr "Which languages Fōkurōru looks for, and which chapters it leaves alone."
 
-#: src/components/SetupWizard.tsx
-#~ msgid "Which languages Maki looks for, and which chapters it leaves alone."
-#~ msgstr "Which languages Maki looks for, and which chapters it leaves alone."
-
 #: src/pages/SettingsPage.tsx
 msgid "Which page Fōkurōru opens on, on every device."
 msgstr "Which page Fōkurōru opens on, on every device."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Which page Maki opens on, on every device."
-#~ msgstr "Which page Maki opens on, on every device."
 
 #: src/pages/SettingsPage.tsx
 msgid "Which rails appear below the chapter list. Turning one off also stops it being fetched."
@@ -12332,10 +12026,6 @@ msgstr "Write ComicInfo.xml into imported files"
 #: src/pages/SettingsPage.tsx
 msgid "Writes a standard <0>ComicInfo.xml</0> into imported CBZs so Kavita groups and names chapters consistently. Off leaves torrent grabs and manual imports untouched. Fōkurōru's own downloads always get one, and PDFs never do. A series page's \"Update ComicInfo\" action standardizes one series later."
 msgstr "Writes a standard <0>ComicInfo.xml</0> into imported CBZs so Kavita groups and names chapters consistently. Off leaves torrent grabs and manual imports untouched. Fōkurōru's own downloads always get one, and PDFs never do. A series page's \"Update ComicInfo\" action standardizes one series later."
-
-#: src/pages/SettingsPage.tsx
-#~ msgid "Writes a standard <0>ComicInfo.xml</0> into imported CBZs so Kavita groups and names chapters consistently. Off leaves torrent grabs and manual imports untouched. Maki's own downloads always get one, and PDFs never do. A series page's \"Update ComicInfo\" action standardizes one series later."
-#~ msgstr "Writes a standard <0>ComicInfo.xml</0> into imported CBZs so Kavita groups and names chapters consistently. Off leaves torrent grabs and manual imports untouched. Maki's own downloads always get one, and PDFs never do. A series page's \"Update ComicInfo\" action standardizes one series later."
 
 #: src/components/settings/SecuritySection.tsx
 msgid "Written <0>claim=value</0>, e.g. <1>groups=maki-admins</1>."
@@ -12485,10 +12175,6 @@ msgstr "Your {label}"
 msgid "Your account and how Fōkurōru looks."
 msgstr "Your account and how Fōkurōru looks."
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "Your account and how Maki looks."
-#~ msgstr "Your account and how Maki looks."
-
 #: src/pages/rewind/slides.tsx
 msgid "Your busiest month"
 msgstr "Your busiest month"
@@ -12496,10 +12182,6 @@ msgstr "Your busiest month"
 #: src/components/SetupWizard.tsx
 msgid "Your folder is left alone. New chapters go into a folder Fōkurōru names."
 msgstr "Your folder is left alone. New chapters go into a folder Fōkurōru names."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Your folder is left alone. New chapters go into a folder Maki names."
-#~ msgstr "Your folder is left alone. New chapters go into a folder Maki names."
 
 #: src/api/customRails.ts
 msgid "Your library"
@@ -12516,10 +12198,6 @@ msgstr "Your library is empty"
 #: src/pages/settings/registry.ts
 msgid "Your login, your API keys, and how Fōkurōru looks and opens for you."
 msgstr "Your login, your API keys, and how Fōkurōru looks and opens for you."
-
-#: src/pages/settings/registry.ts
-#~ msgid "Your login, your API keys, and how Maki looks and opens for you."
-#~ msgstr "Your login, your API keys, and how Maki looks and opens for you."
 
 #: src/pages/rewind/slides.tsx
 msgid "Your most read series"

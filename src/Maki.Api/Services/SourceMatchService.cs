@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Maki.Core.Entities;
+using Maki.Core.Reading;
 using Maki.Core.Scrobbling;
 using Maki.Core.Sources;
 using Maki.Data;
@@ -402,6 +403,77 @@ public partial class SourceMatchService(
         }
     }
 
+    /// <summary>
+    /// "Preview" on the add screen: what every enabled source would match for a title that is not in
+    /// the library yet, and a link to each match's first chapter so it can be read on the site before
+    /// adding. The same searches and the same accept rule as <see cref="AutoMatchAsync"/>, run against
+    /// an unsaved <see cref="Series"/>; nothing is written. Sources searched in parallel, chapter lists
+    /// fetched only for the ones that matched, and a failure on one site only drops that site.
+    /// </summary>
+    public async Task<List<SourcePreview>> PreviewAsync(Series series, CancellationToken ct)
+    {
+        var baseOrder = OrderSources(
+            sourceRegistry.All, await settings.GetAsync(Maki.Core.Configuration.SettingKeys.SourcePriorityOrder, ct));
+        var languages = await SourceLanguagePreference.LoadAsync(settings, ct);
+        var ordered = SourceLanguagePreference.Rank(baseOrder, languages);
+        var disabled = await sourceAvailability.DisabledAsync(ct);
+        var work = ordered
+            .Select((source, index) => (Source: source, Priority: index + 1))
+            .Where(item => !disabled.Contains(item.Source.Name, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        var target = MatchTarget.For(series);
+        using var gate = new SemaphoreSlim(MaxParallelSources, MaxParallelSources);
+        var previews = await Task.WhenAll(work.Select(item => WithGate(gate, async () =>
+        {
+            var outcome = await SearchOneAsync(item.Source, item.Priority, target, null, ct);
+            if (outcome.Match is not { } match)
+            {
+                return null;
+            }
+
+            SourceChapter? first = null;
+            try
+            {
+                var chapters = await item.Source.ListChaptersAsync(
+                    match.SourceSeriesId, SourceLanguagePreference.SeedFilter(item.Source, languages), ct);
+                first = ChapterOrder.Sort(chapters, c => c.Number, c => c.Volume, _ => 0)
+                    .FirstOrDefault(c => !string.IsNullOrEmpty(c.Url));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+            {
+                // The match is still worth showing; the link just falls back to the series page.
+                logger.LogWarning(ex, "Preview could not list chapters on {Source} for {Title}", item.Source.Name, series.Title);
+            }
+
+            return new SourcePreview(
+                item.Source.Name, item.Source.DisplayName, item.Priority, match.Title, match.Url,
+                AbsoluteUrl(match.Url, first?.Url), first is null ? null : ChapterLabel.For(first.Number, first.Volume, first.Title, first.Number is null),
+                outcome.Origin == SourceMappingOrigin.CrossId);
+        }, ct)));
+
+        return previews.OfType<SourcePreview>().OrderBy(p => p.Priority).ToList();
+    }
+
+    /// <summary>
+    /// Some sources list chapters with a site-relative path (WeebCentral's <c>/chapters/{id}</c>), which
+    /// the browser would resolve against Fōkurōru itself. Resolved against the series page instead.
+    /// </summary>
+    internal static string? AbsoluteUrl(string seriesUrl, string? chapterUrl)
+    {
+        // Only http(s) counts as already absolute: on Linux and macOS "/chapters/x" parses as an
+        // absolute file:// URI.
+        if (string.IsNullOrEmpty(chapterUrl) ||
+            (Uri.TryCreate(chapterUrl, UriKind.Absolute, out var own) && own.Scheme is "http" or "https"))
+        {
+            return chapterUrl;
+        }
+
+        return Uri.TryCreate(seriesUrl, UriKind.Absolute, out var baseUri) && Uri.TryCreate(baseUri, chapterUrl, out var resolved)
+            ? resolved.ToString()
+            : null;
+    }
+
     /// <param name="progress">
     /// Optional per-source running commentary, for a caller that shows the sources resolving one at
     /// a time. Every source reports <see cref="SourceMatchState.Searching"/> before the fan-out and
@@ -541,3 +613,16 @@ public partial class SourceMatchService(
         return mapped;
     }
 }
+
+/// <summary>One source's answer to "Preview" on the add screen.</summary>
+/// <param name="FirstChapterUrl">The site's page for the first chapter it lists, or null when it listed none.</param>
+/// <param name="ConfirmedById">Matched on a shared tracker id rather than by title, so it is certainly the same work.</param>
+public record SourcePreview(
+    string SourceName,
+    string DisplayName,
+    int Priority,
+    string SeriesTitle,
+    string SeriesUrl,
+    string? FirstChapterUrl,
+    string? FirstChapterLabel,
+    bool ConfirmedById);

@@ -2438,6 +2438,36 @@ export function useSourceSearch(sourceName: string, query: string) {
   })
 }
 
+/** One source's match for a title not yet in the library, from `GET /search/preview`. */
+export interface SourcePreview {
+  sourceName: string
+  displayName: string
+  priority: number
+  seriesTitle: string
+  seriesUrl: string
+  /** The site's page for the first chapter it lists; null when it listed none. */
+  firstChapterUrl: string | null
+  firstChapterLabel: string | null
+  /** Matched on a shared tracker id, not just the title. */
+  confirmedById: boolean
+}
+
+/**
+ * Searches every enabled source for a catalogue title and links each match's first chapter, so it
+ * can be read on the site before adding. Runs only when `enabled` (a click), since it hits every
+ * source; the answer is kept for ten minutes.
+ */
+export function useSourcePreview(providerId: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: ['source-preview', providerId],
+    queryFn: () =>
+      api<SourcePreview[]>(`/search/preview?metadataProviderId=${encodeURIComponent(providerId ?? '')}`),
+    enabled: enabled && !!providerId,
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  })
+}
+
 export interface ResolvedSourceUrl {
   sourceName: string
   displayName: string

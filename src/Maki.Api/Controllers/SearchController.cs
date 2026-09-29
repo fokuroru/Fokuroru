@@ -40,6 +40,26 @@ public class SearchController(
     }
 
     /// <summary>
+    /// "Preview" on the add screen: searches every enabled source for a catalogue title that is not
+    /// in the library yet and returns each match with a link to its first chapter on the site, so it
+    /// can be read before adding. Runs the auto-match searches without saving anything; see
+    /// <see cref="SourceMatchService.PreviewAsync"/>.
+    /// </summary>
+    [HttpGet("preview")]
+    public async Task<IActionResult> Preview(
+        [FromQuery] string metadataProviderId, [FromServices] SourceMatchService matcher, CancellationToken ct)
+    {
+        var metadata = await metadataProviders.First().GetAsync(metadataProviderId, ct);
+        if (metadata is null)
+        {
+            return NotFound();
+        }
+
+        var previews = await matcher.PreviewAsync(SeriesMetadataMapper.NewFromMetadata(metadata), ct);
+        return Ok(previews);
+    }
+
+    /// <summary>
     /// Resolves a pasted series-page URL to a source + series id, bypassing search.
     /// Fetches the series detail so the UI can show what will be linked.
     /// </summary>
