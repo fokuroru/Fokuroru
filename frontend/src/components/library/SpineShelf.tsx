@@ -16,6 +16,8 @@ import { contrast, DEFAULT_SPINE, spineInk } from '../../lib/spine'
 import type { MangaShelf, ShelfBook } from './shelf3d/mangaShelf'
 
 const MAX_SERIES = 14
+/** Candidates handed to the 3D shelf; it shows as many as fit in three quarters of its width. */
+const MAX_SHELF_CANDIDATES = 60
 const CHAPTERS_PER_BOOK = 20
 const MAX_BOOKS = 5
 /** Spines carrying cover art share one width, so the art sits in the same frame on every book. */
@@ -251,7 +253,7 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
     .map((s) => ({ s, p: seriesProgressVisual(s, readTracking) }))
     .filter(({ s }) => s.readingStatus === 'Reading')
     .sort((a, b) => (b.s.lastReadAt ?? '').localeCompare(a.s.lastReadAt ?? ''))
-    .slice(0, MAX_SERIES)
+    .slice(0, MAX_SHELF_CANDIDATES)
   if (reading.length === 0) return null
 
   // `settle` gives the 3D shelf's pull-out animation time to play; the lookup runs alongside it.
@@ -293,7 +295,10 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
     <section className="spine-shelf" aria-label={t`Reading now`}>
       <div className="spine-shelf-label">{t`Reading now`}</div>
       {flat ? (
-        <FlatShelf reading={reading.map(({ s, p }) => ({ s, total: s.mainChapterCount || p.total || p.have }))} open={open} />
+        <FlatShelf
+          reading={reading.slice(0, MAX_SERIES).map(({ s, p }) => ({ s, total: s.mainChapterCount || p.total || p.have }))}
+          open={open}
+        />
       ) : (
         <Shelf3D books={books} dark={scheme === 'dark'} onOpen={(id) => goTo(id, 500)} onFail={() => setFlat(true)} />
       )}

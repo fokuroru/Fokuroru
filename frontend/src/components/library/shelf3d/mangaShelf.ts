@@ -427,28 +427,16 @@ export class MangaShelf {
   }
 
   /**
-   * Lays the books out afresh on every load: shuffled, most standing, some lying in small piles and
-   * some tipped against a neighbour. Only the starting pose is chosen here; gravity does the rest, so
-   * a tipped book either comes to rest leaning or falls over, as it would on a real shelf. A lying
-   * book takes a lot of shelf, so a dozen arrangements are drawn and one needing the fewest shelves
-   * is kept: randomness should never leave one book alone on a shelf of its own.
+   * One shelf, most recently read on the left. However many books fit in three quarters of it are
+   * shown and the rest of the shelf stays empty. Poses are fresh on every load: most standing, some
+   * lying in small piles, some tipped against a neighbour. Only the starting pose is chosen here;
+   * gravity does the rest, so a tipped book either comes to rest leaning or falls over.
    */
   private layout() {
     this.clear()
     const width = this.logicalWidth
-    let best: Placement[] = []
-    let bestRows = Infinity
-    for (let attempt = 0; attempt < 12; attempt++) {
-      const plan = planShelf(this.books, width, attempt === 0 ? 0 : 0.18)
-      const rows = plan.reduce((n, p) => Math.max(n, p.row + 1), 0)
-      if (rows < bestRows || (rows === bestRows && Math.random() < 0.5)) {
-        best = plan
-        bestRows = rows
-      }
-    }
-    for (const p of best) {
-      while (this.rows.length <= p.row) this.newRow(width)
-      const row = this.rows[p.row]
+    const row = this.newRow(width)
+    for (const p of planShelf(this.books, width)) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
       const model = this.model(p.book)
       row.scene.add(model)
@@ -578,55 +566,54 @@ export class MangaShelf {
 
 interface Placement {
   book: ShelfBook
-  row: number
   /** Bottom-left corner of the upright book's box, before `angle` is applied about its centre. */
   x: number
   y: number
   angle: number
 }
 
+/** At least this share of the shelf is left empty. */
+const EMPTY_SHARE = 0.25
+const LYING_SHARE = 0.15
+const LEANING_SHARE = 0.3
+
 /**
- * One random arrangement: shuffled order, a share of books lying in piles of up to three
- * (`lyingShare`, 0 for all standing), a third of the standing ones tipped to lean on a neighbour.
+ * The books in the order given, until the next one would take the shelf past three quarters full.
+ * A share lie in piles of up to three (consecutive books, so the order still reads left to right)
+ * and a share of the standing ones start tipped to lean on a neighbour.
  */
-function planShelf(books: ShelfBook[], width: number, lyingShare: number): Placement[] {
-  const order = [...books].sort(() => Math.random() - 0.5)
+function planShelf(books: ShelfBook[], width: number): Placement[] {
+  const limit = width * (1 - EMPTY_SHARE)
   const out: Placement[] = []
-  let row = -1
-  let x = 0
+  let x = 18
   let pile: { x: number; top: number; length: number; count: number } | null = null
-  const room = (need: number) => {
-    if (row < 0 || x + need > width - 32) {
-      row++
-      x = 18
-      pile = null
-    }
-  }
-  order.forEach((b, i) => {
+  for (const [i, b] of books.entries()) {
     const roll = Math.random()
-    if (roll < lyingShare) {
-      const length = b.height
-      if (!pile || pile.count >= 3 || length > pile.length + 20) {
-        room(length + 10)
+    const length = b.height
+    // A longer book can overhang the pile below it; only a much longer one starts a pile of its own.
+    const joins = pile !== null && pile.count < 3 && length <= pile.length + 60
+    // Lying down only when there is room for it; otherwise the book stands, so the shelf only
+    // stops when even an upright book would not fit.
+    if (roll < LYING_SHARE && (joins || x + length <= limit)) {
+      if (!joins) {
         pile = { x, top: 360, length, count: 0 }
         x += length + 10
       }
-      const cx = pile.x + pile.length / 2 + (Math.random() - 0.5) * 12
-      const cy = pile.top - b.width / 2
-      out.push({
-        book: b, row, x: cx - b.width / 2, y: cy - b.height / 2,
-        angle: Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2,
-      })
-      pile.top -= b.width + 1
-      pile.count++
-      return
+      const p = pile!
+      const cx = p.x + p.length / 2 + (Math.random() - 0.5) * 12
+      const cy = p.top - b.width / 2
+      out.push({ book: b, x: cx - b.width / 2, y: cy - b.height / 2, angle: Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2 })
+      p.top -= b.width + 1
+      p.count++
+      continue
     }
-    room(b.width + 14)
-    pile = null
-    const lean = roll < lyingShare + 0.3 ? (Math.random() < 0.5 ? -1 : 1) * (0.12 + Math.random() * 0.2) : 0
+    let lean = roll < LYING_SHARE + LEANING_SHARE ? (Math.random() < 0.5 ? -1 : 1) * (0.12 + Math.random() * 0.2) : 0
+    if (lean && x + b.width + Math.abs(lean) * b.height * 0.35 > limit) lean = 0
     const shift = lean ? Math.abs(lean) * b.height * 0.35 : 0
-    out.push({ book: b, row, x: x + (lean > 0 ? shift : 0), y: 360 - b.height - (lean ? 8 : 0), angle: lean })
+    if (x + b.width > limit) break
+    pile = null
+    out.push({ book: b, x: x + (lean > 0 ? shift : 0), y: 360 - b.height - (lean ? 8 : 0), angle: lean })
     x += b.width + shift + [5, 9, 4, 7, 14][i % 5]
-  })
+  }
   return out
 }
