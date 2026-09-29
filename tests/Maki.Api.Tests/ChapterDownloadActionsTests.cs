@@ -113,7 +113,7 @@ public class ChapterDownloadActionsTests : IDisposable
         logger: NullLogger<SeriesController>.Instance);
 
     private ChapterController ChapterController(DownloadQueueService queue) => new(
-        new TestLocalizer(), _db.NewContext(), queue, null!, null!, new SourceRegistry([]),
+        new TestLocalizer(), _db.NewContext(), queue, null!, null!, null!, new SourceRegistry([]),
         new SourceChapterListCache(TimeProvider.System, NullLogger<SourceChapterListCache>.Instance),
         _batches, new TestCurrentUser(1), NullLogger<ChapterController>.Instance);
 

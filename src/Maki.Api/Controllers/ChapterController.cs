@@ -32,6 +32,7 @@ public class ChapterController(
     DownloadQueueService queue,
     StatsEventService stats,
     ReaderArchiveCache archives,
+    ReaderService reader,
     SourceRegistry sourceRegistry,
     SourceChapterListCache chapterLists,
     DownloadBatchNotifier downloadBatches,
@@ -56,6 +57,10 @@ public class ChapterController(
                 c.Language,
                 c.ReleaseDate,
                 c.Wanted,
+                c.PageCount,
+                c.PageCountKey,
+                c.ChapterFileId,
+                FileSize = c.ChapterFile != null ? c.ChapterFile.Size : 0,
                 HasFile = c.ChapterFileId != null,
                 FilePath = c.ChapterFile != null ? c.ChapterFile.RelativePath : null,
                 // Where the file came from: a registered source's name, the literal "import" for a
@@ -65,6 +70,8 @@ public class ChapterController(
                 FileReleaseName = c.ChapterFile != null ? c.ChapterFile.ReleaseName : null
             })
             .ToListAsync(ct);
+
+        var pageCounts = await PageCountsAsync(rows.Select(r => (r.Id, r.ChapterFileId, r.FileSize, r.PageCount, r.PageCountKey)).ToList(), ct);
 
         // When a chapter's backing file is a volume/compilation CBZ, surface that
         // volume so the UI can show "Vol.x Ch.y" even for scrape-source chapters that
@@ -83,6 +90,7 @@ public class ChapterController(
             c.ReleaseDate,
             c.Wanted,
             c.HasFile,
+            PageCount = pageCounts.GetValueOrDefault(c.Id),
             c.FilePath,
             c.FileSourceName,
             c.FileReleaseName,
@@ -90,6 +98,56 @@ public class ChapterController(
         });
 
         return Ok(chapters);
+    }
+
+    /// <summary>
+    /// Page count per chapter, measured once and stored on the chapter. A stored value is trusted
+    /// only while its key still matches the file's id and size, so a replaced file re-measures.
+    /// </summary>
+    private async Task<Dictionary<int, int>> PageCountsAsync(
+        List<(int Id, int? FileId, long FileSize, int? PageCount, string? Key)> rows, CancellationToken ct)
+    {
+        var result = new Dictionary<int, int>();
+        var stale = new List<int>();
+        foreach (var r in rows)
+        {
+            if (r.FileId is null)
+            {
+                continue;
+            }
+
+            if (r.PageCount is { } n && r.Key == $"{r.FileId}:{r.FileSize}")
+            {
+                result[r.Id] = n;
+            }
+            else
+            {
+                stale.Add(r.Id);
+            }
+        }
+
+        if (stale.Count == 0)
+        {
+            return result;
+        }
+
+        var slices = await reader.SlicesAsync(stale, ct);
+        if (slices.Count == 0)
+        {
+            return result;
+        }
+
+        var tracked = await db.Chapters.Where(c => slices.Keys.Contains(c.Id)).ToListAsync(ct);
+        foreach (var chapter in tracked)
+        {
+            var slice = slices[chapter.Id];
+            chapter.PageCount = slice.PageCount;
+            chapter.PageCountKey = $"{slice.ChapterFileId}:{slice.ArchiveSize}";
+            result[chapter.Id] = slice.PageCount;
+        }
+
+        await db.SaveChangesAsync(ct);
+        return result;
     }
 
     /// <summary>The volume label ("3", "1-2") of a backing file when it is a volume compilation, else null.</summary>

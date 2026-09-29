@@ -3592,6 +3592,14 @@ msgstr "Delete chapters?"
 msgid "Delete connection"
 msgstr "Delete connection"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Delete file"
+msgstr "Delete file"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Delete file?"
+msgstr "Delete file?"
+
 #: src/components/SeriesFilesSection.tsx
 msgid "Delete files from disk?"
 msgstr "Delete files from disk?"
@@ -3643,6 +3651,10 @@ msgstr "Delete selected"
 msgid "Delete series"
 msgstr "Delete series"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Delete the file for {chapterLbl}"
+msgstr "Delete the file for {chapterLbl}"
+
 #: src/components/layout/SectionProperties.tsx
 msgid "Delete the rail \"{label}\"? Its filters go with it."
 msgstr "Delete the rail \"{label}\"? Its filters go with it."
@@ -3671,9 +3683,19 @@ msgstr "Deleted \"{name}\""
 msgid "Deleted files are removed from disk and cannot be recovered from Fōkurōru."
 msgstr "Deleted files are removed from disk and cannot be recovered from Fōkurōru."
 
+#. placeholder {0}: deleteFileChapter.label
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deleted the file for {0}"
+msgstr "Deleted the file for {0}"
+
 #: src/pages/SettingsPage.tsx
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
+
+#. placeholder {0}: deleteFileChapter?.label
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
+msgstr "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so they are not downloaded again."
@@ -7696,6 +7718,7 @@ msgid "Paged pace · {remainingChapters} chapters left · based on {sampleChapte
 msgstr "Paged pace · {remainingChapters} chapters left · based on {sampleChapters} similar reads"
 
 #: src/pages/HealthPage.tsx
+#: src/pages/SeriesDetailPage.tsx
 #: src/pages/stats/sections/ReadingSection.tsx
 msgid "Pages"
 msgstr "Pages"
@@ -10509,6 +10532,10 @@ msgstr "The file is already off the disk, so nothing is deleted. This drops the 
 msgid "The file is named for its chapter."
 msgstr "The file is named for its chapter."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "The file is removed from disk and cannot be recovered."
+msgstr "The file is removed from disk and cannot be recovered."
+
 #: src/pages/HealthPage.tsx
 msgid "The file name carries no chapter or volume number, so nothing can be matched to it. Rename it to the library's naming format and rescan, or link it by hand from the series' Files tab."
 msgstr "The file name carries no chapter or volume number, so nothing can be matched to it. Rename it to the library's naming format and rescan, or link it by hand from the series' Files tab."
@@ -12043,6 +12070,10 @@ msgstr "Your new API key"
 #: src/components/discover/DiscoverHero.tsx
 msgid "Your next read"
 msgstr "Your next read"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Your next unread chapter is not downloaded yet. It is being fetched now, and you can read it as soon as it finishes."
+msgstr "Your next unread chapter is not downloaded yet. It is being fetched now, and you can read it as soon as it finishes."
 
 #: src/api/hooks.ts
 msgid "Your progress"

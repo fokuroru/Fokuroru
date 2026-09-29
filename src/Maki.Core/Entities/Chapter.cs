@@ -41,6 +41,15 @@ public class Chapter
     public int? ChapterFileId { get; set; }
     public ChapterFile? ChapterFile { get; set; }
 
+    /// <summary>
+    /// Pages in this chapter's slice of its file, measured lazily by the chapter list. Only valid
+    /// while <see cref="PageCountKey"/> matches the file's current identity.
+    /// </summary>
+    public int? PageCount { get; set; }
+
+    /// <summary>The file id and size <see cref="PageCount"/> was measured against, so a replaced file re-measures.</summary>
+    public string? PageCountKey { get; set; }
+
     /// <summary>The per-source listings that currently support this chapter.</summary>
     [JsonIgnore]
     public List<ChapterSourceLink> SourceLinks { get; set; } = [];

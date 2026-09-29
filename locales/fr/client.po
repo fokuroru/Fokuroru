@@ -4421,6 +4421,14 @@ msgstr "Supprimer les chapitres ?"
 msgid "Delete connection"
 msgstr "Supprimer la connexion"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Delete file"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Delete file?"
+msgstr ""
+
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
 msgid "Delete files from disk?"
@@ -4482,6 +4490,10 @@ msgstr "Supprimer la sélection"
 msgid "Delete series"
 msgstr "Supprimer la série"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Delete the file for {chapterLbl}"
+msgstr ""
+
 #: src/components/layout/SectionProperties.tsx
 #, fuzzy
 msgid "Delete the rail \"{label}\"? Its filters go with it."
@@ -4517,8 +4529,18 @@ msgstr "« {name} » supprimé"
 msgid "Deleted files are removed from disk and cannot be recovered from Fōkurōru."
 msgstr "Les fichiers supprimés sont retirés du disque et ne peuvent pas être récupérés depuis Fōkurōru."
 
+#. placeholder {0}: deleteFileChapter.label
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deleted the file for {0}"
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
+msgstr ""
+
+#. placeholder {0}: deleteFileChapter?.label
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
@@ -9463,6 +9485,7 @@ msgid "Paged pace · {remainingChapters} chapters left · based on {sampleChapte
 msgstr "Rythme page par page · {remainingChapters} chapitres restants · basé sur {sampleChapters} lectures similaires"
 
 #: src/pages/HealthPage.tsx
+#: src/pages/SeriesDetailPage.tsx
 #: src/pages/stats/sections/ReadingSection.tsx
 #, fuzzy
 msgid "Pages"
@@ -12921,6 +12944,10 @@ msgstr "Le fichier n'est déjà plus sur le disque, rien n'est donc supprimé. C
 msgid "The file is named for its chapter."
 msgstr "Le fichier porte le numéro du chapitre dans son nom."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "The file is removed from disk and cannot be recovered."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "The file name carries no chapter or volume number, so nothing can be matched to it. Rename it to the library's naming format and rescan, or link it by hand from the series' Files tab."
@@ -14816,6 +14843,10 @@ msgstr "Votre nouvelle clé API"
 #, fuzzy
 msgid "Your next read"
 msgstr "Votre prochaine lecture"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Your next unread chapter is not downloaded yet. It is being fetched now, and you can read it as soon as it finishes."
+msgstr ""
 
 #: src/api/hooks.ts
 #, fuzzy

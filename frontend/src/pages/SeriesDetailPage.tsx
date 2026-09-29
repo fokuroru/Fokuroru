@@ -419,6 +419,7 @@ export default function SeriesDetailPage() {
   const [linkChapterIds, setLinkChapterIds] = useState<number[] | null>(null)
   const [relinkOpen, setRelinkOpen] = useState(false)
   const [deleteChaptersModalOpen, setDeleteChaptersModalOpen] = useState(false)
+  const [deleteFileChapter, setDeleteFileChapter] = useState<{ id: number; label: string } | null>(null)
   const [deleteSeriesModalOpen, setDeleteSeriesModalOpen] = useState(false)
   const [deleteSeriesFiles, setDeleteSeriesFiles] = useState(false)
 
@@ -1008,6 +1009,7 @@ export default function SeriesDetailPage() {
               )}
             </Text>
           </Table.Td>
+          <Table.Td />
           <Table.Td />
           <Table.Td />
           <Table.Td>
@@ -2227,6 +2229,44 @@ export default function SeriesDetailPage() {
               </Stack>
             </Modal>
 
+            <Modal
+                opened={deleteFileChapter !== null}
+                onClose={() => setDeleteFileChapter(null)}
+                title={t`Delete file?`}
+                centered
+            >
+              <Stack gap="md">
+                <Text size="sm" c="var(--ink-3)">
+                  <Trans>Deletes the downloaded file for {deleteFileChapter?.label}. Its read status and other details
+                    stay, and it is marked not wanted so it is not downloaded again.</Trans>
+                </Text>
+                <Text size="sm" c="var(--danger)">
+                  <Trans>The file is removed from disk and cannot be recovered.</Trans>
+                </Text>
+                <Group justify="flex-end">
+                  <Button variant="default" onClick={() => setDeleteFileChapter(null)}>
+                    <Trans>Cancel</Trans>
+                  </Button>
+                  <Button
+                      color="var(--danger-fill)"
+                      leftSection={<IconTrash size={16} />}
+                      loading={deleteChapters.isPending}
+                      onClick={() =>
+                          deleteFileChapter &&
+                          deleteChapters.mutate([deleteFileChapter.id], {
+                            onSuccess: () => {
+                              notify.ok(staticT`Deleted the file for ${deleteFileChapter.label}`)
+                              setDeleteFileChapter(null)
+                            },
+                          })
+                      }
+                  >
+                    <Trans>Delete</Trans>
+                  </Button>
+                </Group>
+              </Stack>
+            </Modal>
+
             <RelinkFilesModal seriesId={seriesId} opened={relinkOpen} onClose={() => setRelinkOpen(false)} />
 
             <LinkChaptersModal
@@ -2263,6 +2303,7 @@ export default function SeriesDetailPage() {
                               <Table.Th w={170}><Trans>Chapter</Trans></Table.Th>
                               <Table.Th><Trans>Title</Trans></Table.Th>
                               <Table.Th w={120}><Trans>Released</Trans></Table.Th>
+                              <Table.Th w={70}><Trans>Pages</Trans></Table.Th>
                               <Table.Th w={110}><Trans>Source</Trans></Table.Th>
                               <Table.Th w={240}><Trans>Status</Trans></Table.Th>
                               <Table.Th w={124} />
@@ -2401,6 +2442,11 @@ export default function SeriesDetailPage() {
                                       </Text>
                                     </Table.Td>
                                     <Table.Td>
+                                      <Text size="sm" c="var(--ink-3)" className="tnum">
+                                        {c.hasFile && c.pageCount ? c.pageCount : '-'}
+                                      </Text>
+                                    </Table.Td>
+                                    <Table.Td>
                                       {/* Where the file on disk actually came from, which is what makes a source
                           comparison actionable: the winner is often not what you already have. */}
                                       {!c.hasFile || !c.fileSourceName ? (
@@ -2530,6 +2576,18 @@ export default function SeriesDetailPage() {
                                                 </ActionIcon>
                                               </Tooltip>
                                             </>
+                                        )}
+                                        {c.hasFile && can('DeleteSeries') && (
+                                            <Tooltip label={t`Delete file`} withArrow>
+                                              <ActionIcon
+                                                  variant="subtle"
+                                                  color="var(--danger)"
+                                                  onClick={() => setDeleteFileChapter({ id: c.id, label: chapterLbl })}
+                                                  aria-label={t`Delete the file for ${chapterLbl}`}
+                                              >
+                                                <IconTrash size={17} />
+                                              </ActionIcon>
+                                            </Tooltip>
                                         )}
                                         {!c.hasFile && canLinkFiles && (
                                             <Tooltip label={t`Link to a file already on disk`} withArrow>

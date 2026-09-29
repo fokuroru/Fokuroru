@@ -240,6 +240,8 @@ export interface ChapterDto {
   /** Whether the user wants this chapter. Nothing in the download pipeline writes it. */
   wanted: boolean
   hasFile: boolean
+  /** Pages in this chapter's file (its slice, for a volume archive). Null when there is no readable file. */
+  pageCount: number | null
   filePath: string | null
   /**
    * Where the file came from: a registered source's name, the literal "import" for a file brought
