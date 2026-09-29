@@ -46,6 +46,7 @@ const MIN_LOGICAL_WIDTH = 640
 const DEPTH = 132
 const CLICK_SLOP = 6
 const PULL_MS = 550
+const COVER_WAIT_MS = 4000
 
 /**
  * The Reading now shelf as solid volumes: Three.js books over Matter.js bodies, one camera per shelf
@@ -71,6 +72,9 @@ export class MangaShelf {
   /** Editions dealt this page load, kept across re-layouts (a resize should not restyle books). */
   private readonly dealt = new Map<number, { style: number; width: number }>()
   private deck: number[] = []
+  private readonly covers = new Map<string, HTMLImageElement | null>()
+  /** Bumped by every layout, so a layout still waiting on covers gives way to a newer one. */
+  private generation = 0
   private logicalWidth = 0
   private scale = 1
   private cssWidth = 0
@@ -153,7 +157,7 @@ export class MangaShelf {
         this.cssWidth = width
         this.scale = Math.min(1, width / MIN_LOGICAL_WIDTH)
         this.logicalWidth = Math.round(width / this.scale)
-        this.layout()
+        void this.layout()
       }
     })
     this.resizeObserver.observe(container)
@@ -161,12 +165,12 @@ export class MangaShelf {
 
   setBooks(books: ShelfBook[]) {
     this.books = books
-    if (this.cssWidth) this.layout()
+    if (this.cssWidth) void this.layout()
   }
 
   setTheme(theme: ShelfTheme) {
     this.theme = theme
-    if (this.cssWidth) this.layout()
+    if (this.cssWidth) void this.layout()
   }
 
   destroy() {
@@ -314,32 +318,43 @@ export class MangaShelf {
   }
 
   /** The front board. Starts as a printed cover and swaps in the real art once it has loaded. */
+  /** A board: the front has the series' cover (see `loadCovers`) or a printed one; the back is blank. */
   private cover(b: Styled, w: number, h: number, material: T.MeshStandardMaterial, back = false) {
-    const printed = () => this.texture(w, h, (ctx) => {
+    const img = back || !b.coverUrl ? null : this.covers.get(b.coverUrl)
+    material.map = this.texture(w, h, (ctx) => {
+      if (img) {
+        // Cover-fit: the board is narrower than a manga cover, so the art is cropped at the sides.
+        const s = Math.max(w / img.width, h / img.height)
+        ctx.drawImage(img, (w - img.width * s) / 2, (h - img.height * s) / 2, img.width * s, img.height * s)
+        return
+      }
       this.art(ctx, w, h, b)
+      // Back covers are left blank, as they mostly are; only a front without art gets printed.
+      if (back) return
       ctx.fillStyle = b.look.accent
       ctx.fillRect(8, 12, w - 16, 3)
       this.text(ctx, b.title, 10, 25, w - 20, 75, 25, b.look.font, b.look.fg)
       this.text(ctx, b.author, 8, h - 35, w - 16, 20, 9, "'Fira Sans', Arial, sans-serif", b.look.fg)
     })
-    material.map = printed()
-    if (back || !b.coverUrl) return
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.decoding = 'async'
-    img.onload = () => {
-      if (this.abort.signal.aborted) return
-      const map = this.texture(w, h, (ctx) => {
-        // Cover-fit: the board is narrower than a manga cover, so the art is cropped at the sides.
-        const s = Math.max(w / img.width, h / img.height)
-        ctx.drawImage(img, (w - img.width * s) / 2, (h - img.height * s) / 2, img.width * s, img.height * s)
-      })
-      material.map?.dispose()
-      material.map = map
-      material.needsUpdate = true
-      this.wake()
-    }
-    img.src = b.coverUrl
+  }
+
+  /**
+   * Loads and decodes every cover the shelf will show, so books go on the shelf with their art
+   * rather than having it pop in after. Each is cached for later layouts. One that fails, or takes
+   * longer than `COVER_WAIT_MS`, is left out and its book gets a printed board instead.
+   */
+  private async loadCovers(books: ShelfBook[]) {
+    const wanted = books.map((b) => b.coverUrl).filter((u): u is string => !!u && !this.covers.has(u))
+    await Promise.all(wanted.map(async (url) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.src = url
+      const loaded = await Promise.race([
+        img.decode().then(() => true, () => false),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), COVER_WAIT_MS)),
+      ])
+      this.covers.set(url, loaded ? img : null)
+    }))
   }
 
   private pages(w: number, h: number, axis: 'x' | 'y') {
@@ -463,7 +478,10 @@ export class MangaShelf {
    * lying in small piles, some tipped against a neighbour. Only the starting pose is chosen here;
    * gravity does the rest, so a tipped book either comes to rest leaning or falls over.
    */
-  private layout() {
+  private async layout() {
+    const generation = ++this.generation
+    await this.loadCovers(this.books)
+    if (generation !== this.generation || this.abort.signal.aborted) return
     this.clear()
     const width = this.logicalWidth
     const row = this.newRow(width)
