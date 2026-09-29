@@ -96,4 +96,20 @@ public class ContinueReadingServiceTests : IDisposable
         Assert.False(withMissing.Downloaded);
         Assert.Equal(latest, await Next(seriesId));
     }
+
+    [Fact]
+    public async Task The_series_page_offers_the_earliest_unread_chapter_past_a_stray_read_one()
+    {
+        var seriesId = _db.SeedSeries();
+        var first = Seed(seriesId, 1, null);
+        Seed(seriesId, 2, null);
+        var stray = Seed(seriesId, 49, null);
+        Seed(seriesId, 50, null, downloaded: false);
+        Read(seriesId, stray);
+
+        var withMissing = await new ContinueReadingService(_db.NewContext())
+            .NextForAsync(seriesId, CancellationToken.None, includeMissing: true);
+
+        Assert.Equal(first, withMissing!.ChapterId);
+    }
 }

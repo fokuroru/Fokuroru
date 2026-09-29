@@ -85,6 +85,16 @@ public class ContinueReadingService(MakiDbContext db)
                            .FirstOrDefault(c => Candidate(c.HasFile, c.Wanted) && !completed.Contains(c.Id) && (furthestRead < 0 || c.Number != furthestNumber))
                        ?? unread[0];
 
+            if (includeMissing)
+            {
+                // The series page offers the earliest chapter never read, so one stray read chapter
+                // (a mark from Kavita, a misclick) cannot hide dozens of unread ones before it. A
+                // chapter whose number was read in another language does not count as unread.
+                var readNumbers = ordered.Where(c => c.Number is not null && completed.Contains(c.Id))
+                    .Select(c => c.Number).ToHashSet();
+                next = unread.FirstOrDefault(c => c.Number is null || !readNumbers.Contains(c.Number)) ?? next;
+            }
+
             // Another language's copy of the same release already on disk beats fetching this one.
             if (!next.HasFile && next.Number is not null)
             {
