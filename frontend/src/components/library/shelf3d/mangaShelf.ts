@@ -33,6 +33,7 @@ interface Item {
   hinges: Hinges
   /** A brief flutter in progress: which board swings, how far, and since when. */
   flutter?: { at: number; side: 'front' | 'back'; angle: number }
+  flutterEnded?: number
 }
 
 interface Hinges {
@@ -56,8 +57,18 @@ const CLICK_SLOP = 6
 const PULL_MS = 550
 const COVER_WAIT_MS = 4000
 const FLUTTER_MS = 900
-/** Chance per frame that a moving book flutters open: roughly once every couple of seconds of motion. */
-const FLUTTER_CHANCE = 0.008
+/**
+ * Speed (world units per physics step) above which a book may fall open. Measured: hover lifts
+ * reach about 0.5, a normal drag about 4, a book dropped from the top of the row about 16, so only
+ * a fall or a fling gets there.
+ */
+const FLUTTER_SPEED = 9
+/** Chance per frame while that fast, so most fast tumbles open and not every one does. */
+const FLUTTER_CHANCE = 0.25
+/** A book that has just flapped shut does not open again straight away. */
+const FLUTTER_COOLDOWN_MS = 1200
+/** Later leaves start and finish a little behind the board, so the pages trail it. */
+const LEAF_LAG_MS = 55
 
 /**
  * The Reading now shelf as solid volumes: Three.js books over Matter.js bodies, one camera per shelf
@@ -579,29 +590,41 @@ export class MangaShelf {
    */
   private flutter(i: Item): boolean {
     const now = performance.now()
-    if (!i.flutter && !this.reduced.matches && i.pulledAt === undefined) {
-      const moving = i.body.speed > 0.6 || Math.abs(i.body.angularSpeed) > 0.01 || this.selected === i
+    const rested = i.flutterEnded === undefined || now - i.flutterEnded > FLUTTER_COOLDOWN_MS
+    if (!i.flutter && rested && !this.reduced.matches && i.pulledAt === undefined) {
+      const fast = i.body.speed > FLUTTER_SPEED || Math.abs(i.body.angularSpeed) > 0.18
       // Open the board the camera can see: left of centre shows the front, right the back.
       const side = i.model.position.x < 0 ? 'front' : 'back'
-      if (moving && Math.random() < FLUTTER_CHANCE && i.row.physics.clearance(i.body, side === 'front' ? 1 : -1, 12) >= 10) {
-        i.flutter = { at: now, side, angle: 0.22 + Math.random() * 0.3 }
+      if (fast && Math.random() < FLUTTER_CHANCE && i.row.physics.clearance(i.body, side === 'front' ? 1 : -1, 12) >= 10) {
+        // The faster it is going, the further it falls open.
+        const angle = Math.min(0.5, 0.14 + (i.body.speed - FLUTTER_SPEED) * 0.02)
+        i.flutter = { at: now, side, angle: Math.max(0.14, angle) }
       }
     }
     if (!i.flutter) return false
-    const t = Math.min(1, (now - i.flutter.at) / FLUTTER_MS)
+    const elapsed = now - i.flutter.at
+    const t = Math.min(1, elapsed / FLUTTER_MS)
     const sign = i.flutter.side === 'front' ? -1 : 1
     // Quick to open, slower to fall shut, and never further than the space beside the book allows:
     // the fore-edge of a board swung by `a` moves DEPTH * sin(a) sideways.
     const room = i.row.physics.clearance(i.body, i.flutter.side === 'front' ? 1 : -1, DEPTH)
     const limit = Math.asin(Math.min(1, Math.max(0, room - 1.5) / DEPTH))
-    const open = Math.min(Math.sin(Math.PI * Math.pow(t, 0.7)) * i.flutter.angle, limit)
+    const curve = (u: number) => (u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * Math.pow(u, 0.7)))
+    const open = Math.min(curve(t) * i.flutter.angle, limit)
     const hinge = i.hinges[i.flutter.side]
     hinge.board.rotation.y = sign * open
-    hinge.leaves.forEach((leaf, k) => (leaf.rotation.y = sign * open * (0.8 - k * 0.18)))
-    if (t < 1) return true
+    // Each leaf trails the one before it and never passes the board, so the pages fan behind it.
+    let playing = t < 1
+    hinge.leaves.forEach((leaf, k) => {
+      const u = (elapsed - (k + 1) * LEAF_LAG_MS) / FLUTTER_MS
+      if (u < 1) playing = true
+      leaf.rotation.y = sign * Math.min(open, curve(u) * i.flutter!.angle * (0.85 - k * 0.15))
+    })
+    if (playing) return true
     hinge.board.rotation.y = 0
     hinge.leaves.forEach((leaf) => (leaf.rotation.y = 0))
     i.flutter = undefined
+    i.flutterEnded = now
     return false
   }
 
@@ -691,8 +714,9 @@ interface Placement {
 
 /** At least this share of the shelf is left empty. */
 const EMPTY_SHARE = 0.25
-const LYING_SHARE = 0.15
-const LEANING_SHARE = 0.3
+/** Most books stand neatly (85%); the rest lie down or lean. */
+const LYING_SHARE = 0.05
+const LEANING_SHARE = 0.1
 
 /**
  * The books in the order given, until the next one would take the shelf past three quarters full.
