@@ -67,6 +67,12 @@ const queryClient = new QueryClient({
 // a cold cache. Top-level await is fine here, main.tsx is an ES module.
 await loadLocale(resolveInitialLocale())
 
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppI18nProvider>
