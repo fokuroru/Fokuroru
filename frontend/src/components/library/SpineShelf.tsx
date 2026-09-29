@@ -272,22 +272,15 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
   const books: ShelfBook[] = reading.map(({ s, p }) => {
     const total = s.mainChapterCount || p.total || p.have
     const read = s.readMainChapters ?? s.readChapterCount ?? 0
-    const bg = s.spineColor ?? DEFAULT_SPINE
     return {
       id: s.id,
       title: s.displayTitle,
       author: s.authorStory ?? s.authorArt ?? '',
       number: String(read + 1).padStart(2, '0'),
       caption: t`Ch.`,
-      width: 30 + Math.min(34, Math.round(total / 6)),
-      height: 250 + pick(s.id, 'height', 6) * 8,
-      pattern: pick(s.id, 'pattern', 6),
-      face: FACES[pick(s.id, 'face', FACES.length)][0],
-      bg,
-      fg: spineInk(bg),
-      accent: shade(bg, isPale(bg) ? 0.86 : 0.7),
+      width: 46 + Math.min(22, Math.round(total / 10)),
+      height: 250 + pick(s.id, 'height', 6) * 9,
       coverUrl: s.coverUrl,
-      bandTop: pick(s.id, 'band', 2) === 0,
     }
   })
 
@@ -329,12 +322,17 @@ function Shelf3D({ books, dark, onOpen, onFail }: {
 
   useEffect(() => {
     let cancelled = false
-    const faces = [...FACES.map(([f]) => f), "'Martian Mono'", "'Zen Kaku Gothic New'"]
-    void Promise.all([
-      import('./shelf3d/mangaShelf'),
-      Promise.all(faces.map((f) => document.fonts.load(`24px ${f}`).catch(() => []))),
-    ])
-      .then(([{ MangaShelf }]) => {
+    void import('./shelf3d/mangaShelf')
+      .then(async (module) => {
+        // A face must have loaded before a texture is drawn with it, or the canvas falls back.
+        const { SPINE_FONTS } = await import('./shelf3d/spineStyles')
+        await Promise.all([...SPINE_FONTS, "'Fira Sans'"].map((f) => {
+          const weighted = /^(\d{3})\s+(.*)$/.exec(f)
+          return document.fonts.load(weighted ? `${weighted[1]} 24px ${weighted[2]}` : `24px ${f}`).catch(() => [])
+        }))
+        return module
+      })
+      .then(({ MangaShelf }) => {
         if (cancelled || !host.current) return
         const { books: b, dark: d } = latest.current
         shelf.current = new MangaShelf(
@@ -356,7 +354,7 @@ function Shelf3D({ books, dark, onOpen, onFail }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const key = books.map((b) => `${b.id}:${b.number}:${b.bg}:${b.caption}`).join('|')
+  const key = books.map((b) => `${b.id}:${b.number}:${b.caption}`).join('|')
   useEffect(() => {
     shelf.current?.setBooks(latest.current.books)
   }, [key])

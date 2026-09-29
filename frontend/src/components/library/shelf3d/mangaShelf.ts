@@ -1,28 +1,24 @@
 import * as T from 'three'
 import { ShelfPhysics, type BookBody } from './shelfPhysics'
+import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
 
-/** One volume on the shelf. Colours are the series' own (sampled from its cover). */
+/** One series on the shelf. Its look (one of the thirty spine editions) is picked by the shelf. */
 export interface ShelfBook {
   id: number
   title: string
   author: string
   /** The chapter number in the spine's band. */
   number: string
-  /** The short label above it ("Ch."). */
+  /** The short label with it ("Ch."). */
   caption: string
+  /** Width for a regular edition; the slim editions draw narrower whatever this says. */
   width: number
   height: number
-  /** 0..5: the faint pattern printed behind the spine text. */
-  pattern: number
-  /** Display face for the title, a CSS font-family value. */
-  face: string
-  bg: string
-  fg: string
-  accent: string
   coverUrl: string | null
-  /** Band at the head of the spine rather than the foot. */
-  bandTop: boolean
 }
+
+/** A book with the edition it was dealt for this page load. */
+type Styled = ShelfBook & { style: number; look: SpineStyle }
 
 export interface ShelfTheme {
   wall: string
@@ -33,7 +29,7 @@ interface Item {
   body: BookBody
   model: T.Object3D
   row: Row
-  book: ShelfBook
+  book: Styled
   /** Set once clicked: the book slides out towards the viewer while the next page loads. */
   pulledAt?: number
 }
@@ -74,6 +70,9 @@ export class MangaShelf {
   private last = 0
   private acc = 0
   private quietFrames = 0
+  /** Editions dealt this page load, kept across re-layouts (a resize should not restyle books). */
+  private readonly dealt = new Map<number, { style: number; width: number }>()
+  private deck: number[] = []
   private logicalWidth = 0
   private scale = 1
   private cssWidth = 0
@@ -200,12 +199,15 @@ export class MangaShelf {
   /** Wraps between words only, shrinking until every line fits the box. */
   private text(
     ctx: CanvasRenderingContext2D, text: string, x: number, y: number, width: number, height: number,
-    size: number, font: string, color: string,
+    size: number, font: string, color: string, shadow?: SpineStyle['shadow'],
   ) {
+    // A face may carry its weight up front ("700 'Gelasio', serif"); the size goes between.
+    const weighted = /^(\d{3})\s+(.*)$/.exec(font)
+    const css = (px: number) => (weighted ? `${weighted[1]} ${px}px ${weighted[2]}` : `${px}px ${font}`)
     const words = String(text).split(/\s+/)
     let lines = ['']
     for (let tries = 0; tries < 90; tries++) {
-      ctx.font = `${size}px ${font}`
+      ctx.font = css(size)
       lines = ['']
       for (const word of words) {
         const last = lines.length - 1
@@ -216,21 +218,26 @@ export class MangaShelf {
       if (lines.every((l) => ctx.measureText(l).width <= width) && lines.length * size * 1.12 <= height) break
       size *= 0.94
     }
-    ctx.fillStyle = color
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    lines.forEach((line, i) => ctx.fillText(line, x + width / 2, y + height / 2 + (i - (lines.length - 1) / 2) * size * 1.12))
+    const draw = (dx: number, dy: number, fill: string) => {
+      ctx.fillStyle = fill
+      lines.forEach((line, i) =>
+        ctx.fillText(line, x + width / 2 + dx, y + height / 2 + dy + (i - (lines.length - 1) / 2) * size * 1.12))
+    }
+    if (shadow) draw(shadow.x * 0.6, shadow.y * 0.6, shadow.color)
+    draw(0, 0, color)
   }
 
-  private art(ctx: CanvasRenderingContext2D, w: number, h: number, b: ShelfBook) {
-    ctx.fillStyle = b.bg
+  private art(ctx: CanvasRenderingContext2D, w: number, h: number, b: Styled) {
+    ctx.fillStyle = b.look.bg
     ctx.fillRect(0, 0, w, h)
     ctx.save()
     ctx.globalAlpha = 0.2
-    ctx.strokeStyle = b.accent
-    ctx.fillStyle = b.accent
+    ctx.strokeStyle = b.look.accent
+    ctx.fillStyle = b.look.accent
     ctx.lineWidth = 3
-    switch (b.pattern) {
+    switch (b.style % 6) {
       case 0:
         for (let y = 25; y < h; y += 25) {
           ctx.beginPath()
@@ -271,24 +278,36 @@ export class MangaShelf {
     ctx.restore()
   }
 
-  private spine(b: ShelfBook, w: number, h: number) {
+  /**
+   * The reference's spine: a volume band at the head or foot, the title down the spine (or across
+   * it, for six editions), the author, and a small imprint mark.
+   */
+  private spine(b: Styled, w: number, h: number) {
     return this.texture(w, h, (ctx) => {
+      const { look } = b
+      const top = BAND_TOP.has(b.style)
+      const across = HORIZONTAL_TITLE.has(b.style)
       this.art(ctx, w, h, b)
-      const band = b.bandTop ? 0 : h - 43
-      ctx.fillStyle = b.accent
+      const band = top ? 0 : h - 43
+      ctx.fillStyle = look.accent
       ctx.fillRect(0, band, w, 43)
-      this.text(ctx, b.caption, 1, band + 3, w - 2, 9, 7, "'Martian Mono', monospace", b.fg)
-      this.text(ctx, b.number, 2, band + 13, w - 4, 28, 25, b.face, b.fg)
-      const y = b.bandTop ? 48 : 25
+      this.text(ctx, b.number, 2, band + 1, w - 4, 27, 25, look.font, look.fg)
+      this.text(ctx, `${b.caption} ${b.number}`, 1, band + 29, w - 2, 10, 6, "'Fira Sans', Arial, sans-serif", look.fg)
+      const y = top ? 48 : 25
       const titleH = h - 99
-      ctx.save()
-      ctx.translate(w / 2, y + titleH / 2)
-      ctx.rotate(Math.PI / 2)
-      this.text(ctx, b.title, -titleH / 2, -(w - 6) / 2, titleH, w - 6, 26, b.face, b.fg)
-      ctx.restore()
-      this.text(ctx, b.author, 2, b.bandTop ? h - 26 : h - 64, w - 4, 18, 6, "'Zen Kaku Gothic New', sans-serif", b.fg)
+      if (across) {
+        this.text(ctx, b.title, 4, y, w - 8, titleH, 25, look.font, look.fg, look.shadow)
+      } else {
+        ctx.save()
+        ctx.translate(w / 2, y + titleH / 2)
+        ctx.rotate(Math.PI / 2)
+        this.text(ctx, b.title, -titleH / 2, -(w - 6) / 2, titleH, w - 6, 24, look.font, look.fg, look.shadow)
+        ctx.restore()
+      }
+      this.text(ctx, b.author, 2, top ? h - 26 : h - 64, w - 4, 18, 6, "'Fira Sans', Arial, sans-serif", look.fg)
+      this.text(ctx, IMPRINTS[b.style % IMPRINTS.length], 2, top ? h - 17 : 3, w - 4, 18, 12, "'Gelasio', Georgia, serif", look.fg)
       const shine = ctx.createLinearGradient(0, 0, w, 0)
-      shine.addColorStop(0, '#ffffff30')
+      shine.addColorStop(0, '#ffffff35')
       shine.addColorStop(0.15, '#ffffff00')
       shine.addColorStop(0.88, '#00000000')
       shine.addColorStop(1, '#00000025')
@@ -298,13 +317,13 @@ export class MangaShelf {
   }
 
   /** The front board. Starts as a printed cover and swaps in the real art once it has loaded. */
-  private cover(b: ShelfBook, w: number, h: number, material: T.MeshStandardMaterial, back = false) {
+  private cover(b: Styled, w: number, h: number, material: T.MeshStandardMaterial, back = false) {
     const printed = () => this.texture(w, h, (ctx) => {
       this.art(ctx, w, h, b)
-      ctx.fillStyle = b.accent
+      ctx.fillStyle = b.look.accent
       ctx.fillRect(8, 12, w - 16, 3)
-      this.text(ctx, b.title, 10, 25, w - 20, 75, 25, b.face, b.fg)
-      this.text(ctx, b.author, 8, h - 35, w - 16, 20, 9, "'Zen Kaku Gothic New', sans-serif", b.fg)
+      this.text(ctx, b.title, 10, 25, w - 20, 75, 25, b.look.font, b.look.fg)
+      this.text(ctx, b.author, 8, h - 35, w - 16, 20, 9, "'Fira Sans', Arial, sans-serif", b.look.fg)
     })
     material.map = printed()
     if (back || !b.coverUrl) return
@@ -346,7 +365,7 @@ export class MangaShelf {
     })
   }
 
-  private model(b: ShelfBook) {
+  private model(b: Styled) {
     const bw = b.width
     const bh = b.height
     const group = new T.Group()
@@ -365,7 +384,7 @@ export class MangaShelf {
     const py = mat(undefined, this.pages(bw, DEPTH, 'x'))
     const pz = mat(undefined, this.pages(bw, bh, 'x'))
     mesh(new T.BoxGeometry(Math.max(3, bw - 3), bh - 4, DEPTH - 5), [px, px, py, py, pz, pz], 0, 0, -DEPTH / 2)
-    const edge = mat(b.bg)
+    const edge = mat(b.look.bg)
     const front = mat()
     const back = mat()
     this.cover(b, DEPTH, bh, front)
@@ -397,6 +416,21 @@ export class MangaShelf {
     this.items = []
     this.access?.remove()
     this.access = null
+  }
+
+  /**
+   * Deals each series one of the thirty editions at random, without repeats until the deck runs
+   * out. Slim paperback editions get a slim width of their own, as they had in the reference.
+   */
+  private styled(b: ShelfBook): Styled {
+    let deal = this.dealt.get(b.id)
+    if (!deal) {
+      if (this.deck.length === 0) this.deck = [...SPINE_STYLES.keys()].sort(() => Math.random() - 0.5)
+      const style = this.deck.pop()!
+      deal = { style, width: style >= SLIM_FROM ? 26 + Math.round(Math.random() * 9) : b.width }
+      this.dealt.set(b.id, deal)
+    }
+    return { ...b, width: deal.width, style: deal.style, look: SPINE_STYLES[deal.style] }
   }
 
   private newRow(width: number): Row {
@@ -436,7 +470,7 @@ export class MangaShelf {
     this.clear()
     const width = this.logicalWidth
     const row = this.newRow(width)
-    for (const p of planShelf(this.books, width)) {
+    for (const p of planShelf(this.books.map((b) => this.styled(b)), width)) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
       const model = this.model(p.book)
       row.scene.add(model)
@@ -506,7 +540,7 @@ export class MangaShelf {
     this.selected = null
     if (!item || this.reduced.matches) return
     this.selected = item
-    let direction = item.book.pattern % 2 ? 1 : -1
+    let direction = item.book.style % 2 ? 1 : -1
     if (event) {
       const rect = this.renderer.domElement.getBoundingClientRect()
       direction = (event.clientX - rect.left) / this.scale < item.body.position.x ? -1 : 1
@@ -565,7 +599,7 @@ export class MangaShelf {
 }
 
 interface Placement {
-  book: ShelfBook
+  book: Styled
   /** Bottom-left corner of the upright book's box, before `angle` is applied about its centre. */
   x: number
   y: number
@@ -582,7 +616,7 @@ const LEANING_SHARE = 0.3
  * A share lie in piles of up to three (consecutive books, so the order still reads left to right)
  * and a share of the standing ones start tipped to lean on a neighbour.
  */
-function planShelf(books: ShelfBook[], width: number): Placement[] {
+function planShelf(books: Styled[], width: number): Placement[] {
   const limit = width * (1 - EMPTY_SHARE)
   const out: Placement[] = []
   let x = 18
