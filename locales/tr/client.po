@@ -3088,10 +3088,6 @@ msgstr "b. {maxChapter}"
 msgid "ch {read} of {total}"
 msgstr "b. {read} / {total}"
 
-#: src/components/library/SpineShelf.tsx
-msgid "Ch."
-msgstr ""
-
 #: src/components/SeriesScrobbleSection.tsx
 #, fuzzy
 msgid "Ch. {chapter}"

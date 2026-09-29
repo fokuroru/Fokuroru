@@ -3088,10 +3088,6 @@ msgstr "第{maxChapter}章"
 msgid "ch {read} of {total}"
 msgstr "第{read}章 / 第{total}章"
 
-#: src/components/library/SpineShelf.tsx
-msgid "Ch."
-msgstr ""
-
 #: src/components/SeriesScrobbleSection.tsx
 #, fuzzy
 msgid "Ch. {chapter}"

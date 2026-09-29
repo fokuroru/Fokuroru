@@ -7,10 +7,8 @@ export interface ShelfBook {
   id: number
   title: string
   author: string
-  /** The chapter number in the spine's band. */
+  /** The next chapter number, alone in the spine's band. */
   number: string
-  /** The short label with it ("Ch."). */
-  caption: string
   /** Width for a regular edition; the slim editions draw narrower whatever this says. */
   width: number
   height: number
@@ -291,8 +289,7 @@ export class MangaShelf {
       const band = top ? 0 : h - 43
       ctx.fillStyle = look.accent
       ctx.fillRect(0, band, w, 43)
-      this.text(ctx, b.number, 2, band + 1, w - 4, 27, 25, look.font, look.fg)
-      this.text(ctx, `${b.caption} ${b.number}`, 1, band + 29, w - 2, 10, 6, "'Fira Sans', Arial, sans-serif", look.fg)
+      this.text(ctx, b.number, 2, band + 7, w - 4, 29, 27, look.font, look.fg)
       const y = top ? 48 : 25
       const titleH = h - 99
       if (across) {

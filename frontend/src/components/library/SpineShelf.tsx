@@ -277,7 +277,6 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
       title: s.displayTitle,
       author: s.authorStory ?? s.authorArt ?? '',
       number: String(read + 1).padStart(2, '0'),
-      caption: t`Ch.`,
       width: 46 + Math.min(22, Math.round(total / 10)),
       height: 250 + pick(s.id, 'height', 6) * 9,
       coverUrl: s.coverUrl,
@@ -354,7 +353,7 @@ function Shelf3D({ books, dark, onOpen, onFail }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const key = books.map((b) => `${b.id}:${b.number}:${b.caption}`).join('|')
+  const key = books.map((b) => `${b.id}:${b.number}`).join('|')
   useEffect(() => {
     shelf.current?.setBooks(latest.current.books)
   }, [key])
