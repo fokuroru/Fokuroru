@@ -7893,6 +7893,9 @@ body.reader-open {
 .shelf3d-canvas {
   display: block;
   max-width: 100%;
+  /* A drag that leaves the canvas must not start selecting the page's text. */
+  user-select: none;
+  -webkit-user-select: none;
   /* Vertical swipes still scroll the page on a phone; sideways drags move a book. */
   touch-action: pan-y;
   cursor: grab;
