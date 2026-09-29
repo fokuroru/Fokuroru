@@ -13,7 +13,8 @@ public sealed record SeriesReading(ReadingStatus Status, int ReadMain, int Total
 public static class SeriesReadingService
 {
     /// <summary>
-    /// The caller's reading of each series they have completed any chapter of (see
+    /// The caller's reading of each series they have started: completed any chapter of, or have a
+    /// chapter open part-way through (a first chapter half read counts as reading). See
     /// <see cref="ReadingStatuses.For"/>). History, not storage: measured against every chapter the
     /// series lists and every chapter ever completed, so a file removed by auto-delete (progress kept,
     /// file gone) still counts as read, and "all downloaded read" with more still to fetch is not up
@@ -32,6 +33,16 @@ public static class SeriesReadingService
             .ToDictionary(
                 g => g.Key,
                 g => g.Where(x => ReadingStatuses.IsMain(x.Number)).Select(x => x.Number!.Value).ToHashSet());
+        // Opened but not finished: no completed chapter yet, but the series is being read. Tombstones
+        // (explicitly marked unread) are not a start.
+        var started = await (from p in db.ChapterProgress
+                             where !p.Completed && p.UnreadAt == null && p.PageIndex > 0 && ids.Contains(p.SeriesId)
+                             select p.SeriesId).Distinct().ToListAsync(ct);
+        foreach (var id in started)
+        {
+            read.TryAdd(id, []);
+        }
+
         if (read.Count == 0)
         {
             return [];

@@ -76,6 +76,30 @@ export class ShelfPhysics {
   }
 
   /**
+   * A potted plant standing on the plank at `x` (its centre): a heavy pot with a light column of
+   * leaves above it, one rigid compound body, so books knock against the leaves as well as the pot
+   * and it tips the way a top-heavy pot would. Returns the body and how far its centre of mass sits
+   * above the plank, which the renderer needs to line the model up.
+   */
+  addPlant(x: number, potWidth: number, potHeight: number, leafWidth: number, leafHeight: number) {
+    const pot = Bodies.rectangle(x, this.floor - potHeight / 2, potWidth, potHeight, { density: 0.006 })
+    const leaves = Bodies.rectangle(x, this.floor - potHeight - leafHeight / 2, leafWidth, leafHeight, { density: 0.0004 })
+    const body = Body.create({
+      parts: [pot, leaves],
+      friction: 0.8,
+      frictionStatic: 1,
+      frictionAir: 0.02,
+      restitution: 0.02,
+      sleepThreshold: 90,
+    }) as BookBody
+    body.bookWidth = potWidth
+    body.bookHeight = potHeight + leafHeight
+    this.bodies.push(body)
+    Composite.add(this.engine.world, body)
+    return { body, centreAboveFloor: this.floor - body.position.y }
+  }
+
+  /**
    * Takes hold of a book. Hovering grips it off-centre near the top and lifts it a little; pressing
    * grips it where the pointer is (`at`, a world point), so a drag carries it from that spot.
    */

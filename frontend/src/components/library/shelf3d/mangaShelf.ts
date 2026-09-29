@@ -1,5 +1,6 @@
 import * as T from 'three'
 import { ShelfPhysics, type BookBody } from './shelfPhysics'
+import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
 
 /** One series on the shelf. Its look (one of the thirty spine editions) is picked by the shelf. */
@@ -34,6 +35,14 @@ interface Item {
   /** A brief flutter in progress: which board swings, how far, and since when. */
   flutter?: { at: number; side: 'front' | 'back'; angle: number }
   flutterEnded?: number
+}
+
+interface Prop {
+  body: BookBody
+  model: T.Object3D
+  row: Row
+  leaves: { pivot: T.Group; height: number; stiffness: number; angle: number; speed: number }[]
+  lastVx: number
 }
 
 interface Hinges {
@@ -74,6 +83,8 @@ const FLUTTER_COOLDOWN_MS = 1200
 const LEAF_LAG_MS = 55
 /** Landings softer than this (see `ShelfPhysics.onImpact`) do not shake the shelf. */
 const IMPACT_MIN = 60
+/** Share of page loads that put a potted plant in the shelf's empty space. */
+const PLANT_CHANCE = 0.03
 const SHAKE_MS = 450
 const SHAKE_MAX = 3.5
 
@@ -91,6 +102,14 @@ export class MangaShelf {
   private readonly resizeObserver: ResizeObserver
   private rows: Row[] = []
   private items: Item[] = []
+  /** Things on the shelf that are not books: physical, but never grabbed or opened. */
+  private props: Prop[] = []
+  /** A prop (the plant) being carried: props can be moved but not opened. */
+  private heldProp: Prop | null = null
+  /** How much of the shelf stays empty, drawn once per page load: between 2% and 30%. */
+  private readonly emptyShare = 0.02 + Math.random() * 0.28
+  /** Decided once per page load, so a resize does not make the plant come and go. */
+  private readonly withPlant = Math.random() < PLANT_CHANCE
   private selected: Item | null = null
   private drag: { x: number; y: number; moved: boolean; at: number } | null = null
   private access: HTMLDivElement | null = null
@@ -143,6 +162,7 @@ export class MangaShelf {
         const dy = (e.clientY - this.drag.y) / this.scale
         if (Math.hypot(dx, dy) > CLICK_SLOP) this.drag.moved = true
         if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row))
+        if (this.heldProp) this.heldProp.row.physics.moveTo(this.worldPoint(e, this.heldProp.row))
         this.wake()
         return
       }
@@ -154,7 +174,17 @@ export class MangaShelf {
     }, options)
     canvas.addEventListener('pointerdown', (e) => {
       const item = this.hit(e)
-      if (!item) return
+      if (!item) {
+        const prop = this.hitProp(e)
+        if (!prop || this.reduced.matches) return
+        this.heldProp = prop
+        prop.row.physics.grab(prop.body, 1, this.worldPoint(e, prop.row))
+        this.drag = { x: e.clientX, y: e.clientY, moved: true, at: performance.now() }
+        canvas.setPointerCapture(e.pointerId)
+        e.preventDefault()
+        this.wake()
+        return
+      }
       // Re-grip where the pointer is, so a drag carries the book from that spot.
       if (!this.reduced.matches) {
         this.selected?.row.physics.release()
@@ -478,6 +508,7 @@ export class MangaShelf {
     }
     this.rows = []
     this.items = []
+    this.props = []
     this.access?.remove()
     this.access = null
   }
@@ -495,6 +526,40 @@ export class MangaShelf {
       this.dealt.set(b.id, deal)
     }
     return { ...b, width: deal.width, style: deal.style, look: SPINE_STYLES[deal.style] }
+  }
+
+  /**
+   * Stands the plant somewhere in the empty quarter of the shelf, clear of the books, so it never
+   * costs a book its place. Skipped if a narrow shelf leaves no room for it.
+   */
+  private placePlant(row: Row, width: number) {
+    const plant = buildPottedPlant()
+    const booksEnd = this.items.reduce((end, i) => Math.max(end, i.body.bounds.max.x), 0)
+    const half = Math.max(plant.potWidth, plant.leafSpread) / 2
+    const from = booksEnd + 16 + half
+    const to = width - 20 - half
+    if (to < from) {
+      plant.dispose()
+      return
+    }
+    const x = from + Math.random() * (to - from)
+    const { body, centreAboveFloor } = row.physics.addPlant(
+      x, plant.potWidth, plant.potHeight, Math.min(plant.leafSpread, plant.potWidth * 0.8), plant.leafHeight * 0.85,
+    )
+    // The model's origin is its base; the body's is its centre of mass.
+    const model = new T.Group()
+    plant.group.position.y = -centreAboveFloor
+    model.add(plant.group)
+    row.scene.add(model)
+    const prop: Prop = {
+      body,
+      model,
+      row,
+      leaves: plant.leaves.map((l) => ({ ...l, angle: 0, speed: 0 })),
+      lastVx: 0,
+    }
+    model.traverse((n) => (n.userData.prop = prop))
+    this.props.push(prop)
   }
 
   private newRow(width: number): Row {
@@ -545,7 +610,7 @@ export class MangaShelf {
     this.clear()
     const width = this.logicalWidth
     const row = this.newRow(width)
-    for (const p of planShelf(this.books.map((b) => this.styled(b)), width)) {
+    for (const p of planShelf(this.books.map((b) => this.styled(b)), width, this.emptyShare)) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
       const { group: model, hinges } = this.model(p.book)
       row.scene.add(model)
@@ -553,6 +618,7 @@ export class MangaShelf {
       model.traverse((n) => (n.userData.item = item))
       this.items.push(item)
     }
+    if (this.withPlant) this.placePlant(row, width)
 
     const rowPx = ROW * this.scale
     this.renderer.setSize(this.cssWidth, this.rows.length * rowPx, false)
@@ -650,6 +716,41 @@ export class MangaShelf {
     return shake.amplitude * Math.exp(-t / 110) * Math.sin((t / 1000) * 2 * Math.PI * 22)
   }
 
+  /**
+   * Leaf sway: each leaf is a damped spring driven by the plant's sideways acceleration, so the
+   * leaves trail when the plant is moved or knocked (a book hitting the leaves jolts the whole
+   * body) and wobble back to rest. Returns true while any leaf is still moving.
+   */
+  private sway(p: Prop, elapsedMs: number): boolean {
+    const dt = Math.max(1, elapsedMs) / 1000
+    // Matter velocities are per 1/120 s step.
+    const vx = p.body.velocity.x * 120
+    const ax = (vx - p.lastVx) / dt
+    p.lastVx = vx
+    let moving = false
+    for (const leaf of p.leaves) {
+      const k = 70 * leaf.stiffness
+      const reach = leaf.height / 200
+      const push = this.reduced.matches ? 0 : Math.max(-4000, Math.min(4000, ax)) * 0.00045 * reach
+      leaf.speed += (-k * leaf.angle - 3.2 * leaf.speed + push) * dt
+      leaf.angle = Math.max(-0.45, Math.min(0.45, leaf.angle + leaf.speed * dt))
+      leaf.pivot.rotation.z = leaf.angle
+      if (Math.abs(leaf.angle) > 0.002 || Math.abs(leaf.speed) > 0.01) moving = true
+    }
+    return moving
+  }
+
+  private hitProp(e: PointerEvent): Prop | undefined {
+    const rect = this.renderer.domElement.getBoundingClientRect()
+    const rowPx = ROW * this.scale
+    const y = e.clientY - rect.top
+    const row = this.rows[Math.floor(y / rowPx)]
+    if (!row) return undefined
+    const ray = new T.Raycaster()
+    ray.setFromCamera(new T.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, 1 - ((y % rowPx) / rowPx) * 2), row.camera)
+    return ray.intersectObjects(row.scene.children, true).find((h) => h.object.userData.prop)?.object.userData.prop as Prop | undefined
+  }
+
   private hit(e: PointerEvent): Item | undefined {
     const rect = this.renderer.domElement.getBoundingClientRect()
     const rowPx = ROW * this.scale
@@ -678,6 +779,10 @@ export class MangaShelf {
 
   private release() {
     this.drag = null
+    if (this.heldProp) {
+      this.heldProp.row.physics.release()
+      this.heldProp = null
+    }
     this.select(null)
   }
 
@@ -711,7 +816,12 @@ export class MangaShelf {
         pulling ||= t < 1
       }
     }
-    // Shelf shudder: a fast decaying bounce applied to the plank and every book on it.
+    for (const p of this.props) {
+      p.model.position.set(p.body.position.x - this.logicalWidth / 2, 380 - p.body.position.y, 0)
+      p.model.rotation.z = -p.body.angle
+      pulling = this.sway(p, elapsed) || pulling
+    }
+    // Shelf shudder: a fast decaying bounce applied to the plank and everything on it.
     for (const r of this.rows) {
       const dy = r.shake ? this.shakeAt(r.shake, performance.now()) : 0
       if (r.shake && performance.now() - r.shake.at > SHAKE_MS) r.shake = undefined
@@ -719,6 +829,7 @@ export class MangaShelf {
       if (dy) {
         pulling = true
         for (const i of this.items) if (i.row === r) i.model.position.y += dy
+        for (const p of this.props) if (p.row === r) p.model.position.y += dy
       }
       if (r.shake) pulling = true
     }
@@ -745,8 +856,6 @@ interface Placement {
   angle: number
 }
 
-/** At least this share of the shelf is left empty. */
-const EMPTY_SHARE = 0.25
 /** Most books stand neatly (85%); the rest lie down or lean. */
 const LYING_SHARE = 0.05
 const LEANING_SHARE = 0.1
@@ -756,8 +865,8 @@ const LEANING_SHARE = 0.1
  * A share lie in piles of up to three (consecutive books, so the order still reads left to right)
  * and a share of the standing ones start tipped to lean on a neighbour.
  */
-function planShelf(books: Styled[], width: number): Placement[] {
-  const limit = width * (1 - EMPTY_SHARE)
+function planShelf(books: Styled[], width: number, emptyShare: number): Placement[] {
+  const limit = width * (1 - emptyShare)
   const out: Placement[] = []
   let x = 18
   let pile: { x: number; top: number; length: number; count: number } | null = null

@@ -133,4 +133,42 @@ public class SeriesReadingServiceTests : IDisposable
     [Fact]
     public async Task Nothing_read_has_no_entry() =>
         Assert.Null(await For(Seed(SeriesStatus.Ongoing, 5, []).SeriesId, SeriesStatus.Ongoing));
+
+    [Fact]
+    public async Task A_first_chapter_opened_but_not_finished_is_reading()
+    {
+        var (id, ids) = Seed(SeriesStatus.Ongoing, 10, []);
+        using (var db = _db.NewContext())
+        {
+            db.ChapterProgress.Add(new ChapterProgress
+            {
+                UserId = 1, SeriesId = id, ChapterId = ids[(1m, "en")], PageIndex = 7, PageCount = 20,
+                StartedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+            });
+            db.SaveChanges();
+        }
+
+        var reading = await For(id, SeriesStatus.Ongoing);
+
+        Assert.Equal(ReadingStatus.Reading, reading!.Status);
+        Assert.Equal(0, reading.ReadMain);
+        Assert.Equal(10, reading.TotalMain);
+    }
+
+    [Fact]
+    public async Task A_chapter_marked_unread_again_is_not_a_start()
+    {
+        var (id, ids) = Seed(SeriesStatus.Ongoing, 10, []);
+        using (var db = _db.NewContext())
+        {
+            db.ChapterProgress.Add(new ChapterProgress
+            {
+                UserId = 1, SeriesId = id, ChapterId = ids[(1m, "en")], PageIndex = 0, UnreadAt = DateTime.UtcNow,
+                StartedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+            });
+            db.SaveChanges();
+        }
+
+        Assert.Null(await For(id, SeriesStatus.Ongoing));
+    }
 }
