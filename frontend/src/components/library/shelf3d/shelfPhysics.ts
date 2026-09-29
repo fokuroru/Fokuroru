@@ -211,7 +211,25 @@ export class ShelfPhysics {
     return !this.hand && this.lastMove.distance < 0.02 && this.lastMove.turn < 0.0005
   }
 
+  /**
+   * The shelf's own acceleration, in multiples of gravity (y down), set by the renderer from how the
+   * page is scrolling. Everything on the shelf feels the opposite of it: a flick that stops hard makes
+   * books hop, and the push lands a little off centre so they rock as they come down.
+   */
+  shelfAcceleration = { x: 0, y: 0 }
+
   step(dt = 1000 / 120) {
+    const { x: ax, y: ay } = this.shelfAcceleration
+    if (ax || ay) {
+      const wake = Math.hypot(ax, ay) > 0.08
+      for (const body of this.bodies) {
+        if (wake) Sleeping.set(body, false)
+        if (body.isSleeping) continue
+        const off = ((body.id * 7919) % 11) / 10 - 0.5
+        const at = Vector.add(body.position, Vector.rotate({ x: off * body.bookWidth * 0.5, y: 0 }, body.angle))
+        Body.applyForce(body, at, { x: -ax * body.mass * GRAVITY_SCALE, y: -ay * body.mass * GRAVITY_SCALE })
+      }
+    }
     const hand = this.hand
     if (hand && this.constraint) {
       hand.time += dt / 1000

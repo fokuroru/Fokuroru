@@ -93,6 +93,9 @@ const LEAF_LAG_MS = 55
 const IMPACT_MIN = 60
 /** Share of page loads that put a potted plant in the shelf's empty space. */
 const PLANT_CHANCE = 0.03
+/** How strongly page scrolling is felt on the shelf, and the most it can jolt, in multiples of gravity. */
+const SCROLL_FEEL = 0.35
+const SCROLL_G_MAX = 2.2
 const SHAKE_MS = 450
 const SHAKE_MAX = 3.5
 
@@ -131,6 +134,8 @@ export class MangaShelf {
   private readonly covers = new Map<string, HTMLImageElement | null>()
   /** Bumped by every layout, so a layout still waiting on covers gives way to a newer one. */
   private generation = 0
+  /** Where the canvas sat on screen last frame, and how fast it was moving, to feel the page scroll. */
+  private scrollTrack: { top: number; velocity: number } | null = null
   private logicalWidth = 0
   private scale = 1
   private cssWidth = 0
@@ -213,6 +218,10 @@ export class MangaShelf {
     for (const event of ['pointercancel', 'lostpointercapture'] as const) {
       canvas.addEventListener(event, () => this.release(), options)
     }
+    // Scroll events do not bubble; capturing on the document catches whichever element scrolls.
+    document.addEventListener('scroll', () => {
+      if (!this.reduced.matches) this.wake()
+    }, { capture: true, passive: true, signal: this.abort.signal })
     window.addEventListener('blur', () => this.release(), options)
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.release()
@@ -839,18 +848,43 @@ export class MangaShelf {
     this.quietFrames = 0
     if (this.frame || this.abort.signal.aborted) return
     this.last = 0
+    this.scrollTrack = null
     this.frame = requestAnimationFrame(this.tick)
+  }
+
+  /**
+   * Turns the canvas's movement on screen into an acceleration of the shelf, as if the page were the
+   * wall it hangs on. Only the change in scroll speed counts, so a steady scroll does nothing and a
+   * flick that starts or stops sharply jolts the books. Returns true while the shelf is still moving.
+   */
+  private feelScroll(elapsedMs: number): boolean {
+    const top = this.container.getBoundingClientRect().top / this.scale
+    const track = this.scrollTrack
+    let accel = 0
+    if (track && elapsedMs > 0) {
+      const velocity = (top - track.top) / elapsedMs
+      accel = (velocity - track.velocity) / elapsedMs
+      track.top = top
+      track.velocity += (velocity - track.velocity) * 0.6
+    } else {
+      this.scrollTrack = { top, velocity: 0 }
+    }
+    // Units per ms² to multiples of gravity: a book is about 200 units tall, so about 0.9 mm a unit.
+    const g = this.reduced.matches ? 0 : Math.max(-SCROLL_G_MAX, Math.min(SCROLL_G_MAX, (accel * 1e6 * SCROLL_FEEL) / 10900))
+    for (const r of this.rows) r.physics.shelfAcceleration = { x: 0, y: Math.abs(g) < 0.02 ? 0 : g }
+    return Math.abs(this.scrollTrack!.velocity) > 0.01 || Math.abs(g) >= 0.02
   }
 
   private tick = (time: number) => {
     const elapsed = Math.min(time - (this.last || time), 50)
     this.last = time
     this.acc += elapsed
+    const scrolling = this.feelScroll(elapsed)
     while (this.acc >= 1000 / 120) {
       for (const r of this.rows) r.physics.step()
       this.acc -= 1000 / 120
     }
-    let pulling = false
+    let pulling = scrolling
     for (const i of this.items) {
       i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, 0)
       i.model.rotation.z = -i.body.angle
