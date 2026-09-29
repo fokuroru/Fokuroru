@@ -1341,6 +1341,7 @@ export default function SeriesDetailPage() {
               chapterLabel={nextChapter}
               seriesTitle={series.displayTitle}
               coverUrl={series.coverUrl}
+              note={t`Your next unread chapter is not downloaded yet. It is being fetched now, and you can read it as soon as it finishes.`}
               onClose={() => {
                 setDownloadSplash(false)
                 void queryClient.invalidateQueries({ queryKey: ['reader-continue', seriesId] })

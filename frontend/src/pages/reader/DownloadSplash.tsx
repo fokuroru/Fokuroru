@@ -25,12 +25,14 @@ export function DownloadSplash({
   chapterLabel,
   seriesTitle,
   coverUrl,
+  note,
   onClose,
 }: {
   chapterId: number
   chapterLabel: string | null
   seriesTitle: string
   coverUrl: string | null
+  note?: string
   onClose: () => void
 }) {
   const { t } = useLingui()
@@ -136,6 +138,7 @@ export function DownloadSplash({
           <Text className="download-splash-series">{seriesTitle}</Text>
           {chapterLabel && <Text className="download-splash-chapter">{chapterLabel}</Text>}
         </div>
+        {note && <Text size="sm">{note}</Text>}
         <div className="download-splash-progress">
           {failed ? null : pct !== null ? (
             <Progress value={pct} size="md" radius={0} aria-label={t`Download progress`} />

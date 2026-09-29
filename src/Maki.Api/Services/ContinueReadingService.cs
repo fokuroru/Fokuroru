@@ -36,9 +36,11 @@ public class ContinueReadingService(MakiDbContext db)
     /// from the result rather than present with a null — callers drop them from their rails.
     /// </summary>
     /// <param name="includeMissing">
-    /// Also consider wanted chapters that are not downloaded yet, for a caller that can fetch one
-    /// before opening it (the series page's "Download &amp; read"). Rails leave this off: they can
-    /// only offer what opens straight away.
+    /// Also consider chapters that are not downloaded yet, wanted or not, for a caller that can
+    /// fetch one before opening it (the series page's "Download &amp; read"). Wanted is ignored on
+    /// purpose: a series that only kept its newest chapters wanted would otherwise jump to the
+    /// latest download over dozens of unread ones. Rails leave this off: they can only offer what
+    /// opens straight away.
     /// </param>
     public async Task<Dictionary<int, NextChapter>> NextForAsync(
         IReadOnlyCollection<int> seriesIds, CancellationToken ct, bool includeMissing = false)
@@ -67,7 +69,7 @@ public class ContinueReadingService(MakiDbContext db)
         foreach (var group in chapters.GroupBy(c => c.SeriesId))
         {
             var ordered = ChapterOrder.Sort(group, c => c.Number, c => c.Volume, c => c.Id);
-            bool Candidate(bool hasFile, bool wanted) => hasFile || (includeMissing && wanted);
+            bool Candidate(bool hasFile, bool wanted) => hasFile || includeMissing;
             var unread = ordered.Where(c => Candidate(c.HasFile, c.Wanted) && !completed.Contains(c.Id)).ToList();
             if (unread.Count == 0)
             {
