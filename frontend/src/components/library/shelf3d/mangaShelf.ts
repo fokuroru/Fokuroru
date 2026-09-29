@@ -581,20 +581,20 @@ export class MangaShelf {
     const now = performance.now()
     if (!i.flutter && !this.reduced.matches && i.pulledAt === undefined) {
       const moving = i.body.speed > 0.6 || Math.abs(i.body.angularSpeed) > 0.01 || this.selected === i
-      if (moving && Math.random() < FLUTTER_CHANCE) {
-        i.flutter = {
-          at: now,
-          // Open the board the camera can see: left of centre shows the front, right the back.
-          side: i.model.position.x < 0 ? 'front' : 'back',
-          angle: 0.22 + Math.random() * 0.3,
-        }
+      // Open the board the camera can see: left of centre shows the front, right the back.
+      const side = i.model.position.x < 0 ? 'front' : 'back'
+      if (moving && Math.random() < FLUTTER_CHANCE && i.row.physics.clearance(i.body, side === 'front' ? 1 : -1, 12) >= 10) {
+        i.flutter = { at: now, side, angle: 0.22 + Math.random() * 0.3 }
       }
     }
     if (!i.flutter) return false
     const t = Math.min(1, (now - i.flutter.at) / FLUTTER_MS)
-    // Quick to open, slower to fall shut.
-    const open = Math.sin(Math.PI * Math.pow(t, 0.7)) * i.flutter.angle
     const sign = i.flutter.side === 'front' ? -1 : 1
+    // Quick to open, slower to fall shut, and never further than the space beside the book allows:
+    // the fore-edge of a board swung by `a` moves DEPTH * sin(a) sideways.
+    const room = i.row.physics.clearance(i.body, i.flutter.side === 'front' ? 1 : -1, DEPTH)
+    const limit = Math.asin(Math.min(1, Math.max(0, room - 1.5) / DEPTH))
+    const open = Math.min(Math.sin(Math.PI * Math.pow(t, 0.7)) * i.flutter.angle, limit)
     const hinge = i.hinges[i.flutter.side]
     hinge.board.rotation.y = sign * open
     hinge.leaves.forEach((leaf, k) => (leaf.rotation.y = sign * open * (0.8 - k * 0.18)))

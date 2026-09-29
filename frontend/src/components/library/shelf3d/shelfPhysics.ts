@@ -1,6 +1,6 @@
 import Matter from 'matter-js'
 
-const { Engine, Bodies, Body, Composite, Constraint, Sleeping, Vector } = Matter
+const { Engine, Bodies, Body, Composite, Constraint, Query, Sleeping, Vector } = Matter
 
 /** Three times Matter's default: at shelf scale the default had books drifting down like paper. */
 const GRAVITY_SCALE = 0.003
@@ -102,6 +102,30 @@ export class ShelfPhysics {
       x: Math.max(hx + grip.x, Math.min(this.width - hx + grip.x, point.x)),
       y: Math.max(-40, Math.min(this.floor - hy + grip.y - 1, point.y)),
     }
+  }
+
+  /**
+   * Free space beside one face of a book, measured outwards along its own x axis (so a book lying
+   * down looks up or down), up to `reach`. Sampled on three lines along the face against every
+   * other body, the plank and the shelf ends included, so a cover opening into it stays out of them.
+   */
+  clearance(body: BookBody, side: 1 | -1, reach: number): number {
+    const others = Composite.allBodies(this.engine.world).filter((b) => b !== body)
+    const out = Vector.rotate({ x: side, y: 0 }, body.angle)
+    let free = reach
+    for (const along of [-0.4, 0, 0.4]) {
+      const origin = Vector.add(
+        body.position,
+        Vector.rotate({ x: (side * body.bookWidth) / 2, y: along * body.bookHeight }, body.angle),
+      )
+      for (let d = 1; d < free; d += 3) {
+        if (Query.point(others, Vector.add(origin, Vector.mult(out, d))).length > 0) {
+          free = d - 1
+          break
+        }
+      }
+    }
+    return Math.max(0, free)
   }
 
   /** Takes a book out of the simulation (it is being pulled off the shelf) without disturbing the rest. */
