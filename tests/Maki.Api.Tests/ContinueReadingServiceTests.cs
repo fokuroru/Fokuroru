@@ -112,4 +112,41 @@ public class ContinueReadingServiceTests : IDisposable
 
         Assert.Equal(first, withMissing!.ChapterId);
     }
+
+    /// <summary>
+    /// Anjo the Mischievous Gal as found on the test install: 1-147 read, a skipped special (143.5)
+    /// and a one-shot neither wanted nor downloaded, 148 onwards wanted but missing, and a stray read
+    /// of 231 whose file auto-delete already removed. Read used to offer the unwanted one-shot.
+    /// </summary>
+    [Fact]
+    public async Task Unwanted_specials_and_one_shots_are_not_offered_over_the_next_main_chapter()
+    {
+        var seriesId = _db.SeedSeries();
+        for (var n = 1; n <= 147; n++)
+        {
+            Read(seriesId, Seed(seriesId, n, null));
+        }
+
+        var special = Seed(seriesId, 143.5m, null, downloaded: false);
+        var next = Seed(seriesId, 148, null, downloaded: false);
+        Seed(seriesId, 149, null, downloaded: false);
+        var stray = Seed(seriesId, 231, null, downloaded: false);
+        Read(seriesId, stray);
+        int oneShot;
+        using (var db = _db.NewContext())
+        {
+            var chapter = new Chapter { SeriesId = seriesId, Language = "en", IsOneShot = true, Wanted = false };
+            db.Chapters.Add(chapter);
+            db.Chapters.Where(c => c.Id == special || c.Id == stray).ToList().ForEach(c => c.Wanted = false);
+            db.SaveChanges();
+            oneShot = chapter.Id;
+        }
+
+        var withMissing = await new ContinueReadingService(_db.NewContext())
+            .NextForAsync(seriesId, CancellationToken.None, includeMissing: true);
+
+        Assert.Equal(next, withMissing!.ChapterId);
+        Assert.NotEqual(oneShot, withMissing.ChapterId);
+        Assert.False(withMissing.Downloaded);
+    }
 }
