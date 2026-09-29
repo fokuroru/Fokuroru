@@ -30,6 +30,14 @@ interface Item {
   book: Styled
   /** Set once clicked: the book slides out towards the viewer while the next page loads. */
   pulledAt?: number
+  hinges: Hinges
+  /** A brief flutter in progress: which board swings, how far, and since when. */
+  flutter?: { at: number; side: 'front' | 'back'; angle: number }
+}
+
+interface Hinges {
+  front: { board: T.Group; leaves: T.Group[] }
+  back: { board: T.Group; leaves: T.Group[] }
 }
 
 interface Row {
@@ -47,6 +55,9 @@ const DEPTH = 132
 const CLICK_SLOP = 6
 const PULL_MS = 550
 const COVER_WAIT_MS = 4000
+const FLUTTER_MS = 900
+/** Chance per frame that a moving book flutters open: roughly once every couple of seconds of motion. */
+const FLUTTER_CHANCE = 0.008
 
 /**
  * The Reading now shelf as solid volumes: Three.js books over Matter.js bodies, one camera per shelf
@@ -377,21 +388,27 @@ export class MangaShelf {
     })
   }
 
-  private model(b: Styled) {
+  /**
+   * A book: page block, spine, and two boards each hung on a hinge at the spine edge with a few
+   * loose leaves behind it, so a board can swing open and fan the pages (see `flutter`).
+   */
+  private model(b: Styled): { group: T.Group; hinges: Hinges } {
     const bw = b.width
     const bh = b.height
     const group = new T.Group()
     const mat = (color?: string, map?: T.Texture) =>
       new T.MeshStandardMaterial({ color: color ?? '#ffffff', map: map ?? null, roughness: 0.84, metalness: 0 })
-    const mesh = (geometry: T.BufferGeometry, material: T.Material | T.Material[], x: number, y: number, z: number) => {
+    const mesh = (
+      geometry: T.BufferGeometry, material: T.Material | T.Material[],
+      x: number, y: number, z: number, parent: T.Object3D = group,
+    ) => {
       const n = new T.Mesh(geometry, material)
       n.position.set(x, y, z)
       n.castShadow = true
       n.receiveShadow = true
-      group.add(n)
+      parent.add(n)
       return n
     }
-    // A closed page block, then solid boards front and back, then the spine face.
     const px = mat(undefined, this.pages(DEPTH, bh, 'y'))
     const py = mat(undefined, this.pages(bw, DEPTH, 'x'))
     const pz = mat(undefined, this.pages(bw, bh, 'x'))
@@ -401,11 +418,28 @@ export class MangaShelf {
     const back = mat()
     this.cover(b, DEPTH, bh, front)
     this.cover(b, DEPTH, bh, back, true)
-    mesh(new T.BoxGeometry(1.5, bh, DEPTH), [front, edge, edge, edge, edge, edge], bw / 2 - 0.75, 0, -DEPTH / 2)
-    mesh(new T.BoxGeometry(1.5, bh, DEPTH), [edge, back, edge, edge, edge, edge], -bw / 2 + 0.75, 0, -DEPTH / 2)
+    const leaf = mat('#f1ebdb')
+    const hinge = (side: 1 | -1, board: T.Material[]) => {
+      const board0 = new T.Group()
+      board0.position.set((side * bw) / 2, 0, 0)
+      group.add(board0)
+      mesh(new T.BoxGeometry(1.5, bh, DEPTH), board, -side * 0.75, 0, -DEPTH / 2, board0)
+      const leaves = [0, 1, 2, 3].map((k) => {
+        const pivot = new T.Group()
+        pivot.position.set(side * (bw / 2 - 2 - k * 0.6), 0, -1)
+        group.add(pivot)
+        mesh(new T.BoxGeometry(0.35, bh - 6, DEPTH - 8), leaf, 0, 0, -(DEPTH - 8) / 2, pivot)
+        return pivot
+      })
+      return { board: board0, leaves }
+    }
+    const hinges: Hinges = {
+      front: hinge(1, [front, edge, edge, edge, edge, edge]),
+      back: hinge(-1, [edge, back, edge, edge, edge, edge]),
+    }
     const spine = mat(undefined, this.spine(b, bw, bh))
     mesh(new T.BoxGeometry(bw, bh, 2.2), [edge, edge, edge, edge, spine, edge], 0, 0, -0.5)
-    return group
+    return { group, hinges }
   }
 
   // ---- layout ------------------------------------------------------------
@@ -487,9 +521,9 @@ export class MangaShelf {
     const row = this.newRow(width)
     for (const p of planShelf(this.books.map((b) => this.styled(b)), width)) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
-      const model = this.model(p.book)
+      const { group: model, hinges } = this.model(p.book)
       row.scene.add(model)
-      const item: Item = { body, model, row, book: p.book }
+      const item: Item = { body, model, row, book: p.book, hinges }
       model.traverse((n) => (n.userData.item = item))
       this.items.push(item)
     }
@@ -536,6 +570,39 @@ export class MangaShelf {
     item.pulledAt = performance.now()
     this.onOpen(item.book.id)
     this.wake()
+  }
+
+  /**
+   * Now and then a moving or held book falls slightly open: the board on the side facing the viewer
+   * swings out on its hinge, the leaves behind it fan a little less, and it closes again. Returns
+   * true while a flutter is still playing, so the frame loop keeps running.
+   */
+  private flutter(i: Item): boolean {
+    const now = performance.now()
+    if (!i.flutter && !this.reduced.matches && i.pulledAt === undefined) {
+      const moving = i.body.speed > 0.6 || Math.abs(i.body.angularSpeed) > 0.01 || this.selected === i
+      if (moving && Math.random() < FLUTTER_CHANCE) {
+        i.flutter = {
+          at: now,
+          // Open the board the camera can see: left of centre shows the front, right the back.
+          side: i.model.position.x < 0 ? 'front' : 'back',
+          angle: 0.22 + Math.random() * 0.3,
+        }
+      }
+    }
+    if (!i.flutter) return false
+    const t = Math.min(1, (now - i.flutter.at) / FLUTTER_MS)
+    // Quick to open, slower to fall shut.
+    const open = Math.sin(Math.PI * Math.pow(t, 0.7)) * i.flutter.angle
+    const sign = i.flutter.side === 'front' ? -1 : 1
+    const hinge = i.hinges[i.flutter.side]
+    hinge.board.rotation.y = sign * open
+    hinge.leaves.forEach((leaf, k) => (leaf.rotation.y = sign * open * (0.8 - k * 0.18)))
+    if (t < 1) return true
+    hinge.board.rotation.y = 0
+    hinge.leaves.forEach((leaf) => (leaf.rotation.y = 0))
+    i.flutter = undefined
+    return false
   }
 
   private hit(e: PointerEvent): Item | undefined {
@@ -589,6 +656,7 @@ export class MangaShelf {
     for (const i of this.items) {
       i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, 0)
       i.model.rotation.z = -i.body.angle
+      pulling = this.flutter(i) || pulling
       if (i.pulledAt !== undefined) {
         const t = Math.min(1, (performance.now() - i.pulledAt) / PULL_MS)
         const e = 1 - (1 - t) ** 3
