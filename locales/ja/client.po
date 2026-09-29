@@ -941,6 +941,10 @@ msgstr "{rated}件を評価済み"
 msgid "{ratioValue} more than the MangaBaka catalogue carries, weighted toward titles more people read"
 msgstr "MangaBakaカタログより{ratioValue}多く、より多く読まれているタイトルを重視"
 
+#: src/components/library/SpineShelf.tsx
+msgid "{read} of {total} read"
+msgstr ""
+
 #: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
 #, fuzzy
@@ -3951,6 +3955,11 @@ msgstr "読んだ内容"
 #, fuzzy
 msgid "Continue"
 msgstr "続ける"
+
+#. placeholder {0}: book.title
+#: src/components/library/SpineShelf.tsx
+msgid "Continue {0}"
+msgstr ""
 
 #: src/components/library/SpineShelf.tsx
 msgid "Continue {seriesTitle}"

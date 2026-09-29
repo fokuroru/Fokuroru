@@ -7882,3 +7882,30 @@ body.reader-open {
 .download-splash-status[data-failed] {
   color: #f4a39a;
 }
+
+/* --- Reading now: the 3D shelf ------------------------------------------ */
+.shelf3d {
+  position: relative;
+  width: 100%;
+  /* Holds the space of one row while Three.js loads, so the page below does not jump. */
+  min-height: min(420px, 65vw);
+}
+.shelf3d-canvas {
+  display: block;
+  max-width: 100%;
+  /* Vertical swipes still scroll the page on a phone; sideways drags move a book. */
+  touch-action: pan-y;
+  cursor: grab;
+}
+.shelf3d-canvas:active {
+  cursor: grabbing;
+}
+.shelf3d-access {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

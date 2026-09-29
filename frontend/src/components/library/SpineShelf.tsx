@@ -1,4 +1,5 @@
-import type { CSSProperties, MouseEvent, ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { useComputedColorScheme } from '@mantine/core'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLingui } from '@lingui/react/macro'
 import '@fontsource/dela-gothic-one/latin-400.css'
@@ -12,6 +13,7 @@ import { api } from '../../api/client'
 import type { SeriesDto } from '../../api/types'
 import { seriesProgressVisual } from '../ui/status'
 import { contrast, DEFAULT_SPINE, spineInk } from '../../lib/spine'
+import type { MangaShelf, ShelfBook } from './shelf3d/mangaShelf'
 
 const MAX_SERIES = 14
 const CHAPTERS_PER_BOOK = 20
@@ -238,6 +240,9 @@ function SpineBook({ s, book, index, count, style, height, width, fitWidth }: {
 export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; readTracking: boolean }) {
   const { t } = useLingui()
   const navigate = useNavigate()
+  const scheme = useComputedColorScheme('dark')
+  // Only a failure to start WebGL (or to load its chunk) drops to the flat spines.
+  const [flat, setFlat] = useState(false)
   if (!readTracking) return null
 
   // Reading history decides, not files on disk: auto-delete removes read chapters' files, and a
@@ -249,52 +254,152 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
     .slice(0, MAX_SERIES)
   if (reading.length === 0) return null
 
-  const open = (e: MouseEvent, id: number) => {
-    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    e.preventDefault()
+  const goTo = (id: number) =>
     void api<{ chapterId: number } | null>(`/reader/series/${id}/continue`)
       .catch(() => null)
       .then((next) => navigate(next ? `/read/${next.chapterId}` : `/series/${id}`))
+
+  const open = (e: MouseEvent, id: number) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    goTo(id)
   }
+
+  const books: ShelfBook[] = reading.map(({ s, p }) => {
+    const total = s.mainChapterCount || p.total || p.have
+    const read = s.readMainChapters ?? s.readChapterCount ?? 0
+    const bg = s.spineColor ?? DEFAULT_SPINE
+    return {
+      id: s.id,
+      title: s.displayTitle,
+      author: s.authorStory ?? s.authorArt ?? '',
+      number: String(read + 1).padStart(2, '0'),
+      caption: t`${read} of ${total} read`,
+      width: 30 + Math.min(34, Math.round(total / 6)),
+      height: 250 + pick(s.id, 'height', 6) * 8,
+      pattern: pick(s.id, 'pattern', 6),
+      face: FACES[pick(s.id, 'face', FACES.length)][0],
+      bg,
+      fg: spineInk(bg),
+      accent: shade(bg, isPale(bg) ? 0.86 : 0.7),
+      coverUrl: s.coverUrl,
+      bandTop: pick(s.id, 'band', 2) === 0,
+    }
+  })
 
   return (
     <section className="spine-shelf" aria-label={t`Reading now`}>
       <div className="spine-shelf-label">{t`Reading now`}</div>
-      <div className="spine-shelf-row">
-        {reading.map(({ s, p }) => {
-          const total = s.mainChapterCount || p.total || p.have
-          const books = booksFor(total, s.readMainChapters ?? s.readChapterCount ?? 0)
-          const style = STYLES[pick(s.id, 'style', STYLES.length)]
-          const height = 250 + pick(s.id, 'height', 5) * 9
-          const seriesTitle = s.displayTitle
-          const widths = widthsFor(s, style, books.length)
-          const fitWidth = Math.min(...widths)
-          return (
-            <Link
-              key={s.id}
-              to={`/series/${s.id}`}
-              className="spine-run"
-              onClick={(e) => open(e, s.id)}
-              aria-label={t`Continue ${seriesTitle}`}
-              title={s.displayTitle}
-            >
-              {books.map((book, i) => (
-                <SpineBook
-                  key={book.n}
-                  s={s}
-                  book={book}
-                  index={i}
-                  count={books.length}
-                  style={style}
-                  height={height}
-                  width={widths[i]}
-                  fitWidth={fitWidth}
-                />
-              ))}
-            </Link>
-          )
-        })}
-      </div>
+      {flat ? (
+        <FlatShelf reading={reading.map(({ s, p }) => ({ s, total: s.mainChapterCount || p.total || p.have }))} open={open} />
+      ) : (
+        <Shelf3D books={books} dark={scheme === 'dark'} onOpen={goTo} onFail={() => setFlat(true)} />
+      )}
     </section>
+  )
+}
+
+const SHELF_THEMES = {
+  dark: { wall: '#2b2723', shelf: '#5d4b39' },
+  light: { wall: '#e0d9ca', shelf: '#b9a382' },
+}
+
+/**
+ * The 3D shelf. Three.js and Matter.js arrive in their own chunk, loaded only when there is a shelf
+ * to draw, and the canvas faces are only usable in a texture once their fonts have loaded.
+ */
+function Shelf3D({ books, dark, onOpen, onFail }: {
+  books: ShelfBook[]
+  dark: boolean
+  onOpen: (id: number) => void
+  onFail: () => void
+}) {
+  const { t } = useLingui()
+  const host = useRef<HTMLDivElement>(null)
+  const shelf = useRef<MangaShelf | null>(null)
+  const latest = useRef({ books, dark, onOpen, onFail })
+  latest.current = { books, dark, onOpen, onFail }
+
+  useEffect(() => {
+    let cancelled = false
+    const faces = [...FACES.map(([f]) => f), "'Martian Mono'", "'Zen Kaku Gothic New'"]
+    void Promise.all([
+      import('./shelf3d/mangaShelf'),
+      Promise.all(faces.map((f) => document.fonts.load(`24px ${f}`).catch(() => []))),
+    ])
+      .then(([{ MangaShelf }]) => {
+        if (cancelled || !host.current) return
+        const { books: b, dark: d } = latest.current
+        shelf.current = new MangaShelf(
+          host.current,
+          b,
+          d ? SHELF_THEMES.dark : SHELF_THEMES.light,
+          (id) => latest.current.onOpen(id),
+          (book) => t`Continue ${book.title}`,
+        )
+      })
+      .catch(() => {
+        if (!cancelled) latest.current.onFail()
+      })
+    return () => {
+      cancelled = true
+      shelf.current?.destroy()
+      shelf.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const key = books.map((b) => `${b.id}:${b.number}:${b.bg}:${b.caption}`).join('|')
+  useEffect(() => {
+    shelf.current?.setBooks(latest.current.books)
+  }, [key])
+  useEffect(() => {
+    shelf.current?.setTheme(dark ? SHELF_THEMES.dark : SHELF_THEMES.light)
+  }, [dark])
+
+  return <div ref={host} className="shelf3d" />
+}
+
+/** The flat spines, kept for a browser that cannot start WebGL. */
+function FlatShelf({ reading, open }: {
+  reading: { s: SeriesDto; total: number }[]
+  open: (e: MouseEvent, id: number) => void
+}) {
+  const { t } = useLingui()
+  return (
+    <div className="spine-shelf-row">
+      {reading.map(({ s, total }) => {
+        const books = booksFor(total, s.readMainChapters ?? s.readChapterCount ?? 0)
+        const style = STYLES[pick(s.id, 'style', STYLES.length)]
+        const height = 250 + pick(s.id, 'height', 5) * 9
+        const seriesTitle = s.displayTitle
+        const widths = widthsFor(s, style, books.length)
+        const fitWidth = Math.min(...widths)
+        return (
+          <Link
+            key={s.id}
+            to={`/series/${s.id}`}
+            className="spine-run"
+            onClick={(e) => open(e, s.id)}
+            aria-label={t`Continue ${seriesTitle}`}
+            title={s.displayTitle}
+          >
+            {books.map((book, i) => (
+              <SpineBook
+                key={book.n}
+                s={s}
+                book={book}
+                index={i}
+                count={books.length}
+                style={style}
+                height={height}
+                width={widths[i]}
+                fitWidth={fitWidth}
+              />
+            ))}
+          </Link>
+        )
+      })}
+    </div>
   )
 }
