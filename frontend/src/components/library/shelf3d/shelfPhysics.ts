@@ -77,18 +77,30 @@ export class ShelfPhysics {
       pointB: offset,
       pointA: { ...anchor },
       length: 0,
-      stiffness: at ? 0.25 : 0.14,
-      damping: 0.18,
+      // Soft enough that a collision always wins against the pull: a stiff grip dragged a book
+      // through its neighbours.
+      stiffness: at ? 0.1 : 0.08,
+      damping: 0.2,
     })
     Composite.add(this.engine.world, this.constraint)
   }
 
-  /** Moves a pressed grip to a world point, kept inside the row so a book cannot be lost off-screen. */
+  /**
+   * Moves a pressed grip to a world point. The point is clamped so that, held there, the book could
+   * not reach below the shelf or past either end: pulling into the shelf would otherwise drive it
+   * through the plank.
+   */
   moveTo(point: Matter.Vector) {
-    if (!this.hand?.target) return
+    const body = this.constraint?.bodyB as BookBody | undefined
+    if (!this.hand?.target || !body || !this.constraint) return
+    const cos = Math.abs(Math.cos(body.angle))
+    const sin = Math.abs(Math.sin(body.angle))
+    const hx = (body.bookWidth / 2) * cos + (body.bookHeight / 2) * sin
+    const hy = (body.bookWidth / 2) * sin + (body.bookHeight / 2) * cos
+    const grip = this.constraint.pointB
     this.hand.target = {
-      x: Math.max(0, Math.min(this.width, point.x)),
-      y: Math.max(-40, Math.min(this.floor, point.y)),
+      x: Math.max(hx + grip.x, Math.min(this.width - hx + grip.x, point.x)),
+      y: Math.max(-40, Math.min(this.floor - hy + grip.y - 1, point.y)),
     }
   }
 
@@ -126,9 +138,10 @@ export class ShelfPhysics {
         this.constraint.pointA.x = hand.target.x
         this.constraint.pointA.y = hand.target.y
       } else {
+        // Hover: a small lift and the faintest sway, a hint that the book can be taken.
         const lift = 1 - Math.exp(-hand.time * 5)
-        this.constraint.pointA.x = hand.start.x + Math.sin(hand.time * 4.2) * 4.2 * lift * hand.direction
-        this.constraint.pointA.y = hand.start.y - 42 * lift + Math.sin(hand.time * 5.3) * 1.3 * lift
+        this.constraint.pointA.x = hand.start.x + Math.sin(hand.time * 3) * 1.2 * lift * hand.direction
+        this.constraint.pointA.y = hand.start.y - 10 * lift + Math.sin(hand.time * 4) * 0.5 * lift
       }
     }
     Engine.update(this.engine, dt)
