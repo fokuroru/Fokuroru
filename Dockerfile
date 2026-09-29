@@ -104,7 +104,9 @@ WORKDIR /app
 COPY --from=trimmed-publish /app ./
 COPY --from=frontend /src/frontend/dist ./wwwroot/
 COPY distribution/docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# The app runs as PUID via gosu, so build-context files with owner-only modes (a source tree copied
+# over a network share) would otherwise be unreadable at startup.
+RUN chmod +x /entrypoint.sh && chmod -R a+rX /app
 
 # MangaFire's vrf request signature is only defeatable inside a real browser, so install a browser
 # for Playwright. We only ever launch headless, so install the ~100 MB chromium-headless-shell rather
