@@ -130,7 +130,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/orbitmpgh/maki
+          images: ghcr.io/fokuroru/fokuroru
           flavor: latest=false
           tags: |
             type=semver,pattern={{version}},value=${{ steps.release.outputs.tag }}

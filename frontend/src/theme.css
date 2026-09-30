@@ -3,7 +3,7 @@
    ========================================================================== */
 
 /* Maki Spine. Token names are the ones the rest of this file already reads; the values are
-   the design system's (claude.ai Design System "Maki Spine"). `--brand*` is the fallback spine:
+   the Spine design's. `--brand*` is the fallback spine:
    a series page overrides it with the colour sampled from its own cover (see --spine below). */
 :root {
   --app-bg: #1d1b19;

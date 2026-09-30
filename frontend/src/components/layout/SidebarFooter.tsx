@@ -16,7 +16,7 @@ import { useAppVersion, useUpdateStatus } from '../../api/hooks'
 import { getSkippedVersion, setSkippedVersion, subscribeSkippedVersion } from '../../lib/updateSkip'
 import { UserMenu } from '../UserMenu'
 
-const REPO_URL = 'https://github.com/OrbitMPGH/Maki'
+const REPO_URL = 'https://github.com/fokuroru/Fokuroru'
 const STAR_DISMISSED_KEY = 'star-nudge-dismissed'
 
 function readStarDismissed(): boolean {

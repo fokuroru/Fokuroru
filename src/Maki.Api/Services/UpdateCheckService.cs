@@ -35,7 +35,7 @@ public class UpdateCheckService(
     ILogger<UpdateCheckService> logger)
 {
     public const string HttpClientName = "github-releases";
-    private const string Repo = "OrbitMPGH/Maki";
+    private const string Repo = "fokuroru/Fokuroru";
 
     /// <summary>Docker sets MAKI_RUNTIME=docker in the image; /.dockerenv is a fallback for
     /// other container setups that don't.</summary>
