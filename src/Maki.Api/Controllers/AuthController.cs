@@ -1,6 +1,10 @@
 using Maki.Api.Auth;
 using Maki.Api.Dtos;
 using Maki.Api.Localization;
+using Maki.Api.Services;
+using Maki.Core.Configuration;
+using Maki.Core.Inbox;
+using Maki.Core.Notifications;
 using Maki.Core.Security;
 using Maki.Data;
 using Maki.Data.Identity;
@@ -39,7 +43,8 @@ public class AuthController(
     OidcRuntimeOptions oidc,
     OidcSignInService oidcSignIn,
     TimeProvider clock,
-    ILogger<AuthController> logger) : ControllerBase
+    ILogger<AuthController> logger,
+    InboxService inbox) : ControllerBase
 {
     /// <summary>
     /// A real password hash to verify against when the username does not exist, so a miss costs the
@@ -58,13 +63,25 @@ public class AuthController(
         Unauthorized(new { code = key, error = localizer.Get(key) });
 
     [HttpGet("me")]
-    public async Task<IActionResult> Me(CancellationToken ct)
+    public async Task<IActionResult> Me(
+        [FromHeader(Name = "X-Maki-TimeZone")] string? timeZone,
+        [FromServices] IUserSettingsStore userSettings,
+        CancellationToken ct)
     {
         var user = await db.Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == currentUser.UserId, ct);
         if (user is null)
         {
             return AuthUnauthorized("error.auth.unauthorized");
+        }
+
+        try
+        {
+            await UserTimeZone.SeedAsync(userSettings, user.Id, timeZone, ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            logger.LogWarning(e, "Seeding the time zone for user {UserId} failed", user.Id);
         }
 
         var oidcLogin = await OidcLoginAsync(user);
@@ -138,6 +155,10 @@ public class AuthController(
         return Ok(await CompleteSignInAsync(user, ct));
     }
 
+    /// <summary>
+    /// Takes either a six-digit authenticator code or one of the recovery codes issued when two-factor
+    /// was turned on. Anything that is not six digits is tried as a recovery code.
+    /// </summary>
     [HttpPost("2fa")]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
@@ -157,14 +178,37 @@ public class AuthController(
             return AuthUnauthorized("error.auth.invalidCode");
         }
 
-        var result = await signInManager.TwoFactorAuthenticatorSignInAsync(
-            code, isPersistent: true, rememberClient: request.RememberMachine);
+        var isAuthenticatorCode = code.Length == 6 && code.All(char.IsAsciiDigit);
+        // Identity neither checks lockout nor counts a miss on the recovery-code path, so both happen
+        // here, and a redeemed code is re-issued as the same persistent session the authenticator gives.
+        var result = isAuthenticatorCode
+            ? await signInManager.TwoFactorAuthenticatorSignInAsync(
+                code, isPersistent: true, rememberClient: request.RememberMachine)
+            : await userManager.IsLockedOutAsync(user)
+                ? Microsoft.AspNetCore.Identity.SignInResult.LockedOut
+                : await signInManager.TwoFactorRecoveryCodeSignInAsync(RecoveryCodeForm(code));
+
+        if (!isAuthenticatorCode && !result.Succeeded && !result.IsLockedOut)
+        {
+            await userManager.AccessFailedAsync(user);
+        }
 
         if (!result.Succeeded)
         {
             await auditLog.LogAsync(AuthEventType.LoginFailed, user.UserName ?? string.Empty, user.Id,
-                HttpContext, detail: result.IsLockedOut ? "locked out at 2fa" : "wrong 2fa code", ct: ct);
+                HttpContext, detail: result.IsLockedOut ? "locked out at 2fa"
+                    : isAuthenticatorCode ? "wrong 2fa code" : "wrong recovery code", ct: ct);
             return AuthUnauthorized("error.auth.invalidCode");
+        }
+
+        if (!isAuthenticatorCode)
+        {
+            await signInManager.SignInWithClaimsAsync(user, isPersistent: true, [new Claim("amr", "mfa")]);
+
+            // Worth its own row: each code works once, and a use the owner does not recognise is
+            // the sign that their saved codes leaked.
+            await auditLog.LogAsync(AuthEventType.UserUpdated, user.UserName ?? string.Empty, user.Id,
+                HttpContext, detail: "two-factor recovery code redeemed", ct: ct);
         }
 
         return Ok(await CompleteSignInAsync(user, ct));
@@ -367,6 +411,11 @@ public class AuthController(
                 detail: $"subject {subject}", ct: ct);
         }
 
+        if (resolved.Linked && !resolved.Provisioned)
+        {
+            await NotifyLinkedAsync(user.Id, OidcClaimMapper.UserName(oidc, claims, subject), ct);
+        }
+
         user.LastLoginAt = clock.GetUtcNow().UtcDateTime;
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync(AuthEventType.LoginSucceeded, user.UserName ?? string.Empty, user.Id,
@@ -390,6 +439,7 @@ public class AuthController(
     /// </summary>
     [HttpGet("oidc/link")]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [CookieSessionOnly]
     public async Task<IActionResult> OidcLink()
     {
         if (!oidc.Enabled)
@@ -397,9 +447,15 @@ public class AuthController(
             return NotFound();
         }
 
+        if (!OidcLinkIntent.IsValidFor(HttpContext, currentUser.UserId))
+        {
+            return LinkFailure("error.auth.ssoLinkNeedsPassword");
+        }
+
         var properties = new AuthenticationProperties
         {
-            RedirectUri = "/api/v1/auth/oidc/link-complete"
+            RedirectUri = "/api/v1/auth/oidc/link-complete",
+            Items = { [OidcLinkIntent.PropertyKey] = currentUser.UserId.ToString(System.Globalization.CultureInfo.InvariantCulture) }
         };
 
         // Not `return Challenge(...)`: see OidcChallenge above for why a deferred ChallengeResult
@@ -419,6 +475,50 @@ public class AuthController(
     }
 
     /// <summary>
+    /// Confirms the password before a link starts, since the link itself is a browser navigation
+    /// that cannot carry one. See <see cref="OidcLinkIntent"/>. An account with no password (signed
+    /// up through SSO) has nothing to confirm and passes straight through.
+    /// </summary>
+    [HttpPost("oidc/link")]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [CookieSessionOnly]
+    public async Task<IActionResult> OidcLinkConfirm([FromBody] ConfirmPasswordRequest request)
+    {
+        if (!oidc.Enabled)
+        {
+            return NotFound();
+        }
+
+        var user = await userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        if (await userManager.HasPasswordAsync(user))
+        {
+            if (string.IsNullOrEmpty(request.Password))
+            {
+                return this.Fail(localizer, "error.account.incorrectPassword");
+            }
+
+            var check = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+            if (check.IsLockedOut)
+            {
+                return this.Fail(localizer, "error.account.lockedOut");
+            }
+
+            if (!check.Succeeded)
+            {
+                return this.Fail(localizer, "error.account.incorrectPassword");
+            }
+        }
+
+        OidcLinkIntent.Issue(HttpContext, user.Id);
+        return NoContent();
+    }
+
+    /// <summary>
     /// Finishes linking. Requires the caller to still be signed in with their own session — the
     /// Maki.Session cookie rides along on this top-level GET the same way it does on any other
     /// same-site navigation — so the account gaining the login is whoever asked, not whoever the
@@ -426,6 +526,7 @@ public class AuthController(
     /// </summary>
     [HttpGet("oidc/link-complete")]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [CookieSessionOnly]
     public async Task<IActionResult> OidcLinkComplete(CancellationToken ct)
     {
         if (!oidc.Enabled)
@@ -435,6 +536,7 @@ public class AuthController(
 
         var external = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
         await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        OidcLinkIntent.Clear(HttpContext);
 
         if (!external.Succeeded || external.Principal is null)
         {
@@ -452,6 +554,15 @@ public class AuthController(
         if (user is null)
         {
             return Unauthorized();
+        }
+
+        // Only a challenge started by OidcLink, for this account, carries the marker. An ordinary
+        // sign-in challenge steered here by hand does not, and would otherwise link without the
+        // password step.
+        if (external.Properties?.Items.TryGetValue(OidcLinkIntent.PropertyKey, out var linkUserId) != true ||
+            linkUserId != user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture))
+        {
+            return LinkFailure("error.auth.ssoLinkNeedsPassword");
         }
 
         var providerKey = OidcClaimMapper.ScopedProviderKey(oidc, subject);
@@ -477,9 +588,32 @@ public class AuthController(
 
             await auditLog.LogAsync(AuthEventType.OidcLinked, user.UserName ?? string.Empty, user.Id,
                 HttpContext, detail: $"subject {subject}", ct: ct);
+            await NotifyLinkedAsync(user.Id, displayName, ct);
         }
 
         return Redirect("/settings?oidcLinked=1");
+    }
+
+    /// <summary>
+    /// Tells the account's owner a login was attached to it. A link made from a stolen session is
+    /// otherwise invisible to them, and it outlives a password change.
+    /// </summary>
+    private Task NotifyLinkedAsync(int userId, string account, CancellationToken ct) =>
+        inbox.RaiseAsync(
+            InboxEventType.AccountSecurity,
+            new InboxMessage("inbox.account.ssoLinked", InboxMessage.Args(new { account }),
+                NotificationLevel.Warning, Url: "/settings"),
+            InboxAudience.User(userId),
+            ct);
+
+    /// <summary>
+    /// Identity issues recovery codes as <c>XXXXX-XXXXX</c> in upper case and redeems only that exact
+    /// string, so a code typed without the dash or in lower case is put back into that form.
+    /// </summary>
+    private static string RecoveryCodeForm(string code)
+    {
+        var upper = code.ToUpperInvariant();
+        return upper.Length == 10 ? $"{upper[..5]}-{upper[5..]}" : upper;
     }
 
     /// <summary>

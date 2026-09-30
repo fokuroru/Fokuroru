@@ -2,6 +2,7 @@
 using Maki.Core.Entities;
 using Maki.Core.Reading;
 using Maki.Core.Scrobbling;
+using Maki.Core.Quality;
 using Maki.Core.Sources;
 using Maki.Data;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,9 @@ public enum SourceMatchState
 /// </summary>
 public readonly record struct SourceMatchStep(string SourceName, SourceMatchState State);
 
+/// <summary>A source that carries a series, as <see cref="SourceMatchService.FindCandidatesAsync"/> ranks it.</summary>
+public sealed record SourceCandidate(ISource Source, string SourceSeriesId, string? LanguageFilter);
+
 /// <summary>
 /// Tries to link a freshly added series to site sources by title search.
 /// Only creates a mapping automatically when a search result's title similarity
@@ -46,6 +50,7 @@ public partial class SourceMatchService(
     Maki.Core.Configuration.IAppSettings settings,
     SourceAvailability sourceAvailability,
     SourceExternalIdCache externalIdCache,
+    SourceMatchSearchCache searchCache,
     ILogger<SourceMatchService> logger)
 {
     /// <summary>
@@ -104,10 +109,12 @@ public partial class SourceMatchService(
     /// <summary>
     /// Sources named in the "sources.priorityorder" CSV setting, in that order, followed by any
     /// remaining registered sources in registration order. Unknown names in the setting are ignored.
+    /// Never set means <see cref="SourceQualityBaseline.DefaultPriorityOrder"/>, so an instance that
+    /// saved its own order keeps it.
     /// </summary>
     public static List<ISource> OrderSources(IReadOnlyCollection<ISource> all, string? priorityCsv)
     {
-        var preferred = (priorityCsv ?? string.Empty)
+        var preferred = (string.IsNullOrWhiteSpace(priorityCsv) ? SourceQualityBaseline.DefaultPriorityOrder : priorityCsv)
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(name => all.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
             .Where(s => s is not null)
@@ -134,13 +141,19 @@ public partial class SourceMatchService(
     /// fan-out starts. Sources are searched in parallel and an EF entity is not thread-safe, so no
     /// task is given the <see cref="Series"/> itself.
     /// </summary>
-    private sealed record MatchTarget(
+    internal sealed record MatchTarget(
         string Title,
         string? OriginalTitle,
         IReadOnlyDictionary<string, string> ExternalIds)
     {
         public static MatchTarget For(Series series) =>
             new(series.Title, DisambiguatingOriginalTitle(series), ExternalIdsOf(series));
+
+        public bool SameAs(MatchTarget other) =>
+            Title == other.Title &&
+            OriginalTitle == other.OriginalTitle &&
+            ExternalIds.Count == other.ExternalIds.Count &&
+            ExternalIds.All(pair => other.ExternalIds.TryGetValue(pair.Key, out var value) && value == pair.Value);
     }
 
     /// <summary>
@@ -327,12 +340,13 @@ public partial class SourceMatchService(
     }
 
     /// <summary>What one source's search came back with. Carries no DbContext state on purpose.</summary>
-    private sealed record SourceOutcome(
+    internal sealed record SourceOutcome(
         ISource Source,
         int Priority,
         SourceSeriesResult? Match,
         SourceMappingOrigin Origin,
-        IReadOnlyDictionary<string, string>? ConfirmedIds);
+        IReadOnlyDictionary<string, string>? ConfirmedIds,
+        bool Failed = false);
 
     /// <summary>
     /// Searches one source and decides what it matched, touching nothing shared. Never throws: a
@@ -385,7 +399,7 @@ public partial class SourceMatchService(
         {
             logger.LogWarning(ex, "Source search failed on {Source} for {Title}", source.Name, target.Title);
             progress?.Report(new SourceMatchStep(source.Name, SourceMatchState.NoMatch));
-            return nothing;
+            return nothing with { Failed = true };
         }
     }
 
@@ -474,6 +488,90 @@ public partial class SourceMatchService(
             : null;
     }
 
+    /// <summary>What one fan-out across the sources produced, plus the ordering it ran under.</summary>
+    private sealed record SearchRun(
+        List<ISource> OrderedSources,
+        List<string> DisabledSources,
+        SourceLanguagePreference Languages,
+        SourceOutcome[] Outcomes);
+
+    /// <summary>
+    /// Searches every enabled source not in <paramref name="skip"/> for <paramref name="target"/>.
+    /// A source with an entry in <paramref name="known"/> is answered from it instead of searched.
+    /// Touches no DbContext, so it is safe for a series that was never saved.
+    /// </summary>
+    private async Task<SearchRun> SearchSourcesAsync(
+        MatchTarget target,
+        IReadOnlySet<string> skip,
+        IReadOnlyDictionary<string, SourceOutcome>? known,
+        IProgress<SourceMatchStep>? progress,
+        CancellationToken ct)
+    {
+        var baseOrder = OrderSources(
+            sourceRegistry.All, await settings.GetAsync(Maki.Core.Configuration.SettingKeys.SourcePriorityOrder, ct));
+
+        // Sources publishing none of the enabled languages are dropped here rather than filtered
+        // later: a mapping for one could only ever list chapters in a language nobody asked for.
+        var languages = await SourceLanguagePreference.LoadAsync(settings, ct);
+        var orderedSources = SourceLanguagePreference.Rank(baseOrder, languages);
+        var disabledSources = await sourceAvailability.DisabledAsync(ct);
+
+        // Priority is the position in the *full* ordered list, so switching a source off
+        // (or back on) never renumbers the mappings around it — and matches what
+        // SourceMappingController assigns when a mapping is added by hand.
+        var work = orderedSources
+            .Select((source, index) => (Source: source, Priority: index + 1))
+            .Where(item => !disabledSources.Contains(item.Source.Name, StringComparer.OrdinalIgnoreCase)
+                           && !skip.Contains(item.Source.Name))
+            .ToList();
+
+        foreach (var (source, _) in work)
+        {
+            progress?.Report(new SourceMatchStep(source.Name, SourceMatchState.Searching));
+        }
+
+        // Every source has its own host and its own rate limiter, so waiting for one before starting
+        // the next was costing the sum of every site's latency for nothing.
+        using var gate = new SemaphoreSlim(MaxParallelSources, MaxParallelSources);
+        var outcomes = await Task.WhenAll(work.Select(item =>
+        {
+            if (known?.TryGetValue(item.Source.Name, out var earlier) == true)
+            {
+                progress?.Report(new SourceMatchStep(
+                    item.Source.Name, earlier.Match is null ? SourceMatchState.NoMatch : SourceMatchState.Matched));
+                // Priority is re-read rather than reused, in case the order changed in between.
+                return Task.FromResult(earlier with { Priority = item.Priority });
+            }
+
+            return WithGate(gate, () => SearchOneAsync(item.Source, item.Priority, target, progress, ct), ct);
+        }));
+
+        return new SearchRun(orderedSources, disabledSources, languages, outcomes);
+    }
+
+    /// <summary>
+    /// The sources that carry <paramref name="series"/>, best first, by the same rules
+    /// <see cref="AutoMatchAsync"/> maps with. Writes nothing, so the series can be a transient one
+    /// built from provider metadata for a title that is not in the library.
+    /// </summary>
+    public async Task<List<SourceCandidate>> FindCandidatesAsync(Series series, CancellationToken ct = default)
+    {
+        var target = MatchTarget.For(series);
+        var run = await SearchSourcesAsync(
+            target, new HashSet<string>(StringComparer.OrdinalIgnoreCase), null, null, ct);
+
+        if (series.MangaBakaId is { } mangaBakaId)
+        {
+            searchCache.Store(mangaBakaId, target, run.Outcomes);
+        }
+
+        return [.. run.Outcomes
+            .Where(o => o.Match is not null)
+            .OrderBy(o => o.Priority)
+            .Select(o => new SourceCandidate(
+                o.Source, o.Match!.SourceSeriesId, SourceLanguagePreference.SeedFilter(o.Source, run.Languages)))];
+    }
+
     /// <param name="progress">
     /// Optional per-source running commentary, for a caller that shows the sources resolving one at
     /// a time. Every source reports <see cref="SourceMatchState.Searching"/> before the fan-out and
@@ -491,15 +589,6 @@ public partial class SourceMatchService(
         // Cross-site ids gathered from confirmed matches, spent on the sources nothing matched.
         var crossRefs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        var baseOrder = OrderSources(
-            sourceRegistry.All, await settings.GetAsync(Maki.Core.Configuration.SettingKeys.SourcePriorityOrder, ct));
-
-        // Sources publishing none of the enabled languages are dropped here rather than filtered
-        // later: a mapping for one could only ever list chapters in a language nobody asked for.
-        var languages = await SourceLanguagePreference.LoadAsync(settings, ct);
-        var orderedSources = SourceLanguagePreference.Rank(baseOrder, languages);
-        var disabledSources = await sourceAvailability.DisabledAsync(ct);
-
         // One read for every source instead of one each: the searches below run in parallel and are
         // not allowed near the DbContext. A stale answer here only ever costs a wasted search — the
         // authoritative guard is the re-check in the apply loop, which runs back on this thread.
@@ -510,26 +599,16 @@ public partial class SourceMatchService(
                 .ToListAsync(ct),
             StringComparer.OrdinalIgnoreCase);
 
-        // Priority is the position in the *full* ordered list, so switching a source off
-        // (or back on) never renumbers the mappings around it — and matches what
-        // SourceMappingController assigns when a mapping is added by hand.
-        var work = orderedSources
-            .Select((source, index) => (Source: source, Priority: index + 1))
-            .Where(item => !disabledSources.Contains(item.Source.Name, StringComparer.OrdinalIgnoreCase)
-                           && !alreadyMapped.Contains(item.Source.Name))
-            .ToList();
-
+        // A Discover preview of this series may have searched every source minutes ago.
         var target = MatchTarget.For(series);
-        foreach (var (source, _) in work)
+        var known = series.MangaBakaId is { } mangaBakaId ? searchCache.Take(mangaBakaId, target) : null;
+        if (known is not null)
         {
-            progress?.Report(new SourceMatchStep(source.Name, SourceMatchState.Searching));
+            logger.LogInformation("Reusing {Count} source result(s) from the preview of {Title}", known.Count, series.Title);
         }
 
-        // Every source has its own host and its own rate limiter, so waiting for one before starting
-        // the next was costing the sum of every site's latency for nothing.
-        using var gate = new SemaphoreSlim(MaxParallelSources, MaxParallelSources);
-        var outcomes = await Task.WhenAll(work.Select(item => WithGate(
-            gate, () => SearchOneAsync(item.Source, item.Priority, target, progress, ct), ct)));
+        var (orderedSources, disabledSources, languages, outcomes) =
+            await SearchSourcesAsync(target, alreadyMapped, known, progress, ct);
 
         // Back in priority order and back on one thread. Everything from here is order-sensitive:
         // the highest-ranked source has to win a cross-reference disagreement, the mappings have to

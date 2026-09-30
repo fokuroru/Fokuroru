@@ -14,13 +14,14 @@ import {
   Table,
   Text,
   TextInput,
-  Title,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconPlus } from '@tabler/icons-react'
 import {
   useCreateUser,
   useDeleteUser,
+  useResetUserTwoFactor,
+  useUnlinkUserOidc,
   useUpdateUser,
   useUsers,
   type Permission,
@@ -36,7 +37,7 @@ import { Trans, Plural, useLingui as useLinguiMacro } from '@lingui/react/macro'
 import { msg, t as now } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
-import { Panel } from '../ui/Panel'
+import { SettingsSection } from '../../pages/settings/SettingsSection'
 
 /**
  * Grantable permissions, in the order they read best. `Admin` is deliberately not in this list: it is
@@ -95,20 +96,21 @@ export function UsersSection() {
   const deletingName = deleting ? deleting.displayName?.trim() || deleting.userName : ''
 
   return (
-    <Panel id="users" p="md">
-      <Group justify="space-between" mb="sm">
-        <Title order={4}>
-          <Trans>Users</Trans>
-        </Title>
-        <Button size="xs" leftSection={<IconPlus size={14} />} onClick={() => setEditing('new')}>
-          <Trans>Add user</Trans>
-        </Button>
-      </Group>
-      <Text size="sm" c="var(--ink-3)" mb="md">
+    <SettingsSection
+      id="users"
+      title={<Trans>Users</Trans>}
+      description={
         <Trans>
           Each account has its own login, permissions, content rating and reading history.
         </Trans>
-      </Text>
+      }
+      actions={
+        <Button size="xs" leftSection={<IconPlus size={14} />} onClick={() => setEditing('new')}>
+          <Trans>Add user</Trans>
+        </Button>
+      }
+      panelProps={{ id: 'users', p: 'md' }}
+    >
 
       <Table.ScrollContainer minWidth={576}>
         <Table className="panel-table ops-table">
@@ -204,7 +206,7 @@ export function UsersSection() {
       >
         <Trans>They will no longer be able to sign in. This can't be undone.</Trans>
       </ConfirmDialog>
-    </Panel>
+    </SettingsSection>
   )
 }
 
@@ -218,6 +220,8 @@ function UserModal({ target, onClose }: { target: UserSummary | 'new'; onClose: 
   const { data: rootFolders } = useRootFolders()
   const create = useCreateUser()
   const update = useUpdateUser()
+  const resetTwoFactor = useResetUserTwoFactor()
+  const unlinkOidc = useUnlinkUserOidc()
 
   const [username, setUsername] = useState(existing?.userName ?? '')
   const [displayName, setDisplayName] = useState(existing?.displayName ?? '')
@@ -371,6 +375,49 @@ function UserModal({ target, onClose }: { target: UserSummary | 'new'; onClose: 
             disabled={editingSelf}
             onChange={(e) => setDisabled(e.currentTarget.checked)}
           />
+        )}
+
+        {existing && !editingSelf && (existing.twoFactorEnabled || existing.oidcLinked) && (
+          <Group gap="xs">
+            {existing.twoFactorEnabled && (
+              <Button
+                size="xs"
+                variant="light"
+                color="var(--warn)"
+                loading={resetTwoFactor.isPending}
+                onClick={() =>
+                  resetTwoFactor.mutate(existing.id, {
+                    onSuccess: () => {
+                      notifications.show({ message: now`Two-factor turned off for this account`, color: 'var(--ok)' })
+                      onClose()
+                    },
+                    onError: (e) => notifications.show({ message: e.message, color: 'var(--danger)' }),
+                  })
+                }
+              >
+                <Trans>Reset two-factor</Trans>
+              </Button>
+            )}
+            {existing.oidcLinked && (
+              <Button
+                size="xs"
+                variant="light"
+                color="var(--warn)"
+                loading={unlinkOidc.isPending}
+                onClick={() =>
+                  unlinkOidc.mutate(existing.id, {
+                    onSuccess: () => {
+                      notifications.show({ message: now`Single sign-on removed from this account`, color: 'var(--ok)' })
+                      onClose()
+                    },
+                    onError: (e) => notifications.show({ message: e.message, color: 'var(--danger)' }),
+                  })
+                }
+              >
+                <Trans>Remove single sign-on</Trans>
+              </Button>
+            )}
+          </Group>
         )}
 
         <Group justify="flex-end">

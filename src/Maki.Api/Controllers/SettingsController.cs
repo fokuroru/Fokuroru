@@ -128,10 +128,33 @@ public class SettingsController(
     /// <param name="AutoDeleteReadDays">
     /// See <see cref="SettingKeys.LibraryAutoDeleteReadDays"/>. Null on a write leaves it alone.
     /// </param>
+    /// <param name="SourceOrder">
+    /// "manual" or "quality"; see <see cref="SettingKeys.DownloadSourceOrder"/>. Null on a write leaves it alone.
+    /// </param>
+    /// <param name="ScoutOnMatch">See <see cref="SettingKeys.SourcesScoutOnMatch"/>. Null on a write leaves it alone.</param>
     public record DownloadSettings(
         int ConcurrentChapters, bool RetryEnabled, int RetryMaxAttempts,
         int SmartDownloadChaptersLeft, int SmartDownloadChapters, int ItemTimeoutMinutes,
-        bool UseHardlinks = true, int? BulkHoldThreshold = null, int? AutoDeleteReadDays = null);
+        bool UseHardlinks = true, int? BulkHoldThreshold = null, string? SourceOrder = null, bool? ScoutOnMatch = null,
+        int? AutoDeleteReadDays = null);
+    /// <param name="Enabled">Turns the daily upgrade scan on.</param>
+    /// <param name="DefaultProfileId">The upgrade profile a series without its own pin uses, or null for none.</param>
+    /// <param name="MaxPerDay">0 means no cap.</param>
+    /// <param name="TrashRetentionDays">0 purges replaced files on the next housekeeping run.</param>
+    public record UpgradeSettings(
+        bool Enabled,
+        int? DefaultProfileId,
+        int ScanHour = 4,
+        int MaxPerDay = 25,
+        int MaxProbesPerRun = 50,
+        int QuietPeriodDays = 7,
+        int TrashRetentionDays = 14,
+        bool ScanIncognito = true,
+        bool VolumeSearch = true,
+        long TorrentAutoGrabMaxBytes = UpgradeOptions.DefaultAutoGrabMaxBytes,
+        int VolumeMissingTolerance = 3,
+        int VolumeSearchesPerRun = 10,
+        int ProposalExpiryDays = 30);
     public record BackupSettings(int Retention);
     public record UpdateSettings(bool CheckForUpdates);
     public record DiscoverSettings(string MaxContentRating);
@@ -179,7 +202,8 @@ public class SettingsController(
     /// <param name="Language">
     /// Whether this user still has the one-off "Maki speaks your language now" notice waiting.
     /// </param>
-    public record AnnouncementsResponse(bool Language);
+    /// <param name="Appearance">Same, for the notice about the new background and accent choices.</param>
+    public record AnnouncementsResponse(bool Language, bool Appearance);
 
     public record OpdsSettings(bool Enabled, bool TrackProgress);
 
@@ -329,6 +353,7 @@ public class SettingsController(
         await userSettings.SetAsync(SettingKeys.OpdsEnabled, request.Enabled ? "true" : "false", ct);
         await userSettings.SetAsync(
             SettingKeys.OpdsTrackProgress, request.TrackProgress ? "true" : "false", ct);
+        OpdsAccessService.EvictUser(currentUser.UserId);
 
         var existing = await CurrentOpdsKeyAsync(ct);
         if (request.Enabled && existing is null)
@@ -347,6 +372,7 @@ public class SettingsController(
     public async Task<IActionResult> RotateOpdsToken(CancellationToken ct)
     {
         var (prefix, feedUrl) = await MintOpdsKeyAsync(ct);
+        OpdsAccessService.EvictUser(currentUser.UserId);
         var stored = await userSettings.GetManyAsync(
             [SettingKeys.OpdsEnabled, SettingKeys.OpdsTrackProgress], ct);
         return Ok(new OpdsSettingsResponse(
@@ -518,18 +544,31 @@ public class SettingsController(
 
     /// <summary>
     /// The one-off notices this user has not been shown yet. Read on every app load, so it is one
-    /// key read and nothing more.
+    /// bulk key read and nothing more.
     /// </summary>
     [HttpGet("announcements")]
-    public async Task<IActionResult> GetAnnouncements(CancellationToken ct) =>
-        Ok(new AnnouncementsResponse(
-            await userSettings.GetAsync(SettingKeys.UiLanguageAnnouncement, ct) == "pending"));
+    public async Task<IActionResult> GetAnnouncements(CancellationToken ct)
+    {
+        var rows = await userSettings.GetManyAsync(
+            [SettingKeys.UiLanguageAnnouncement, SettingKeys.UiAppearanceAnnouncement], ct);
+        return Ok(new AnnouncementsResponse(
+            rows.GetValueOrDefault(SettingKeys.UiLanguageAnnouncement) == "pending",
+            rows.GetValueOrDefault(SettingKeys.UiAppearanceAnnouncement) == "pending"));
+    }
 
     /// <summary>Marks the language notice as shown. Idempotent, and only ever for the caller.</summary>
     [HttpPost("announcements/language/seen")]
     public async Task<IActionResult> SeenLanguageAnnouncement(CancellationToken ct)
     {
         await userSettings.SetAsync(SettingKeys.UiLanguageAnnouncement, "seen", ct);
+        return NoContent();
+    }
+
+    /// <summary>Marks the appearance notice as shown. Idempotent, and only ever for the caller.</summary>
+    [HttpPost("announcements/appearance/seen")]
+    public async Task<IActionResult> SeenAppearanceAnnouncement(CancellationToken ct)
+    {
+        await userSettings.SetAsync(SettingKeys.UiAppearanceAnnouncement, "seen", ct);
         return NoContent();
     }
 
@@ -794,7 +833,12 @@ public class SettingsController(
         int.TryParse(await settings.GetAsync(SettingKeys.DownloadItemTimeoutMinutes, ct), out var t) ? t : 120,
         await settings.GetAsync(SettingKeys.DownloadUseHardlinks, ct) != "false",
         await RefreshMonitoredSeriesJob.BulkHoldThresholdAsync(settings, ct),
+        await SourceOrderNameAsync(ct),
+        await settings.GetAsync(SettingKeys.SourcesScoutOnMatch, ct) == "true",
         await AutoDeleteReadChaptersJob.DaysAsync(settings, ct)));
+
+    private async Task<string> SourceOrderNameAsync(CancellationToken ct) => SourceOrderService.Name(
+        SourceOrderService.Parse(await settings.GetAsync(SettingKeys.DownloadSourceOrder, ct)) ?? SourceOrderMode.Manual);
 
     [Authorize(Policy = Policies.Admin)]
     [HttpPut("download")]
@@ -828,6 +872,12 @@ public class SettingsController(
             return this.Fail(localizer, "error.settings.autoDeleteReadRange", new { max = AutoDeleteReadChaptersJob.MaxDays });
         }
 
+        var sourceOrder = SourceOrderService.Parse(request.SourceOrder);
+        if (request.SourceOrder is not null && sourceOrder is null)
+        {
+            return this.Fail(localizer, "error.sourceMapping.unknownOrderMode", new { mode = request.SourceOrder });
+        }
+
         await settings.SetAsync(
             SettingKeys.DownloadConcurrentChapters,
             request.ConcurrentChapters.ToString(CultureInfo.InvariantCulture),
@@ -855,11 +905,118 @@ public class SettingsController(
                 autoDeleteDays.ToString(CultureInfo.InvariantCulture), ct);
         }
 
+        if (sourceOrder is { } order)
+        {
+            await settings.SetAsync(SettingKeys.DownloadSourceOrder, SourceOrderService.Name(order), ct);
+        }
+
+        if (request.ScoutOnMatch is { } scoutOnMatch)
+        {
+            await settings.SetAsync(SettingKeys.SourcesScoutOnMatch, scoutOnMatch ? "true" : "false", ct);
+        }
+
         return Ok(request with
         {
             BulkHoldThreshold = await RefreshMonitoredSeriesJob.BulkHoldThresholdAsync(settings, ct),
+            SourceOrder = await SourceOrderNameAsync(ct),
+            ScoutOnMatch = await settings.GetAsync(SettingKeys.SourcesScoutOnMatch, ct) == "true",
             AutoDeleteReadDays = await AutoDeleteReadChaptersJob.DaysAsync(settings, ct)
         });
+    }
+
+    [Authorize(Policy = Policies.Admin)]
+    [HttpGet("upgrades")]
+    public async Task<IActionResult> GetUpgrades(CancellationToken ct)
+    {
+        var options = await UpgradeOptions.LoadAsync(settings, ct);
+        var defaultId = options.DefaultProfileId;
+        if (defaultId is { } id && !await db.UpgradeProfiles.AnyAsync(p => p.Id == id, ct))
+        {
+            defaultId = null;
+        }
+
+        return Ok(new UpgradeSettings(options.Enabled, defaultId, options.ScanHour, options.MaxPerDay,
+            options.MaxProbesPerRun, options.QuietPeriodDays, options.TrashRetentionDays, options.ScanIncognito,
+            options.VolumeSearch, options.TorrentAutoGrabMaxBytes, options.VolumeMissingTolerance,
+            options.VolumeSearchesPerRun, options.ProposalExpiryDays));
+    }
+
+    [Authorize(Policy = Policies.Admin)]
+    [HttpPut("upgrades")]
+    public async Task<IActionResult> SetUpgrades([FromBody] UpgradeSettings request, CancellationToken ct)
+    {
+        if (request.DefaultProfileId is { } id && !await db.UpgradeProfiles.AnyAsync(p => p.Id == id, ct))
+        {
+            return this.Fail(localizer, "error.upgrades.profileNotFound");
+        }
+
+        if (request.ScanHour is < 0 or > 23)
+        {
+            return this.Fail(localizer, "error.settings.upgradesScanHourRange", new { min = 0, max = 23 });
+        }
+
+        if (request.MaxPerDay is < 0 or > 1000)
+        {
+            return this.Fail(localizer, "error.settings.upgradesMaxPerDayRange", new { min = 0, max = 1000 });
+        }
+
+        if (request.MaxProbesPerRun is < 1 or > 500)
+        {
+            return this.Fail(localizer, "error.settings.upgradesMaxProbesPerRunRange", new { min = 1, max = 500 });
+        }
+
+        if (request.QuietPeriodDays is < 0 or > 365)
+        {
+            return this.Fail(localizer, "error.settings.upgradesQuietPeriodDaysRange", new { min = 0, max = 365 });
+        }
+
+        if (request.TrashRetentionDays is < 0 or > 365)
+        {
+            return this.Fail(localizer, "error.settings.upgradesTrashRetentionDaysRange", new { min = 0, max = 365 });
+        }
+
+        if (request.TorrentAutoGrabMaxBytes < 0)
+        {
+            return this.Fail(localizer, "error.settings.upgradesTorrentAutoGrabMaxBytesRange");
+        }
+
+        if (request.VolumeMissingTolerance is < 0 or > 50)
+        {
+            return this.Fail(localizer, "error.settings.upgradesVolumeMissingToleranceRange", new { min = 0, max = 50 });
+        }
+
+        if (request.VolumeSearchesPerRun is < 1 or > 200)
+        {
+            return this.Fail(localizer, "error.settings.upgradesVolumeSearchesPerRunRange", new { min = 1, max = 200 });
+        }
+
+        if (request.ProposalExpiryDays is < 1 or > 365)
+        {
+            return this.Fail(localizer, "error.settings.upgradesProposalExpiryDaysRange", new { min = 1, max = 365 });
+        }
+
+        await settings.SetAsync(SettingKeys.UpgradesEnabled, request.Enabled ? "true" : "false", ct);
+        await settings.SetAsync(SettingKeys.UpgradesDefaultProfileId,
+            request.DefaultProfileId?.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesScanHour, request.ScanHour.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesMaxPerDay, request.MaxPerDay.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesMaxProbesPerRun,
+            request.MaxProbesPerRun.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesQuietPeriodDays,
+            request.QuietPeriodDays.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesTrashRetentionDays,
+            request.TrashRetentionDays.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesScanIncognito, request.ScanIncognito ? "true" : "false", ct);
+        await settings.SetAsync(SettingKeys.UpgradesVolumeSearch, request.VolumeSearch ? "true" : "false", ct);
+        await settings.SetAsync(SettingKeys.UpgradesTorrentAutoGrabMaxBytes,
+            request.TorrentAutoGrabMaxBytes.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesVolumeMissingTolerance,
+            request.VolumeMissingTolerance.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesVolumeSearchesPerRun,
+            request.VolumeSearchesPerRun.ToString(CultureInfo.InvariantCulture), ct);
+        await settings.SetAsync(SettingKeys.UpgradesProposalExpiryDays,
+            request.ProposalExpiryDays.ToString(CultureInfo.InvariantCulture), ct);
+        return Ok(request);
     }
 
     [Authorize(Policy = Policies.Admin)]
@@ -1887,15 +2044,30 @@ public class SettingsController(
             }
         }
 
+        // Zero is meaningful (lockout off), so that range starts at zero rather than at one.
+        if (request.LockoutMaxAttempts is < 0 or > AuthRuntimeOptions.MaxLockoutMaxAttempts)
+        {
+            return this.Fail(localizer, "error.settings.lockoutMaxAttemptsRange",
+                new { min = 0, max = AuthRuntimeOptions.MaxLockoutMaxAttempts });
+        }
+
+        if (request.LockoutMinutes is < 1 or > AuthRuntimeOptions.MaxLockoutMinutes)
+        {
+            return this.Fail(localizer, "error.settings.lockoutMinutesRange",
+                new { min = 1, max = AuthRuntimeOptions.MaxLockoutMinutes });
+        }
+
+        if (request.SessionDays is < 1 or > AuthRuntimeOptions.MaxSessionDays)
+        {
+            return this.Fail(localizer, "error.settings.sessionDaysRange",
+                new { min = 1, max = AuthRuntimeOptions.MaxSessionDays });
+        }
+
         await settings.SetAsync(SettingKeys.AuthRequireHttps, request.RequireHttps ? "true" : "false", ct);
         await settings.SetAsync(SettingKeys.AuthTrustedProxies, request.TrustedProxies, ct);
-        // Zero is meaningful (lockout off), so it is clamped at zero rather than at one.
-        await settings.SetAsync(SettingKeys.AuthLockoutMaxAttempts,
-            Math.Max(0, request.LockoutMaxAttempts).ToString(), ct);
-        await settings.SetAsync(SettingKeys.AuthLockoutMinutes,
-            Math.Max(1, request.LockoutMinutes).ToString(), ct);
-        await settings.SetAsync(SettingKeys.AuthSessionDays,
-            Math.Max(1, request.SessionDays).ToString(), ct);
+        await settings.SetAsync(SettingKeys.AuthLockoutMaxAttempts, request.LockoutMaxAttempts.ToString(), ct);
+        await settings.SetAsync(SettingKeys.AuthLockoutMinutes, request.LockoutMinutes.ToString(), ct);
+        await settings.SetAsync(SettingKeys.AuthSessionDays, request.SessionDays.ToString(), ct);
 
         return await GetSecurity(ct);
     }

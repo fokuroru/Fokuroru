@@ -146,6 +146,8 @@ namespace Maki.Data.Migrations
 
                     b.HasIndex("ChapterFileId");
 
+                    b.HasIndex("SeriesId", "ChapterFileId", "Wanted");
+
                     b.HasIndex("SeriesId", "Number", "Volume", "Language");
 
                     b.ToTable("Chapters");
@@ -160,6 +162,24 @@ namespace Maki.Data.Migrations
                     b.Property<DateTime>("DateAdded")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Group")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageFormat")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("MeasuredAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("MedianHeight")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MedianWidth")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("PageCount")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("RelativePath")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -170,21 +190,36 @@ namespace Maki.Data.Migrations
                     b.Property<string>("ReleaseName")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ReplacedAtUtc")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("SeriesId")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("Size")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("SourceChapterId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("SourceName")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Trusted")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DateAdded");
 
-                    b.HasIndex("SeriesId");
+                    b.HasIndex("MeasuredAtUtc")
+                        .HasFilter("MeasuredAtUtc IS NULL");
+
+                    b.HasIndex("SeriesId", "SourceName");
 
                     b.ToTable("ChapterFiles");
                 });
@@ -260,6 +295,9 @@ namespace Maki.Data.Migrations
 
                     b.Property<int>("SourceMappingId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Group")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("NumberRaw")
                         .HasColumnType("TEXT");
@@ -361,6 +399,9 @@ namespace Maki.Data.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UpgradeInfoJson")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ActiveChapterId")
@@ -368,11 +409,18 @@ namespace Maki.Data.Migrations
 
                     b.HasIndex("ChapterId");
 
+                    b.HasIndex("HealthOperationId");
+
                     b.HasIndex("SeriesId");
+
+                    b.HasIndex("SortOrder");
 
                     b.HasIndex("SourceMappingId");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("SortOrder", "QueuedAt")
+                        .HasFilter("\"Status\" NOT IN (6, 8)");
 
                     b.HasIndex("Protocol", "Status", "SortOrder", "QueuedAt");
 
@@ -507,6 +555,8 @@ namespace Maki.Data.Migrations
                     b.HasIndex("ChapterFileId");
 
                     b.HasIndex("ContentHash");
+
+                    b.HasIndex("SeriesId");
 
                     b.HasIndex("RootFolderId", "RelativePath")
                         .IsUnique();
@@ -842,6 +892,32 @@ namespace Maki.Data.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("NotificationTags", (string)null);
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.QualityFormat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Conditions")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("QualityFormats");
                 });
 
             modelBuilder.Entity("Maki.Core.Entities.ReaderBookmark", b =>
@@ -1510,6 +1586,24 @@ namespace Maki.Data.Migrations
                     b.Property<DateTime?>("LastMetadataRefresh")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("LastUpgradeScanChecked")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("LastUpgradeScanProbed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("LastUpgradeScanQueued")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastUpgradeScanSkipsJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUpgradeScanUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastVolumeSearchUtc")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("MalId")
                         .HasColumnType("INTEGER");
 
@@ -1547,6 +1641,9 @@ namespace Maki.Data.Migrations
                     b.Property<bool>("SourceMatchPending")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("SourceOrderMode")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("SpineColor")
                         .HasColumnType("TEXT");
 
@@ -1570,6 +1667,9 @@ namespace Maki.Data.Migrations
                     b.Property<string>("Type")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("UpgradeProfileId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("Year")
                         .HasColumnType("INTEGER");
 
@@ -1580,6 +1680,8 @@ namespace Maki.Data.Migrations
                     b.HasIndex("RootFolderId");
 
                     b.HasIndex("SortTitle");
+
+                    b.HasIndex("UpgradeProfileId");
 
                     b.ToTable("Series");
                 });
@@ -1775,6 +1877,52 @@ namespace Maki.Data.Migrations
                     b.ToTable("SourceMappings");
                 });
 
+            modelBuilder.Entity("Maki.Core.Entities.SourceQualitySample", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ImageFormat")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("MeasuredAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MedianHeight")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MedianWidth")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Origin")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PageCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SourceMappingId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeriesId");
+
+                    b.HasIndex("SourceMappingId", "ChapterId")
+                        .IsUnique();
+
+                    b.ToTable("SourceQualitySamples");
+                });
+
             modelBuilder.Entity("Maki.Core.Entities.StatsEvent", b =>
                 {
                     b.Property<long>("Id")
@@ -1843,6 +1991,264 @@ namespace Maki.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.TorrentProposal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AlreadyMetCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Indexer")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MissingCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("QueueItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReasonsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReleaseGuid")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReleaseInfoJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ResolvedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ResolvedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SkippedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SpanJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UnknownCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UpgradeCount")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeriesId", "ReleaseGuid")
+                        .IsUnique();
+
+                    b.HasIndex("SeriesId", "Status");
+
+                    b.ToTable("TorrentProposals");
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.UpgradeAttempt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CandidatePageCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CandidateScore")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CandidateWidth")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Probed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProfileVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SourceChapterId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SourceMappingId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeriesId");
+
+                    b.HasIndex("SourceMappingId");
+
+                    b.HasIndex("ChapterId", "SourceMappingId", "SourceChapterId", "ProfileId", "ProfileVersion")
+                        .IsUnique();
+
+                    b.ToTable("UpgradeAttempts");
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.UpgradeHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AfterJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BeforeJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ChapterFileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DetailJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProfileVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("QueueItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("QueuedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("RevertedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("TrashBytes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TrashPath")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterFileId");
+
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("SeriesId", "CreatedAtUtc");
+
+                    b.ToTable("UpgradeHistory");
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.UpgradeProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AllowReplacingUnknown")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CompressionWeight")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Cutoff")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FormatScores")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MinScoreDelta")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
+
+                    b.Property<int>("PageTolerancePercent")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ResolutionWeight")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Tiers")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UpgradeUntilScore")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("UpgradesEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("UpgradeProfiles");
                 });
 
             modelBuilder.Entity("Maki.Core.Entities.UserAchievement", b =>
@@ -2542,7 +2948,14 @@ namespace Maki.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Maki.Core.Entities.UpgradeProfile", "UpgradeProfile")
+                        .WithMany()
+                        .HasForeignKey("UpgradeProfileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("RootFolder");
+
+                    b.Navigation("UpgradeProfile");
                 });
 
             modelBuilder.Entity("Maki.Core.Entities.SeriesRequest", b =>
@@ -2612,6 +3025,17 @@ namespace Maki.Data.Migrations
                     b.Navigation("Series");
                 });
 
+            modelBuilder.Entity("Maki.Core.Entities.SourceQualitySample", b =>
+                {
+                    b.HasOne("Maki.Core.Entities.SourceMapping", "SourceMapping")
+                        .WithMany()
+                        .HasForeignKey("SourceMappingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SourceMapping");
+                });
+
             modelBuilder.Entity("Maki.Core.Entities.StatsEvent", b =>
                 {
                     b.HasOne("Maki.Core.Entities.Series", "Series")
@@ -2625,6 +3049,51 @@ namespace Maki.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Series");
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.TorrentProposal", b =>
+                {
+                    b.HasOne("Maki.Core.Entities.Series", null)
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.UpgradeAttempt", b =>
+                {
+                    b.HasOne("Maki.Core.Entities.Chapter", null)
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Maki.Core.Entities.Series", null)
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Maki.Core.Entities.SourceMapping", null)
+                        .WithMany()
+                        .HasForeignKey("SourceMappingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.UpgradeHistory", b =>
+                {
+                    b.HasOne("Maki.Core.Entities.Chapter", null)
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Maki.Core.Entities.Series", null)
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Maki.Core.Entities.UserAchievement", b =>

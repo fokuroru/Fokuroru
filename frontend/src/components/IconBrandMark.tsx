@@ -2,13 +2,16 @@
 // the AppShell: importing it from App.tsx would make the pre-authentication bundle pull in the whole
 // shell it exists to avoid.
 
+export type BrandMood = 'awake' | 'asleep' | 'asking' | 'pleased'
+
 /**
  * The Fōkurōru symbol: a maki roll that is also a closed book, from the logo handover (flat
  * construction study, colours from its specification). The nori outline reads from
  * `--logo-keyline`, which the dark theme lifts to the brief's keyline so the silhouette doesn't
- * vanish into a dark ground.
+ * vanish into a dark ground. `mood` is accepted so the empty states can pass one; the symbol has a
+ * single expression.
  */
-export function IconBrandMark({ size = 30 }: { size?: number }) {
+export function IconBrandMark({ size = 30 }: { mood?: BrandMood; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="208 183 173 173" aria-hidden>
       <path fillRule="evenodd" fill="#111719" strokeWidth="2.5" strokeLinecap="butt" strokeLinejoin="miter" stroke="var(--logo-keyline, #111719)" strokeMiterlimit="10" d="M 6 63 C 6 68 9 70 13 72 L 50 92 C 54 94 57 94 61 92 L 91 75 C 96 72 97 70 97 65 L 97 27 C 97 21 95 19 90 16 L 59 1 C 54 -1 51 -0 47 2 L 12 21 C 7 24 6 27 6 32 Z M 6 63 " transform="matrix(1.74, 0, 0, -1.74, 204.75, 351.03)" />

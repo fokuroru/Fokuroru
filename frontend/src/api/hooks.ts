@@ -14,6 +14,7 @@ import type { AnimeResume } from './animeResume'
 import { affectedKeys } from './recommendationFeedback'
 import type { RequestSummaryDto, SourceReliabilityDto } from './stats'
 import type { IncognitoMode } from '../components/ui/incognito'
+import type { ReleaseParsedDto } from './upgrades'
 import type {
   AddSeriesRequest,
   ChapterDto,
@@ -31,11 +32,13 @@ import type {
   ImportDecision,
   ImportDecisionResultDto,
   QueueHistoryDto,
+  QueueSummaryDto,
   TorrentImportPlanDto,
   RootFolder,
   SavedFilterDto,
   SeriesDto,
   SeriesFileDto,
+  SeriesFilesSummaryDto,
   SeriesScrobbleDto,
   SourceMappingDto,
   TagDto,
@@ -1077,6 +1080,8 @@ export interface Announcements {
    * before they did, and only until it is dismissed.
    */
   language: boolean
+  /** Same, for the notice about separate background and accent choices. */
+  appearance: boolean
 }
 
 export function useAnnouncements() {
@@ -1089,18 +1094,21 @@ export function useAnnouncements() {
   })
 }
 
-export function useSeenLanguageAnnouncement() {
+function useSeenAnnouncement(key: keyof Announcements) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: () => api<void>('/settings/announcements/language/seen', { method: 'POST' }),
+    mutationFn: () => api<void>(`/settings/announcements/${key}/seen`, { method: 'POST' }),
     // Written straight into the cache rather than invalidated: the modal closes on the click, and
     // a refetch that lost the race would put it back.
     onSuccess: () =>
       queryClient.setQueryData(['settings', 'announcements'], (old?: Announcements) =>
-        old ? { ...old, language: false } : old,
+        old ? { ...old, [key]: false } : old,
       ),
   })
 }
+
+export const useSeenLanguageAnnouncement = () => useSeenAnnouncement('language')
+export const useSeenAppearanceAnnouncement = () => useSeenAnnouncement('appearance')
 
 /** One tag in the Discover tag filter, with where it sits in MangaBaka's tag tree. */
 export interface TagOption {
@@ -1548,10 +1556,31 @@ export function useChapters(seriesId: number) {
 }
 
 export function useSeriesFiles(seriesId: number, enabled = true) {
+  const queryClient = useQueryClient()
   return useQuery({
     queryKey: ['series-files', seriesId],
-    queryFn: () => api<SeriesFileDto[]>(`/series/${seriesId}/files`),
+    queryFn: async () => {
+      const files = await api<SeriesFileDto[]>(`/series/${seriesId}/files`)
+      // The full listing just walked the folder, so the tab count and banner follow it.
+      queryClient.setQueryData<SeriesFilesSummaryDto>(['series-files', seriesId, 'summary'], {
+        count: files.length,
+        unlinkedOnDisk: files.filter((f) => f.onDisk && f.status !== 'linked').length,
+      })
+      return files
+    },
     enabled,
+    meta: { inlineNotFound: true },
+  })
+}
+
+/**
+ * Keyed under ['series-files', seriesId] so every invalidation of the listing refreshes it too.
+ * Opening a series reads this instead of the listing, which walks the folder on disk.
+ */
+export function useSeriesFilesSummary(seriesId: number) {
+  return useQuery({
+    queryKey: ['series-files', seriesId, 'summary'],
+    queryFn: () => api<SeriesFilesSummaryDto>(`/series/${seriesId}/files/summary`),
     meta: { inlineNotFound: true },
   })
 }
@@ -1600,6 +1629,7 @@ export function useRefreshSeries() {
     onSuccess: (_data, seriesId) => {
       void queryClient.invalidateQueries({ queryKey: ['chapters', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['sourcemappings', seriesId] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })
     },
   })
@@ -1617,6 +1647,7 @@ export function useRefreshSourceSnapshots() {
     onSuccess: (_data, { seriesId }) => {
       void queryClient.invalidateQueries({ queryKey: ['chapters', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['sourcemappings', seriesId] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })
     },
   })
@@ -1938,6 +1969,15 @@ export function useQueue(page = 1, pageSize = 200) {
   })
 }
 
+/** Per-status counts for the shell badge, so it doesn't poll a whole queue page. */
+export function useQueueSummary() {
+  return useQuery({
+    queryKey: ['queue-summary'],
+    queryFn: () => api<QueueSummaryDto>('/queue/summary'),
+    refetchInterval: 10_000,
+  })
+}
+
 export function useQueueHistory(page: number, pageSize = 25) {
   return useQuery({
     queryKey: ['queue-history', page, pageSize],
@@ -1970,10 +2010,10 @@ export function useImportPlan(id: number | null) {
 export function useSettleImport() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, mode }: { id: number; mode: ImportDecision }) =>
+    mutationFn: ({ id, mode, skipFiles }: { id: number; mode: ImportDecision; skipFiles?: string[] }) =>
       api<ImportDecisionResultDto | void>(`/queue/${id}/import`, {
         method: 'POST',
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify({ mode, skipFiles }),
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['queue'] })
@@ -2059,6 +2099,28 @@ export function useSetMonitorMode() {
   })
 }
 
+export interface SetUpgradeProfileResult {
+  upgradeProfileId: number | null
+}
+
+/** Pins (or clears, with null) which upgrade profile a series resolves to instead of the instance default. */
+export function useSetUpgradeProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ seriesId, upgradeProfileId }: { seriesId: number; upgradeProfileId: number | null }) =>
+      api<SetUpgradeProfileResult>(`/series/${seriesId}/upgradeprofile`, {
+        method: 'POST',
+        body: JSON.stringify({ upgradeProfileId }),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['series'] })
+      void queryClient.invalidateQueries({ queryKey: ['chapters'] })
+      void queryClient.invalidateQueries({ queryKey: ['upgrades'] })
+      void queryClient.invalidateQueries({ queryKey: ['series-files'] })
+    },
+  })
+}
+
 export interface SetIncognitoResult {
   incognito: string
 }
@@ -2103,6 +2165,22 @@ export function useSetSeriesNotificationMode() {
  * Applies one notification mode across many series in one request (Library bulk bar). A real
  * endpoint rather than a loop over the per-series one: the selection can run to hundreds.
  */
+/** Pins every given series to a quality profile, or clears the pin with null. */
+export function useBulkSetUpgradeProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ seriesIds, upgradeProfileId }: { seriesIds: number[]; upgradeProfileId: number | null }) =>
+      api<{ updated: number }>('/series/upgradeprofile/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ seriesIds, upgradeProfileId }),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['series'] })
+      void queryClient.invalidateQueries({ queryKey: ['upgrades'] })
+    },
+  })
+}
+
 export function useBulkSetSeriesNotificationMode() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -2388,6 +2466,20 @@ export interface SourceInfo {
   rating?: SourceRating
   /** Whether a fresh install turns this source on. What "Reset to defaults" restores. */
   defaultEnabled?: boolean
+  /** Position in a fresh install's priority order. What "Reset to defaults" restores. */
+  defaultRank?: number
+  /** How this source's copies measure in general; null when nothing has measured it. */
+  quality?: SourceQualitySummary | null
+}
+
+export interface SourceQualitySummary {
+  rating: 'high' | 'good' | 'fair' | 'low'
+  /** JPG-equivalent median bits per pixel. */
+  bitsPerPixel: number
+  /** `library` when this instance's own measurements decide it, `baseline` for Maki's shipped sample. */
+  basis: 'library' | 'baseline'
+  samples: number
+  series: number
 }
 
 export type SourceKind = 'official' | 'scanlator' | 'aggregator'
@@ -2500,6 +2592,7 @@ export function useCreateMapping() {
     }) => api<SourceMappingDto>('/sourcemapping', { method: 'POST', body: JSON.stringify(mapping) }),
     onSuccess: (_d, v) => {
       void queryClient.invalidateQueries({ queryKey: ['sourcemappings', v.seriesId] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order', v.seriesId] })
     },
   })
 }
@@ -2532,6 +2625,7 @@ export function useUpdateMapping() {
       }),
     onSuccess: (_d, v) => {
       void queryClient.invalidateQueries({ queryKey: ['sourcemappings', v.seriesId] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order', v.seriesId] })
     },
   })
 }
@@ -2550,6 +2644,7 @@ export function useReorderMappings() {
       }),
     onSuccess: (_d, v) => {
       void queryClient.invalidateQueries({ queryKey: ['sourcemappings', v.seriesId] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order', v.seriesId] })
     },
   })
 }
@@ -2613,6 +2708,7 @@ export function useDeleteMapping() {
       api<void>(`/sourcemapping/${id}`, { method: 'DELETE' }),
     onSuccess: (_d, v) => {
       void queryClient.invalidateQueries({ queryKey: ['sourcemappings', v.seriesId] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order', v.seriesId] })
     },
   })
 }
@@ -2637,6 +2733,7 @@ export function useRemoveMapping() {
       }),
     onSuccess: (_data, value) => {
       void queryClient.invalidateQueries({ queryKey: ['sourcemappings', value.seriesId] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order', value.seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['chapters', value.seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['series-files', value.seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['reader-progress', value.seriesId] })
@@ -2761,9 +2858,14 @@ export interface ReleaseDto {
   infoUrl: string | null
 }
 
+export interface ReleaseRowDto extends ReleaseDto {
+  /** Null when the series has no upgrade profile. */
+  parsed: ReleaseParsedDto | null
+}
+
 export interface ReleaseSearchResult {
   query: string
-  releases: ReleaseDto[]
+  releases: ReleaseRowDto[]
 }
 
 export function useReleaseSearch(seriesId: number, enabled: boolean, query?: string) {
@@ -3135,7 +3237,14 @@ export interface DownloadSettings {
   bulkHoldThreshold: number
   /** Days after a chapter is read before its file is deleted. 0 means never. */
   autoDeleteReadDays: number
+  /** Which source a series without its own setting downloads from first. */
+  sourceOrder: SourceOrderMode
+  /** Measure every linked source of a newly matched series before anything downloads. */
+  scoutOnMatch: boolean
 }
+
+/** `manual` follows each mapping's priority; `quality` ranks sources by the series' upgrade profile. */
+export type SourceOrderMode = 'manual' | 'quality'
 
 export function useDownloadSettings() {
   return useQuery({

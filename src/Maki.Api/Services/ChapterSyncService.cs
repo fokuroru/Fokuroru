@@ -57,6 +57,7 @@ public class ChapterSyncService(
         var skipSpecials = await appSettings.GetAsync(SettingKeys.MonitoringUnmonitorSpecials, ct) == "true";
         var newChapters = new List<Chapter>();
         var numbersBySource = new Dictionary<string, IReadOnlyCollection<decimal?>>();
+        var promotedBesideExisting = false;
 
         // MangaBaka has no MangaDex ids, so the uuid can only come from a linked
         // source mapping; it feeds the series web links.
@@ -86,24 +87,38 @@ public class ChapterSyncService(
                 // shared cache with the result is what keeps the enqueues that a monitored refresh
                 // fires immediately afterwards from resolving against an older listing, which would
                 // report the chapter this pass just discovered as "not listed".
-                var sourceChapters = await source.ListChaptersAsync(mapping.SourceSeriesId, mapping.LanguageFilter, ct);
+                var sourceChapters = (await source.ListChaptersAsync(mapping.SourceSeriesId, mapping.LanguageFilter, ct))
+                    .Select(ChapterIdentity.Labelled)
+                    .ToList();
+                if (sourceChapters.Count == 0 && mapping.ChapterLinks.Count > 0)
+                {
+                    // A challenge page or a changed layout parses to nothing. Replacing the snapshot
+                    // with that would drop every link and cache the empty listing, so downloads then
+                    // fail as "not listed". Plain English like the rest of LastError.
+                    throw new InvalidOperationException(
+                        "The source listed no chapters, so the previous chapter list was kept");
+                }
+
                 chapterLists.Store(source, mapping.SourceSeriesId, mapping.LanguageFilter, sourceChapters);
                 numbersBySource[mapping.SourceName] = sourceChapters.Select(sc => sc.Number).ToList();
                 var snapshotLinks = new Dictionary<Chapter, SourceChapter>();
 
                 foreach (var sc in sourceChapters)
                 {
-                    var match = existing.FirstOrDefault(c => ChapterIdentity.Matches(c, sc));
-                    if (match is null && PromotableOneShot(existing, sc) is { } unnumbered)
+                    var match = existing.FirstOrDefault(c => ChapterIdentity.Matches(c, sc))
+                                ?? UntitledOneShot(existing, sc);
+                    if (PromotableOneShot(existing, sc) is { } unnumbered)
                     {
                         // Stored as a one-shot titled by its label back when the parser could not
                         // read that label ("Episode 12"). Numbering it in place keeps its file and
-                        // stops a second row being created, and downloaded, beside it.
+                        // stops a second row being created, and downloaded, beside it. When another
+                        // source already has that number, the two rows are merged below.
                         unnumbered.Number = sc.Number;
                         unnumbered.NumberRaw = sc.NumberRaw;
                         unnumbered.IsOneShot = false;
                         unnumbered.Title = sc.Title;
-                        match = unnumbered;
+                        promotedBesideExisting |= match is not null;
+                        match ??= unnumbered;
                     }
 
                     if (match is not null)
@@ -139,7 +154,8 @@ public class ChapterSyncService(
                     snapshotLinks.TryAdd(match, sc);
                 }
 
-                ReplaceSnapshot(mapping, snapshotLinks);
+                var fileGroups = ReplaceSnapshot(mapping, snapshotLinks, ChapterFileQualityService.SiteGroup(source));
+                await BackfillFileGroupsAsync(mapping.SourceName, fileGroups, ct);
 
                 mapping.LastRefresh = DateTime.UtcNow;
                 mapping.ChapterSnapshotAt = mapping.LastRefresh;
@@ -168,6 +184,11 @@ public class ChapterSyncService(
                     mapping.SourceName, seriesId);
                 mapping.LastError = ex.Message;
             }
+        }
+
+        if (promotedBesideExisting)
+        {
+            MergeDuplicates(existing);
         }
 
         // Flag (or clear) cross-source numbering clashes. A clash is always
@@ -200,10 +221,13 @@ public class ChapterSyncService(
         return newChapters.Select(c => c.Id).ToList();
     }
 
-    private void ReplaceSnapshot(
+    /// <returns>The group each linked chapter's file should carry, by ChapterFile id.</returns>
+    private Dictionary<int, string> ReplaceSnapshot(
         SourceMapping mapping,
-        IReadOnlyDictionary<Chapter, SourceChapter> snapshot)
+        IReadOnlyDictionary<Chapter, SourceChapter> snapshot,
+        string? groupFallback)
     {
+        var fileGroups = new Dictionary<int, string>();
         var current = mapping.ChapterLinks.ToDictionary(l => l.ChapterId);
         var retainedChapterIds = snapshot.Keys.Where(c => c.Id != 0).Select(c => c.Id).ToHashSet();
 
@@ -228,6 +252,35 @@ public class ChapterSyncService(
             link.Volume = sourceChapter.Volume;
             link.Title = sourceChapter.Title;
             link.ReleaseDate = sourceChapter.ReleaseDate;
+            link.Group = sourceChapter.Group ?? groupFallback;
+            if (chapter.ChapterFileId is { } fileId && link.Group is { } group)
+            {
+                fileGroups.TryAdd(fileId, group);
+            }
+        }
+
+        return fileGroups;
+    }
+
+    /// <summary>
+    /// A file downloaded before its link recorded a group has none of its own. Fills it in from
+    /// the link, for files that came from this same source only.
+    /// </summary>
+    private async Task BackfillFileGroupsAsync(
+        string sourceName, Dictionary<int, string> fileGroups, CancellationToken ct)
+    {
+        if (fileGroups.Count == 0)
+        {
+            return;
+        }
+
+        var ids = fileGroups.Keys.ToList();
+        var files = await db.ChapterFiles
+            .Where(f => ids.Contains(f.Id) && f.SourceName == sourceName && f.Group == null)
+            .ToListAsync(ct);
+        foreach (var file in files.Where(f => f.Group is null))
+        {
+            file.Group = fileGroups[file.Id];
         }
     }
 
@@ -244,6 +297,17 @@ public class ChapterSyncService(
                 c.IsOneShot &&
                 c.Language == sc.Language &&
                 string.Equals(c.Title?.Trim(), sc.NumberRaw.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// A one-shot stored before untitled chapters took their label as a title. Adopting it keeps its
+    /// file rather than downloading the same chapter again under the label.
+    /// </summary>
+    private static Chapter? UntitledOneShot(List<Chapter> existing, SourceChapter sc) =>
+        sc.Number is null && sc.Title is not null &&
+        string.Equals(sc.Title, sc.NumberRaw?.Trim(), StringComparison.OrdinalIgnoreCase)
+            ? existing.FirstOrDefault(c =>
+                c.Number is null && c.IsOneShot && c.Title is null && c.Language == sc.Language)
+            : null;
 
     private void MergeDuplicates(List<Chapter> existing)
     {
@@ -290,7 +354,8 @@ public class ChapterSyncService(
                             NumberRaw = link.NumberRaw,
                             Volume = link.Volume,
                             Title = link.Title,
-                            ReleaseDate = link.ReleaseDate
+                            ReleaseDate = link.ReleaseDate,
+                            Group = link.Group
                         };
                         db.ChapterSourceLinks.Add(replacement);
                     }

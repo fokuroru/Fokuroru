@@ -1,466 +1,72 @@
 # <img src="frontend/public/brand/fokuroru-icon-colour-light.svg" width="50" alt=""> Fōkurōru
 
-> **This is a fork.** Fōkurōru is a personal fork of [Maki](https://github.com/OrbitMPGH/Maki) by
-> OrbitMPGH, renamed and restyled. All credit for the underlying application goes to the Maki
-> project; report problems with Maki itself upstream, not here. The code, folders and container
-> names still say Maki, and the GPLv3 licence carries over unchanged.
+Fōkurōru is a personal fork of [Maki](https://github.com/OrbitMPGH/Maki) by OrbitMPGH. **All of
+the changes in this fork were written by AI** (Anthropic's Claude models). It is maintained for my
+own use, with no support and no promises.
 
-**Fōkurōru** is a manga collection manager in the spirit of [Sonarr](https://sonarr.tv) and
-[Radarr](https://radarr.video): add a series once and it keeps the series complete. It watches sites
-for new chapters, downloads the pages, and writes CBZ files with ComicInfo.xml metadata, which
-[Kavita](https://www.kavitareader.com) and most comic readers understand. You can also read them
-in the built-in reader or over OPDS.
+For what the application is, how to install it, configuration, features and documentation, see the
+[original project](https://github.com/OrbitMPGH/Maki). Problems with Maki itself belong upstream,
+not here. The code, folders and container names still say Maki, and the
+[GPLv3 licence](LICENSE) carries over unchanged.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+Based on Maki v0.31.1, with upstream's `dev` branch merged in on top.
 
-> Like Maki, it is almost entirely AI-built, developed with Anthropic's Claude models.
+## Differences from Maki
 
-## What the fork changes
+### Look and name
 
-- **New look and name.** The Spine design: warm charcoal and bone, a per-series colour sampled
-  from each cover, a manga-spine "Reading now" shelf, and the Fōkurōru logo.
-- **Smart Download by default, and it starts on its own.** New series download their first batch
-  without anyone reading a chapter first.
-- **Auto-delete read chapters** after a number of days you choose. Read history is kept and the
-  chapter is marked not wanted, so it is not downloaded again. Deleting chapters by hand works the
-  same way.
-- **Completed vs up to date.** A series only counts as completed when every main chapter is read
-  and it has ended or is on hiatus; caught up on a running series reads as up to date, locally and
-  on trackers.
-- **Reader:** vertical navigation and smooth scrolling for long strips, a zoom slider that works
-  with every fit (narrow a webtoon strip on a wide screen), and **Download & read** for the next
-  chapter when it is not on disk yet.
-- **Library:** a "Last read" sort, and the mobile/foldable layout fixes.
+- Renamed Fōkurōru, with its own logo, wordmark and PWA icons.
+- The "Spine" design replaces Maki's look: warm charcoal and bone, square corners, no gradients,
+  Zen Kaku Gothic New for text and Martian Mono for figures.
+- Every series gets a spine colour sampled from its cover, and its pages and tiles are tinted with
+  it. There is no accent picker; the accent comes from the series.
+- Stats and Rewind are restyled to match.
+- Maki's newer appearance options (separate background and accent pickers, the mascot) are not
+  used.
 
-## Highlights
+### Library
 
-- **Automatic monitoring.** Maki checks its sources on a schedule, maps each series to every
-  source that carries it, and downloads new chapters from your preferred one on the next check.
-- **Reader with progress sync.** Paged, double-page, or continuous scroll. Progress is merged
-  with Kavita and sent to AniList, MyAnimeList, Kitsu, and MangaBaka. Pages read over OPDS in
-  Panels, Chunky, KOReader, or Mihon count as read too.
-- **Recommendations.** Local ONNX embeddings over the MangaBaka catalog find titles similar to
-  what is already in your library, using more than shared genre tags. The Browse tab adds genre
-  rails, blind spots, **Readers like you**, and a **Your Taste** view of how your reading has
-  shifted.
-- **Local metadata.** A local copy of the [MangaBaka](https://mangabaka.org) database gives
-  instant search with no API rate limits, and links each series to its MyAnimeList, AniList,
-  MangaUpdates, and Kitsu IDs.
-- **Torrents alongside scrapers.** Search releases through Prowlarr and send them to qBittorrent.
-  Maki imports each one when it finishes, repacking anything that is not already CBZ.
-- **Built for a household.** Per-user history, preferences, tracker accounts, and library access
-  over one shared set of files. It also supports two-factor authentication, API keys, and OpenID
-  Connect single sign-on.
-- **You own the files.** Everything lands on disk as plain CBZ + ComicInfo.xml, so nothing is
-  locked in Maki's database. Any CBZ reader, including Kavita, can use the same folder.
+- **3D "Reading now" shelf.** Series in progress stand on a physics-driven bookshelf made of
+  Three.js books over Matter.js bodies. Books take one of thirty spine editions at random on each
+  page load, show the title, author and next chapter, and use the real cover on the front board.
+  You can pick books up, drag them and knock them over. Heavy landings shake the shelf, fast-moving
+  books swing their covers open, and a potted plant sometimes turns up in the free space.
+  Clicking a book opens its next chapter. A flat spine row is the fallback without WebGL.
+- A series counts as reading as soon as a chapter is open part-way through.
+- "Last read" sort.
+- Series are marked **up to date** or **completed** separately. Completed needs every main chapter
+  read and the series ended or on hiatus; caught up on a running series reads as up to date, in the
+  library and on trackers.
+- Mobile and foldable layout fixes, including the hero panel.
 
-## Features
+### Adding series
 
-### Reading
+- **Read before adding.** The add dialog can search every enabled source for a title and link to
+  each match's first chapter, without saving anything.
 
-- **Built-in reader.** Paged, double-page, 1:1 (original size), and continuous-scroll modes.
-  Progress is tracked and merged with Kavita so nothing double-counts. A read meter shows how far
-  through the series you are, and time-remaining estimates are based on comparable chapters.
-- **Reading profiles.** Per-user defaults for page fit, direction, and mode by series type, with
-  per-series overrides on top.
-- **Home.** **Continue reading**, **Recently added**, **Downloading now**, **Progress**, and other
-  rails, drag-reorderable and switchable per user.
-- **Scrobbling.** Sends read progress to AniList, MyAnimeList, Kitsu, and MangaBaka, whether the
-  reading happened in Maki, over OPDS, or in Kavita. Your lists on those trackers can also be
-  imported into the library from Settings.
-- **Anime tie-in.** For a series with an anime adaptation, Maki can start you at the chapter where
-  the anime ended.
-- **OPDS server.** OPDS 1.2 with page streaming (OPDS-PSE), so Panels, Chunky, KOReader, and
-  Mihon read straight from Maki. Off by default. Each user's feed URL carries its own rotatable
-  token, and pages streamed this way count as read.
+### Downloads
 
-### Discover
-
-- **Recommendations.** Local ONNX embeddings over the MangaBaka dump find titles similar to your
-  library. Seed them from your whole library or from specific titles, and filter by year, rating,
-  type, status, genre, chapter count, content rating, and popularity.
-- **Browse.** The Browse tab has catalog and genre rails, recent-reading picks, side interests,
-  blind spots, and **Readers like you**. **Your Taste** shows reading behavior, grouped interests,
-  and how your taste has moved. Every rail has a fullscreen **Show more** view. Detail cards show
-  categorized tags, alternate titles, creators, per-source ratings, and MyAnimeList reviews.
-- **Metadata.** One MangaBaka search identifies a series and brings along its MyAnimeList,
-  AniList, MangaUpdates, and Kitsu IDs. The local
-  [MangaBaka dump](https://mangabaka.org/data/database) (nightly snapshot, about 3 GB on disk)
-  makes metadata search and library imports instant. MangaBaka-original data is
-  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
-
-### Stats
-
-- **History.** Overview and Library tabs built from an append-only history of reading and
-  downloads: per-series read counts, activity over time, and so on.
-- **Progress.** Levels, streaks, achievements, and reading time, with a Reader track (yours) and a
-  Library track (the whole instance). Series marked incognito never generate events.
-
-### Library and downloads
-
-- **Monitoring.** Chapter lists refresh on a schedule and new chapters are queued automatically.
-  Whole-series monitor modes decide what gets queued, and a per-chapter **Wanted** toggle keeps
-  individual chapters or specials out.
-- **Automatic source matching.** Adding a series returns instantly; matching runs in the background
-  and can be re-run or fixed by hand. Sources are drag-ordered by preference and can be disabled
-  globally, and the series page can compare linked sources side by side on sampled page quality.
-  A single chapter can also be re-fetched from whichever linked source has the better copy.
-- **Torrents.** Search releases through Prowlarr, grab them with qBittorrent, and auto-import on
-  completion. Files are hardlinked into the library where possible, and torrents share the queue
-  with scraper downloads. Anything that is not already CBZ is converted on the way in: `.zip` is
-  placed unchanged (a CBZ is a zip), `.cbr`/`.rar`/`.7z`/`.tar` are repacked, and a folder of
-  loose images becomes one CBZ per folder. A PDF is the one exception: it is kept as it is and
-  read in place. Manual library import converts files the same way and leaves your originals in
-  place.
-- **Output.** The default layout is `{Series}/{Series} Vol.X Ch.Y.cbz`, with configurable folder
-  and file naming. ComicInfo.xml carries series, chapter number, volume, authors, genres,
-  language, and reading direction. Files are written atomically, so a reader never sees a
-  half-written CBZ. Maki can also write a `cover.jpg` into each series folder for readers that
-  look for one.
-- **Multilingual libraries.** A series' link to a source can hold several languages, each with
-  its own chapter rows and files, with the language recorded in ComicInfo.xml. Per-user
-  title-language preferences pick the display title without renaming anything on disk.
-- **Library view.** Grid or list view with density options. Shows download state, read badges,
-  and monitor status. Filter by source, chapter count, or user tag, save filters, and set Wanted
-  in bulk. Per-series incognito mode keeps a title out of stats and progress without hiding it.
-- **Activity queue.** Updates live over SignalR with per-page progress. You can retry or remove
-  items and review downloads that need a decision, for example an import that would replace
-  existing chapter files.
-- **Library health.** Admins can index and verify archives, and find missing, unreadable,
-  duplicate, or suspicious files. Replacement and deletion operations are reviewed before they
-  run, and unlinked CBZs can be imported.
-
-### Administration
-
-- **Multi-user.** Per-user history, preferences, and tracker accounts over one shared library,
-  with per-root-folder access grants. See [Multiple readers](#multiple-readers).
-- **Security.** Two-factor authentication, per-user API keys, HTTPS enforcement, trusted proxies,
-  lockout, and OpenID Connect single sign-on. See
-  [Exposing Maki to the internet](#exposing-maki-to-the-internet).
-- **Backup & restore.** One-click zip of database and settings, plus an automatic safety backup
-  before every schema migration. See [Backup & restore](#backup--restore).
-- **Notifications.** Outbound events (new chapters, download results, health warnings, and more)
-  go to Discord, Telegram, Slack, Notifiarr, ntfy, Gotify, Pushover, Apprise, or a plain webhook.
-  Connections can be scoped to user tags so each person only hears about their own series.
-- **Interface.** Eleven UI languages, four accent colors (Indigo, Rose, Emerald, Amber), and a
-  light theme alongside the default dark one.
-- **REST API.** Available at `/api/v1` with `X-Api-Key` auth. Swagger is served at `/swagger`
-  when running in the Development environment.
-
-### Sources
-
-Sources are built into Maki, so there are no extensions to install.
-
-| Source | Notes |
-|---|---|
-| MangaDex | Official API, language filter |
-| MANGA Plus | Official (Shueisha), language-specific mappings |
-| WEBTOON | Official (webtoons.com), ORIGINALS and CANVAS in en, id, th, es, fr, zh-Hant, de |
-| Naver Webtoon | Official (comic.naver.com), Korean, WEBTOON tier only |
-| GigaViewer sites | Official Japanese: Shonen Jump+, Comic Days, Sunday Webry, MAGCOMI, Tonari no Young Jump, Comic Zenon, Kurage Bunch (free episodes only) |
-| KadoComi (Comic Walker) | Official, Japanese |
-| MangaPill | |
-| Weeb Central | |
-| MangaFire | Language filter, requires [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) |
-| TCB Scans | |
-| Asura Scans | Manhwa/manhua |
-| Flame Comics | Manhwa/manhua |
-| TopManhua | Manhwa/manhua, requires FlareSolverr |
-| MangaKatana | |
-| MangaKakalot | Requires FlareSolverr |
-| Atsumaru | atsu.moe |
-| Dynasty Scans | English, yuri |
-| Toonily | Manhwa, adult, requires FlareSolverr |
-| Manhwa18.net | Adult, requires FlareSolverr |
-| Baozi Manhua | Simplified Chinese manhua |
-| Manhuagui | Simplified Chinese, mirror override via `MAKI_SOURCE_MANHUAGUI_BASEURL` |
-| Manga Livre | Brazilian Portuguese |
-| Taiyō | Brazilian Portuguese |
-| ManhwaWeb | Spanish |
-| Olympus Scanlation | Spanish, requires FlareSolverr |
-| Anime-Sama | French, requires FlareSolverr |
-| Manga-Tube | German |
-| MangaWorld | Italian |
-| MangaLib | Russian |
-| MangaDenizi | Turkish |
-| Shinigami | Indonesian, manhwa/manhua/manga |
-| Cứu Truyện | Vietnamese, FlareSolverr when challenged, mirror override via `MAKI_SOURCE_CUUTRUYEN_BASEURL` |
-| Team-X | Arabic, requires FlareSolverr; the domain rotates, override it with `MAKI_SOURCE_TEAMX_BASEURL` |
-| Sen Manga | Japanese raws |
-| Rawkuma | Japanese raws, FlareSolverr when challenged, mirror override via `MAKI_SOURCE_RAWKUMA_BASEURL` |
-
-## Quick start (Docker)
-
-```yaml
-services:
-  maki:
-    image: ghcr.io/orbitmpgh/maki:latest
-    container_name: maki
-    environment:
-      - PUID=1000
-      - PGID=1000
-    volumes:
-      - ./maki-config:/config
-      - /path/to/manga-library:/library
-    ports:
-      - "8990:8990"
-    restart: unless-stopped
-
-  # Optional. Point a Kavita library at the same folder.
-  kavita:
-    image: jvmilazz0/kavita:latest
-    container_name: kavita
-    volumes:
-      - ./kavita-config:/kavita/config
-      - /path/to/manga-library:/library
-    ports:
-      - "5000:5000"
-    restart: unless-stopped
-
-  # Optional. Needed for Cloudflare-protected sources (see the Sources table).
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
-    ports:
-      - "8191:8191"
-    restart: unless-stopped
-```
-
-1. Open `http://localhost:8990` and create the administrator account.
-2. Under **Settings**, add `/library` as a root folder.
-3. If you use FlareSolverr, set its URL under **Settings → FlareSolverr** to
-   `http://flaresolverr:8191` and hit **Test**.
-4. Click **Add Series**, search for a title, and pick it. Maki links sources and syncs chapters
-   in the background.
-5. Download a chapter or click **Search all missing**, then follow progress under **Activity**.
-
-Upgrading from a single-user Maki? The first page asks you to set a username and password. Your
-library, history, and tracker connections are already attached to that account.
-
-## Languages
-
-The interface ships in English, German, French, Spanish, Brazilian Portuguese, Polish, Russian,
-Turkish, Japanese, Simplified Chinese, and Korean. Set yours under
-**Settings → My account → Language**, or leave it on Automatic to follow the browser. The choice
-is stored per account and follows you across devices. It is separate from **Title language**,
-which controls how series titles are displayed.
-
-English is the source language. **Everything else is machine-translated and marked as needing
-review**, so expect awkward phrasing. Untranslated strings fall back to English.
-
-Corrections are the easiest way to contribute. The simplest route is
-[Maki on Hosted Weblate](https://hosted.weblate.org/engage/maki/): sign in, pick your language, and
-fix or approve strings in the browser. Weblate sends the changes back here as a pull request. The
-translated percentage only counts strings a person has approved, so it starts low even though every
-string already has a machine translation.
-
-If you would rather work in the repo, the catalogs are gettext PO files under `locales/`, one
-directory per language. Or open an issue quoting the string and what it should say.
-`scripts/i18n/glossary.md` lists the terms that stay in English.
-
-## Multiple readers
-
-Each account has its own reading history, preferences, and tracker connections. The library itself
-is shared: one copy of the files, one set of series and chapters, so a second reader costs no disk.
-
-- **Per user:** read state and resume position, bookmarks, ratings, reader defaults and per-series
-  overrides, saved filters, start page, Home layout, title language, series-page rails,
-  content-rating ceiling, OPDS feed, and the tracker accounts (AniList, MyAnimeList, Kitsu,
-  MangaBaka) your progress is sent to. Ratings land on *your* tracker profile.
-- **Shared, admin-only:** root folders, download clients and indexers, sources and their
-  priority, metadata and recommendation settings, notifications, backups, and tracker app
-  registrations. The client ID and secret are shared, but each person connects their own account.
-- **Library access** is granted per root folder under **Settings → Users**. An account with no
-  grants sees an empty library. Series, chapters, covers, search, and OPDS all respect it.
-- **Kavita is one server with one API key**, so everything it reports is a single person's
-  reading. **Settings → Kavita** chooses which Maki account Kavita's reading belongs to (unset
-  means the first admin). Only that account can sync read status with Kavita.
-
-## Exposing Maki to the internet
-
-Maki authenticates with an HttpOnly session cookie and per-user API keys. Before putting it on a
-public address:
-
-1. **Terminate TLS in front of it**, then enable **Settings → Security → Require HTTPS**. This
-   marks the cookie `Secure` and turns on HSTS. Do not enable it before TLS works: a `Secure`
-   cookie over plain HTTP is never returned, so sign-in silently fails.
-2. **List your reverse proxy under Trusted proxies** (IP or CIDR, for example `172.18.0.0/16`).
-   Until you do, Maki ignores `X-Forwarded-For` and attributes every failed sign-in to the proxy.
-   Trusting the header from any address would let a client forge the audit log and get around
-   rate limiting and lockout.
-3. **Turn on two-factor authentication** under **Settings → My account**.
-4. **Give each reader their own account.** A new account starts with OPDS and tracker access, no
-   root folders, and no admin. If you run an identity provider, use
-   [single sign-on](#single-sign-on-openid-connect) instead of handing out passwords.
-
-Security settings are read at startup, so **restart Maki after changing them**.
-
-Two directories under `/config` are credential material and deserve the same permissions as the
-database: `dataprotection-keys` (whoever holds it can mint a session cookie for any user) and
-`backups`. Backups exclude the key ring, which is why restoring onto a different machine signs
-everyone out once.
-
-API keys and OPDS feed URLs are shown **exactly once**. Only a SHA-256 fingerprint is stored, so a
-lost key cannot be recovered; generate a new one.
-
-## Single sign-on (OpenID Connect)
-
-Single sign-on is optional and works alongside local passwords. Tested against Authelia, Keycloak,
-Authentik, and Entra ID; anything with OpenID Connect discovery and the authorization code flow
-should work.
-
-Register Maki with your provider as a confidential or public client using the authorization code
-flow with PKCE. The redirect URI is `https://<your-host>/api/v1/auth/oidc/callback`. Then fill in
-**Settings → Single sign-on** and **restart Maki**; the provider configuration is read once at
-startup.
-
-| Field | Notes |
-|---|---|
-| Issuer URL | For example `https://auth.example.com`. Maki appends `/.well-known/openid-configuration`. |
-| Client ID / secret | Leave the secret empty for a public client; PKCE protects the exchange either way. |
-| Scopes | `openid` is always requested. Add `groups` (or your provider's equivalent) for claim mapping. |
-| Create accounts on first sign-in | Off by default. When on, anyone the provider authenticates gets an account. Fine for a household realm; leave it off for a shared company realm. |
-| Admin claim / Permission claim | Optional, see below. |
-
-- **New accounts start with no library access.** Grant a root folder under **Settings → Users**.
-- **Linking.** An account is identified by the provider's `sub` claim, so upstream renames do not
-  strand anyone. The first time an unknown subject signs in, Maki links it to a local account with
-  the same email if the provider marks the address as verified and exactly one account has it.
-  Otherwise it creates an account (if allowed) or refuses.
-- **Claim mapping is all-or-nothing.** With both claim fields empty, the provider only says *who*
-  someone is and permissions stay as set on the Users page. Fill either one in and the provider
-  becomes the authority: permissions are recomputed on every sign-in, and edits on the Users page
-  are overwritten. The admin claim is `claim=value` (`groups=maki-admins`); the permission claim is
-  a claim name whose values are matched against permission names (`DownloadChapters`, `UseOpds`,
-  and so on). Unmatched values are ignored, and `Admin` only comes from the admin claim.
-- **Require single sign-on** refuses password sign-in for everyone **except administrators**, so a
-  provider outage never locks you out of your own library. If you are locked out anyway, set
-  `MAKI_ALLOW_LOCAL_LOGIN=1` and restart: password sign-in returns for every account, and Maki logs
-  a warning and shows a banner until you remove it.
-- **`http://` issuers** are allowed for a provider on the same LAN or Docker network, with a
-  startup warning. Tokens are signed either way, but the discovery document and signing keys travel
-  in the clear. Prefer `https://` where you can.
-
-## Backup & restore
-
-**Settings → Backup & Restore** takes zip snapshots of the database plus `config.json`. Together
-these are everything that cannot be cheaply regenerated. The MangaBaka dump, embeddings, covers,
-and cache are excluded so backups stay small. Backups are stored under `{ConfigDir}/backups`, and
-a setting controls how many are kept.
-
-Maki also backs up automatically **before any upgrade applies a database migration**. Migrations
-are forward-only, so this is your recovery path if an upgrade goes wrong.
-
-> **Backups contain the secrets from your settings (API keys, passwords) in plain text.** Treat a
-> downloaded backup like a password.
-
-**Restoring** replaces the database and settings, then restarts Maki. Under Docker
-(`restart: unless-stopped`) or systemd it comes back on its own; a process started with
-`dotnet run` or the Windows executable exits and must be started again by hand. You can restore a
-backup from another machine, but not one taken by a newer Maki version.
-
-## Screenshots
-
-### Add Series
-
-<img width="1280" height="720" alt="Add Series view" src="https://github.com/user-attachments/assets/0d78d951-37c9-4f26-8dd6-4ba75555cfcd" />
+- New series default to Smart Download, and Smart Download starts on its own: the first batch is
+  queued without anyone reading or downloading a chapter first. Batches start after the furthest
+  read chapter.
+- **Auto-delete read chapters** after a number of days you set. Read history is kept and the
+  chapter is marked not wanted, so it is not downloaded again. Deleting chapters by hand behaves the
+  same way, and a file shared by another chapter or an overlapping root folder is never removed.
 
 ### Series page
 
-<img width="1280" height="720" alt="Series page" src="https://github.com/user-attachments/assets/eb1b882e-b79b-465c-9a6e-46d7941ea1b4" />
+- Page count column and per-chapter file delete.
+- **Read** offers the earliest unread chapter, skipping unwanted specials and one-shots, and a
+  stray chapter read out of order does not hide earlier unread ones.
+- **Download & read** fetches the next chapter when it is not on disk yet, then opens it.
 
-### Scrobbling
+### Reader
 
-<img width="1280" alt="Scrobbling view" src="docs/screenshot-maki-scrobble.png" />
+- Vertical navigation and smooth scrolling for long strips.
+- A zoom slider that works with every fit, so a webtoon strip can be narrowed on a wide screen.
+- Spine-colour reading progress line.
 
-### Recommendations
+### Platform
 
-<img width="1280" height="720" alt="Recommendations" src="https://github.com/user-attachments/assets/1cdeb5be-4d8f-42cd-9ec2-cb0898aebd52" />
-
-### Stats
-
-<img width="1280" height="720" alt="Stats" src="https://github.com/user-attachments/assets/357c3962-b80a-45a1-8d32-95f11a4070a9" />
-
-## Building the Docker image
-
-The multi-stage [`Dockerfile`](Dockerfile) builds the frontend (Node 24) and backend (.NET 10)
-and packages them into an `aspnet:10.0` runtime image serving the SPA from `wwwroot/`.
-
-```bash
-docker build -t maki:local .
-
-docker run -d --name maki \
-  -p 8990:8990 \
-  -v "$PWD/maki-config:/config" \
-  -v "/path/to/manga-library:/library" \
-  maki:local
-
-# Multi-arch push with Buildx
-docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/<you>/maki:latest --push .
-```
-
-- The build context must be the repo root: both stages copy `locales/` in (the API embeds
-  `server.po`, Vite bundles `client.po`), and the build fails if any language is missing from
-  either the frontend or the backend stage.
-- `entrypoint.sh` fixes ownership of `/config` and drops to `PUID`/`PGID` via `gosu`.
-- State lives in the `/config` volume; the library is a separate mount you can share with Kavita.
-- `distribution/docker/Dockerfile` is an identical copy used by CI and the `distribution/build-*.ps1`
-  scripts. Keep the two in step.
-
-## Development
-
-```bash
-# Backend (http://localhost:8990, Swagger at /swagger in the Development environment only)
-dotnet run --project src/Maki.Api
-
-# Frontend dev server (http://localhost:5173, proxies /api and /signalr)
-npm --prefix frontend run dev
-
-# Tests
-dotnet test
-
-# Release publish (what the container ships)
-dotnet publish src/Maki.Api -c Release
-```
-
-State lives in `MAKI_CONFIG_DIR`. If it is unset, Maki uses `/config` when that directory exists
-(the Docker convention) and otherwise a per-user application-data folder, `%APPDATA%\Maki` on
-Windows. It holds the SQLite database, logs, covers, page cache, MangaBaka dump, embedding index,
-and precomputed recommendation data. For local development point it at a throwaway directory:
-
-```bash
-MAKI_CONFIG_DIR="$PWD/.devconfig" dotnet run --project src/Maki.Api
-```
-
-EF Core migrations apply automatically on startup.
-
-### Architecture
-
-```text
-src/
-├── Maki.Api/        ASP.NET Core host, REST /api/v1, SignalR, Quartz jobs, download workers
-├── Maki.Core/       Domain: entities, ISource/IMetadataProvider, parser, naming, CBZ pipeline
-├── Maki.Data/       EF Core + SQLite
-├── Maki.Sources/    One ISource implementation per site
-└── Maki.Metadata/   MangaBaka provider + local dump + ONNX embeddings
-frontend/            Vite + React + TypeScript + Mantine SPA
-```
-
-Sources implement a single `ISource` interface (search / series / chapters / pages) and are
-registered in DI. Adding a site is one class plus one registration. Page requests carry their own
-headers (Referer, cookies) through to the image fetch, so hotlink-protected CDNs work.
-
-## Project status
-
-Maki is pre-1.0 and under active development. Schema and API can still shift between releases.
-Issues and pull requests are welcome.
-
-## Legal
-
-Maki is a tool for organizing your library. Scraper sources access third-party websites. You are
-responsible for complying with those sites' terms of service and your local laws. Support the
-industry: buy official releases.
-
-## License
-
-[GPL-3.0](LICENSE)
+- Progressive web app with a service worker and an offline app shell.
+- Docker image makes `/app` world-readable so the `PUID` user can read it.

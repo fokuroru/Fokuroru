@@ -87,9 +87,15 @@ public class Chapter
     /// elsewhere up to chapter 50 starts at 51 rather than filling in everything already read.
     /// </para>
     /// </summary>
-    public static List<int> NextWanted(IEnumerable<Chapter> chapters, int count, decimal? after = null) =>
+    /// <param name="skip">
+    /// Chapters to leave out before counting, so they free their place in the window rather than
+    /// holding it. Smart passes the ones whose last download failed and is not yet due a retry.
+    /// </param>
+    /// <param name="after">Only chapters numbered above this read mark; one-shots (no number) are kept.</param>
+    public static List<int> NextWanted(
+        IEnumerable<Chapter> chapters, int count, IReadOnlySet<int>? skip = null, decimal? after = null) =>
         chapters
-            .Where(c => c.Wanted && c.ChapterFileId == null)
+            .Where(c => c.Wanted && c.ChapterFileId == null && (skip is null || !skip.Contains(c.Id)))
             .Where(c => after is null || c.Number is null || c.Number > after)
             .OrderBy(c => c.Number ?? decimal.MaxValue)
             .ThenBy(c => c.Id)

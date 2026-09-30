@@ -219,14 +219,14 @@ public class ReaderController(
             pinnedProfileId = resolved.PinnedProfileId,
             autoProfileId = resolved.AutoProfileId,
             seriesType = slice.Series.Type,
-            pageVersion = PageVersion(slice)
+            pageVersion = PageVersion(slice.ChapterFileId, slice.ArchiveSize)
         });
     }
 
     [HttpGet("chapter/{id:int}/page/{page:int}")]
     public async Task<IActionResult> Page(int id, int page, CancellationToken ct)
     {
-        var slice = await reader.SliceAsync(id, ct);
+        var slice = await reader.PageSliceAsync(id, ct);
         if (slice is null || page < 0 || page >= slice.PageCount)
         {
             return NotFound();
@@ -262,15 +262,15 @@ public class ReaderController(
         return File(stream, CbzReader.ContentType(entry), lastModified: null, entityTag: etag);
     }
 
-    private static string PageVersion(ReaderService.ChapterSlice slice) => $"{slice.ChapterFileId}-{slice.ArchiveSize}";
+    private static string PageVersion(int chapterFileId, long archiveSize) => $"{chapterFileId}-{archiveSize}";
 
     /// <summary>
     /// Page URLs are the same before and after a re-download, so a year-long immutable response is
     /// only safe when the URL carries the manifest's <c>pageVersion</c> and it still matches the
     /// file on disk. Anything else revalidates against the ETag.
     /// </summary>
-    private void SetPageCacheControl(ReaderService.ChapterSlice slice) =>
-        Response.Headers.CacheControl = Request.Query["v"] == PageVersion(slice)
+    private void SetPageCacheControl(ReaderService.PageSlice slice) =>
+        Response.Headers.CacheControl = Request.Query["v"] == PageVersion(slice.ChapterFileId, slice.ArchiveSize)
             ? "private, max-age=31536000, immutable"
             : "private, no-cache";
 
@@ -281,7 +281,7 @@ public class ReaderController(
     /// cache's per-directory eviction (missing ChapterFile row, stale archive size) without
     /// colliding with the thumbnail's own <c>{ArchiveSize}-{index}.jpg</c> name.
     /// </summary>
-    private async Task<string?> GetOrRenderFullPageAsync(ReaderService.ChapterSlice slice, int absoluteIndex, string entry, CancellationToken ct)
+    private async Task<string?> GetOrRenderFullPageAsync(ReaderService.PageSlice slice, int absoluteIndex, string entry, CancellationToken ct)
     {
         var dir = Path.Combine(paths.ReaderCacheDir, slice.ChapterFileId.ToString());
         var cached = Path.Combine(dir, $"{slice.ArchiveSize}-{absoluteIndex}.full.jpg");
@@ -330,7 +330,7 @@ public class ReaderController(
     [HttpGet("chapter/{id:int}/thumb/{page:int}")]
     public async Task<IActionResult> Thumbnail(int id, int page, CancellationToken ct)
     {
-        var slice = await reader.SliceAsync(id, ct);
+        var slice = await reader.PageSliceAsync(id, ct);
         if (slice is null || page < 0 || page >= slice.PageCount)
         {
             return NotFound();
@@ -526,8 +526,8 @@ public class ReaderController(
         return Ok(new { chapterId = id, completed = false });
     }
 
-    /// <summary>Largest set one call will act on. Bounds the per-chapter <c>read</c> pass, which
-    /// has to open each chapter's archive to learn its page count.</summary>
+    /// <summary>Largest set one call will act on. Bounds the <c>read</c> pass, which still opens
+    /// the archive of any chapter whose page count was never measured.</summary>
     internal const int MaxBulkChapters = 2000;
 
     /// <summary>
@@ -568,30 +568,13 @@ public class ReaderController(
             return Ok(new { updated = await reader.MarkWatchedAsync(visible, ct) });
         }
 
-        var updated = 0;
-        foreach (var chapterId in visible)
+        if (state == "unread")
         {
-            if (state == "unread")
-            {
-                await reader.ClearProgressAsync(chapterId, ct);
-                updated++;
-                continue;
-            }
-
-            // Same path as MarkRead: a real read needs the slice to know where the last page is.
-            // No time — ticking chapters off a table is not a sitting with them.
-            var slice = await reader.SliceAsync(chapterId, ct);
-            if (slice is null)
-            {
-                continue;
-            }
-
-            await reader.SaveProgressAsync(
-                slice, slice.PageCount - 1, completed: true, ReaderService.TimeReport.None, ct);
-            updated++;
+            await reader.ClearProgressAsync(visible, ct);
+            return Ok(new { updated = visible.Count });
         }
 
-        return Ok(new { updated });
+        return Ok(new { updated = await reader.MarkReadAsync(visible, ct) });
     }
 
     /// <summary>
