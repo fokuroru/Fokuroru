@@ -51,3 +51,6 @@ skills-lock.json
 
 # Release checklist fixtures and test runs (scripts/release-test)
 /.release-test/
+
+# Personal collectable figure for the Home shelf (kept out of the repository)
+frontend/public/figures/

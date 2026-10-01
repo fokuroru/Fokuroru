@@ -244,6 +244,30 @@ export class ShelfPhysics {
   }
 
   /**
+   * A figure on its round base: a heavy slab for the base under a light column for the figure, so its
+   * weight is low and a knock rocks it rather than toppling it.
+   */
+  addFigure(x: number, width: number, height: number, z = 0) {
+    const slab = 10
+    const base = Bodies.rectangle(x, this.floor - slab / 2, width, slab, { density: 0.03 })
+    const column = Bodies.rectangle(x, this.floor - slab - (height - slab) / 2, width * 0.55, height - slab, { density: 0.004 })
+    const body = Body.create({
+      parts: [base, column],
+      friction: 0.8,
+      frictionStatic: 1,
+      frictionAir: 0.02,
+      restitution: 0.02,
+      sleepThreshold: 90,
+    }) as BookBody
+    body.bookWidth = width
+    body.bookHeight = height
+    this.setDepth(body, z, width)
+    this.bodies.push(body)
+    Composite.add(this.engine.world, body)
+    return { body, centreAboveFloor: this.floor - body.position.y }
+  }
+
+  /**
    * A stick of chalk lying across the shelf, `x` and `y` its centre. A rounded rectangle: slippery,
    * so a knock slides it, and light, so a book shoves it about. It ignores the end walls and the
    * overhang of the plank, which is what lets it go over the edge.

@@ -1,4 +1,5 @@
 import * as T from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { PLANK_FRONT, ShelfPhysics, type BookBody } from './shelfPhysics'
 import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
@@ -162,6 +163,11 @@ const S_DOODLE_SHARE = 0.05
 const CHALK_CHANCE = 0.35
 /** Share of page loads that put a potted plant in the shelf's empty space. */
 const PLANT_CHANCE = 0.03
+/** A collectable figure on its own base, from a GLB kept out of the repository. Absent file, no figure. */
+const FIGURE_CHANCE = 0.25
+const FIGURE_URL = '/figures/figure.glb'
+const FIGURE_HEIGHT = 200
+const FIGURE_BASE_RADIUS = 38
 /** How strongly page scrolling is felt on the shelf, and the most it can jolt, in multiples of gravity. */
 const SCROLL_FEEL = 0.35
 const SCROLL_G_MAX = 2.2
@@ -198,6 +204,8 @@ export class MangaShelf {
   private readonly emptyShare = 0.02 + Math.random() * 0.28
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
+  private readonly withFigure = Math.random() < FIGURE_CHANCE
+  private figureData: Promise<ArrayBuffer | null> | null = null
   /** Decided once per page load too: how many sticks of chalk, usually none. */
   private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
@@ -1466,6 +1474,74 @@ export class MangaShelf {
     this.props.push(prop)
   }
 
+  /** Fetches the figure's GLB once, and parses a fresh copy per layout, since a layout disposes what it drew. */
+  private async loadFigure(): Promise<T.Object3D | null> {
+    this.figureData ??= fetch(FIGURE_URL).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null)
+    const data = await this.figureData
+    if (!data) return null
+    try {
+      return (await new GLTFLoader().parseAsync(data.slice(0), '')).scene
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Stands the figure on its round base in the free space past the books, like the plant. Returns
+   * how far along the shelf it reaches, so the plant can go past it.
+   */
+  private placeFigure(row: Row, width: number, booksEnd: number, figure: T.Object3D): number {
+    const half = FIGURE_BASE_RADIUS
+    const from = booksEnd + 14 + half
+    const to = width - 16 - half
+    if (to < from) {
+      this.disposeModel(figure)
+      return booksEnd
+    }
+    const x = from + Math.random() * (to - from)
+    const baseHeight = 8
+    const height = baseHeight + FIGURE_HEIGHT
+    const { body, centreAboveFloor } = row.physics.addFigure(x, half * 2, height, -50 + Math.random() * 60)
+    const model = new T.Group()
+    const inner = new T.Group()
+    const base = new T.Mesh(
+      new T.CylinderGeometry(half, half + 2, baseHeight, 40),
+      new T.MeshStandardMaterial({ color: '#17151a', roughness: 0.3, metalness: 0.3 }),
+    )
+    base.position.y = baseHeight / 2
+    const rim = new T.Mesh(
+      new T.TorusGeometry(half + 0.5, 0.9, 8, 48),
+      new T.MeshStandardMaterial({ color: '#e0c36a', roughness: 0.3, metalness: 0.8 }),
+    )
+    rim.rotation.x = Math.PI / 2
+    rim.position.y = baseHeight
+    const box = new T.Box3().setFromObject(figure)
+    const size = box.getSize(new T.Vector3())
+    const centre = box.getCenter(new T.Vector3())
+    const scale = FIGURE_HEIGHT / size.y
+    figure.scale.setScalar(scale)
+    figure.position.set(-centre.x * scale, baseHeight - box.min.y * scale, -centre.z * scale)
+    figure.traverse((n) => {
+      const mesh = n as T.Mesh
+      if (mesh.isMesh) {
+        mesh.castShadow = true
+        mesh.receiveShadow = true
+        ;(mesh.material as T.Material).side = T.DoubleSide
+      }
+    })
+    base.castShadow = true
+    base.receiveShadow = true
+    inner.add(base, rim, figure)
+    // The model's origin is its base; the body's is its centre of mass.
+    inner.position.y = -centreAboveFloor
+    model.add(inner)
+    row.scene.add(model)
+    const prop: Prop = { body, model, row, centreAboveFloor, lastVx: 0, leaves: [] }
+    model.traverse((n) => (n.userData.prop = prop))
+    this.props.push(prop)
+    return x + half
+  }
+
   /**
    * Drops a few sticks of chalk into the empty part of the shelf, clear of the books and of each
    * other. They start a little above the plank at a random tilt, so they land with a clatter, and
@@ -1567,6 +1643,8 @@ export class MangaShelf {
     const generation = ++this.generation
     await this.loadCovers(this.books)
     if (generation !== this.generation || this.abort.signal.aborted) return
+    const figure = this.withFigure ? await this.loadFigure() : null
+    if (generation !== this.generation || this.abort.signal.aborted) return
     this.clear()
     this.rowH = this.board ? ROW + BOARD_ROOM : ROW
     const width = this.logicalWidth
@@ -1589,7 +1667,14 @@ export class MangaShelf {
         (end, p) => Math.max(end, p.x + (Math.abs(Math.cos(p.angle)) * p.book.width + Math.abs(Math.sin(p.angle)) * p.book.height) / 2),
         0,
       )
-      this.placePlant(row, width, booksEnd)
+      const figureEnd = figure ? this.placeFigure(row, width, booksEnd, figure) : booksEnd
+      this.placePlant(row, width, figureEnd)
+    } else if (figure && plan.length > 0) {
+      const booksEnd = plan.reduce(
+        (end, p) => Math.max(end, p.x + (Math.abs(Math.cos(p.angle)) * p.book.width + Math.abs(Math.sin(p.angle)) * p.book.height) / 2),
+        0,
+      )
+      this.placeFigure(row, width, booksEnd, figure)
     }
     for (const p of plan) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle, p.book.depth)
@@ -1740,6 +1825,7 @@ export class MangaShelf {
    * simulation can fight it. Returns true while any leaf is still moving.
    */
   private sway(p: Prop, elapsedMs: number): boolean {
+    if (p.leaves.length === 0) return false
     const dt = Math.max(1, elapsedMs) / 1000
     const vx = p.body.velocity.x * 120
     const ax = (vx - p.lastVx) / dt
