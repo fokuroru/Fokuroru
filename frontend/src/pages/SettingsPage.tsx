@@ -1135,6 +1135,7 @@ function DownloadSection() {
   const [useHardlinks, setUseHardlinks] = useState(true)
   const [bulkHoldThreshold, setBulkHoldThreshold] = useState<number | string>(5)
   const [autoDeleteReadDays, setAutoDeleteReadDays] = useState<number | string>(0)
+  const [autoDeleteKeepLast, setAutoDeleteKeepLast] = useState(false)
   const [sourceOrder, setSourceOrder] = useState<SourceOrderMode>('manual')
   const [scoutOnMatch, setScoutOnMatch] = useState(false)
   const [discarded, discard] = useReducer((n: number) => n + 1, 0)
@@ -1149,6 +1150,7 @@ function DownloadSection() {
       setUseHardlinks(settings.useHardlinks)
       setBulkHoldThreshold(settings.bulkHoldThreshold)
       setAutoDeleteReadDays(settings.autoDeleteReadDays)
+      setAutoDeleteKeepLast(settings.autoDeleteKeepLast)
       setSourceOrder(settings.sourceOrder)
       setScoutOnMatch(settings.scoutOnMatch)
     }
@@ -1164,6 +1166,7 @@ function DownloadSection() {
       useHardlinks !== settings.useHardlinks ||
       Number(bulkHoldThreshold) !== settings.bulkHoldThreshold ||
       Number(autoDeleteReadDays) !== settings.autoDeleteReadDays ||
+      autoDeleteKeepLast !== settings.autoDeleteKeepLast ||
       sourceOrder !== settings.sourceOrder ||
       scoutOnMatch !== settings.scoutOnMatch)
 
@@ -1193,6 +1196,7 @@ function DownloadSection() {
             useHardlinks,
             bulkHoldThreshold: Number(bulkHoldThreshold),
             autoDeleteReadDays: Number(autoDeleteReadDays),
+            autoDeleteKeepLast,
             sourceOrder,
             scoutOnMatch,
           },
@@ -1310,6 +1314,14 @@ function DownloadSection() {
         value={autoDeleteReadDays}
         onChange={setAutoDeleteReadDays}
         w={220}
+        mb="sm"
+      />
+      <Switch
+        label={t`Keep the last chapter read`}
+        description={t`Never deletes the chapter someone read most recently in a series, so the place they are up to is always on disk.`}
+        checked={autoDeleteKeepLast}
+        onChange={(e) => setAutoDeleteKeepLast(e.currentTarget.checked)}
+        disabled={Number(autoDeleteReadDays) === 0}
         mb="md"
       />
       <Text fw={500} size="sm" mb={4}>

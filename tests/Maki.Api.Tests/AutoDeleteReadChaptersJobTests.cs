@@ -28,8 +28,10 @@ public class AutoDeleteReadChaptersJobTests : IDisposable
         Directory.Delete(_root, recursive: true);
     }
 
+    private readonly FakeAppSettings _settings = new();
+
     private AutoDeleteReadChaptersJob Job(Maki.Data.MakiDbContext db) => new(
-        db, new FakeAppSettings(), new ReaderArchiveCache(NullLogger<ReaderArchiveCache>.Instance),
+        db, _settings, new ReaderArchiveCache(NullLogger<ReaderArchiveCache>.Instance),
         new StoppedClock(Now), NullLogger<AutoDeleteReadChaptersJob>.Instance);
 
     private int SeedFile(string name, params (decimal Number, int? DaysSinceRead)[] chapters)
@@ -79,6 +81,21 @@ public class AutoDeleteReadChaptersJobTests : IDisposable
         var chapter = Assert.Single(check.Chapters);
         Assert.Null(chapter.ChapterFileId);
         Assert.False(chapter.Wanted);
+    }
+
+    [Fact]
+    public async Task Keeps_the_most_recently_read_chapter_when_asked_to()
+    {
+        SeedFile("Berserk Ch.1.cbz", (1m, 30));
+        SeedFile("Berserk Ch.2.cbz", (2m, 20));
+        SeedFile("Berserk Ch.3.cbz", (3m, 10));
+        _settings.Set(SettingKeys.LibraryAutoDeleteKeepLast, "true");
+
+        Assert.Equal(2, await Run(days: 7));
+
+        Assert.False(File.Exists(Path.Combine(_root, "Berserk", "Berserk Ch.1.cbz")));
+        Assert.False(File.Exists(Path.Combine(_root, "Berserk", "Berserk Ch.2.cbz")));
+        Assert.True(File.Exists(Path.Combine(_root, "Berserk", "Berserk Ch.3.cbz")));
     }
 
     [Fact]

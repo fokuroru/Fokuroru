@@ -3237,6 +3237,8 @@ export interface DownloadSettings {
   bulkHoldThreshold: number
   /** Days after a chapter is read before its file is deleted. 0 means never. */
   autoDeleteReadDays: number
+  /** Keep the chapter each reader read most recently out of auto-delete. */
+  autoDeleteKeepLast: boolean
   /** Which source a series without its own setting downloads from first. */
   sourceOrder: SourceOrderMode
   /** Measure every linked source of a newly matched series before anything downloads. */

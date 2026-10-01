@@ -82,6 +82,12 @@ public static class SettingKeys
     public const string LibraryAutoDeleteReadDays = "library.autodeletereaddays";
 
     /// <summary>
+    /// "true" keeps, for every reader and series, the chapter they read most recently out of
+    /// auto-delete, so the place they are up to is never the file that disappears. Default off.
+    /// </summary>
+    public const string LibraryAutoDeleteKeepLast = "library.autodeletekeeplast";
+
+    /// <summary>
     /// "false" → don't rewrite ComicInfo.xml inside files Maki adopts from disk (torrent grabs,
     /// manual imports). Chapters Maki downloads itself from a source always get a fresh ComicInfo —
     /// that CBZ is built by Maki, not an existing file being modified. Default on.

@@ -33,6 +33,28 @@ public class AutoDeleteReadChaptersJob(
             ? days
             : 0;
 
+    public static async Task<bool> KeepLastAsync(IAppSettings settings, CancellationToken ct) =>
+        await settings.GetAsync(SettingKeys.LibraryAutoDeleteKeepLast, ct) == "true";
+
+    /// <summary>
+    /// The chapter each reader completed most recently in each series. These are where people are up
+    /// to, so with "keep the last read chapter" on they stay however long ago they were read.
+    /// </summary>
+    public static async Task<HashSet<int>> LastReadChapterIdsAsync(MakiDbContext db, CancellationToken ct)
+    {
+        var latest = db.ChapterProgress
+            .Where(p => p.Completed && p.CompletedAt != null && p.UnreadAt == null)
+            .GroupBy(p => new { p.UserId, p.SeriesId })
+            .Select(g => new { g.Key.UserId, g.Key.SeriesId, At = g.Max(p => p.CompletedAt) });
+        var ids = await db.ChapterProgress
+            .Join(latest, p => new { p.UserId, p.SeriesId }, l => new { l.UserId, l.SeriesId }, (p, l) => new { p, l.At })
+            .Where(x => x.p.Completed && x.p.CompletedAt == x.At)
+            .Select(x => x.p.ChapterId)
+            .Distinct()
+            .ToListAsync(ct);
+        return ids.ToHashSet();
+    }
+
     public async Task Execute(IJobExecutionContext context)
     {
         var days = await DaysAsync(settings, context.CancellationToken);
@@ -46,8 +68,12 @@ public class AutoDeleteReadChaptersJob(
     {
         var cutoff = time.GetUtcNow().UtcDateTime.AddDays(-days);
 
+        var kept = await KeepLastAsync(settings, ct)
+            ? (await LastReadChapterIdsAsync(db, ct)).ToList()
+            : [];
+
         var readChapterIds = db.ChapterProgress
-            .Where(p => p.Completed && p.CompletedAt != null && p.CompletedAt <= cutoff)
+            .Where(p => p.Completed && p.CompletedAt != null && p.CompletedAt <= cutoff && !kept.Contains(p.ChapterId))
             .Select(p => p.ChapterId);
 
         var fileIds = await db.Chapters

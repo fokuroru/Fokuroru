@@ -128,6 +128,9 @@ public class SettingsController(
     /// <param name="AutoDeleteReadDays">
     /// See <see cref="SettingKeys.LibraryAutoDeleteReadDays"/>. Null on a write leaves it alone.
     /// </param>
+    /// <param name="AutoDeleteKeepLast">
+    /// See <see cref="SettingKeys.LibraryAutoDeleteKeepLast"/>. Null on a write leaves it alone.
+    /// </param>
     /// <param name="SourceOrder">
     /// "manual" or "quality"; see <see cref="SettingKeys.DownloadSourceOrder"/>. Null on a write leaves it alone.
     /// </param>
@@ -136,7 +139,7 @@ public class SettingsController(
         int ConcurrentChapters, bool RetryEnabled, int RetryMaxAttempts,
         int SmartDownloadChaptersLeft, int SmartDownloadChapters, int ItemTimeoutMinutes,
         bool UseHardlinks = true, int? BulkHoldThreshold = null, string? SourceOrder = null, bool? ScoutOnMatch = null,
-        int? AutoDeleteReadDays = null);
+        int? AutoDeleteReadDays = null, bool? AutoDeleteKeepLast = null);
     /// <param name="Enabled">Turns the daily upgrade scan on.</param>
     /// <param name="DefaultProfileId">The upgrade profile a series without its own pin uses, or null for none.</param>
     /// <param name="MaxPerDay">0 means no cap.</param>
@@ -835,7 +838,8 @@ public class SettingsController(
         await RefreshMonitoredSeriesJob.BulkHoldThresholdAsync(settings, ct),
         await SourceOrderNameAsync(ct),
         await settings.GetAsync(SettingKeys.SourcesScoutOnMatch, ct) == "true",
-        await AutoDeleteReadChaptersJob.DaysAsync(settings, ct)));
+        await AutoDeleteReadChaptersJob.DaysAsync(settings, ct),
+        await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct)));
 
     private async Task<string> SourceOrderNameAsync(CancellationToken ct) => SourceOrderService.Name(
         SourceOrderService.Parse(await settings.GetAsync(SettingKeys.DownloadSourceOrder, ct)) ?? SourceOrderMode.Manual);
@@ -905,6 +909,11 @@ public class SettingsController(
                 autoDeleteDays.ToString(CultureInfo.InvariantCulture), ct);
         }
 
+        if (request.AutoDeleteKeepLast is { } keepLast)
+        {
+            await settings.SetAsync(SettingKeys.LibraryAutoDeleteKeepLast, keepLast ? "true" : "false", ct);
+        }
+
         if (sourceOrder is { } order)
         {
             await settings.SetAsync(SettingKeys.DownloadSourceOrder, SourceOrderService.Name(order), ct);
@@ -920,7 +929,8 @@ public class SettingsController(
             BulkHoldThreshold = await RefreshMonitoredSeriesJob.BulkHoldThresholdAsync(settings, ct),
             SourceOrder = await SourceOrderNameAsync(ct),
             ScoutOnMatch = await settings.GetAsync(SettingKeys.SourcesScoutOnMatch, ct) == "true",
-            AutoDeleteReadDays = await AutoDeleteReadChaptersJob.DaysAsync(settings, ct)
+            AutoDeleteReadDays = await AutoDeleteReadChaptersJob.DaysAsync(settings, ct),
+            AutoDeleteKeepLast = await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct)
         });
     }
 
