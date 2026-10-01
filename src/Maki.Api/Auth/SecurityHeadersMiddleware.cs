@@ -50,6 +50,12 @@ public class SecurityHeadersMiddleware(RequestDelegate next)
     /// problem. Naming the host explicitly costs two string concatenations and works everywhere.
     /// </para>
     /// <para>
+    /// <c>blob:</c> is there for the Home shelf's figures. Chromium's glTF loader hands each embedded
+    /// texture to <c>fetch</c> as a blob URL it has just made from the model's own bytes, and without it
+    /// the figure renders plain white. A blob URL is a local, same-origin object, so it is not a place
+    /// data can be sent to.
+    /// </para>
+    /// <para>
     /// Both schemes are listed because the page may be served over either; the <c>Host</c> header is
     /// client-supplied, but a forged one only ever widens the policy of the attacker's own response.
     /// </para>
@@ -58,8 +64,8 @@ public class SecurityHeadersMiddleware(RequestDelegate next)
     {
         var host = context.Request.Host.Value;
         return string.IsNullOrEmpty(host)
-            ? $"{StaticDirectives}; connect-src 'self'"
-            : $"{StaticDirectives}; connect-src 'self' ws://{host} wss://{host}";
+            ? $"{StaticDirectives}; connect-src 'self' blob:"
+            : $"{StaticDirectives}; connect-src 'self' blob: ws://{host} wss://{host}";
     }
 
     public async Task InvokeAsync(HttpContext context)
