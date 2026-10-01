@@ -126,8 +126,15 @@ const CHALK_FONT = "700 {size}px 'Comic Neue', 'Comic Sans MS', cursive"
 /** Narrower containers are drawn at this logical width and scaled down, so a phone still gets a shelf. */
 const MIN_LOGICAL_WIDTH = 640
 const DEPTH = 132
-/** The shortest a book is made to fit a wide cover, and the narrowest its board is made for a tall one. */
-const MIN_BOOK_HEIGHT = 170
+/**
+ * The deepest a board is made for a wide cover, and the shallowest for a tall one. Deeper would stand
+ * the spine out over the plank's edge, so a wide cover gets a smaller book instead, except for the
+ * few each load lets overhang.
+ */
+const MAX_BOARD = 136
+/** What the few books allowed to overhang may reach, and how many of them a page load picks (0 to this). */
+const MAX_OVERHANG_BOARD = 190
+const MAX_OVERHANGERS = 3
 const MIN_BOARD = 90
 const CLICK_SLOP = 6
 const PULL_MS = 550
@@ -201,7 +208,9 @@ export class MangaShelf {
   private acc = 0
   private quietFrames = 0
   /** Editions dealt this page load, kept across re-layouts (a resize should not restyle books). */
-  private readonly dealt = new Map<number, { style: number; width: number }>()
+  private readonly dealt = new Map<number, { style: number; width: number; tall: number }>()
+  /** The few books this page load lets stand with their spine out over the plank, chosen once from those wide covers would make so. */
+  private overhang: Set<number> | null = null
   private deck: number[] = []
   private readonly covers = new Map<string, HTMLImageElement | null>()
   /** Bumped by every layout, so a layout still waiting on covers gives way to a newer one. */
@@ -1398,23 +1407,28 @@ export class MangaShelf {
     if (!deal) {
       if (this.deck.length === 0) this.deck = [...SPINE_STYLES.keys()].sort(() => Math.random() - 0.5)
       const style = this.deck.pop()!
-      deal = { style, width: style >= SLIM_FROM ? 26 + Math.round(Math.random() * 9) : b.width }
+      deal = { style, width: style >= SLIM_FROM ? 26 + Math.round(Math.random() * 9) : b.width, tall: 0.86 + Math.random() * 0.22 }
       this.dealt.set(b.id, deal)
     }
-    // The board is as wide as the cover is to its height. A cover too wide for the plank shortens the book rather than hang it over the edge.
+    // The board is as wide as the cover is to its height, so the whole cover shows. A cover wider than MAX_BOARD allows shrinks the book rather than overhang the plank.
     const cover = b.coverUrl ? this.covers.get(b.coverUrl) : null
-    let height = b.height
+    // Each page load stands every book a little taller or shorter than the last.
+    const tall = b.height * deal.tall
+    let height = tall
     let depth = DEPTH
     if (cover && cover.width > 0 && cover.height > 0) {
       const aspect = cover.width / cover.height
+      const most = this.overhang?.has(b.id) ? MAX_OVERHANG_BOARD : MAX_BOARD
       depth = height * aspect
-      if (depth > DEPTH) {
-        height = Math.max(MIN_BOOK_HEIGHT, DEPTH / aspect)
-        depth = height * aspect
+      if (depth > most) {
+        height = most / aspect
+        depth = most
       }
-      depth = Math.round(Math.min(DEPTH, Math.max(MIN_BOARD, depth)))
+      depth = Math.round(Math.max(MIN_BOARD, depth))
     }
-    return { ...b, width: deal.width, height, depth, style: deal.style, look: SPINE_STYLES[deal.style] }
+    // A shortened book is thinned by the same share, so it stays the shape it was dealt rather than turning fat.
+    const width = Math.max(18, Math.round(deal.width * (height / b.height)))
+    return { ...b, width, height, depth, style: deal.style, look: SPINE_STYLES[deal.style] }
   }
 
   /**
@@ -1556,6 +1570,16 @@ export class MangaShelf {
     this.rowH = this.board ? ROW + BOARD_ROOM : ROW
     const width = this.logicalWidth
     const row = this.newRow(width)
+    if (this.overhang === null) {
+      // Deal every book first, then pick up to three of the ones a wide cover would push past the edge.
+      for (const b of this.books) this.styled(b)
+      const wide = this.books.filter((b) => {
+        const cover = b.coverUrl ? this.covers.get(b.coverUrl) : null
+        return !!cover && cover.height > 0 && b.height * this.dealt.get(b.id)!.tall * (cover.width / cover.height) > MAX_BOARD
+      })
+      wide.sort(() => Math.random() - 0.5)
+      this.overhang = new Set(wide.slice(0, Math.floor(Math.random() * (MAX_OVERHANGERS + 1))).map((b) => b.id))
+    }
     for (const p of planShelf(this.books.map((b) => this.styled(b)), width, this.emptyShare)) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle, p.book.depth)
       // Now and then a book sits a little forward or back of the rest, never by much.
