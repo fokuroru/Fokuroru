@@ -17,7 +17,8 @@ export interface ShelfBook {
 }
 
 /** A book with the edition it was dealt for this page load. */
-type Styled = ShelfBook & { style: number; look: SpineStyle }
+/** `depth` is how far the book runs back from its spine: the width of its front board. */
+type Styled = ShelfBook & { style: number; look: SpineStyle; depth: number }
 
 /** One line on the chalkboard: a label, the figure beside it, and a tone for the figures that judge. */
 export interface BoardFigure {
@@ -117,14 +118,17 @@ const GRIP_YAW = 0.9
 const GRIP_ROLL = 0.45
 /** How high above the plank, in world units, a stick has to be lifted to be fully in the writing grip. */
 const GRIP_LIFT = 60
-/** How far the tip of a held stick comes off the board when it is lifted away from it. */
 /** How long the books have the shelf to themselves on the first load, in ms. */
 const EXTRAS_DELAY = 700
+/** How far the tip of a held stick comes off the board when it is lifted away from it. */
 const PEN_LIFT = 46
 const CHALK_FONT = "700 {size}px 'Comic Neue', 'Comic Sans MS', cursive"
 /** Narrower containers are drawn at this logical width and scaled down, so a phone still gets a shelf. */
 const MIN_LOGICAL_WIDTH = 640
 const DEPTH = 132
+/** The shortest a book is made to fit a wide cover, and the narrowest its board is made for a tall one. */
+const MIN_BOOK_HEIGHT = 170
+const MIN_BOARD = 90
 const CLICK_SLOP = 6
 const PULL_MS = 550
 const COVER_WAIT_MS = 4000
@@ -181,12 +185,12 @@ export class MangaShelf {
   /** A prop (the plant) being carried: props can be moved but not opened. */
   private heldProp: Grabbable | null = null
   private penKey = false
+  /** Whether the plant and chalk have been brought in once already, so a relayout puts them straight back. */
+  private extrasSeen = false
   /** How much of the shelf stays empty, drawn once per page load: between 2% and 30%. */
   private readonly emptyShare = 0.02 + Math.random() * 0.28
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
-  /** Whether the plant and chalk have been brought in once already, so a relayout puts them straight back. */
-  private extrasSeen = false
   /** Decided once per page load too: how many sticks of chalk, usually none. */
   private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
@@ -262,7 +266,7 @@ export class MangaShelf {
           // Shift turns the drag into a push: down brings it towards you, up sends it back.
           held.row.physics.nudgeDepth(held.body, ((e.clientY - this.drag.lastY) / this.scale) * 1.1)
         } else {
-          if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row, this.selected.body.z + DEPTH / 2))
+          if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row, this.selected.body.z + this.selected.body.depth / 2))
           if (this.heldProp) this.heldProp.row.physics.moveTo(this.worldPoint(e, this.heldProp.row, this.heldProp.body.z))
         }
         this.drag.lastY = e.clientY
@@ -293,7 +297,7 @@ export class MangaShelf {
       if (!this.reduced.matches) {
         this.selected?.row.physics.release()
         this.selected = item
-        item.row.physics.grab(item.body, 1, this.worldPoint(e, item.row, item.body.z + DEPTH / 2))
+        item.row.physics.grab(item.body, 1, this.worldPoint(e, item.row, item.body.z + item.body.depth / 2))
         this.wake()
       }
       this.drag = { x: e.clientX, y: e.clientY, moved: false, at: performance.now(), lastY: e.clientY }
@@ -595,6 +599,7 @@ export class MangaShelf {
   private model(b: Styled): { group: T.Group; hinges: Hinges } {
     const bw = b.width
     const bh = b.height
+    const depth = b.depth
     const group = new T.Group()
     const mat = (color?: string, map?: T.Texture) =>
       new T.MeshStandardMaterial({ color: color ?? '#ffffff', map: map ?? null, roughness: 0.84, metalness: 0 })
@@ -609,26 +614,26 @@ export class MangaShelf {
       parent.add(n)
       return n
     }
-    const px = mat(undefined, this.pages(DEPTH, bh, 'y'))
-    const py = mat(undefined, this.pages(bw, DEPTH, 'x'))
+    const px = mat(undefined, this.pages(depth, bh, 'y'))
+    const py = mat(undefined, this.pages(bw, depth, 'x'))
     const pz = mat(undefined, this.pages(bw, bh, 'x'))
-    mesh(new T.BoxGeometry(Math.max(3, bw - 3), bh - 4, DEPTH - 5), [px, px, py, py, pz, pz], 0, 0, -DEPTH / 2)
+    mesh(new T.BoxGeometry(Math.max(3, bw - 3), bh - 4, depth - 5), [px, px, py, py, pz, pz], 0, 0, -depth / 2)
     const edge = mat(b.look.bg)
     const front = mat()
     const back = mat()
-    this.cover(b, DEPTH, bh, front)
-    this.cover(b, DEPTH, bh, back, true)
+    this.cover(b, depth, bh, front)
+    this.cover(b, depth, bh, back, true)
     const leaf = mat('#f1ebdb')
     const hinge = (side: 1 | -1, board: T.Material[]) => {
       const board0 = new T.Group()
       board0.position.set((side * bw) / 2, 0, 0)
       group.add(board0)
-      mesh(new T.BoxGeometry(1.5, bh, DEPTH), board, -side * 0.75, 0, -DEPTH / 2, board0)
+      mesh(new T.BoxGeometry(1.5, bh, depth), board, -side * 0.75, 0, -depth / 2, board0)
       const leaves = [0, 1, 2, 3].map((k) => {
         const pivot = new T.Group()
         pivot.position.set(side * (bw / 2 - 2 - k * 0.6), 0, -1)
         group.add(pivot)
-        mesh(new T.BoxGeometry(0.35, bh - 6, DEPTH - 8), leaf, 0, 0, -(DEPTH - 8) / 2, pivot)
+        mesh(new T.BoxGeometry(0.35, bh - 6, depth - 8), leaf, 0, 0, -(depth - 8) / 2, pivot)
         return pivot
       })
       return { board: board0, leaves }
@@ -1015,7 +1020,8 @@ export class MangaShelf {
       })
     }
 
-    // ---- placement: random spots, small tilts, not on top of each other
+    // ---- placement: random spots and small tilts. Figures keep clear of each other and of every
+    // doodle; doodles keep clear of the figures but may be scribbled over one another.
     interface Spot { x: number; y: number; w: number; h: number }
     const solid: Spot[] = []
     const margin = 26
@@ -1149,16 +1155,16 @@ export class MangaShelf {
       }
     }
     const bubble = (x: number, y: number, s: number, color: string) => {
-      const pts: [number, number][] = []
-      const n = 18
-      for (let i = 0; i <= n; i++) pts.push(on(from + ((to - from) * i) / n))
-      pts.push([x - s * 0.9, y + s * 1.35], on(from))
-      stroke(pts, color, 2.2, 1)
       // One outline: round the ellipse the long way from one side of the tail's base to the other,
       // then out to the tip and back, so the circle does not run on through the tail.
       const from = 2.03
       const to = 1.6 + Math.PI * 2
       const on = (a: number): [number, number] => [x + Math.cos(a) * s * 1.15, y + Math.sin(a) * s * 0.8]
+      const pts: [number, number][] = []
+      const n = 18
+      for (let i = 0; i <= n; i++) pts.push(on(from + ((to - from) * i) / n))
+      pts.push([x - s * 0.9, y + s * 1.35], on(from))
+      stroke(pts, color, 2.2, 1)
       chalkText(pick(['!', '?', '…', '♪', '!?', 'zzz']), x, y, s * 0.95, color, 'center')
     }
     const roll = (x: number, y: number, s: number, color: string) => {
@@ -1395,7 +1401,20 @@ export class MangaShelf {
       deal = { style, width: style >= SLIM_FROM ? 26 + Math.round(Math.random() * 9) : b.width }
       this.dealt.set(b.id, deal)
     }
-    return { ...b, width: deal.width, style: deal.style, look: SPINE_STYLES[deal.style] }
+    // The board is as wide as the cover is to its height. A cover too wide for the plank shortens the book rather than hang it over the edge.
+    const cover = b.coverUrl ? this.covers.get(b.coverUrl) : null
+    let height = b.height
+    let depth = DEPTH
+    if (cover && cover.width > 0 && cover.height > 0) {
+      const aspect = cover.width / cover.height
+      depth = height * aspect
+      if (depth > DEPTH) {
+        height = Math.max(MIN_BOOK_HEIGHT, DEPTH / aspect)
+        depth = height * aspect
+      }
+      depth = Math.round(Math.min(DEPTH, Math.max(MIN_BOARD, depth)))
+    }
+    return { ...b, width: deal.width, height, depth, style: deal.style, look: SPINE_STYLES[deal.style] }
   }
 
   /**
@@ -1538,10 +1557,10 @@ export class MangaShelf {
     const width = this.logicalWidth
     const row = this.newRow(width)
     for (const p of planShelf(this.books.map((b) => this.styled(b)), width, this.emptyShare)) {
-      const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
+      const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle, p.book.depth)
       // Now and then a book sits a little forward or back of the rest, never by much.
       if (Math.random() < SLIGHT_DEPTH_SHARE) {
-        row.physics.setDepth(body, -DEPTH / 2 + (Math.random() < 0.6 ? -1 : 1) * (5 + Math.random() * 11), DEPTH)
+        row.physics.setDepth(body, -p.book.depth / 2 + (Math.random() < 0.6 ? -1 : 1) * (5 + Math.random() * 11), p.book.depth)
       }
       const { group: model, hinges } = this.model(p.book)
       row.scene.add(model)
@@ -1651,9 +1670,9 @@ export class MangaShelf {
     const t = Math.min(1, elapsed / FLUTTER_MS)
     const sign = i.flutter.side === 'front' ? -1 : 1
     // Quick to open, slower to fall shut, and never further than the space beside the book allows:
-    // the fore-edge of a board swung by `a` moves DEPTH * sin(a) sideways.
-    const room = i.row.physics.clearance(i.body, i.flutter.side === 'front' ? 1 : -1, DEPTH)
-    const limit = Math.asin(Math.min(1, Math.max(0, room - 1.5) / DEPTH))
+    // the fore-edge of a board swung by `a` moves its depth * sin(a) sideways.
+    const room = i.row.physics.clearance(i.body, i.flutter.side === 'front' ? 1 : -1, i.body.depth)
+    const limit = Math.asin(Math.min(1, Math.max(0, room - 1.5) / i.body.depth))
     const curve = (u: number) => (u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * Math.pow(u, 0.7)))
     const open = Math.min(curve(t) * i.flutter.angle, limit)
     const hinge = i.hinges[i.flutter.side]
@@ -1862,14 +1881,14 @@ export class MangaShelf {
     let pulling = scrolling
     for (const i of this.items) {
       // The model is drawn from the spine, which faces the viewer, so it sits half a depth in front of the body's middle.
-      i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, i.body.z + DEPTH / 2)
+      i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, i.body.z + i.body.depth / 2)
       i.model.rotation.z = -i.body.angle
       if (i.pulledAt === undefined) this.tip(i.model, i.body)
       pulling = this.flutter(i) || pulling
       if (i.pulledAt !== undefined) {
         const t = Math.min(1, (performance.now() - i.pulledAt) / PULL_MS)
         const e = 1 - (1 - t) ** 3
-        i.model.position.z = i.body.z + DEPTH / 2 + e * 320
+        i.model.position.z = i.body.z + i.body.depth / 2 + e * 320
         i.model.position.y += e * 30
         i.model.rotation.y = -e * 0.35
         pulling ||= t < 1
