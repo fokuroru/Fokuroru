@@ -3,10 +3,14 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { PLANK_FRONT, ShelfPhysics, type BookBody } from './shelfPhysics'
 import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
-import prankFontUrl from '../../../assets/fonts/creamy-chalk-demo.ttf?url'
 import { coverPalette } from './coverPalette'
 
 const PRANK_CHANCE = 0.02
+/**
+ * The font for them is licensed for personal use only, so it is kept out of the repository: put
+ * creamy-chalk-demo.ttf in frontend/public/fonts. Without it a chosen message is simply not drawn.
+ */
+const PRANK_FONT_URL = '/fonts/creamy-chalk-demo.ttf'
 const PRANKS = [
   'Claude wuz here',
   'Copilot R dumb',
@@ -42,7 +46,7 @@ const PRANKS = [
 
 let prankFont: Promise<boolean> | null = null
 function loadPrankFont(): Promise<boolean> {
-  return prankFont ??= new FontFace('Creamy Chalk', `url("${prankFontUrl}")`).load().then((face) => {
+  return prankFont ??= new FontFace('Creamy Chalk', `url("${PRANK_FONT_URL}")`).load().then((face) => {
     document.fonts.add(face)
     return true
   }).catch(() => false)

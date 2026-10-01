@@ -55,3 +55,6 @@ skills-lock.json
 
 # macOS
 .DS_Store
+
+# Personal-use-only chalk font for the rare chalkboard messages (kept out of the repository)
+frontend/public/fonts/creamy-chalk-*
