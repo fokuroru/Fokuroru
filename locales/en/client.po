@@ -857,12 +857,16 @@ msgstr "{ratioValue} more than the MangaBaka catalogue carries, weighted toward 
 
 #: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
-msgid "{readChapterCount} of {have} downloaded read"
-msgstr "{readChapterCount} of {have} downloaded read"
+#~ msgid "{readChapterCount} of {have} downloaded read"
+#~ msgstr "{readChapterCount} of {have} downloaded read"
 
 #: src/components/series/SeriesHero.tsx
-msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
-msgstr "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
+#~ msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
+#~ msgstr "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
+
+#: src/components/series/SeriesHero.tsx
+msgid "{readCount} / {mainCount, plural, one {# main chapter} other {# main chapters}}"
+msgstr "{readCount} / {mainCount, plural, one {# main chapter} other {# main chapters}}"
 
 #: src/pages/reader/ChapterEnd.tsx
 msgid "{readCount} of {seriesChapterCount} read"
@@ -883,6 +887,11 @@ msgstr "{readFilterCount} read"
 #: src/pages/stats/sections/TasteSection.tsx
 msgid "{readGenreName} is {readShare} of what you read and {libraryShare} of the library."
 msgstr "{readGenreName} is {readShare} of what you read and {libraryShare} of the library."
+
+#: src/components/ui/CoverCard.tsx
+#: src/components/ui/SeriesRow.tsx
+msgid "{readMainChapters} of {mainChapterCount} main chapters read"
+msgstr "{readMainChapters} of {mainChapterCount} main chapters read"
 
 #: src/pages/rewind/slides.tsx
 msgid "{readValue, plural, one {chapter read} other {chapters read}}"
@@ -1967,7 +1976,6 @@ msgstr "All chapters"
 msgid "All chapters sharing this archive must have a candidate. The original stays in place until you approve application."
 msgstr "All chapters sharing this archive must have a candidate. The original stays in place until you approve application."
 
-#: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
 msgid "All downloaded chapters read"
 msgstr "All downloaded chapters read"
@@ -1979,6 +1987,10 @@ msgstr "All findings"
 #: src/pages/SettingsPage.tsx
 msgid "All libraries"
 msgstr "All libraries"
+
+#: src/components/ui/CoverCard.tsx
+msgid "All main chapters read"
+msgstr "All main chapters read"
 
 #: src/components/SetupWizard.tsx
 msgid "All optional. Fōkurōru downloads from its own sources without any of these. Open one to fill it in."
@@ -9524,7 +9536,6 @@ msgid "Readers like you also recommended this"
 msgstr "Readers like you also recommended this"
 
 #: src/components/ImportListsSection.tsx
-#: src/components/series/SeriesHero.tsx
 #: src/components/ui/status.tsx
 #: src/pages/HomePage.tsx
 #: src/pages/SeriesDetailPage.tsx
@@ -11060,6 +11071,10 @@ msgstr "Series already in the destination root folder are skipped."
 #: src/pages/RequestsPage.tsx
 msgid "Series and chapters you have asked an admin for."
 msgstr "Series and chapters you have asked an admin for."
+
+#: src/components/series/SeriesHero.tsx
+msgid "Series completion"
+msgstr "Series completion"
 
 #: src/components/SetupWizard.tsx
 msgid "Series details come from MangaBaka. Choose how much of it Fōkurōru keeps at hand, and what it may show you."

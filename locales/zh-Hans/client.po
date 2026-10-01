@@ -1032,13 +1032,17 @@ msgstr "比 MangaBaka 目录收录的多 {ratioValue}，偏向更多人阅读的
 #: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
 #, fuzzy
-msgid "{readChapterCount} of {have} downloaded read"
-msgstr "已读下载章节 {readChapterCount}/{have}"
+#~ msgid "{readChapterCount} of {have} downloaded read"
+#~ msgstr "已读下载章节 {readChapterCount}/{have}"
 
 #: src/components/series/SeriesHero.tsx
 #, fuzzy
-msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
-msgstr "{readCount} / {haveCount, plural, other {# 个章节}}"
+#~ msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
+#~ msgstr "{readCount} / {haveCount, plural, other {# 个章节}}"
+
+#: src/components/series/SeriesHero.tsx
+msgid "{readCount} / {mainCount, plural, one {# main chapter} other {# main chapters}}"
+msgstr ""
 
 #: src/pages/reader/ChapterEnd.tsx
 #, fuzzy
@@ -1064,6 +1068,11 @@ msgstr "{readFilterCount} 已读"
 #, fuzzy
 msgid "{readGenreName} is {readShare} of what you read and {libraryShare} of the library."
 msgstr "{readGenreName}占你阅读内容的 {readShare}，占资料库的 {libraryShare}。"
+
+#: src/components/ui/CoverCard.tsx
+#: src/components/ui/SeriesRow.tsx
+msgid "{readMainChapters} of {mainChapterCount} main chapters read"
+msgstr ""
 
 #: src/pages/rewind/slides.tsx
 #, fuzzy
@@ -2361,7 +2370,6 @@ msgstr "所有章节"
 msgid "All chapters sharing this archive must have a candidate. The original stays in place until you approve application."
 msgstr "共享此归档的所有章节都必须有候选项。在你批准应用之前，原文件会保持不变。"
 
-#: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
 #, fuzzy
 msgid "All downloaded chapters read"
@@ -2376,6 +2384,10 @@ msgstr "所有发现"
 #, fuzzy
 msgid "All libraries"
 msgstr "所有图书馆"
+
+#: src/components/ui/CoverCard.tsx
+msgid "All main chapters read"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 msgid "All optional. Fōkurōru downloads from its own sources without any of these. Open one to fill it in."
@@ -11379,7 +11391,6 @@ msgid "Readers like you also recommended this"
 msgstr "像你一样的读者也推荐了此内容"
 
 #: src/components/ImportListsSection.tsx
-#: src/components/series/SeriesHero.tsx
 #: src/components/ui/status.tsx
 #: src/pages/HomePage.tsx
 #: src/pages/SeriesDetailPage.tsx
@@ -13210,6 +13221,10 @@ msgstr "目标根文件夹中已有的系列会跳过。"
 #, fuzzy
 msgid "Series and chapters you have asked an admin for."
 msgstr "你向管理员请求的系列和章节。"
+
+#: src/components/series/SeriesHero.tsx
+msgid "Series completion"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 msgid "Series details come from MangaBaka. Choose how much of it Fōkurōru keeps at hand, and what it may show you."

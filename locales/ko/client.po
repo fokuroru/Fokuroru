@@ -1032,13 +1032,17 @@ msgstr "MangaBaka 카탈로그에 있는 항목보다 {ratioValue}개 더 많으
 #: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
 #, fuzzy
-msgid "{readChapterCount} of {have} downloaded read"
-msgstr "{have}개 다운로드된 챕터 중 {readChapterCount}개 읽음"
+#~ msgid "{readChapterCount} of {have} downloaded read"
+#~ msgstr "{have}개 다운로드된 챕터 중 {readChapterCount}개 읽음"
 
 #: src/components/series/SeriesHero.tsx
 #, fuzzy
-msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
-msgstr "{readCount} / {haveCount, plural, other {# 챕터}}"
+#~ msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
+#~ msgstr "{readCount} / {haveCount, plural, other {# 챕터}}"
+
+#: src/components/series/SeriesHero.tsx
+msgid "{readCount} / {mainCount, plural, one {# main chapter} other {# main chapters}}"
+msgstr ""
 
 #: src/pages/reader/ChapterEnd.tsx
 #, fuzzy
@@ -1064,6 +1068,11 @@ msgstr "{readFilterCount}개 읽음"
 #, fuzzy
 msgid "{readGenreName} is {readShare} of what you read and {libraryShare} of the library."
 msgstr "읽은 작품 중 {readGenreName}은(는) {readShare}이고 라이브러리 중 {libraryShare}입니다."
+
+#: src/components/ui/CoverCard.tsx
+#: src/components/ui/SeriesRow.tsx
+msgid "{readMainChapters} of {mainChapterCount} main chapters read"
+msgstr ""
 
 #: src/pages/rewind/slides.tsx
 #, fuzzy
@@ -2361,7 +2370,6 @@ msgstr "모든 챕터"
 msgid "All chapters sharing this archive must have a candidate. The original stays in place until you approve application."
 msgstr "이 보관 파일을 공유하는 모든 챕터에는 후보가 있어야 합니다. 적용을 승인할 때까지 원본은 그대로 유지됩니다."
 
-#: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
 #, fuzzy
 msgid "All downloaded chapters read"
@@ -2376,6 +2384,10 @@ msgstr "모든 발견 항목"
 #, fuzzy
 msgid "All libraries"
 msgstr "모든 라이브러리"
+
+#: src/components/ui/CoverCard.tsx
+msgid "All main chapters read"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 msgid "All optional. Fōkurōru downloads from its own sources without any of these. Open one to fill it in."
@@ -11379,7 +11391,6 @@ msgid "Readers like you also recommended this"
 msgstr "나와 비슷한 독자도 이 항목을 추천함"
 
 #: src/components/ImportListsSection.tsx
-#: src/components/series/SeriesHero.tsx
 #: src/components/ui/status.tsx
 #: src/pages/HomePage.tsx
 #: src/pages/SeriesDetailPage.tsx
@@ -13210,6 +13221,10 @@ msgstr "대상 루트 폴더에 이미 있는 시리즈는 건너뜁니다."
 #, fuzzy
 msgid "Series and chapters you have asked an admin for."
 msgstr "관리자에게 요청한 시리즈와 챕터입니다."
+
+#: src/components/series/SeriesHero.tsx
+msgid "Series completion"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 msgid "Series details come from MangaBaka. Choose how much of it Fōkurōru keeps at hand, and what it may show you."
