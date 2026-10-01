@@ -30,6 +30,8 @@ export type BookBody = Matter.Body & {
   /** How far it has tipped forward over the plank's front edge, in radians, and how fast it is turning. */
   pitch?: number
   pitchSpeed?: number
+  /** How long it has been still on top of other things while let go of by the plank, in ms. */
+  settledFor?: number
   z: number
   zTarget: number
   depth: number
@@ -647,7 +649,21 @@ export class ShelfPhysics {
       const resting = body.bounds.max.y >= this.floor - 4
       let pitch = body.pitch ?? 0
       let speed = body.pitchSpeed ?? 0
-      if (body.supported === false) {
+      // Let go of by the plank, but come to rest on top of other things: it is not falling after all, so it
+      // rights itself and the plank takes hold of it again. Only once it has stayed still for a moment, so
+      // the top of a throw does not count.
+      const settled = body.supported === false && !resting && body.speed < 0.25 && Math.abs(body.angularSpeed) < 0.01
+      body.settledFor = settled ? (body.settledFor ?? 0) + dt : 0
+      if (settled && (body.settledFor ?? 0) > 300) {
+        speed = 0
+        pitch = pitch < 0.002 ? 0 : pitch * 0.85
+        if (pitch === 0) {
+          body.pitch = 0
+          body.pitchSpeed = 0
+          this.holdUp(body)
+          continue
+        }
+      } else if (body.supported === false) {
         speed += 6 * seconds
         pitch = Math.min(2.1, pitch + speed * seconds)
       } else if (overhang > 0 && resting) {
