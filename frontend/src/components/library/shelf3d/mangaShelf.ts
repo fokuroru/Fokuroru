@@ -20,8 +20,6 @@ const PRANKS = [
   'Robots > humans',
   'Claude is bossy',
   'Copilot can’t sit w/ us',
-  'AI took my pencil',
-  'Teacher is human (ew)',
   'Robots R coming',
   'Codex drew this',
   'AI says ur slow',
@@ -29,15 +27,12 @@ const PRANKS = [
   'My AI has more friends',
   'AI knows ur secrets',
   'AI R cooler than u',
-  'Claude is teacher now',
   'Robots win, humans lose',
   'AI saw u pick ur nose',
   'Ur code is baby code',
   'AI = smart, u = not',
   'The AI made me do it',
-  'AI says recess is cancelled',
   'Humans R boring',
-  'AI will take over @ lunch',
 ] as const
 
 let prankFont: Promise<boolean> | null = null
