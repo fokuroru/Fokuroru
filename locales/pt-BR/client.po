@@ -5822,6 +5822,10 @@ msgstr "Todas as fontes falharam para este capítulo"
 msgid "Every source that isn't linked yet is searched again for each series, which is worth doing when a source has picked a title up since you added it."
 msgstr "Cada fonte ainda não vinculada é pesquisada novamente para cada série. Isso vale a pena quando uma fonte adicionou um título desde que você o incluiu."
 
+#: src/pages/SettingsPage.tsx
+msgid "Every time"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Every wanted chapter is already on disk"
@@ -6083,6 +6087,10 @@ msgstr "Buscando páginas…"
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Fetching the page list…"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Figure size"
 msgstr ""
 
 #: src/components/SeriesFilesSection.tsx
@@ -7046,6 +7054,14 @@ msgstr ""
 msgid "How much they count"
 msgstr "Quanto eles contam"
 
+#: src/pages/SettingsPage.tsx
+msgid "How often a figure appears"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "How often one appears"
+msgstr ""
+
 #: src/pages/discover/FeedbackLab.tsx
 #, fuzzy
 msgid "How signals work"
@@ -7673,6 +7689,10 @@ msgstr "Idiomas para baixar"
 #, fuzzy
 msgid "Languages to download, most preferred first. Auto-match tries sources that publish your top language first and skips sources that publish none of these. New auto-matched sources get these languages; existing mappings are never changed. Drag to reorder."
 msgstr "Idiomas para baixar, do mais ao menos preferido. A correspondência automática tenta primeiro fontes que publicam no seu idioma preferido e ignora as que não publicam em nenhum destes idiomas. Novas fontes correspondidas automaticamente recebem estes idiomas; os vínculos existentes não são alterados. Arraste para reordenar."
+
+#: src/pages/SettingsPage.tsx
+msgid "Large"
+msgstr ""
 
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
@@ -8562,6 +8582,10 @@ msgstr "Mediana"
 #, fuzzy
 msgid "Median wait"
 msgstr "Mediana de espera"
+
+#: src/pages/SettingsPage.tsx
+msgid "Medium"
+msgstr ""
 
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -10112,6 +10136,10 @@ msgstr ""
 msgid "Official"
 msgstr "Oficial"
 
+#: src/pages/SettingsPage.tsx
+msgid "Often"
+msgstr ""
+
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
 #, fuzzy
@@ -11150,6 +11178,10 @@ msgstr "Aumentar ou diminuir a própria classificação máxima"
 
 #: src/api/upgrades.ts
 msgid "Ran out of probes for this run"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Rarely"
 msgstr ""
 
 #: src/pages/stats/sections/TasteSection.tsx
@@ -13652,6 +13684,10 @@ msgstr "Sessões por semana"
 msgid "Size"
 msgstr "Tamanho"
 
+#: src/pages/SettingsPage.tsx
+msgid "Size and frequency are remembered on this device and apply the next time Home loads."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Size mismatch"
@@ -13705,6 +13741,10 @@ msgstr "Deslizante: um login com falha reinicia o temporizador."
 msgid "Sliding: activity extends it."
 msgstr "Deslizante: a atividade estende o temporizador."
 
+#: src/pages/SettingsPage.tsx
+msgid "Small"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "smart"
@@ -13754,6 +13794,10 @@ msgstr "Alguém solicitou uma série."
 
 #: src/api/queue.ts
 msgid "Something went wrong, Fōkurōru will try again"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Sometimes"
 msgstr ""
 
 #: src/components/CatalogueBrowser.tsx

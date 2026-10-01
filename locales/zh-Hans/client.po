@@ -5822,6 +5822,10 @@ msgstr "此章节的所有来源都失败了"
 msgid "Every source that isn't linked yet is searched again for each series, which is worth doing when a source has picked a title up since you added it."
 msgstr "每个尚未关联的来源都会为每个系列再次搜索。如果某个来源在你添加系列后收录了该标题，这样做很有用。"
 
+#: src/pages/SettingsPage.tsx
+msgid "Every time"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Every wanted chapter is already on disk"
@@ -6083,6 +6087,10 @@ msgstr "正在获取页面……"
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Fetching the page list…"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Figure size"
 msgstr ""
 
 #: src/components/SeriesFilesSection.tsx
@@ -7046,6 +7054,14 @@ msgstr ""
 msgid "How much they count"
 msgstr "它们的权重"
 
+#: src/pages/SettingsPage.tsx
+msgid "How often a figure appears"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "How often one appears"
+msgstr ""
+
 #: src/pages/discover/FeedbackLab.tsx
 #, fuzzy
 msgid "How signals work"
@@ -7673,6 +7689,10 @@ msgstr "下载语言"
 #, fuzzy
 msgid "Languages to download, most preferred first. Auto-match tries sources that publish your top language first and skips sources that publish none of these. New auto-matched sources get these languages; existing mappings are never changed. Drag to reorder."
 msgstr "按偏好从高到低排列要下载的语言。自动匹配会优先尝试发布首选语言的来源，并跳过不支持这些语言的来源。新自动匹配的来源会使用这些语言；现有映射不会更改。拖动即可重新排序。"
+
+#: src/pages/SettingsPage.tsx
+msgid "Large"
+msgstr ""
 
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
@@ -8562,6 +8582,10 @@ msgstr "中位数"
 #, fuzzy
 msgid "Median wait"
 msgstr "等待时间中位数"
+
+#: src/pages/SettingsPage.tsx
+msgid "Medium"
+msgstr ""
 
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -10112,6 +10136,10 @@ msgstr ""
 msgid "Official"
 msgstr "官方"
 
+#: src/pages/SettingsPage.tsx
+msgid "Often"
+msgstr ""
+
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
 #, fuzzy
@@ -11150,6 +11178,10 @@ msgstr "提高或降低他们自己的最高分级"
 
 #: src/api/upgrades.ts
 msgid "Ran out of probes for this run"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Rarely"
 msgstr ""
 
 #: src/pages/stats/sections/TasteSection.tsx
@@ -13652,6 +13684,10 @@ msgstr "每周阅读次数"
 msgid "Size"
 msgstr "大小"
 
+#: src/pages/SettingsPage.tsx
+msgid "Size and frequency are remembered on this device and apply the next time Home loads."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Size mismatch"
@@ -13705,6 +13741,10 @@ msgstr "滑动：失败的登录会重置计时器。"
 msgid "Sliding: activity extends it."
 msgstr "滑动：活动会延长有效期。"
 
+#: src/pages/SettingsPage.tsx
+msgid "Small"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "smart"
@@ -13754,6 +13794,10 @@ msgstr "有人申请了一个系列。"
 
 #: src/api/queue.ts
 msgid "Something went wrong, Fōkurōru will try again"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Sometimes"
 msgstr ""
 
 #: src/components/CatalogueBrowser.tsx

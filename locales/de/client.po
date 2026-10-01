@@ -5822,6 +5822,10 @@ msgstr "Alle Quellen sind für dieses Kapitel fehlgeschlagen"
 msgid "Every source that isn't linked yet is searched again for each series, which is worth doing when a source has picked a title up since you added it."
 msgstr "Jede noch nicht verknüpfte Quelle wird für jede Serie erneut durchsucht. Das lohnt sich, wenn eine Quelle den Titel erst aufgenommen hat, nachdem du ihn hinzugefügt hast."
 
+#: src/pages/SettingsPage.tsx
+msgid "Every time"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Every wanted chapter is already on disk"
@@ -6083,6 +6087,10 @@ msgstr "Seiten werden abgerufen…"
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Fetching the page list…"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Figure size"
 msgstr ""
 
 #: src/components/SeriesFilesSection.tsx
@@ -7046,6 +7054,14 @@ msgstr ""
 msgid "How much they count"
 msgstr "Wie stark sie zählen"
 
+#: src/pages/SettingsPage.tsx
+msgid "How often a figure appears"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "How often one appears"
+msgstr ""
+
 #: src/pages/discover/FeedbackLab.tsx
 #, fuzzy
 msgid "How signals work"
@@ -7673,6 +7689,10 @@ msgstr "Sprachen für Downloads"
 #, fuzzy
 msgid "Languages to download, most preferred first. Auto-match tries sources that publish your top language first and skips sources that publish none of these. New auto-matched sources get these languages; existing mappings are never changed. Drag to reorder."
 msgstr "Sprachen für Downloads, bevorzugte zuerst. Beim Auto-Abgleich werden zuerst Quellen berücksichtigt, die deine bevorzugte Sprache anbieten. Quellen ohne eine dieser Sprachen werden übersprungen. Diese Sprachen werden neuen automatisch zugeordneten Quellen zugewiesen. Vorhandene Zuordnungen bleiben unverändert. Zum Neuanordnen ziehen."
+
+#: src/pages/SettingsPage.tsx
+msgid "Large"
+msgstr ""
 
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
@@ -8562,6 +8582,10 @@ msgstr "Median"
 #, fuzzy
 msgid "Median wait"
 msgstr "Median-Wartezeit"
+
+#: src/pages/SettingsPage.tsx
+msgid "Medium"
+msgstr ""
 
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -10112,6 +10136,10 @@ msgstr ""
 msgid "Official"
 msgstr "Offiziell"
 
+#: src/pages/SettingsPage.tsx
+msgid "Often"
+msgstr ""
+
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
 #, fuzzy
@@ -11150,6 +11178,10 @@ msgstr "Eigene Höchstbewertung erhöhen oder senken"
 
 #: src/api/upgrades.ts
 msgid "Ran out of probes for this run"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Rarely"
 msgstr ""
 
 #: src/pages/stats/sections/TasteSection.tsx
@@ -13652,6 +13684,10 @@ msgstr "Lesesitzungen pro Woche"
 msgid "Size"
 msgstr "Größe"
 
+#: src/pages/SettingsPage.tsx
+msgid "Size and frequency are remembered on this device and apply the next time Home loads."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Size mismatch"
@@ -13705,6 +13741,10 @@ msgstr "Gleitend: Eine fehlgeschlagene Anmeldung setzt den Timer zurück."
 msgid "Sliding: activity extends it."
 msgstr "Gleitend: Aktivität verlängert ihn."
 
+#: src/pages/SettingsPage.tsx
+msgid "Small"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "smart"
@@ -13754,6 +13794,10 @@ msgstr "Jemand hat eine Serie angefragt."
 
 #: src/api/queue.ts
 msgid "Something went wrong, Fōkurōru will try again"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Sometimes"
 msgstr ""
 
 #: src/components/CatalogueBrowser.tsx

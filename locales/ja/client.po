@@ -5822,6 +5822,10 @@ msgstr "この章ではすべてのソースに失敗しました"
 msgid "Every source that isn't linked yet is searched again for each series, which is worth doing when a source has picked a title up since you added it."
 msgstr "まだリンクされていないすべてのソースをシリーズごとに再検索します。ソースが追加後にタイトルを取得している場合に実行する価値があります。"
 
+#: src/pages/SettingsPage.tsx
+msgid "Every time"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Every wanted chapter is already on disk"
@@ -6083,6 +6087,10 @@ msgstr "ページを取得中…"
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Fetching the page list…"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Figure size"
 msgstr ""
 
 #: src/components/SeriesFilesSection.tsx
@@ -7046,6 +7054,14 @@ msgstr ""
 msgid "How much they count"
 msgstr "重みの大きさ"
 
+#: src/pages/SettingsPage.tsx
+msgid "How often a figure appears"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "How often one appears"
+msgstr ""
+
 #: src/pages/discover/FeedbackLab.tsx
 #, fuzzy
 msgid "How signals work"
@@ -7673,6 +7689,10 @@ msgstr "ダウンロードする言語"
 #, fuzzy
 msgid "Languages to download, most preferred first. Auto-match tries sources that publish your top language first and skips sources that publish none of these. New auto-matched sources get these languages; existing mappings are never changed. Drag to reorder."
 msgstr "ダウンロードする言語です。一番上が最優先です。自動照合では優先言語を公開しているソースから試し、これらの言語をどれも公開していないソースはスキップします。新しく自動照合するソースにこの言語設定を使い、既存の対応付けは変更しません。ドラッグして順序を変更します。"
+
+#: src/pages/SettingsPage.tsx
+msgid "Large"
+msgstr ""
 
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
@@ -8562,6 +8582,10 @@ msgstr "中央値"
 #, fuzzy
 msgid "Median wait"
 msgstr "待ち時間の中央値"
+
+#: src/pages/SettingsPage.tsx
+msgid "Medium"
+msgstr ""
 
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -10112,6 +10136,10 @@ msgstr ""
 msgid "Official"
 msgstr "公式"
 
+#: src/pages/SettingsPage.tsx
+msgid "Often"
+msgstr ""
+
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
 #, fuzzy
@@ -11150,6 +11178,10 @@ msgstr "自分の最大レーティングを上げ下げする"
 
 #: src/api/upgrades.ts
 msgid "Ran out of probes for this run"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Rarely"
 msgstr ""
 
 #: src/pages/stats/sections/TasteSection.tsx
@@ -13652,6 +13684,10 @@ msgstr "週あたりの読書回数"
 msgid "Size"
 msgstr "サイズ"
 
+#: src/pages/SettingsPage.tsx
+msgid "Size and frequency are remembered on this device and apply the next time Home loads."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Size mismatch"
@@ -13705,6 +13741,10 @@ msgstr "スライド式：サインインに失敗するとタイマーがリセ
 msgid "Sliding: activity extends it."
 msgstr "スライド式：アクティビティが期間を延長します。"
 
+#: src/pages/SettingsPage.tsx
+msgid "Small"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "smart"
@@ -13754,6 +13794,10 @@ msgstr "シリーズの追加リクエストがありました。"
 
 #: src/api/queue.ts
 msgid "Something went wrong, Fōkurōru will try again"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Sometimes"
 msgstr ""
 
 #: src/components/CatalogueBrowser.tsx

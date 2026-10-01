@@ -4869,6 +4869,10 @@ msgstr "Every source failed for this chapter"
 msgid "Every source that isn't linked yet is searched again for each series, which is worth doing when a source has picked a title up since you added it."
 msgstr "Every source that isn't linked yet is searched again for each series, which is worth doing when a source has picked a title up since you added it."
 
+#: src/pages/SettingsPage.tsx
+msgid "Every time"
+msgstr "Every time"
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "Every wanted chapter is already on disk"
 msgstr "Every wanted chapter is already on disk"
@@ -5084,6 +5088,10 @@ msgstr "Fetching pages…"
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Fetching the page list…"
 msgstr "Fetching the page list…"
+
+#: src/pages/SettingsPage.tsx
+msgid "Figure size"
+msgstr "Figure size"
 
 #: src/components/SeriesFilesSection.tsx
 msgid "File"
@@ -5888,6 +5896,14 @@ msgstr "How much shorter a candidate's page count may be and still count as an u
 msgid "How much they count"
 msgstr "How much they count"
 
+#: src/pages/SettingsPage.tsx
+msgid "How often a figure appears"
+msgstr "How often a figure appears"
+
+#: src/pages/SettingsPage.tsx
+msgid "How often one appears"
+msgstr "How often one appears"
+
 #: src/pages/discover/FeedbackLab.tsx
 msgid "How signals work"
 msgstr "How signals work"
@@ -6412,6 +6428,10 @@ msgstr "Languages to download"
 #: src/pages/SettingsPage.tsx
 msgid "Languages to download, most preferred first. Auto-match tries sources that publish your top language first and skips sources that publish none of these. New auto-matched sources get these languages; existing mappings are never changed. Drag to reorder."
 msgstr "Languages to download, most preferred first. Auto-match tries sources that publish your top language first and skips sources that publish none of these. New auto-matched sources get these languages; existing mappings are never changed. Drag to reorder."
+
+#: src/pages/SettingsPage.tsx
+msgid "Large"
+msgstr "Large"
 
 #: src/components/layout/PageLayoutEditor.tsx
 msgid "Large tiles"
@@ -7154,6 +7174,10 @@ msgstr "Median"
 #: src/pages/stats/SourceReliability.tsx
 msgid "Median wait"
 msgstr "Median wait"
+
+#: src/pages/SettingsPage.tsx
+msgid "Medium"
+msgstr "Medium"
 
 #: src/pages/ImportPage.tsx
 msgid "Merging folder"
@@ -8445,6 +8469,10 @@ msgstr "Off skips any series set to Scrobble-only or Full incognito; on scans th
 msgid "Official"
 msgstr "Official"
 
+#: src/pages/SettingsPage.tsx
+msgid "Often"
+msgstr "Often"
+
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
 msgid "oidc, openid connect, sso, authelia, authentik, keycloak, issuer, client id, auto provision"
@@ -9325,6 +9353,10 @@ msgstr "Raise or lower their own maximum rating"
 #: src/api/upgrades.ts
 msgid "Ran out of probes for this run"
 msgstr "Ran out of probes for this run"
+
+#: src/pages/SettingsPage.tsx
+msgid "Rarely"
+msgstr "Rarely"
 
 #: src/pages/stats/sections/TasteSection.tsx
 msgid "Rate a few series to compare yourself with the crowd."
@@ -11421,6 +11453,10 @@ msgstr "Sittings per week"
 msgid "Size"
 msgstr "Size"
 
+#: src/pages/SettingsPage.tsx
+msgid "Size and frequency are remembered on this device and apply the next time Home loads."
+msgstr "Size and frequency are remembered on this device and apply the next time Home loads."
+
 #: src/pages/HealthPage.tsx
 msgid "Size mismatch"
 msgstr "Size mismatch"
@@ -11465,6 +11501,10 @@ msgstr "Sliding: a failed sign-in resets the timer."
 msgid "Sliding: activity extends it."
 msgstr "Sliding: activity extends it."
 
+#: src/pages/SettingsPage.tsx
+msgid "Small"
+msgstr "Small"
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "smart"
 msgstr "smart"
@@ -11507,6 +11547,10 @@ msgstr "Someone asked for a series."
 #: src/api/queue.ts
 msgid "Something went wrong, Fōkurōru will try again"
 msgstr "Something went wrong, Fōkurōru will try again"
+
+#: src/pages/SettingsPage.tsx
+msgid "Sometimes"
+msgstr "Sometimes"
 
 #: src/components/CatalogueBrowser.tsx
 #: src/pages/CreatorPage.tsx

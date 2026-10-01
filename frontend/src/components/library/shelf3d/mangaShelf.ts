@@ -163,8 +163,7 @@ const S_DOODLE_SHARE = 0.05
 const CHALK_CHANCE = 0.35
 /** Share of page loads that put a potted plant in the shelf's empty space. */
 const PLANT_CHANCE = 0.03
-/** How often a figure stands on the shelf, when the user has added any GLB models in Settings. */
-const FIGURE_CHANCE = 0.5
+/** A figure's default height and base size; the user's size setting scales both. */
 const FIGURE_HEIGHT = 200
 const FIGURE_BASE_RADIUS = 38
 /** How strongly page scrolling is felt on the shelf, and the most it can jolt, in multiples of gravity. */
@@ -203,7 +202,10 @@ export class MangaShelf {
   private readonly emptyShare = 0.02 + Math.random() * 0.28
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
-  private readonly withFigure = Math.random() < FIGURE_CHANCE
+  /** Rolled once per page load and compared with how often the user wants one, so a figure stays or goes as a whole. */
+  private readonly figureRoll = Math.random()
+  private figureChance = 0.35
+  private figureScale = 1
   /** The user's figure models, and the one this page load stands on the shelf. */
   private figureUrls: string[] = []
   private figureUrl: string | null = null
@@ -258,8 +260,12 @@ export class MangaShelf {
     label: (book: ShelfBook) => string,
     board: BoardModel | null = null,
     figures: string[] = [],
+    figureChance = 0.35,
+    figureScale = 1,
   ) {
     this.container = container
+    this.figureChance = figureChance
+    this.figureScale = figureScale
     this.setFigures(figures)
     this.board = board
     this.books = books
@@ -1510,7 +1516,7 @@ export class MangaShelf {
    * how far along the shelf it reaches, so the plant can go past it.
    */
   private placeFigure(row: Row, width: number, booksEnd: number, figure: T.Object3D): number {
-    const half = FIGURE_BASE_RADIUS
+    const half = FIGURE_BASE_RADIUS * this.figureScale
     const from = booksEnd + 14 + half
     const to = width - 16 - half
     if (to < from) {
@@ -1518,8 +1524,9 @@ export class MangaShelf {
       return booksEnd
     }
     const x = from + Math.random() * (to - from)
-    const baseHeight = 8
-    const height = baseHeight + FIGURE_HEIGHT
+    const baseHeight = 8 * this.figureScale
+    const figureHeight = FIGURE_HEIGHT * this.figureScale
+    const height = baseHeight + figureHeight
     const { body, centreAboveFloor } = row.physics.addFigure(x, half * 2, height, -50 + Math.random() * 60)
     const model = new T.Group()
     const inner = new T.Group()
@@ -1537,7 +1544,7 @@ export class MangaShelf {
     const box = new T.Box3().setFromObject(figure)
     const size = box.getSize(new T.Vector3())
     const centre = box.getCenter(new T.Vector3())
-    const scale = FIGURE_HEIGHT / size.y
+    const scale = figureHeight / size.y
     figure.scale.setScalar(scale)
     figure.position.set(-centre.x * scale, baseHeight - box.min.y * scale, -centre.z * scale)
     figure.traverse((n) => {
@@ -1662,7 +1669,7 @@ export class MangaShelf {
     const generation = ++this.generation
     await this.loadCovers(this.books)
     if (generation !== this.generation || this.abort.signal.aborted) return
-    const figure = this.withFigure ? await this.loadFigure() : null
+    const figure = this.figureRoll < this.figureChance ? await this.loadFigure() : null
     if (generation !== this.generation || this.abort.signal.aborted) return
     this.clear()
     this.rowH = this.board ? ROW + BOARD_ROOM : ROW

@@ -11,6 +11,7 @@ import '@fontsource/mochiy-pop-one/latin-400.css'
 import '@fontsource/potta-one/latin-400.css'
 import { api } from '../../api/client'
 import { useShelfFigures } from '../../api/hooks'
+import { FIGURE_CHANCE, FIGURE_SCALE, useShelfFigurePrefs } from '../../lib/shelfFigurePrefs'
 import type { SeriesDto } from '../../api/types'
 import { seriesProgressVisual } from '../ui/status'
 import { contrast, DEFAULT_SPINE, spineInk } from '../../lib/spine'
@@ -257,6 +258,7 @@ export function SpineShelf({ series, readTracking, board = null }: {
   const scheme = useComputedColorScheme('dark')
   const { data: figureList } = useShelfFigures()
   const figureUrls = (figureList?.figures ?? []).map((f) => f.url)
+  const figurePrefs = useShelfFigurePrefs()
   // Only a failure to start WebGL (or to load its chunk) drops to the flat spines.
   const [flat, setFlat] = useState(false)
 
@@ -314,6 +316,8 @@ export function SpineShelf({ series, readTracking, board = null }: {
             books={books}
             board={board}
             figures={figureUrls}
+            figureChance={FIGURE_CHANCE[figurePrefs.frequency]}
+            figureScale={FIGURE_SCALE[figurePrefs.size]}
             dark={scheme === 'dark'}
             onOpen={(id) => goTo(id, 500)}
             onFail={() => setFlat(true)}
@@ -348,11 +352,14 @@ const SHELF_THEMES = {
  * The 3D shelf. Three.js and Matter.js arrive in their own chunk, loaded only when there is a shelf
  * to draw, and the canvas faces are only usable in a texture once their fonts have loaded.
  */
-function Shelf3D({ books, board, figures, dark, onOpen, onFail }: {
+function Shelf3D({ books, board, figures, figureChance, figureScale, dark, onOpen, onFail }: {
   books: ShelfBook[]
   board: BoardModel | null
   /** URLs of the figure models the user has added. */
   figures: string[]
+  /** How often one stands on the shelf (0 to 1), and how big, from the user's settings. */
+  figureChance: number
+  figureScale: number
   dark: boolean
   onOpen: (id: number) => void
   onFail: () => void
@@ -360,8 +367,8 @@ function Shelf3D({ books, board, figures, dark, onOpen, onFail }: {
   const { t } = useLingui()
   const host = useRef<HTMLDivElement>(null)
   const shelf = useRef<MangaShelf | null>(null)
-  const latest = useRef({ books, board, figures, dark, onOpen, onFail })
-  latest.current = { books, board, figures, dark, onOpen, onFail }
+  const latest = useRef({ books, board, figures, figureChance, figureScale, dark, onOpen, onFail })
+  latest.current = { books, board, figures, figureChance, figureScale, dark, onOpen, onFail }
 
   useEffect(() => {
     let cancelled = false
@@ -386,6 +393,8 @@ function Shelf3D({ books, board, figures, dark, onOpen, onFail }: {
           (book) => t`Continue ${book.title}`,
           bd,
           latest.current.figures,
+          latest.current.figureChance,
+          latest.current.figureScale,
         )
       })
       .catch(() => {

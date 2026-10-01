@@ -18,6 +18,7 @@ import {
   Divider,
   Group,
   Modal,
+  SegmentedControl,
   MultiSelect,
   NumberInput,
   Progress,
@@ -142,6 +143,7 @@ import { useKavitaReadImport, useReaderSettings, useSaveReaderSettings } from '.
 import { ConnectionSettingsCard } from '../components/ConnectionSettingsCard'
 import { UnsavedSettingsContext } from '../components/settings/SaveButton'
 import { SettingsHelp } from '../components/settings/SettingsHelp'
+import { setShelfFigurePrefs, useShelfFigurePrefs, type FigureFrequency, type FigureSize } from '../lib/shelfFigurePrefs'
 import { SettingsIndex } from '../components/settings/SettingsIndex'
 import { DumpProgressBar } from '../components/MetadataDumpProgress'
 import { languageName } from '../api/titles'
@@ -2484,6 +2486,7 @@ function ShelfFiguresBlock() {
   const { data } = useShelfFigures()
   const upload = useUploadShelfFigure()
   const remove = useDeleteShelfFigure()
+  const prefs = useShelfFigurePrefs()
   const figures = data?.figures ?? []
   const maxCount = data?.maxCount ?? 12
   const maxMegabytes = data?.maxMegabytes ?? 30
@@ -2534,6 +2537,42 @@ function ShelfFiguresBlock() {
           </Button>
         )}
       </FileButton>
+      <Group gap="lg" mt="md" align="flex-end">
+        <div>
+          <Text size="sm" mb={4}>
+            <Trans>Size</Trans>
+          </Text>
+          <SegmentedControl
+            value={prefs.size}
+            onChange={(v) => setShelfFigurePrefs({ size: v as FigureSize })}
+            data={[
+              { value: 'small', label: t`Small` },
+              { value: 'medium', label: t`Medium` },
+              { value: 'large', label: t`Large` },
+            ]}
+            aria-label={t`Figure size`}
+          />
+        </div>
+        <div>
+          <Text size="sm" mb={4}>
+            <Trans>How often one appears</Trans>
+          </Text>
+          <SegmentedControl
+            value={prefs.frequency}
+            onChange={(v) => setShelfFigurePrefs({ frequency: v as FigureFrequency })}
+            data={[
+              { value: 'rarely', label: t`Rarely` },
+              { value: 'sometimes', label: t`Sometimes` },
+              { value: 'often', label: t`Often` },
+              { value: 'always', label: t`Every time` },
+            ]}
+            aria-label={t`How often a figure appears`}
+          />
+        </div>
+      </Group>
+      <Text size="xs" c="dimmed" mt="xs">
+        <Trans>Size and frequency are remembered on this device and apply the next time Home loads.</Trans>
+      </Text>
     </div>
   )
 }
