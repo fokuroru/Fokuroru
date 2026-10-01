@@ -1268,6 +1268,7 @@ try
             try { File.WriteAllText(Path.Combine(scope.ServiceProvider.GetRequiredService<AppPaths>().ConfigDir, "health-migration-error.txt"), DateTime.UtcNow.ToString("O")); } catch { }
             throw;
         }
+        SchemaRepair.EnsureSeriesSpineColor(db);
         scope.ServiceProvider.GetRequiredService<HealthOperationService>().RecoverAsync(CancellationToken.None).GetAwaiter().GetResult();
         db.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
 
