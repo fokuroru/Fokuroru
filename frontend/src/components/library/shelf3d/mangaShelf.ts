@@ -141,6 +141,15 @@ const MAX_OVERHANGERS = 3
 const MIN_BOARD = 90
 const CLICK_SLOP = 6
 const PULL_MS = 550
+/** A burst of chalk dust: how many specks, and how long they last. */
+const DUST_SPECKS = 26
+const DUST_MS = 900
+/** A stick shorter than this is a bit of chalk, and squashed it is only dust. */
+const SMALL_BIT = 16
+/** Dust that has settled on the plank stays there, up to this many specks (the oldest go first). */
+const MAX_SETTLED_DUST = 220
+/** The top of the plank in scene units: its centre is at 12 and it is 15 thick. */
+const PLANK_TOP = 19.5
 /** Drawing with one stick for this long breaks it, as if pressed too hard. */
 const CHALK_LIFE_MS = 60_000
 /** How far a pulled book comes towards the camera, in scene units. */
@@ -202,6 +211,9 @@ export class MangaShelf {
   /** A prop (the plant) being carried: props can be moved but not opened. */
   private heldProp: Grabbable | null = null
   private penKey = false
+  /** Specks of chalk dust in the air, with where each is heading and when it was thrown up. */
+  private dust: { sprite: T.Sprite; vx: number; vy: number; vz: number; at: number; size: number; settled: boolean }[] = []
+  private dustTexture: T.CanvasTexture | null = null
   private hovering = false
   /** Whether the chalk has been thrown in once already, so a relayout puts it straight back. */
   private extrasSeen = false
@@ -1448,6 +1460,7 @@ export class MangaShelf {
     this.items = []
     this.props = []
     this.sticks = []
+    this.dust = []
     this.boardMaterial = null
     this.access?.remove()
     this.access = null
@@ -1641,6 +1654,131 @@ export class MangaShelf {
     model.userData.prop = stick
     this.sticks.push(stick)
     return stick
+  }
+
+  /**
+   * Squashed by something heavy. A long stick breaks where it was pressed: that stretch is ground to
+   * dust, the pieces either side stay as shorter sticks, and a few chips fly off. A short one is
+   * ground to dust and crumbs.
+   */
+  private crushToDust(stick: Stick) {
+    const { body, row, color } = stick
+    const length = body.bookWidth
+    const thickness = body.bookHeight
+    const { x, y } = body.position
+    const angle = body.angle
+    const z = body.z
+    const dx = Math.cos(angle)
+    const dy = Math.sin(angle)
+    // Where along the stick the weight came down, measured from its middle.
+    const at = Math.max(-length / 2, Math.min(length / 2, ((body.crushX ?? x) - x) * dx))
+    if (this.heldProp === stick) this.release()
+    row.physics.remove(body)
+    this.sticks.splice(this.sticks.indexOf(stick), 1)
+    this.disposeModel(stick.model)
+    this.inkAt = null
+
+    const whole = length < 26
+    const ground = whole ? length : Math.max(12, Math.min(28, length * 0.35))
+    const from = at - ground / 2
+    const to = at + ground / 2
+    if (!whole) {
+      for (const [start, end, push] of [[-length / 2, from, -1], [to, length / 2, 1]] as const) {
+        const piece = end - start
+        if (piece < 9) continue
+        const mid = (start + end) / 2
+        this.makeStick(row, x + dx * mid, y + dy * mid, piece, thickness, angle, z, color,
+          { vx: push * dx * 0.7, vy: push * dy * 0.7 - 1.2, spin: push * (0.03 + Math.random() * 0.05) })
+      }
+    }
+    // Chips of every size break off where it gave way.
+    // A bit too small to break further just turns to dust, so squashing chips always ends. A shelf already
+    // strewn with chalk gets no more chips either.
+    const chips = this.sticks.length > 40 || length < SMALL_BIT ? 0 : whole ? 2 : 4 + Math.floor(Math.random() * 3)
+    for (let i = 0; i < chips; i++) {
+      const spot = whole ? 0 : at
+      this.makeStick(row, x + dx * spot + (Math.random() - 0.5) * 10, y + dy * spot - 4, 4 + Math.random() * 6, 3.5, Math.random() * Math.PI, z, color,
+        { vx: (Math.random() - 0.5) * 3.5, vy: -2.5 - Math.random() * 2.5, spin: (Math.random() - 0.5) * 0.4 })
+    }
+
+    this.dustTexture ??= this.makeDustTexture()
+    const now = performance.now()
+    const specks = Math.round(DUST_SPECKS * (whole ? Math.max(0.2, Math.min(1, length / 26)) : Math.max(0.5, ground / 22)))
+    const sx = x - this.logicalWidth / 2
+    const sy = 380 - y
+    for (let i = 0; i < specks; i++) {
+      const sprite = new T.Sprite(new T.SpriteMaterial({ map: this.dustTexture, color, transparent: true, opacity: 0.85, depthWrite: false }))
+      const along = whole ? (Math.random() - 0.5) * length : from + Math.random() * ground
+      const size = 6 + Math.random() * 12
+      sprite.scale.set(size, size, 1)
+      sprite.position.set(sx + dx * along, sy - dy * along + 2, z + (Math.random() - 0.5) * 8)
+      row.scene.add(sprite)
+      this.dust.push({ sprite, vx: (Math.random() - 0.5) * 0.14, vy: 0.04 + Math.random() * 0.12, vz: (Math.random() - 0.3) * 0.1, at: now, size, settled: false })
+    }
+    row.shake = { at: now, amplitude: 0.6 }
+    this.wake()
+  }
+
+  /** A soft round puff, white so the material's colour tints it. */
+  private makeDustTexture(): T.CanvasTexture {
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 64
+    const c = canvas.getContext('2d')!
+    const g = c.createRadialGradient(32, 32, 0, 32, 32, 32)
+    g.addColorStop(0, 'rgba(255,255,255,0.9)')
+    g.addColorStop(0.5, 'rgba(255,255,255,0.35)')
+    g.addColorStop(1, 'rgba(255,255,255,0)')
+    c.fillStyle = g
+    c.fillRect(0, 0, 64, 64)
+    return new T.CanvasTexture(canvas)
+  }
+
+  /**
+   * Moves the dust along until it lands on the plank, where it stays as a faint smudge. True while any
+   * is still in the air, so the frame loop can rest once it has all settled.
+   */
+  private driftDust(now: number): boolean {
+    if (this.dust.length === 0) return false
+    let airborne = false
+    for (const d of this.dust) {
+      if (d.settled || !d.sprite.parent) continue
+      const t = Math.min(1, (now - d.at) / DUST_MS)
+      // Lifts, slows and spreads as it thins.
+      const slow = 1 - t * 0.6
+      d.sprite.position.x += d.vx * 16 * slow
+      d.sprite.position.y += d.vy * 16 * slow
+      d.sprite.position.z += d.vz * 16 * slow
+      d.vy -= 0.0009 * 16
+      const s = d.size * (1 + t * 0.6)
+      d.sprite.scale.set(s, s, 1)
+      d.sprite.material.opacity = 0.85 - t * 0.4
+      const floor = PLANK_TOP + s * 0.3
+      if (d.sprite.position.y < floor && d.vy <= 0) {
+        // Down on the plank: a smudge that stays.
+        d.sprite.position.y = PLANK_TOP + s * 0.2
+        d.sprite.scale.set(s, s * 0.45, 1)
+        d.sprite.material.opacity = 0.4
+        d.settled = true
+      } else if (t >= 1) {
+        // A speck that never came down (it was blown clear of the plank) just fades away.
+        d.sprite.removeFromParent()
+        d.sprite.material.dispose()
+        d.settled = true
+        d.size = 0
+      } else {
+        airborne = true
+      }
+    }
+    // Forget the ones that went, and the oldest of the settled once there is too much.
+    this.dust = this.dust.filter((d) => d.size > 0 && d.sprite.parent)
+    const settled = this.dust.filter((d) => d.settled)
+    for (const d of settled.slice(0, Math.max(0, settled.length - MAX_SETTLED_DUST))) {
+      d.sprite.removeFromParent()
+      d.sprite.material.dispose()
+      d.size = 0
+    }
+    this.dust = this.dust.filter((d) => d.size > 0)
+    return airborne
   }
 
   /**
@@ -2122,6 +2260,13 @@ export class MangaShelf {
       pulling = this.sway(p, elapsed) || pulling
     }
     for (const st of this.sticks) pulling = this.poseStick(st) || pulling
+    for (const r of this.rows) {
+      for (const crushed of r.physics.takeCrushed()) {
+        const st = this.sticks.find((s) => s.body === crushed)
+        if (st) this.crushToDust(st)
+      }
+    }
+    pulling = this.driftDust(performance.now()) || pulling
     // Whatever has gone over the edge and is falling away for good: a book pulled off the front, a
     // stick knocked off the end. Its model is dropped; the rest of the shelf carries on.
     for (const r of this.rows) {

@@ -16,6 +16,11 @@ export type BookBody = Matter.Body & {
   bookWidth: number
   bookHeight: number
   chalk?: boolean
+  /** How long a heavy body has been pressing into this stick of chalk, in ms, and whether it was this step. */
+  crush?: number
+  crushTick?: boolean
+  /** Where along the shelf the heavy body that squashed it is, so the stick breaks there. */
+  crushX?: number
   /** Whether its centre is over the plank, so the plank holds it up. */
   supported?: boolean
   /** The collision mask it has while supported. */
@@ -126,6 +131,32 @@ export class ShelfPhysics {
       }
     })
 
+    // Chalk gives way under something heavy: pressed into by a book or the like for a moment, or hit by one
+    // that is coming down fast. Resting against chalk, or nudging it, is not enough.
+    const heavyAbove = (chalk: BookBody, other: BookBody) =>
+      !other.isStatic && !other.chalk && other.mass > chalk.mass * 1.4 && other.position.y < chalk.position.y - 1
+    Events.on(this.engine, 'collisionStart', (event) => {
+      for (const pair of event.pairs) {
+        for (const [c, o] of [[pair.bodyA, pair.bodyB], [pair.bodyB, pair.bodyA]] as [BookBody, BookBody][]) {
+          const chalk = (c.parent ?? c) as BookBody
+          const other = (o.parent ?? o) as BookBody
+          if (chalk.chalk && heavyAbove(chalk, other) && other.speed > 5) this.crush(chalk, other.position.x)
+        }
+      }
+    })
+    Events.on(this.engine, 'collisionActive', (event) => {
+      for (const pair of event.pairs) {
+        for (const [c, o] of [[pair.bodyA, pair.bodyB], [pair.bodyB, pair.bodyA]] as [BookBody, BookBody][]) {
+          const chalk = (c.parent ?? c) as BookBody
+          const other = (o.parent ?? o) as BookBody
+          if (!chalk.chalk || !heavyAbove(chalk, other) || pair.collision.depth < chalk.bookHeight * 0.3) continue
+          chalk.crushTick = true
+          chalk.crush = (chalk.crush ?? 0) + this.stepMs
+          if (chalk.crush > 150) this.crush(chalk, other.position.x)
+        }
+      }
+    })
+
     const wall = { category: CATEGORY_WALL, mask: 0xffffffff, group: 0 }
     Composite.add(this.engine.world, [
       this.plank,
@@ -133,6 +164,21 @@ export class ShelfPhysics {
       Bodies.rectangle(-30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5, collisionFilter: wall }),
       Bodies.rectangle(width + 30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5, collisionFilter: wall }),
     ])
+  }
+
+  private crushed: BookBody[] = []
+  private stepMs = 1000 / 120
+
+  private crush(chalk: BookBody, x: number) {
+    chalk.crushX = x
+    if (!this.crushed.includes(chalk)) this.crushed.push(chalk)
+  }
+
+  /** The sticks of chalk something has squashed since the last call, for the renderer to turn to dust. */
+  takeCrushed(): BookBody[] {
+    const done = this.crushed
+    this.crushed = []
+    return done
   }
 
   /** Adds an upright book whose bottom-left corner is at (x, y), optionally already tipped by `angle`. */
@@ -494,8 +540,11 @@ export class ShelfPhysics {
       body.pitchSpeed = speed
       if (pitch >= TIP_LIMIT && body.supported !== false) this.holdUp(body)
     }
+    this.stepMs = dt
+    for (const body of this.bodies) if (body.chalk) body.crushTick = false
     const before = this.bodies.map((body) => ({ x: body.position.x, y: body.position.y, a: body.angle }))
     Engine.update(this.engine, dt)
+    for (const body of this.bodies) if (body.chalk && !body.crushTick) body.crush = 0
     let distance = 0
     let turn = 0
     this.bodies.forEach((body, i) => {
