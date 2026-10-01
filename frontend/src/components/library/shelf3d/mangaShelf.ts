@@ -1435,9 +1435,8 @@ export class MangaShelf {
    * Stands the plant somewhere in the empty quarter of the shelf, clear of the books, so it never
    * costs a book its place. Skipped if a narrow shelf leaves no room for it.
    */
-  private placePlant(row: Row, width: number) {
+  private placePlant(row: Row, width: number, booksEnd: number) {
     const plant = buildPottedPlant()
-    const booksEnd = this.items.reduce((end, i) => Math.max(end, i.body.bounds.max.x), 0)
     const half = Math.max(plant.potWidth, plant.leafSpread) / 2
     const from = booksEnd + 16 + half
     const to = width - 20 - half
@@ -1582,7 +1581,17 @@ export class MangaShelf {
       wide.sort(() => Math.random() - 0.5)
       this.overhang = new Set(wide.slice(0, Math.floor(Math.random() * (MAX_OVERHANGERS + 1))).map((b) => b.id))
     }
-    for (const p of planShelf(this.books.map((b) => this.styled(b)), width, this.emptyShare)) {
+    const plan = planShelf(this.books.map((b) => this.styled(b)), width, this.emptyShare)
+    // The plant goes up first, in the clear space beyond where the books are planned to stand, so it is
+    // there as the books arrive and none of them can come to stand in front of it.
+    if (this.withPlant && plan.length > 0) {
+      const booksEnd = plan.reduce(
+        (end, p) => Math.max(end, p.x + (Math.abs(Math.cos(p.angle)) * p.book.width + Math.abs(Math.sin(p.angle)) * p.book.height) / 2),
+        0,
+      )
+      this.placePlant(row, width, booksEnd)
+    }
+    for (const p of plan) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle, p.book.depth)
       // Now and then a book sits a little forward or back of the rest, never by much.
       if (Math.random() < SLIGHT_DEPTH_SHARE) {
@@ -1594,12 +1603,10 @@ export class MangaShelf {
       model.traverse((n) => (n.userData.item = item))
       this.items.push(item)
     }
-    // The books come first. The plant and chalk are added once they have had a moment on screen, and
-    // only once there are books to put them beside: placed against an empty shelf they would sit where
-    // the books are about to go.
+    // The chalk is thrown in once the books have had a moment on screen, and only once there are books to
+    // put it beside: against an empty shelf it would land where the books are about to go.
     const extras = () => {
       if (generation !== this.generation || this.abort.signal.aborted) return
-      if (this.withPlant) this.placePlant(row, width)
       this.placeChalk(row, width)
       this.wake()
     }
