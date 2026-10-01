@@ -89,6 +89,8 @@ interface Stick extends Grabbable {
   /** Whether the tip is put onto the board (the wheel toggles it; Space holds it down), and how far off it is now. */
   penDown: boolean
   air: number
+  /** How long it has been drawing, in ms. Chalk only lasts so long before it snaps. */
+  used: number
 }
 
 interface Hinges {
@@ -139,6 +141,8 @@ const MAX_OVERHANGERS = 3
 const MIN_BOARD = 90
 const CLICK_SLOP = 6
 const PULL_MS = 550
+/** Drawing with one stick for this long breaks it, as if pressed too hard. */
+const CHALK_LIFE_MS = 60_000
 /** How far a pulled book comes towards the camera, in scene units. */
 const PULL_DISTANCE = 320
 const COVER_WAIT_MS = 4000
@@ -198,6 +202,7 @@ export class MangaShelf {
   /** A prop (the plant) being carried: props can be moved but not opened. */
   private heldProp: Grabbable | null = null
   private penKey = false
+  private hovering = false
   /** Whether the chalk has been thrown in once already, so a relayout puts it straight back. */
   private extrasSeen = false
   /** How much of the shelf stays empty, drawn once per page load: between 2% and 30%. */
@@ -245,6 +250,8 @@ export class MangaShelf {
   private inkTexture: T.CanvasTexture | null = null
   /** Where the stick last touched the wall, so a drag draws one line and not a row of dots. */
   private inkLast: { x: number; y: number } | null = null
+  /** When drawing was last counted, null while the pen is off the board, so only time on it adds up. */
+  private inkAt: number | null = null
   /** Fixed for the page load, so the doodles and the arrangement hold still when the figures change. */
   private readonly seed = (Math.random() * 2 ** 32) >>> 0
 
@@ -305,7 +312,11 @@ export class MangaShelf {
       if (e.pointerType !== 'touch') this.select(this.hit(e), e)
       canvas.style.cursor = this.selected ? 'pointer' : ''
     }, options)
+    canvas.addEventListener('pointerenter', () => {
+      this.hovering = true
+    }, options)
     canvas.addEventListener('pointerleave', () => {
+      this.hovering = false
       if (!this.drag) this.select(null)
     }, options)
     canvas.addEventListener('pointerdown', (e) => {
@@ -365,7 +376,8 @@ export class MangaShelf {
     // Without a wheel, holding Space puts the tip of a stick in hand onto the board.
     const pen = (e: KeyboardEvent, down: boolean) => {
       if (e.key !== ' ') return
-      if (down && this.heldProp && this.drag) e.preventDefault()
+      // Space also scrolls the page, so it is kept for the chalk whenever there is chalk and the pointer is on the shelf.
+      if (down && this.sticks.length > 0 && (this.hovering || this.drag)) e.preventDefault()
       this.penKey = down
       this.wake()
     }
@@ -764,12 +776,14 @@ export class MangaShelf {
     const ink = this.ink
     if (!stick || !this.drag || !ink || !this.board) {
       this.inkLast = null
+      this.inkAt = null
       return false
     }
     // On the plank it is only being moved about; it has to be lifted fully into the writing grip, with
     // its tip at the wall, to write.
     if (stick.lean < 0.85 || stick.air > 2) {
       this.inkLast = null
+      this.inkAt = null
       return false
     }
     stick.row.camera.updateMatrixWorld()
@@ -782,7 +796,17 @@ export class MangaShelf {
     const y = 17 + this.wallSize.h - at.y
     if (x < 0 || y < 0 || x > ink.width || y > ink.height) {
       this.inkLast = null
+      this.inkAt = null
       return false
+    }
+    // Time on the board counts towards the stick's life, however still the hand is.
+    const now = performance.now()
+    // A slow frame still counts, up to a quarter of a second of it.
+    if (this.inkAt !== null) stick.used += Math.min(now - this.inkAt, 250)
+    this.inkAt = now
+    if (stick.used >= CHALK_LIFE_MS) {
+      this.snap(stick)
+      return true
     }
     const from = this.inkLast
     if (from && Math.hypot(x - from.x, y - from.y) < 1.2) return true
@@ -1593,21 +1617,67 @@ export class MangaShelf {
       if (taken.some((t) => Math.abs(t - x) < length * 0.9)) continue
       taken.push(x)
       // Thrown in from above the top of the view, spinning, one after another, so it lands rather than appearing.
-      const body = row.physics.addChalk(
-        x, -230 - i * 110 - Math.random() * 60, length, thickness, Math.random() * Math.PI, -110 + Math.random() * 120,
+      this.makeStick(
+        row, x, -230 - i * 110 - Math.random() * 60, length, thickness, Math.random() * Math.PI, -110 + Math.random() * 120,
+        colours[Math.floor(Math.random() * colours.length)],
         { vx: (Math.random() - 0.5) * 3, vy: 7 + Math.random() * 3, spin: (Math.random() - 0.5) * 0.3 },
       )
-      const geometry = new T.CylinderGeometry(thickness / 2, thickness / 2, length, 14)
-      geometry.rotateZ(Math.PI / 2)
-      const color = colours[Math.floor(Math.random() * colours.length)]
-      const model = new T.Mesh(geometry, new T.MeshStandardMaterial({ color, roughness: 1 }))
-      model.castShadow = true
-      model.receiveShadow = true
-      row.scene.add(model)
-      const stick: Stick = { body, model, row, color, lean: 0, penDown: false, air: 0 }
-      model.userData.prop = stick
-      this.sticks.push(stick)
     }
+  }
+
+  /** A stick of chalk: a rounded rectangle in the physics, a cylinder in the scene. */
+  private makeStick(
+    row: Row, x: number, y: number, length: number, thickness: number, angle: number, z: number, color: string,
+    thrown?: { vx: number; vy: number; spin: number },
+  ): Stick {
+    const body = row.physics.addChalk(x, y, length, thickness, angle, z, thrown)
+    const geometry = new T.CylinderGeometry(thickness / 2, thickness / 2, length, 14)
+    geometry.rotateZ(Math.PI / 2)
+    const model = new T.Mesh(geometry, new T.MeshStandardMaterial({ color, roughness: 1 }))
+    model.castShadow = true
+    model.receiveShadow = true
+    row.scene.add(model)
+    const stick: Stick = { body, model, row, color, lean: 0, penDown: false, air: 0, used: 0 }
+    model.userData.prop = stick
+    this.sticks.push(stick)
+    return stick
+  }
+
+  /**
+   * A stick worn through by drawing: it is let go, snaps in two and the halves spring apart with a few
+   * crumbs, as if it had been pressed too hard. The shelf gives a small jolt.
+   */
+  private snap(stick: Stick) {
+    const { body, row, color } = stick
+    const length = body.bookWidth
+    const thickness = body.bookHeight
+    const { x, y } = body.position
+    const angle = body.angle
+    const z = body.z
+    this.release()
+    row.physics.remove(body)
+    this.sticks.splice(this.sticks.indexOf(stick), 1)
+    this.disposeModel(stick.model)
+    this.inkAt = null
+    // Never split the stub of a stick that was already broken small: just let it go.
+    if (length < 26) return
+    const split = 0.35 + Math.random() * 0.3
+    const first = length * split
+    const second = length - first
+    const dx = Math.cos(angle)
+    const dy = Math.sin(angle)
+    this.makeStick(row, x + dx * (first / 2 - length / 2), y + dy * (first / 2 - length / 2), first, thickness, angle, z, color,
+      { vx: -dx * 2.2, vy: -dy * 2.2 - 2.5, spin: -0.12 - Math.random() * 0.1 })
+    this.makeStick(row, x + dx * (length / 2 - second / 2), y + dy * (length / 2 - second / 2), second, thickness, angle, z, color,
+      { vx: dx * 2.2, vy: dy * 2.2 - 2.5, spin: 0.12 + Math.random() * 0.1 })
+    // The broken ends are crumbs of chalk too.
+    for (let i = 0; i < 2; i++) {
+      this.makeStick(row, x + (Math.random() - 0.5) * 8, y - 4, 5 + Math.random() * 3, 3.5, Math.random() * Math.PI, z, color,
+        { vx: (Math.random() - 0.5) * 4, vy: -3 - Math.random() * 2.5, spin: (Math.random() - 0.5) * 0.4 })
+    }
+    const now = performance.now()
+    row.shake = { at: now, amplitude: 1.2 }
+    this.wake()
   }
 
   private newRow(width: number): Row {
