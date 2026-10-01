@@ -1,8 +1,8 @@
 # <img src="frontend/public/brand/fokuroru-icon-colour-light.svg" width="50" alt=""> Fōkurōru
 
 Fōkurōru is a personal fork of [Maki](https://github.com/OrbitMPGH/Maki) by OrbitMPGH. **All of
-the changes in this fork were written by AI** (Anthropic's Claude models). It is maintained for my
-own use, with no support and no promises.
+the changes in this fork were written by AI. It is maintained for my
+own use (so it'll probs break for you - no support and no promises).
 
 For what the application is, how to install it, configuration, features and documentation, see the
 [original project](https://github.com/OrbitMPGH/Maki). Problems with Maki itself belong upstream,
