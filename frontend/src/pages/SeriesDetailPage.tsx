@@ -42,6 +42,7 @@ import {
   IconCircleCheck,
   IconDownload,
   IconEye,
+  IconChecks,
   IconEyeCheck,
   IconLink,
   IconLinkOff,
@@ -1041,6 +1042,14 @@ export default function SeriesDetailPage() {
   }, [chapterTable, animeSpans, foldedSpans, pagedRows, markerSlot, chapterSort])
 
   const setChaptersState = useSetChaptersState(seriesId)
+
+  /** The unread chapters numbered below this one: what "mark previous chapters as read" would tick. */
+  const previousUnread = (chapter: ChapterDto): number[] =>
+    chapter.number === null
+        ? []
+        : (chapters ?? [])
+            .filter((o) => o.number !== null && o.number < chapter.number! && !o.isOneShot && !readStateFor(o).read)
+            .map((o) => o.id)
 
   /**
    * Applies a read state to a set of chapters and reports what happened. Shared by the select-mode
@@ -2869,6 +2878,18 @@ export default function SeriesDetailPage() {
                                                     variant="subtle"
                                                     color="brand"
                                                     aria-label={t`Read ${chapterLbl}`}
+                                              {chapterNumber !== null && previousUnread(c).length > 0 && (
+                                                <Tooltip label={t`Mark previous chapters as read`} withArrow>
+                                                  <ActionIcon
+                                                      variant="subtle"
+                                                      color="gray"
+                                                      onClick={() => applyReadState(previousUnread(c), 'read')}
+                                                      aria-label={t`Mark the chapters before ${chapterLbl} as read`}
+                                                  >
+                                                    <IconChecks size={17} />
+                                                  </ActionIcon>
+                                                </Tooltip>
+                                              )}
                                                 >
                                                   <IconBook size={17} />
                                                 </ActionIcon>
