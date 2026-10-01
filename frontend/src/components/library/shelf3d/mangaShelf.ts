@@ -118,6 +118,8 @@ const GRIP_ROLL = 0.45
 /** How high above the plank, in world units, a stick has to be lifted to be fully in the writing grip. */
 const GRIP_LIFT = 60
 /** How far the tip of a held stick comes off the board when it is lifted away from it. */
+/** How long the books have the shelf to themselves on the first load, in ms. */
+const EXTRAS_DELAY = 700
 const PEN_LIFT = 46
 const CHALK_FONT = "700 {size}px 'Comic Neue', 'Comic Sans MS', cursive"
 /** Narrower containers are drawn at this logical width and scaled down, so a phone still gets a shelf. */
@@ -183,6 +185,8 @@ export class MangaShelf {
   private readonly emptyShare = 0.02 + Math.random() * 0.28
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
+  /** Whether the plant and chalk have been brought in once already, so a relayout puts them straight back. */
+  private extrasSeen = false
   /** Decided once per page load too: how many sticks of chalk, usually none. */
   private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
@@ -1542,8 +1546,22 @@ export class MangaShelf {
       model.traverse((n) => (n.userData.item = item))
       this.items.push(item)
     }
-    if (this.withPlant) this.placePlant(row, width)
-    this.placeChalk(row, width)
+    // The books come first. The plant and chalk are added once they have had a moment on screen, and
+    // only once there are books to put them beside: placed against an empty shelf they would sit where
+    // the books are about to go.
+    const extras = () => {
+      if (generation !== this.generation || this.abort.signal.aborted) return
+      if (this.withPlant) this.placePlant(row, width)
+      this.placeChalk(row, width)
+      this.wake()
+    }
+    if (this.items.length > 0) {
+      if (this.extrasSeen) extras()
+      else {
+        this.extrasSeen = true
+        setTimeout(extras, EXTRAS_DELAY)
+      }
+    }
 
     const rowPx = this.rowH * this.scale
     this.renderer.setSize(this.cssWidth, this.rows.length * rowPx, false)
