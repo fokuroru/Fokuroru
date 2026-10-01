@@ -192,7 +192,7 @@ export class MangaShelf {
   /** A prop (the plant) being carried: props can be moved but not opened. */
   private heldProp: Grabbable | null = null
   private penKey = false
-  /** Whether the plant and chalk have been brought in once already, so a relayout puts them straight back. */
+  /** Whether the chalk has been thrown in once already, so a relayout puts it straight back. */
   private extrasSeen = false
   /** How much of the shelf stays empty, drawn once per page load: between 2% and 30%. */
   private readonly emptyShare = 0.02 + Math.random() * 0.28
@@ -1489,8 +1489,10 @@ export class MangaShelf {
       }
       if (taken.some((t) => Math.abs(t - x) < length * 0.9)) continue
       taken.push(x)
+      // Thrown in from above the top of the view, spinning, one after another, so it lands rather than appearing.
       const body = row.physics.addChalk(
-        x, row.physics.floor - 30 - Math.random() * 70, length, thickness, (Math.random() - 0.5) * 1.4, -110 + Math.random() * 120,
+        x, -230 - i * 110 - Math.random() * 60, length, thickness, Math.random() * Math.PI, -110 + Math.random() * 120,
+        { vx: (Math.random() - 0.5) * 3, vy: 7 + Math.random() * 3, spin: (Math.random() - 0.5) * 0.3 },
       )
       const geometry = new T.CylinderGeometry(thickness / 2, thickness / 2, length, 14)
       geometry.rotateZ(Math.PI / 2)

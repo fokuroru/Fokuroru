@@ -248,7 +248,10 @@ export class ShelfPhysics {
    * so a knock slides it, and light, so a book shoves it about. It ignores the end walls and the
    * overhang of the plank, which is what lets it go over the edge.
    */
-  addChalk(x: number, y: number, length: number, thickness: number, angle = 0, z = 0): BookBody {
+  addChalk(
+    x: number, y: number, length: number, thickness: number, angle = 0, z = 0,
+    thrown?: { vx: number; vy: number; spin: number },
+  ): BookBody {
     const body = Bodies.rectangle(x, y, length, thickness, {
       chamfer: { radius: thickness * 0.45 },
       // Heavy and grippy enough that a book lying across it settles rather than shaking it: at the
@@ -266,6 +269,10 @@ export class ShelfPhysics {
     body.chalk = true
     this.setDepth(body, z, thickness)
     if (angle) Body.setAngle(body, angle)
+    if (thrown) {
+      Body.setVelocity(body, { x: thrown.vx, y: thrown.vy })
+      Body.setAngularVelocity(body, thrown.spin)
+    }
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
     return body
