@@ -16,6 +16,8 @@ export type BookBody = Matter.Body & {
   bookWidth: number
   bookHeight: number
   chalk?: boolean
+  /** A chalk duster: handled like a stick of chalk (it can roll off the ends) but never squashed. */
+  duster?: boolean
   /** How long a heavy body has been pressing into this stick of chalk, in ms, and whether it was this step. */
   crush?: number
   crushTick?: boolean
@@ -42,6 +44,10 @@ const SHELF_BACK = -147
 const SHELF_FRONT = 150
 /** The plank, in the same units: it runs from the wall to 13, and holds up anything whose centre is over it. */
 export const PLANK_FRONT = 13
+/** The fastest held chalk or duster may move, in pixels a step, so it meets what is in its way. */
+const HELD_MAX_SPEED = 9
+/** How far from the held chalk the pull may reach, in pixels. */
+const HELD_LEASH = 26
 /** Tipped this far over the edge, a body can no longer balance on it and lets go. */
 const TIP_LIMIT = 1.15
 
@@ -73,6 +79,8 @@ const CATEGORY_CHALK = 0x0002
 const CATEGORY_VISIBLE_PLANK = 0x0004
 const CATEGORY_PLANK = 0x0008
 const CATEGORY_WALL = 0x0010
+/** The board's frame: solid only to chalk and the duster, and only at the wall's depth, where they are held. */
+const CATEGORY_FRAME = 0x0020
 const PLANK_BITS = CATEGORY_PLANK | CATEGORY_VISIBLE_PLANK
 
 interface Hand {
@@ -140,7 +148,7 @@ export class ShelfPhysics {
         for (const [c, o] of [[pair.bodyA, pair.bodyB], [pair.bodyB, pair.bodyA]] as [BookBody, BookBody][]) {
           const chalk = (c.parent ?? c) as BookBody
           const other = (o.parent ?? o) as BookBody
-          if (chalk.chalk && heavyAbove(chalk, other) && other.speed > 5) this.crush(chalk, other.position.x)
+          if (chalk.chalk && !chalk.duster && heavyAbove(chalk, other) && other.speed > 5) this.crush(chalk, other.position.x)
         }
       }
     })
@@ -149,7 +157,7 @@ export class ShelfPhysics {
         for (const [c, o] of [[pair.bodyA, pair.bodyB], [pair.bodyB, pair.bodyA]] as [BookBody, BookBody][]) {
           const chalk = (c.parent ?? c) as BookBody
           const other = (o.parent ?? o) as BookBody
-          if (!chalk.chalk || !heavyAbove(chalk, other) || pair.collision.depth < chalk.bookHeight * 0.3) continue
+          if (!chalk.chalk || chalk.duster || !heavyAbove(chalk, other) || pair.collision.depth < chalk.bookHeight * 0.3) continue
           chalk.crushTick = true
           chalk.crush = (chalk.crush ?? 0) + this.stepMs
           if (chalk.crush > 150) this.crush(chalk, other.position.x)
@@ -314,6 +322,39 @@ export class ShelfPhysics {
   }
 
   /**
+   * A chalk duster lying on the plank, `x` and `y` its centre. Like chalk it ignores the end walls, so it
+   * can be pushed off the ends, but it is never squashed.
+   */
+  addDuster(
+    x: number, y: number, width: number, height: number, angle = 0, z = 0,
+    thrown?: { vx: number; vy: number; spin: number },
+  ): BookBody {
+    const body = Bodies.rectangle(x, y, width, height, {
+      chamfer: { radius: height * 0.25 },
+      friction: 0.6,
+      frictionStatic: 0.9,
+      frictionAir: 0.02,
+      restitution: 0.02,
+      density: 0.008,
+      sleepThreshold: 90,
+      collisionFilter: { category: CATEGORY_CHALK, mask: 0x0001 | CATEGORY_CHALK | CATEGORY_VISIBLE_PLANK | CATEGORY_FRAME, group: 0 },
+    }) as BookBody
+    body.bookWidth = width
+    body.bookHeight = height
+    body.chalk = true
+    body.duster = true
+    this.setDepth(body, z, 22)
+    if (angle) Body.setAngle(body, angle)
+    if (thrown) {
+      Body.setVelocity(body, { x: thrown.vx, y: thrown.vy })
+      Body.setAngularVelocity(body, thrown.spin)
+    }
+    this.bodies.push(body)
+    Composite.add(this.engine.world, body)
+    return body
+  }
+
+  /**
    * A stick of chalk lying across the shelf, `x` and `y` its centre. A rounded rectangle: slippery,
    * so a knock slides it, and light, so a book shoves it about. It ignores the end walls and the
    * overhang of the plank, which is what lets it go over the edge.
@@ -332,7 +373,7 @@ export class ShelfPhysics {
       restitution: 0.02,
       density: 0.012,
       sleepThreshold: 90,
-      collisionFilter: { category: CATEGORY_CHALK, mask: 0x0001 | CATEGORY_CHALK | CATEGORY_VISIBLE_PLANK, group: 0 },
+      collisionFilter: { category: CATEGORY_CHALK, mask: 0x0001 | CATEGORY_CHALK | CATEGORY_VISIBLE_PLANK | CATEGORY_FRAME, group: 0 },
     }) as BookBody
     body.bookWidth = length
     body.bookHeight = thickness
@@ -403,9 +444,12 @@ export class ShelfPhysics {
     const hx = (body.bookWidth / 2) * cos + (body.bookHeight / 2) * sin
     const hy = (body.bookWidth / 2) * sin + (body.bookHeight / 2) * cos
     const grip = this.constraint.pointB
+    // Chalk and the duster are stopped by the frame and the plank themselves, so the pointer can push them
+    // up to those, but not so far past that the pull drives them through; a book is held short of the edges instead.
+    const held = body.chalk === true
     this.hand.target = {
-      x: Math.max(hx + grip.x, Math.min(this.width - hx + grip.x, point.x)),
-      y: Math.max(-170, Math.min(this.floor - hy + grip.y - 1, point.y)),
+      x: held ? Math.max(-24, Math.min(this.width + 24, point.x)) : Math.max(hx + grip.x, Math.min(this.width - hx + grip.x, point.x)),
+      y: Math.max(held ? -196 : -170, Math.min(this.floor - hy + grip.y - 1, point.y)),
     }
   }
 
@@ -431,6 +475,83 @@ export class ShelfPhysics {
       }
     }
     return Math.max(0, free)
+  }
+
+  /**
+   * The board's frame as solid bars, for chalk and the duster held to the board to bump into: left, right
+   * and top, where the drawn frame is, at the wall's depth. Nothing else collides with them.
+   */
+  addFrame(wallHeight: number) {
+    const bar = (x: number, y: number, w: number, h: number) => {
+      const body = Bodies.rectangle(x, y, w, h, {
+        isStatic: true,
+        friction: 0.3,
+        collisionFilter: { category: CATEGORY_FRAME, mask: CATEGORY_CHALK, group: 0 },
+      })
+      const filter = body.collisionFilter as DepthFilter
+      filter.z = -143
+      filter.depth = 14
+      Composite.add(this.engine.world, body)
+    }
+    // Only the inner faces are the frame: the bars are made very thick, so nothing held can be driven
+    // through one or end up on its far side.
+    const thick = 400
+    const innerLeft = -6
+    const innerRight = this.width + 6
+    const innerTop = 380 - (17 + wallHeight)
+    const centre = 380 - (17 + wallHeight / 2)
+    bar(innerLeft - thick / 2, centre, thick, wallHeight + 2 * thick)
+    bar(innerRight + thick / 2, centre, thick, wallHeight + 2 * thick)
+    bar(this.width / 2, innerTop - thick / 2, this.width + 2 * thick + 12, thick)
+  }
+
+  /**
+   * While chalk or the duster is held to the board it is drawn at the wall, with its far end brought
+   * forward, so its collisions follow the picture: it meets what stands in the depth it fills, and the
+   * frame, instead of passing through them. Let go, it goes back to meeting things where its body is.
+   */
+  setGrip(body: BookBody, on: boolean, z = -114, depth = 62) {
+    const filter = body.collisionFilter as DepthFilter
+    const wantZ = on ? z : body.z
+    const wantDepth = on ? depth : body.depth
+    if (filter.z === wantZ && filter.depth === wantDepth) return
+    filter.z = wantZ
+    filter.depth = wantDepth
+    Sleeping.set(body, false)
+  }
+
+  /** Whether a body is still in the simulation. */
+  has(body: Matter.Body): boolean {
+    return this.bodies.includes(body as BookBody)
+  }
+
+  /**
+   * The highest surface under a point, for something falling onto the shelf: the physics y of the top of
+   * whatever is below (x, y) at depth z, with that body, or the plank with none. Found from the outlines
+   * of the bodies, so a tilted book is landed on along its slope.
+   */
+  surfaceBelow(x: number, y: number, z: number): { y: number; body: BookBody | null } {
+    let best = this.floor
+    let host: BookBody | null = null
+    for (const body of this.bodies) {
+      if (Math.abs(z - body.z) > body.depth / 2) continue
+      if (body.bounds.max.x < x || body.bounds.min.x > x || body.bounds.max.y < y) continue
+      for (const part of body.parts.length > 1 ? body.parts.slice(1) : [body]) {
+        const v = part.vertices
+        for (let i = 0; i < v.length; i++) {
+          const a = v[i]
+          const b = v[(i + 1) % v.length]
+          if ((a.x <= x && b.x > x) || (b.x <= x && a.x > x)) {
+            const at = a.y + ((b.y - a.y) * (x - a.x)) / (b.x - a.x)
+            if (at >= y - 0.5 && at < best) {
+              best = at
+              host = body
+            }
+          }
+        }
+      }
+    }
+    return { y: best, body: host }
   }
 
   /** Takes a book out of the simulation (it is being pulled off the shelf) without disturbing the rest. */
@@ -539,6 +660,24 @@ export class ShelfPhysics {
       body.pitch = pitch
       body.pitchSpeed = speed
       if (pitch >= TIP_LIMIT && body.supported !== false) this.holdUp(body)
+    }
+    // Held chalk is pulled by a soft spring, which for a far-off pointer is a hard yank. Capped, it cannot cross
+    // the frame or a book in a single step.
+    const held = this.constraint?.bodyB as BookBody | undefined
+    if (held?.chalk && held.speed > HELD_MAX_SPEED) {
+      Body.setVelocity(held, Vector.mult(held.velocity, HELD_MAX_SPEED / held.speed))
+    }
+    // And on a leash: the further the pointer is from the stick, the harder it would pull it into whatever
+    // it has met, so the pull stops growing past a short distance.
+    if (held?.chalk && this.constraint && this.hand?.target) {
+      const grip = Vector.add(held.position, Vector.rotate(this.constraint.pointB ?? { x: 0, y: 0 }, held.angle))
+      const gap = Vector.sub(this.hand.target, grip)
+      const far = Vector.magnitude(gap)
+      if (far > HELD_LEASH) {
+        const pulled = Vector.add(grip, Vector.mult(gap, HELD_LEASH / far))
+        this.constraint.pointA.x = pulled.x
+        this.constraint.pointA.y = pulled.y
+      }
     }
     this.stepMs = dt
     for (const body of this.bodies) if (body.chalk) body.crushTick = false

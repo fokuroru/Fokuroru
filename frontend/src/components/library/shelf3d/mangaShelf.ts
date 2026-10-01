@@ -93,6 +93,21 @@ interface Stick extends Grabbable {
   used: number
 }
 
+/** The chalk duster: a wooden block with a felt pad. Held to the board, it wipes the chalk off. */
+interface Duster extends Grabbable {
+  model: T.Object3D
+  /** 0 lying about, 1 held to the board; eases between, like a stick of chalk. */
+  lean: number
+  penDown: boolean
+  air: number
+  /** How far it is rocked about the wall's three axes by being moved (a spring, so it overshoots a little), and how fast. */
+  tilt: [number, number, number]
+  tiltV: [number, number, number]
+  /** Where and when it was last seen, to know how fast the hand is moving it. */
+  seen?: { x: number; y: number; at: number }
+  tiltAt?: number
+}
+
 interface Hinges {
   front: { board: T.Group; leaves: T.Group[] }
   back: { board: T.Group; leaves: T.Group[] }
@@ -116,9 +131,13 @@ const BOARD_ROOM = 140
 const DEPTH_STEP = 22
 /** Where a stick in the writing grip has its tip: against the wall. */
 const WRITE_Z = -141
-/** The writing grip: how far it turns to point into the board, and how far its tip is held above the hand. */
-const GRIP_YAW = 0.9
-const GRIP_ROLL = 0.45
+/**
+ * The writing grip: the stick's back end points out of the board, towards the viewer, parallel to the
+ * depth of the shelf as a book's sides are, with a slight turn to one side and a slight rise so its end
+ * never dips below the plank. Fixed in the shelf, not turned to follow the camera, so perspective
+ * shows it at a different angle at the left and the right, exactly as it does a book beside it.
+ */
+const GRIP_DIRECTION = new T.Vector3(0.18, 0.22, 1).normalize()
 /** How high above the plank, in world units, a stick has to be lifted to be fully in the writing grip. */
 const GRIP_LIFT = 60
 /** How long the books have the shelf to themselves on the first load, in ms. */
@@ -141,15 +160,18 @@ const MAX_OVERHANGERS = 3
 const MIN_BOARD = 90
 const CLICK_SLOP = 6
 const PULL_MS = 550
-/** A burst of chalk dust: how many specks, and how long they last. */
-const DUST_SPECKS = 26
-const DUST_MS = 900
+/** Chalk dust: how long the faint haze hangs, and how much air slows the grains. */
+const HAZE_MS = 700
+const DUST_DRAG = 0.008
+const DUST_FALL = 0.002
 /** A stick shorter than this is a bit of chalk, and squashed it is only dust. */
 const SMALL_BIT = 16
 /** Dust that has settled on the plank stays there, up to this many specks (the oldest go first). */
-const MAX_SETTLED_DUST = 220
-/** The top of the plank in scene units: its centre is at 12 and it is 15 thick. */
-const PLANK_TOP = 19.5
+const MAX_SETTLED_DUST = 300
+/** The duster's size: its footprint on the plank, and how deep it is. */
+const DUSTER_W = 64
+const DUSTER_H = 20
+const DUSTER_DEPTH = 24
 /** Drawing with one stick for this long breaks it, as if pressed too hard. */
 const CHALK_LIFE_MS = 60_000
 /** How far a pulled book comes towards the camera, in scene units. */
@@ -212,8 +234,18 @@ export class MangaShelf {
   private heldProp: Grabbable | null = null
   private penKey = false
   /** Specks of chalk dust in the air, with where each is heading and when it was thrown up. */
-  private dust: { sprite: T.Sprite; vx: number; vy: number; vz: number; at: number; size: number; settled: boolean }[] = []
+  private dust: {
+    sprite: T.Sprite; vx: number; vy: number; vz: number; at: number; last: number; size: number
+    /** Haze is a faint cloud that spreads and fades in the air; grains are what falls and stays. */
+    haze: boolean; phase: number; spin: number; settled: boolean
+    row: Row
+    /** What it landed on, and where on it (in the body's own frame), so it goes where that goes. Null on the plank. */
+    host: BookBody | null; lx: number; ly: number
+    /** How hard its host has to be moving before it shakes loose, in px a step. */
+    slip: number
+  }[] = []
   private dustTexture: T.CanvasTexture | null = null
+  private hazeTexture: T.CanvasTexture | null = null
   private hovering = false
   /** Whether the chalk has been thrown in once already, so a relayout puts it straight back. */
   private extrasSeen = false
@@ -259,6 +291,12 @@ export class MangaShelf {
   private wallSize = { w: 0, h: 0 }
   /** What the user has written on the wall, kept for the page load and laid over the wall's own chalk. */
   private ink: HTMLCanvasElement | null = null
+  /** What the duster has wiped, as slate laid over the wall's own chalk, under the ink. */
+  private wipe: HTMLCanvasElement | null = null
+  private wipeTexture: T.CanvasTexture | null = null
+  private wipeLast: { x: number; y: number } | null = null
+  private wipePuffAt = 0
+  private duster: Duster | null = null
   private inkTexture: T.CanvasTexture | null = null
   /** Where the stick last touched the wall, so a drag draws one line and not a row of dots. */
   private inkLast: { x: number; y: number } | null = null
@@ -362,9 +400,9 @@ export class MangaShelf {
       const held = this.drag ? this.selected ?? this.heldProp : null
       if (!held) return
       e.preventDefault()
-      if (this.sticks.includes(held as Stick)) {
-        // A stick in hand is put onto the board or lifted off it, so a line can be started and stopped.
-        ;(held as Stick).penDown = e.deltaY < 0
+      if (this.sticks.includes(held as Stick) || held === this.duster) {
+        // A stick or the duster in hand is put onto the board or lifted off it, so a line can be started and stopped.
+        ;(held as Stick | Duster).penDown = e.deltaY < 0
       } else {
         held.row.physics.nudgeDepth(held.body, Math.sign(e.deltaY) * DEPTH_STEP)
       }
@@ -389,7 +427,7 @@ export class MangaShelf {
     const pen = (e: KeyboardEvent, down: boolean) => {
       if (e.key !== ' ') return
       // Space also scrolls the page, so it is kept for the chalk whenever there is chalk and the pointer is on the shelf.
-      if (down && this.sticks.length > 0 && (this.hovering || this.drag)) e.preventDefault()
+      if (down && (this.sticks.length > 0 || this.duster) && (this.hovering || this.drag)) e.preventDefault()
       this.penKey = down
       this.wake()
     }
@@ -722,26 +760,37 @@ export class MangaShelf {
   private addInk(scene: T.Scene, width: number, height: number) {
     const w = Math.ceil(width)
     const h = Math.ceil(height)
-    if (!this.ink) {
-      this.ink = document.createElement('canvas')
-      this.ink.width = w
-      this.ink.height = h
-    } else if (this.ink.width !== w || this.ink.height !== h) {
+    // The canvases outlive a layout, so what has been drawn or wiped survives a resize, scaled to the new size.
+    const fit = (canvas: HTMLCanvasElement | null) => {
+      if (!canvas) {
+        const fresh = document.createElement('canvas')
+        fresh.width = w
+        fresh.height = h
+        return fresh
+      }
+      if (canvas.width === w && canvas.height === h) return canvas
       const moved = document.createElement('canvas')
       moved.width = w
       moved.height = h
-      moved.getContext('2d')!.drawImage(this.ink, 0, 0, w, h)
-      this.ink = moved
+      moved.getContext('2d')!.drawImage(canvas, 0, 0, w, h)
+      return moved
     }
-    this.inkTexture = new T.CanvasTexture(this.ink)
-    this.inkTexture.colorSpace = T.SRGBColorSpace
-    const sheet = new T.Mesh(
-      new T.PlaneGeometry(width, height),
-      new T.MeshStandardMaterial({ map: this.inkTexture, transparent: true, roughness: 0.95, depthWrite: false }),
-    )
-    sheet.position.set(0, 17 + height / 2, -146.6)
-    sheet.receiveShadow = true
-    scene.add(sheet)
+    this.ink = fit(this.ink)
+    this.wipe = fit(this.wipe)
+    const sheet = (canvas: HTMLCanvasElement, z: number) => {
+      const texture = new T.CanvasTexture(canvas)
+      texture.colorSpace = T.SRGBColorSpace
+      const mesh = new T.Mesh(
+        new T.PlaneGeometry(width, height),
+        new T.MeshStandardMaterial({ map: texture, transparent: true, roughness: 0.95, depthWrite: false }),
+      )
+      mesh.position.set(0, 17 + height / 2, z)
+      mesh.receiveShadow = true
+      scene.add(mesh)
+      return texture
+    }
+    this.wipeTexture = sheet(this.wipe, -146.8)
+    this.inkTexture = sheet(this.ink, -146.6)
   }
 
   /**
@@ -759,6 +808,7 @@ export class MangaShelf {
     const lifted = held ? Math.max(0, Math.min(1, (st.row.physics.floor - 6 - body.bounds.max.y) / GRIP_LIFT)) : 0
     const lift = held && (st.penDown || this.penKey) ? 1 : lifted
     if (held) st.row.physics.level(body)
+    st.row.physics.setGrip(body, held && st.lean > 0.4)
     st.lean += (lift - st.lean) * 0.2
     if (Math.abs(lift - st.lean) < 0.002) st.lean = lift
     const lean = st.lean
@@ -771,9 +821,12 @@ export class MangaShelf {
     const eye = st.row.camera.position
     const at = new T.Vector3(body.position.x - this.logicalWidth / 2, 380 - body.position.y, body.z)
     const here = at.clone().sub(eye).multiplyScalar((wall - eye.z) / (body.z - eye.z)).add(eye)
-    st.model.rotation.set(0, -GRIP_YAW * lean, -Math.atan2(Math.sin(body.angle), Math.cos(body.angle)) * (1 - lean) - GRIP_ROLL * lean)
+    // Held, the front of the stick is where the pointer is and its back points out towards the viewer.
+    const lying = new T.Quaternion().setFromEuler(new T.Euler(0, 0, -Math.atan2(Math.sin(body.angle), Math.cos(body.angle))))
+    const gripped = new T.Quaternion().setFromUnitVectors(new T.Vector3(1, 0, 0), GRIP_DIRECTION)
+    st.model.quaternion.copy(lying).slerp(gripped, lean)
     // In the grip the body's position is the tip, not the middle, so the tip is where the pointer is.
-    const toMiddle = new T.Vector3(body.bookWidth / 2, 0, 0).applyEuler(st.model.rotation)
+    const toMiddle = new T.Vector3(body.bookWidth / 2, 0, 0).applyQuaternion(st.model.quaternion)
     st.model.position.copy(here).addScaledVector(toMiddle, lean)
     return lean !== lift || st.air !== airTarget
   }
@@ -847,6 +900,11 @@ export class MangaShelf {
     ctx.restore()
     this.inkLast = { x, y }
     if (this.inkTexture) this.inkTexture.needsUpdate = true
+    // Now and then a little chalk comes off the stick as it drags, more often the harder it is pushed along,
+    // and falls down the board.
+    if (Math.random() < 0.004 + Math.min(0.02, length * 0.0008)) {
+      this.emitDust(stick.row, at.x, at.y - 3, WRITE_Z + 2, stick.color, { grains: 2 + Math.floor(Math.random() * 3), haze: 0, width: 4, burst: 0.02 })
+    }
     return true
   }
 
@@ -1460,6 +1518,8 @@ export class MangaShelf {
     this.items = []
     this.props = []
     this.sticks = []
+    this.duster = null
+    this.wipeLast = null
     this.dust = []
     this.boardMaterial = null
     this.access?.remove()
@@ -1636,6 +1696,156 @@ export class MangaShelf {
         { vx: (Math.random() - 0.5) * 3, vy: 7 + Math.random() * 3, spin: (Math.random() - 0.5) * 0.3 },
       )
     }
+    // Where there is chalk there is a duster to rub it out, thrown in last.
+    const roomFrom = booksEnd + 24 + DUSTER_W / 2
+    const roomTo = width - 12 - DUSTER_W / 2
+    if (this.sticks.length > 0 && !this.duster && roomTo >= roomFrom) {
+      this.makeDuster(
+        row, roomFrom + Math.random() * (roomTo - roomFrom), -230 - this.chalkCount * 110 - 80, -110 + Math.random() * 120,
+        { vx: (Math.random() - 0.5) * 2.5, vy: 6 + Math.random() * 3, spin: (Math.random() - 0.5) * 0.2 },
+      )
+    }
+  }
+
+  /** The duster: a wooden block over a felt pad, the pad on the underside of the body. */
+  private makeDuster(row: Row, x: number, y: number, z: number, thrown?: { vx: number; vy: number; spin: number }) {
+    const body = row.physics.addDuster(x, y, DUSTER_W, DUSTER_H, Math.random() * 0.4 - 0.2, z, thrown)
+    const model = new T.Group()
+    const wood = new T.Mesh(new T.BoxGeometry(DUSTER_W, 12, DUSTER_DEPTH), new T.MeshStandardMaterial({ color: '#b4824f', roughness: 0.8 }))
+    wood.position.y = 4
+    const felt = new T.Mesh(new T.BoxGeometry(DUSTER_W - 2, 6, DUSTER_DEPTH - 2), new T.MeshStandardMaterial({ color: '#2d2c34', roughness: 1 }))
+    felt.position.y = -5
+    // A band of lighter wood along the top, so it reads as a block with a grip.
+    const grip = new T.Mesh(new T.BoxGeometry(DUSTER_W * 0.62, 2, DUSTER_DEPTH * 0.55), new T.MeshStandardMaterial({ color: '#8d6238', roughness: 0.85 }))
+    grip.position.y = 11
+    for (const part of [wood, felt, grip]) {
+      part.castShadow = true
+      part.receiveShadow = true
+      model.add(part)
+    }
+    row.scene.add(model)
+    const duster: Duster = { body, model, row, lean: 0, penDown: false, air: 0, tilt: [0, 0, 0], tiltV: [0, 0, 0] }
+    model.traverse((n) => (n.userData.prop = duster))
+    this.duster = duster
+    return duster
+  }
+
+  /**
+   * The duster lies where its body is until it is lifted off the plank. In hand it turns its pad to the
+   * wall, flat against the board, where the pointer is; put down, it eases back to lying flat. As with
+   * chalk, only the picture moves, so it can always be put back where it was.
+   */
+  private poseDuster(d: Duster): boolean {
+    const body = d.body
+    const held = this.heldProp === d && this.drag !== null
+    const lifted = held ? Math.max(0, Math.min(1, (d.row.physics.floor - 6 - body.bounds.max.y) / GRIP_LIFT)) : 0
+    const lift = held && (d.penDown || this.penKey) ? 1 : lifted
+    if (held) d.row.physics.level(body)
+    d.row.physics.setGrip(body, held && d.lean > 0.4, -128, 40)
+    d.lean += (lift - d.lean) * 0.2
+    if (Math.abs(lift - d.lean) < 0.002) d.lean = lift
+    const lean = d.lean
+    const airTarget = held && !(d.penDown || this.penKey) ? PEN_LIFT : 0
+    d.air += (airTarget - d.air) * 0.25
+    if (Math.abs(airTarget - d.air) < 0.3) d.air = airTarget
+    // Its pad, not its middle, is at the wall.
+    const wall = body.z + (WRITE_Z + DUSTER_DEPTH / 4 + d.air - body.z) * lean
+    d.row.camera.updateMatrixWorld()
+    const eye = d.row.camera.position
+    const at = new T.Vector3(body.position.x - this.logicalWidth / 2, 380 - body.position.y, body.z)
+    const here = at.clone().sub(eye).multiplyScalar((wall - eye.z) / (body.z - eye.z)).add(eye)
+    // How fast the hand is moving it, in pixels a millisecond across the board (up positive).
+    const now = performance.now()
+    let vx = 0
+    let vy = 0
+    if (d.seen && now > d.seen.at) {
+      const dt = Math.min(64, now - d.seen.at)
+      vx = (body.position.x - d.seen.x) / dt
+      vy = -(body.position.y - d.seen.y) / dt
+    }
+    d.seen = { x: body.position.x, y: body.position.y, at: now }
+    // Moved about, it rocks: rolls into the way it is going, and its leading edge leans and lifts. A spring
+    // takes it there and back, so it overshoots a little and settles. At rest or lying down it is level.
+    const dt = Math.min(48, Math.max(1, now - (d.tiltAt ?? now)))
+    d.tiltAt = now
+    const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v))
+    const target = held && lean > 0.5
+      ? [clamp(-vy * 0.45, 0.35), clamp(vx * 0.55, 0.45), clamp(vx * 0.7, 0.5)]
+      : [0, 0, 0]
+    let rocking = false
+    for (let i = 0; i < 3; i++) {
+      d.tiltV[i] += (-(d.tilt[i] - target[i]) * 0.0011 - d.tiltV[i] * 0.045) * dt
+      d.tilt[i] += d.tiltV[i] * dt
+      if (Math.abs(d.tilt[i]) > 0.002 || Math.abs(d.tiltV[i]) > 0.00005 || Math.abs(target[i]) > 0.002) rocking = true
+    }
+    const base = new T.Quaternion().setFromEuler(
+      new T.Euler((Math.PI / 2) * lean, 0, -Math.atan2(Math.sin(body.angle), Math.cos(body.angle)) * (1 - lean)),
+    )
+    // Applied about the board's own axes: across, up and out of the wall.
+    const rock = new T.Quaternion().setFromEuler(new T.Euler(d.tilt[0] * lean, d.tilt[1] * lean, d.tilt[2] * lean))
+    d.model.quaternion.copy(rock.multiply(base))
+    d.model.position.copy(here)
+    return lean !== lift || d.air !== airTarget || rocking
+  }
+
+  /**
+   * A duster held to the board wipes it: the ink a stick left comes off, and the board's own chalk is
+   * smeared over with slate, a little more with each pass. Reloading the page puts the board back.
+   */
+  private wipeBoard(): boolean {
+    const d = this.duster
+    const ink = this.ink
+    const wipe = this.wipe
+    if (!d || this.heldProp !== d || !this.drag || !ink || !wipe || !this.board) {
+      this.wipeLast = null
+      return false
+    }
+    if (d.lean < 0.85 || d.air > 2) {
+      this.wipeLast = null
+      return false
+    }
+    d.row.camera.updateMatrixWorld()
+    const tip = new T.Vector3(d.body.position.x - this.logicalWidth / 2, 380 - d.body.position.y, d.body.z)
+    const screen = tip.project(d.row.camera)
+    this.ray.setFromCamera(new T.Vector2(screen.x, screen.y), d.row.camera)
+    const at = this.ray.ray.intersectPlane(new T.Plane(new T.Vector3(0, 0, 1), 147), new T.Vector3())
+    if (!at) return false
+    const x = at.x + this.wallSize.w / 2
+    const y = 17 + this.wallSize.h - at.y
+    if (x < -DUSTER_W || y < -DUSTER_H || x > ink.width + DUSTER_W || y > ink.height + DUSTER_H) {
+      this.wipeLast = null
+      return false
+    }
+    const from = this.wipeLast
+    const moved = from ? Math.hypot(x - from.x, y - from.y) : 0
+    if (from && moved < 1.5) return true
+    const inkCtx = ink.getContext('2d')!
+    const wipeCtx = wipe.getContext('2d')!
+    // A rectangle the size of the pad, pressed along the way it travelled.
+    const steps = Math.max(1, Math.ceil(moved / 8))
+    for (let i = 1; i <= steps; i++) {
+      const px = from ? from.x + ((x - from.x) * i) / steps : x
+      const py = from ? from.y + ((y - from.y) * i) / steps : y
+      inkCtx.save()
+      inkCtx.globalCompositeOperation = 'destination-out'
+      inkCtx.globalAlpha = 0.75
+      inkCtx.fillRect(px - DUSTER_W / 2, py - DUSTER_DEPTH / 2, DUSTER_W, DUSTER_DEPTH)
+      inkCtx.restore()
+      wipeCtx.save()
+      wipeCtx.fillStyle = 'rgba(39, 51, 44, 0.3)'
+      wipeCtx.fillRect(px - DUSTER_W / 2, py - DUSTER_DEPTH / 2, DUSTER_W, DUSTER_DEPTH)
+      wipeCtx.restore()
+    }
+    this.wipeLast = { x, y }
+    if (this.inkTexture) this.inkTexture.needsUpdate = true
+    if (this.wipeTexture) this.wipeTexture.needsUpdate = true
+    // A puff of chalk dust comes off now and then and settles on the plank.
+    const now = performance.now()
+    if (now - this.wipePuffAt > 90) {
+      this.wipePuffAt = now
+      this.emitDust(d.row, at.x, at.y - 8, -138, '#f3efe2', { grains: 3, haze: 0, width: DUSTER_W * 0.9, burst: 0.06 })
+    }
+    return true
   }
 
   /** A stick of chalk: a rounded rectangle in the physics, a cylinder in the scene. */
@@ -1701,66 +1911,181 @@ export class MangaShelf {
         { vx: (Math.random() - 0.5) * 3.5, vy: -2.5 - Math.random() * 2.5, spin: (Math.random() - 0.5) * 0.4 })
     }
 
-    this.dustTexture ??= this.makeDustTexture()
     const now = performance.now()
-    const specks = Math.round(DUST_SPECKS * (whole ? Math.max(0.2, Math.min(1, length / 26)) : Math.max(0.5, ground / 22)))
+    const amount = whole ? Math.max(0.3, Math.min(1, length / 26)) : Math.max(0.7, Math.min(1.6, ground / 22))
     const sx = x - this.logicalWidth / 2
     const sy = 380 - y
-    for (let i = 0; i < specks; i++) {
-      const sprite = new T.Sprite(new T.SpriteMaterial({ map: this.dustTexture, color, transparent: true, opacity: 0.85, depthWrite: false }))
-      const along = whole ? (Math.random() - 0.5) * length : from + Math.random() * ground
-      const size = 6 + Math.random() * 12
-      sprite.scale.set(size, size, 1)
-      sprite.position.set(sx + dx * along, sy - dy * along + 2, z + (Math.random() - 0.5) * 8)
-      row.scene.add(sprite)
-      this.dust.push({ sprite, vx: (Math.random() - 0.5) * 0.14, vy: 0.04 + Math.random() * 0.12, vz: (Math.random() - 0.3) * 0.1, at: now, size, settled: false })
-    }
+    const mid = whole ? 0 : at
+    this.emitDust(row, sx + dx * mid, sy - dy * mid + 3, z, color, {
+      grains: Math.round(24 * amount), haze: amount > 1 ? 2 : 1, width: whole ? length : ground, burst: 0.26,
+    })
     row.shake = { at: now, amplitude: 0.6 }
     this.wake()
   }
 
-  /** A soft round puff, white so the material's colour tints it. */
+  /** A grain of chalk: a soft speck with its edge broken up, white so the material's colour tints it. */
   private makeDustTexture(): T.CanvasTexture {
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 32
+    const c = canvas.getContext('2d')!
+    const g = c.createRadialGradient(16, 16, 0, 16, 16, 15)
+    g.addColorStop(0, 'rgba(255,255,255,1)')
+    g.addColorStop(0.55, 'rgba(255,255,255,0.75)')
+    g.addColorStop(1, 'rgba(255,255,255,0)')
+    c.fillStyle = g
+    c.fillRect(0, 0, 32, 32)
+    // Nibble the edge away so no two grains look like a perfect dot.
+    c.globalCompositeOperation = 'destination-out'
+    for (let i = 0; i < 26; i++) {
+      c.globalAlpha = 0.4 + Math.random() * 0.6
+      c.fillRect(Math.random() * 32, Math.random() * 32, 1 + Math.random() * 3, 1 + Math.random() * 3)
+    }
+    return new T.CanvasTexture(canvas)
+  }
+
+  /** The haze a burst of dust hangs in: very soft and mottled, so it reads as a cloud and not a ball. */
+  private makeHazeTexture(): T.CanvasTexture {
     const canvas = document.createElement('canvas')
     canvas.width = canvas.height = 64
     const c = canvas.getContext('2d')!
-    const g = c.createRadialGradient(32, 32, 0, 32, 32, 32)
-    g.addColorStop(0, 'rgba(255,255,255,0.9)')
-    g.addColorStop(0.5, 'rgba(255,255,255,0.35)')
-    g.addColorStop(1, 'rgba(255,255,255,0)')
-    c.fillStyle = g
-    c.fillRect(0, 0, 64, 64)
+    for (let i = 0; i < 7; i++) {
+      const x = 16 + Math.random() * 32
+      const y = 16 + Math.random() * 32
+      const r = 10 + Math.random() * 14
+      const g = c.createRadialGradient(x, y, 0, x, y, r)
+      g.addColorStop(0, 'rgba(255,255,255,0.55)')
+      g.addColorStop(1, 'rgba(255,255,255,0)')
+      c.fillStyle = g
+      c.fillRect(0, 0, 64, 64)
+    }
     return new T.CanvasTexture(canvas)
   }
 
   /**
-   * Moves the dust along until it lands on the plank, where it stays as a faint smudge. True while any
-   * is still in the air, so the frame loop can rest once it has all settled.
+   * Lets go a burst of chalk dust at a point: a cloud of fine grains that fly out and are slowed by the
+   * air, drift on small eddies and then sink onto the plank, and a faint haze that spreads and fades.
+   * `burst` is how fast the grains leave, in units a millisecond.
+   */
+  private emitDust(
+    row: Row, x: number, y: number, z: number, color: string,
+    o: { grains: number; haze: number; width: number; burst: number },
+  ) {
+    this.dustTexture ??= this.makeDustTexture()
+    this.hazeTexture ??= this.makeHazeTexture()
+    const now = performance.now()
+    const base = new T.Color(color)
+    for (let i = 0; i < o.grains + o.haze; i++) {
+      const haze = i >= o.grains
+      const tint = base.clone().offsetHSL(0, 0, (Math.random() - 0.5) * 0.12)
+      const sprite = new T.Sprite(new T.SpriteMaterial({
+        map: haze ? this.hazeTexture : this.dustTexture, color: tint, transparent: true,
+        opacity: haze ? 0.1 : 0.9, depthWrite: false, rotation: Math.random() * Math.PI * 2,
+      }))
+      const size = haze ? 12 + Math.random() * 10 : 1.5 + Math.random() * 2.2
+      sprite.scale.set(size, size, 1)
+      sprite.position.set(x + (Math.random() - 0.5) * o.width, y + (Math.random() - 0.5) * 6, z + (Math.random() - 0.5) * 10)
+      row.scene.add(sprite)
+      const angle = Math.random() * Math.PI * 2
+      const speed = o.burst * (haze ? 0.35 : 0.3 + Math.random() * 0.9)
+      this.dust.push({
+        sprite, vx: Math.cos(angle) * speed, vy: Math.abs(Math.sin(angle)) * speed * (haze ? 0.5 : 1.1) + 0.02,
+        vz: (Math.random() - 0.3) * speed * 0.5, at: now, last: now, size, haze, phase: Math.random() * 6.3,
+        spin: (Math.random() - 0.5) * 0.004, settled: false, row, host: null, lx: 0, ly: 0, slip: 0.5 + Math.random() * 1.8,
+      })
+    }
+    this.wake()
+  }
+
+  /**
+   * Moves the dust: grains fly, slow in the air, wander on small eddies and sink, and the ones that reach
+   * the plank lie there as flecks that stay; the haze spreads and fades. True while anything is still in
+   * the air, so the frame loop can rest once it has all settled.
    */
   private driftDust(now: number): boolean {
     if (this.dust.length === 0) return false
     let airborne = false
     for (const d of this.dust) {
+      if (d.settled && d.host && d.sprite.parent) {
+        // Dust on something that moves goes with it, and is gone when that is.
+        if (!d.row.physics.has(d.host)) {
+          d.sprite.removeFromParent()
+          d.sprite.material.dispose()
+          d.size = 0
+        } else if (d.host.speed > d.slip || Math.abs(Math.cos(d.host.angle)) < 0.55) {
+          // Knocked about, or tipped too far to lie on: it shakes loose, thrown the way the thing is going, and falls.
+          const step = 1000 / 120
+          const h = d.host
+          d.host = null
+          d.settled = false
+          d.sprite.scale.set(d.size, d.size, 1)
+          d.sprite.material.opacity = 0.9
+          d.vx = Math.max(-0.6, Math.min(0.6, h.velocity.x / step)) + (Math.random() - 0.5) * 0.04
+          d.vy = Math.max(-0.6, Math.min(0.6, -h.velocity.y / step)) + 0.04 + Math.random() * 0.08
+          d.vz = (Math.random() - 0.5) * 0.04
+          d.at = now
+          d.last = now
+        } else if (!d.host.isSleeping) {
+          const c = Math.cos(d.host.angle)
+          const sn = Math.sin(d.host.angle)
+          d.sprite.position.x = d.host.position.x + d.lx * c - d.ly * sn - this.logicalWidth / 2
+          d.sprite.position.y = 380 - (d.host.position.y + d.lx * sn + d.ly * c) + d.size * 0.12
+        }
+        continue
+      }
       if (d.settled || !d.sprite.parent) continue
-      const t = Math.min(1, (now - d.at) / DUST_MS)
-      // Lifts, slows and spreads as it thins.
-      const slow = 1 - t * 0.6
-      d.sprite.position.x += d.vx * 16 * slow
-      d.sprite.position.y += d.vy * 16 * slow
-      d.sprite.position.z += d.vz * 16 * slow
-      d.vy -= 0.0009 * 16
-      const s = d.size * (1 + t * 0.6)
-      d.sprite.scale.set(s, s, 1)
-      d.sprite.material.opacity = 0.85 - t * 0.4
-      const floor = PLANK_TOP + s * 0.3
-      if (d.sprite.position.y < floor && d.vy <= 0) {
-        // Down on the plank: a smudge that stays.
-        d.sprite.position.y = PLANK_TOP + s * 0.2
-        d.sprite.scale.set(s, s * 0.45, 1)
-        d.sprite.material.opacity = 0.4
+      const dt = Math.min(48, now - d.last)
+      d.last = now
+      const t = (now - d.at) / HAZE_MS
+      const pos = d.sprite.position
+      const calm = Math.exp(-dt * DUST_DRAG * (d.haze ? 1.6 : 1))
+      d.vx *= calm
+      d.vy *= calm
+      d.vz *= calm
+      // Small eddies push it about, the grains sink, the haze drifts up.
+      d.vx += Math.sin(now * 0.0031 + d.phase) * 0.00002 * dt
+      d.vz += Math.cos(now * 0.0027 + d.phase) * 0.000015 * dt
+      d.vy += (d.haze ? 0.00001 : -DUST_FALL) * dt
+      const was = pos.y
+      pos.x += d.vx * dt
+      pos.y += d.vy * dt
+      pos.z += d.vz * dt
+      d.sprite.material.rotation += d.spin * dt
+      if (d.haze) {
+        const u = Math.min(1, t)
+        const s = d.size * (1 + u * 1.8)
+        d.sprite.scale.set(s, s, 1)
+        d.sprite.material.opacity = 0.1 * (1 - u) ** 1.4
+        if (u >= 1) {
+          d.sprite.removeFromParent()
+          d.sprite.material.dispose()
+          d.settled = true
+          d.size = 0
+        } else {
+          airborne = true
+        }
+        continue
+      }
+      // Whatever it was above a moment ago and has now reached: the plank, a book, the figure, the chalk.
+      const x = pos.x + this.logicalWidth / 2
+      const under = d.vy <= 0 ? d.row.physics.surfaceBelow(x, 380 - was, pos.z) : null
+      if (under && pos.y <= 380 - under.y + d.size * 0.15) {
+        // Down on it: a small fleck that stays, and travels with it if it moves.
+        pos.y = 380 - under.y + d.size * 0.12
+        d.sprite.scale.set(d.size * 1.1, d.size * 0.4, 1)
+        d.sprite.material.rotation = 0
+        d.sprite.material.opacity = 0.55
         d.settled = true
-      } else if (t >= 1) {
-        // A speck that never came down (it was blown clear of the plank) just fades away.
+        if (under.body) {
+          const dx = x - under.body.position.x
+          const dy = 380 - pos.y - under.body.position.y
+          const c = Math.cos(-under.body.angle)
+          const sn = Math.sin(-under.body.angle)
+          d.host = under.body
+          d.lx = dx * c - dy * sn
+          d.ly = dx * sn + dy * c
+        }
+      } else if (now - d.at > 6000) {
+        // Never came down (it drifted clear of the plank): let it go.
         d.sprite.removeFromParent()
         d.sprite.material.dispose()
         d.settled = true
@@ -1857,6 +2182,7 @@ export class MangaShelf {
       this.addInk(scene, width + 12, wallHeight)
     }
     const row: Row = { scene, camera, physics: new ShelfPhysics(width), index: this.rows.length, shelf }
+    if (this.board) row.physics.addFrame(wallHeight)
     // A heavy landing sets the plank, and everything on it, shuddering; the wall stays put.
     row.physics.onImpact = (strength) => {
       if (strength < IMPACT_MIN || this.reduced.matches) return
@@ -1944,6 +2270,8 @@ export class MangaShelf {
     const canvas = this.renderer.domElement
     canvas.style.width = `${this.cssWidth}px`
     canvas.style.height = `${this.rows.length * rowPx}px`
+    // The placeholder height only held the space while this loaded; now the canvas says how tall it is, and nothing more is kept under it.
+    this.container.style.minHeight = `${this.rows.length * rowPx}px`
 
     // Keyboard and screen readers get real buttons; focusing one lifts its book, Enter opens it.
     this.access = document.createElement('div')
@@ -2126,13 +2454,27 @@ export class MangaShelf {
     const ray = new T.Raycaster()
     ray.setFromCamera(new T.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, 1 - ((y % rowPx) / rowPx) * 2), row.camera)
     const hit = ray.intersectObjects(row.scene.children, true).find((h) => h.object.userData.prop)?.object.userData.prop as Grabbable | undefined
-    return this.hitStick(e, row) ?? hit
+    return this.hitStick(e, row) ?? this.hitDuster(e, row) ?? hit
   }
 
   /**
    * A stick of chalk is a few pixels thick, so it is picked by how near the pointer is to its centre
    * line rather than by a ray that has to land on it.
    */
+  /** The duster is picked anywhere over its block, a little generously, since it is small on the plank. */
+  private hitDuster(e: PointerEvent, row: Row): Duster | undefined {
+    const d = this.duster
+    if (!d || d.row !== row) return undefined
+    const point = this.worldPoint(e, row, d.body.z)
+    const dx = point.x - d.body.position.x
+    const dy = point.y - d.body.position.y
+    const cos = Math.cos(-d.body.angle)
+    const sin = Math.sin(-d.body.angle)
+    const lx = dx * cos - dy * sin
+    const ly = dx * sin + dy * cos
+    return Math.abs(lx) < DUSTER_W / 2 + 8 && Math.abs(ly) < DUSTER_H / 2 + 8 ? d : undefined
+  }
+
   private hitStick(e: PointerEvent, row: Row): Stick | undefined {
     let best: Stick | undefined
     let bestDistance = 12
@@ -2260,6 +2602,7 @@ export class MangaShelf {
       pulling = this.sway(p, elapsed) || pulling
     }
     for (const st of this.sticks) pulling = this.poseStick(st) || pulling
+    if (this.duster) pulling = this.poseDuster(this.duster) || pulling
     for (const r of this.rows) {
       for (const crushed of r.physics.takeCrushed()) {
         const st = this.sticks.find((s) => s.body === crushed)
@@ -2270,8 +2613,6 @@ export class MangaShelf {
     // Whatever has gone over the edge and is falling away for good: a book pulled off the front, a
     // stick knocked off the end. Its model is dropped; the rest of the shelf carries on.
     for (const r of this.rows) {
-    // The placeholder height only held the space while this loaded; now the canvas says how tall it is, and nothing more is kept under it.
-    this.container.style.minHeight = `${this.rows.length * rowPx}px`
       for (const lost of r.physics.reap()) {
         const item = this.items.findIndex((it) => it.body === lost)
         if (item >= 0) {
@@ -2291,6 +2632,12 @@ export class MangaShelf {
           this.disposeModel(gone.model)
           continue
         }
+        if (this.duster?.body === lost) {
+          if (this.heldProp === this.duster) this.heldProp = null
+          this.disposeModel(this.duster.model)
+          this.duster = null
+          continue
+        }
         const stick = this.sticks.findIndex((st) => st.body === lost)
         if (stick >= 0) {
           const [gone] = this.sticks.splice(stick, 1)
@@ -2300,6 +2647,7 @@ export class MangaShelf {
       }
     }
     pulling = this.writeInk() || pulling
+    pulling = this.wipeBoard() || pulling
     // Shelf shudder: a fast decaying bounce applied to the plank and everything on it.
     for (const r of this.rows) {
       const dy = r.shake ? this.shakeAt(r.shake, performance.now()) : 0
