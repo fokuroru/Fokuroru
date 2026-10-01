@@ -8560,6 +8560,9 @@ body.reader-open {
   /* Holds the space of one row while Three.js loads, so the page below does not jump. */
   min-height: min(420px, 65vw);
 }
+.shelf3d[data-board] {
+  min-height: min(620px, 96vw);
+}
 .shelf3d-canvas {
   display: block;
   max-width: 100%;
@@ -8581,4 +8584,48 @@ body.reader-open {
   height: 1px;
   overflow: hidden;
   clip-path: inset(50%);
+}
+
+/* --- The chalkboard without WebGL ------------------------------------- */
+.chalkboard-flat {
+  margin-top: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  background: #26332b;
+  border: 8px solid #6b4a2f;
+  color: #f3efe2;
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+}
+.chalkboard-flat-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: var(--mantine-spacing-sm);
+}
+.chalkboard-flat-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--mantine-spacing-lg);
+}
+.chalkboard-flat dl {
+  margin: 0;
+}
+.chalkboard-flat-heading {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #f6e08a;
+  margin-bottom: 4px;
+}
+.chalkboard-flat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chalkboard-flat-row dd {
+  margin: 0;
+  font-weight: 700;
+}
+.chalkboard-flat-row[data-tone='ok'] dd {
+  color: #a8e6b8;
+}
+.chalkboard-flat-row[data-tone='warn'] dd {
+  color: #f6e08a;
 }

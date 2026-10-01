@@ -321,6 +321,13 @@ msgstr "{0, plural, one {Arquivo de volume associado a # capítulo} many {Arquiv
 msgid "{0, plural, one {Want # chapter} other {Want # chapters}}"
 msgstr "{0, plural, one {Quer # capítulo} many {Quer # capítulos}other {Quer # capítulos}}"
 
+#. placeholder {0}: formatNumber(progress.level.intoLevel)
+#. placeholder {1}: formatNumber(progress.level.levelSpan)
+#. placeholder {2}: progress.level.level + 1
+#: src/pages/HomePage.tsx
+msgid "{0} / {1} XP to level {2}"
+msgstr ""
+
 #. placeholder {0}: sideInterests.length
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
@@ -1906,8 +1913,8 @@ msgstr "Um trilho para cada tema menor da sua biblioteca."
 
 #: src/components/home/homeSectionDefs.ts
 #, fuzzy
-msgid "A row of figures: what is in your library, your reading progress and what is waiting to be read."
-msgstr "Um resumo de números: o que há na biblioteca, seu progresso de leitura e o que está esperando para ser lido."
+#~ msgid "A row of figures: what is in your library, your reading progress and what is waiting to be read."
+#~ msgstr "Um resumo de números: o que há na biblioteca, seu progresso de leitura e o que está esperando para ser lido."
 
 #: src/pages/ActivityPage.tsx
 #: src/pages/SeriesDetailPage.tsx
@@ -2045,6 +2052,7 @@ msgid "achievement, badge, level, xp, streak, goal, leaderboard, gamification, t
 msgstr "conquista, selo, nível, xp, sequência, objetivo, classificação, gamificação, fuso horário, timezone"
 
 #: src/components/home/ProgressCard.tsx
+#: src/pages/HomePage.tsx
 msgid "Achievements"
 msgstr "Conquistas"
 
@@ -2770,7 +2778,6 @@ msgstr "Perguntar ou sugerir"
 msgid "Assign"
 msgstr "Atribuir"
 
-#: src/api/hooks.ts
 #: src/components/discover/DiscoverGlance.tsx
 #, fuzzy
 msgid "At a glance"
@@ -3126,6 +3133,10 @@ msgstr "Adicionar esta página aos favoritos"
 #, fuzzy
 msgid "Bookmarks"
 msgstr "Favoritos"
+
+#: src/api/hooks.ts
+msgid "Bookshelf"
+msgstr ""
 
 #: src/components/NotificationsSection.tsx
 #, fuzzy
@@ -3752,6 +3763,7 @@ msgid "Chapters per page"
 msgstr "Capítulos por página"
 
 #: src/components/home/ProgressCard.tsx
+#: src/pages/HomePage.tsx
 msgid "Chapters read"
 msgstr "Capítulos lidos"
 
@@ -4767,6 +4779,7 @@ msgid "Day by day"
 msgstr "Dia a dia"
 
 #: src/components/home/ProgressCard.tsx
+#: src/pages/HomePage.tsx
 msgid "Day streak"
 msgstr "Sequência de dias"
 
@@ -7871,6 +7884,11 @@ msgstr "Vamos relembrar o que você leu."
 msgid "Level"
 msgstr "Nível"
 
+#. placeholder {0}: progress.level.level
+#: src/pages/HomePage.tsx
+msgid "Level {0}"
+msgstr ""
+
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
 msgid "Level {currentLevel}"
@@ -7907,6 +7925,7 @@ msgstr "Bibliotecas"
 #: src/components/series/SeriesHero.tsx
 #: src/components/SetupWizard.tsx
 #: src/nav.ts
+#: src/pages/HomePage.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
@@ -11291,6 +11310,7 @@ msgstr "Leitores como você também recomendaram isto"
 #: src/components/ImportListsSection.tsx
 #: src/components/series/SeriesHero.tsx
 #: src/components/ui/status.tsx
+#: src/pages/HomePage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #: src/pages/settings/registry.ts
 #: src/pages/stats/AchievementGrid.tsx
@@ -14889,6 +14909,7 @@ msgid "Time range"
 msgstr "Período"
 
 #: src/components/home/ProgressCard.tsx
+#: src/pages/HomePage.tsx
 #: src/pages/stats/sections/ReadingSection.tsx
 #, fuzzy
 msgid "Time read"
@@ -14982,6 +15003,10 @@ msgstr "Títulos com leitura parecida, correspondidos pela sensação e não por
 #, fuzzy
 msgid "To"
 msgstr "Para"
+
+#: src/pages/HomePage.tsx
+msgid "To read"
+msgstr ""
 
 #: src/pages/discover/FeedbackLab.tsx
 #: src/pages/NotificationsPage.tsx
@@ -16515,6 +16540,7 @@ msgid "Your folder is left alone. New chapters go into a folder Fōkurōru names
 msgstr ""
 
 #: src/api/customRails.ts
+#: src/pages/HomePage.tsx
 #, fuzzy
 msgid "Your library"
 msgstr "Sua biblioteca"
@@ -16560,6 +16586,10 @@ msgstr ""
 #, fuzzy
 msgid "Your progress"
 msgstr "Seu progresso"
+
+#: src/components/home/homeSectionDefs.ts
+msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the board hanging behind it."
+msgstr ""
 
 #: src/api/inbox.ts
 #, fuzzy

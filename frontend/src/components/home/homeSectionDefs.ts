@@ -31,7 +31,7 @@ export const HOME_SECTION_DEFS: SectionRegistry = {
   glance: {
     icon: IconChartBar,
     label: HOME_SECTION_LABELS.glance,
-    description: msg`A row of figures: what is in your library, your reading progress and what is waiting to be read.`,
+    description: msg`Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the board hanging behind it.`,
     panels: HOME_GLANCE_PANELS.map((key) => ({ key, label: HOME_GLANCE_PANEL_LABELS[key] })),
   },
   downloading: {

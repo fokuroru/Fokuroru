@@ -86,7 +86,6 @@ import { CoverCard } from '../components/ui/CoverCard'
 import { SeriesRow } from '../components/ui/SeriesRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { PageHeader } from '../components/ui/PageHeader'
-import { SpineShelf } from '../components/library/SpineShelf'
 import { Panel } from '../components/ui/Panel'
 import { FigureStrip } from '../components/ui/FigureStrip'
 import { TagChip } from '../components/ui/TagChip'
@@ -836,8 +835,6 @@ export default function LibraryPage() {
           ) : undefined
         }
       />
-
-      {series && series.length > 0 && !selectMode && <SpineShelf series={series} readTracking={readTracking} />}
 
       {showChrome && (
         <Panel ref={indexRef} p={0} className="library-index layer-sunken">

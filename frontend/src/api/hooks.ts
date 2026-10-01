@@ -895,7 +895,7 @@ export type HomeSectionKey = (typeof HOME_SECTIONS)[number]
  * here would be stuck in whichever language was active at that moment. Render with `useLabel()`.
  */
 export const HOME_SECTION_LABELS: Record<HomeSectionKey, MessageDescriptor> = {
-  glance: msg`At a glance`,
+  glance: msg`Bookshelf`,
   continue: msg`Continue reading`,
   downloading: msg`Downloading now`,
   recent: msg`Recently added`,

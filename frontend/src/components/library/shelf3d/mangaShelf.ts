@@ -19,6 +19,23 @@ export interface ShelfBook {
 /** A book with the edition it was dealt for this page load. */
 type Styled = ShelfBook & { style: number; look: SpineStyle }
 
+/** One line on the chalkboard: a label, the figure beside it, and a tone for the figures that judge. */
+export interface BoardFigure {
+  label: string
+  value: string
+  tone?: 'ok' | 'warn'
+}
+
+/**
+ * What is chalked on the board hung behind the books. Every string arrives already translated, so
+ * the scene knows nothing about languages.
+ */
+export interface BoardModel {
+  title: string
+  groups: { heading: string; figures: BoardFigure[] }[]
+  progress?: { heading: string; level: string; caption: string; fraction: number; figures: BoardFigure[] }
+}
+
 export interface ShelfTheme {
   wall: string
   shelf: string
@@ -70,6 +87,10 @@ interface Row {
 
 /** Height of one shelf row in world units; the camera is framed on exactly this. */
 const ROW = 420
+/** Extra wall above the books while a chalkboard hangs there. */
+const BOARD_ROOM = 200
+const BOARD_HEIGHT = 240
+const CHALK_FONT = "700 {size}px 'Comic Neue', 'Comic Sans MS', cursive"
 /** Narrower containers are drawn at this logical width and scaled down, so a phone still gets a shelf. */
 const MIN_LOGICAL_WIDTH = 640
 const DEPTH = 132
@@ -139,6 +160,11 @@ export class MangaShelf {
   private logicalWidth = 0
   private scale = 1
   private cssWidth = 0
+  /** Height of one row in world units: taller while a chalkboard needs wall above the books. */
+  private rowH = ROW
+  private board: BoardModel | null
+  private boardMaterial: T.MeshStandardMaterial | null = null
+  private boardSize = { w: 0, h: BOARD_HEIGHT }
 
   private readonly container: HTMLElement
   private books: ShelfBook[]
@@ -152,8 +178,10 @@ export class MangaShelf {
     theme: ShelfTheme,
     onOpen: (id: number) => void,
     label: (book: ShelfBook) => string,
+    board: BoardModel | null = null,
   ) {
     this.container = container
+    this.board = board
     this.books = books
     this.theme = theme
     this.onOpen = onOpen
@@ -242,6 +270,26 @@ export class MangaShelf {
   setBooks(books: ShelfBook[]) {
     this.books = books
     if (this.cssWidth) void this.layout()
+  }
+
+  /**
+   * Changes what is chalked on the board. Rewriting the figures redraws the board alone; a board
+   * appearing or going away changes the height of the wall, which relays the shelf out.
+   */
+  setBoard(board: BoardModel | null) {
+    const had = this.board !== null
+    this.board = board
+    if (!this.cssWidth) return
+    if (had !== (board !== null) || (board && !this.boardMaterial)) {
+      void this.layout()
+      return
+    }
+    if (board && this.boardMaterial) {
+      this.boardMaterial.map?.dispose()
+      this.boardMaterial.map = this.boardTexture(board)
+      this.boardMaterial.needsUpdate = true
+      this.wake()
+    }
   }
 
   setTheme(theme: ShelfTheme) {
@@ -507,6 +555,217 @@ export class MangaShelf {
     return { group, hinges }
   }
 
+
+  // ---- the chalkboard ----------------------------------------------------
+
+  /** Hung on the wall behind the books: a wooden frame on two cords, a slate, and a ledge with chalk. */
+  private addBoard(scene: T.Scene, width: number, model: BoardModel) {
+    const w = Math.max(360, Math.min(640, width - 80))
+    const h = BOARD_HEIGHT
+    this.boardSize = { w, h }
+    const cy = this.rowH - 18 - (h + 22) / 2
+    const wood = new T.MeshStandardMaterial({ color: '#6b4a2f', roughness: 0.8 })
+    const lightWood = new T.MeshStandardMaterial({ color: '#8a6a45', roughness: 0.75 })
+
+    const frame = new T.Mesh(new T.BoxGeometry(w + 22, h + 22, 12), wood)
+    frame.position.set(0, cy, -141)
+    frame.castShadow = true
+    frame.receiveShadow = true
+    scene.add(frame)
+
+    this.boardMaterial = new T.MeshStandardMaterial({ map: this.boardTexture(model), roughness: 0.95 })
+    const slate = new T.Mesh(new T.PlaneGeometry(w, h), this.boardMaterial)
+    slate.position.set(0, cy, -134.8)
+    slate.receiveShadow = true
+    scene.add(slate)
+
+    const ledgeY = cy - (h + 22) / 2 - 3
+    const ledge = new T.Mesh(new T.BoxGeometry(w + 30, 6, 20), lightWood)
+    ledge.position.set(0, ledgeY, -128)
+    ledge.castShadow = true
+    ledge.receiveShadow = true
+    scene.add(ledge)
+
+    const chalk = (x: number, length: number, color: string, turn: number) => {
+      const stick = new T.Mesh(
+        new T.CylinderGeometry(2.4, 2.4, length, 10),
+        new T.MeshStandardMaterial({ color, roughness: 1 }),
+      )
+      stick.rotation.z = Math.PI / 2
+      stick.rotation.y = turn
+      stick.position.set(x, ledgeY + 3 + 2.4, -126)
+      stick.castShadow = true
+      scene.add(stick)
+    }
+    chalk(-w / 2 + 40, 24, '#f3efe2', 0.2)
+    chalk(-w / 2 + 70, 15, '#f7a8bf', -0.35)
+    const eraser = new T.Mesh(new T.BoxGeometry(34, 8, 14), new T.MeshStandardMaterial({ color: '#2a2a2a', roughness: 1 }))
+    eraser.position.set(w / 2 - 50, ledgeY + 3 + 4, -127)
+    eraser.castShadow = true
+    scene.add(eraser)
+    const eraserBack = new T.Mesh(new T.BoxGeometry(34, 4, 14), lightWood)
+    eraserBack.position.set(w / 2 - 50, ledgeY + 3 + 10, -127)
+    scene.add(eraserBack)
+
+    // Two cords from a nail above, to the top corners of the frame.
+    const nail = new T.Vector3(0, cy + (h + 22) / 2 + 34, -145)
+    const cord = new T.MeshStandardMaterial({ color: '#cbb98a', roughness: 1 })
+    for (const sign of [-1, 1]) {
+      const corner = new T.Vector3(sign * (w / 2 - 40), cy + (h + 22) / 2, -134)
+      const length = nail.distanceTo(corner)
+      const rope = new T.Mesh(new T.CylinderGeometry(0.9, 0.9, length, 6), cord)
+      rope.position.copy(nail).add(corner).multiplyScalar(0.5)
+      rope.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), corner.clone().sub(nail).normalize())
+      scene.add(rope)
+    }
+    const head = new T.Mesh(new T.SphereGeometry(3.2, 10, 8), new T.MeshStandardMaterial({ color: '#555', metalness: 0.6, roughness: 0.4 }))
+    head.position.copy(nail)
+    scene.add(head)
+  }
+
+  private boardTexture(model: BoardModel): T.CanvasTexture {
+    const { w, h } = this.boardSize
+    return this.texture(w, h, (ctx) => this.drawBoard(ctx, w, h, model))
+  }
+
+  /** Chalk on slate: text drawn twice with a hair of offset so it reads as dust, not as print. */
+  private drawBoard(ctx: CanvasRenderingContext2D, w: number, h: number, m: BoardModel) {
+    const slate = ctx.createLinearGradient(0, 0, w, h)
+    slate.addColorStop(0, '#2f3d35')
+    slate.addColorStop(1, '#222c26')
+    ctx.fillStyle = slate
+    ctx.fillRect(0, 0, w, h)
+
+    // Old wipes and dust: fixed, so a redraw never makes the board shimmer.
+    let seed = 0x9e3779b9
+    const rnd = () => {
+      seed = (seed + 0x6d2b79f5) | 0
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+    ctx.save()
+    ctx.fillStyle = '#ffffff'
+    for (let i = 0; i < 16; i++) {
+      ctx.globalAlpha = 0.025 + rnd() * 0.035
+      ctx.beginPath()
+      ctx.ellipse(rnd() * w, rnd() * h, 40 + rnd() * 90, 8 + rnd() * 20, (rnd() - 0.5) * 0.8, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    for (let i = 0; i < 160; i++) {
+      ctx.globalAlpha = 0.04 + rnd() * 0.08
+      ctx.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 1.5, 1 + rnd() * 1.5)
+    }
+    ctx.restore()
+
+    const CREAM = '#f3efe2'
+    const colours = ['#f7a8bf', '#9ed3f5', '#f6e08a', '#a8e6b8']
+    const tones = { ok: '#a8e6b8', warn: '#f6e08a' }
+    const font = (size: number) => CHALK_FONT.replace('{size}', String(size))
+    const fit = (text: string, size: number, room: number) => {
+      ctx.font = font(size)
+      const width = ctx.measureText(text).width
+      return width > room ? Math.max(9, size * (room / width)) : size
+    }
+    const chalk = (text: string, x: number, y: number, size: number, color: string, align: CanvasTextAlign = 'left') => {
+      ctx.font = font(size)
+      ctx.textAlign = align
+      ctx.textBaseline = 'middle'
+      ctx.fillStyle = color
+      ctx.globalAlpha = 0.34
+      ctx.fillText(text, x + 0.7, y + 0.6)
+      ctx.globalAlpha = 0.92
+      ctx.fillText(text, x, y)
+      ctx.globalAlpha = 1
+    }
+    const underline = (x: number, y: number, length: number, color: string) => {
+      ctx.strokeStyle = color
+      ctx.lineCap = 'round'
+      for (const [alpha, drop] of [[0.5, 0], [0.9, 1.3]] as const) {
+        ctx.globalAlpha = alpha
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(x, y + drop)
+        ctx.quadraticCurveTo(x + length * 0.5, y + drop + (rnd() - 0.5) * 3, x + length, y + drop + (rnd() - 0.5) * 2)
+        ctx.stroke()
+      }
+      ctx.globalAlpha = 1
+    }
+    const leader = (x0: number, x1: number, y: number) => {
+      ctx.fillStyle = CREAM
+      ctx.globalAlpha = 0.3
+      for (let x = x0; x < x1; x += 6) ctx.fillRect(x, y + 6, 1.6, 1.6)
+      ctx.globalAlpha = 1
+    }
+
+    const pad = 24
+    chalk(m.title, pad, 28, fit(m.title, 28, w - pad * 2), CREAM)
+    underline(pad, 46, Math.min(w - pad * 2, 220), '#f6e08a')
+
+    const columns = m.groups.length + (m.progress ? 1 : 0)
+    if (columns === 0) return
+    const gap = 26
+    const colW = (w - pad * 2 - gap * (columns - 1)) / columns
+    const top = 72
+    const rowStep = 28
+    let col = 0
+
+    const figures = (list: BoardFigure[], x: number, first: number, step = rowStep) => {
+      list.forEach((f, i) => {
+        const y = first + i * step
+        const valueSize = fit(f.value, 23, colW * 0.4)
+        const labelSize = fit(f.label, 17, colW * 0.56)
+        chalk(f.label, x, y, labelSize, CREAM)
+        chalk(f.value, x + colW, y, valueSize, f.tone ? tones[f.tone] : CREAM, 'right')
+        ctx.font = font(labelSize)
+        const labelEnd = x + ctx.measureText(f.label).width + 6
+        ctx.font = font(valueSize)
+        leader(labelEnd, x + colW - ctx.measureText(f.value).width - 6, y)
+      })
+    }
+
+    for (const group of m.groups) {
+      const x = pad + col * (colW + gap)
+      const color = colours[col % colours.length]
+      chalk(group.heading, x, top, fit(group.heading, 19, colW), color)
+      underline(x, top + 14, Math.min(colW, 90), color)
+      figures(group.figures, x, top + 36)
+      col++
+    }
+
+    if (m.progress) {
+      const p = m.progress
+      const x = pad + col * (colW + gap)
+      const color = colours[col % colours.length]
+      chalk(p.heading, x, top, fit(p.heading, 19, colW), color)
+      underline(x, top + 14, Math.min(colW, 90), color)
+      chalk(p.level, x, top + 36, fit(p.level, 26, colW), '#f6e08a')
+      // The XP bar: a chalk outline, filled with diagonal strokes up to the fraction.
+      const barY = top + 52
+      const barH = 12
+      ctx.strokeStyle = CREAM
+      ctx.globalAlpha = 0.85
+      ctx.lineWidth = 1.6
+      ctx.strokeRect(x, barY, colW, barH)
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(x + 1, barY + 1, Math.max(0, (colW - 2) * Math.min(1, Math.max(0, p.fraction))), barH - 2)
+      ctx.clip()
+      ctx.strokeStyle = '#f6e08a'
+      ctx.lineWidth = 2
+      for (let sx = x - barH; sx < x + colW; sx += 5) {
+        ctx.beginPath()
+        ctx.moveTo(sx, barY + barH)
+        ctx.lineTo(sx + barH, barY)
+        ctx.stroke()
+      }
+      ctx.restore()
+      ctx.globalAlpha = 1
+      chalk(p.caption, x, barY + barH + 14, fit(p.caption, 13, colW), CREAM)
+      figures(p.figures.slice(0, 3), x, barY + barH + 34, 26)
+    }
+  }
+
   // ---- layout ------------------------------------------------------------
 
   private clear() {
@@ -526,6 +785,7 @@ export class MangaShelf {
     this.rows = []
     this.items = []
     this.props = []
+    this.boardMaterial = null
     this.access?.remove()
     this.access = null
   }
@@ -582,15 +842,16 @@ export class MangaShelf {
 
   private newRow(width: number): Row {
     const scene = new T.Scene()
-    const camera = new T.PerspectiveCamera((2 * Math.atan(210 / 950) * 180) / Math.PI, width / ROW, 1, 2500)
-    camera.position.set(0, 210, 950)
-    camera.lookAt(0, 210, 0)
+    const half = this.rowH / 2
+    const camera = new T.PerspectiveCamera((2 * Math.atan(half / 950) * 180) / Math.PI, width / this.rowH, 1, 2500)
+    camera.position.set(0, half, 950)
+    camera.lookAt(0, half, 0)
     scene.add(new T.HemisphereLight('#fff9ed', '#8f8170', 2.1))
     const light = new T.DirectionalLight('#fff6e4', 2.1)
     light.position.set(-width * 0.35, 650, 450)
     light.castShadow = true
     light.shadow.mapSize.set(1024, 1024)
-    Object.assign(light.shadow.camera, { left: -width, right: width, top: 600, bottom: -500, near: 1, far: 1600 })
+    Object.assign(light.shadow.camera, { left: -width, right: width, top: 600 + (this.rowH - ROW), bottom: -500, near: 1, far: 1600 })
     light.shadow.bias = -0.0004
     light.shadow.normalBias = 0.6
     scene.add(light)
@@ -598,10 +859,12 @@ export class MangaShelf {
     shelf.position.set(0, 12, -67)
     shelf.receiveShadow = true
     scene.add(shelf)
-    const wall = new T.Mesh(new T.BoxGeometry(width + 12, 400, 8), new T.MeshStandardMaterial({ color: this.theme.wall, roughness: 1 }))
-    wall.position.set(0, 217, -151)
+    const wallHeight = this.rowH - 20
+    const wall = new T.Mesh(new T.BoxGeometry(width + 12, wallHeight, 8), new T.MeshStandardMaterial({ color: this.theme.wall, roughness: 1 }))
+    wall.position.set(0, 17 + wallHeight / 2, -151)
     wall.receiveShadow = true
     scene.add(wall)
+    if (this.board) this.addBoard(scene, width, this.board)
     const row: Row = { scene, camera, physics: new ShelfPhysics(width), index: this.rows.length, shelf }
     // A heavy landing sets the plank, and everything on it, shuddering; the wall stays put.
     row.physics.onImpact = (strength) => {
@@ -626,6 +889,7 @@ export class MangaShelf {
     await this.loadCovers(this.books)
     if (generation !== this.generation || this.abort.signal.aborted) return
     this.clear()
+    this.rowH = this.board ? ROW + BOARD_ROOM : ROW
     const width = this.logicalWidth
     const row = this.newRow(width)
     for (const p of planShelf(this.books.map((b) => this.styled(b)), width, this.emptyShare)) {
@@ -638,7 +902,7 @@ export class MangaShelf {
     }
     if (this.withPlant) this.placePlant(row, width)
 
-    const rowPx = ROW * this.scale
+    const rowPx = this.rowH * this.scale
     this.renderer.setSize(this.cssWidth, this.rows.length * rowPx, false)
     const canvas = this.renderer.domElement
     canvas.style.width = `${this.cssWidth}px`
@@ -665,10 +929,10 @@ export class MangaShelf {
   /** A pointer position as a point in a row's physics world (the spine plane, y down from the top). */
   private worldPoint(e: PointerEvent, row: Row) {
     const rect = this.renderer.domElement.getBoundingClientRect()
-    const rowPx = ROW * this.scale
+    const rowPx = this.rowH * this.scale
     return {
       x: (e.clientX - rect.left) / this.scale,
-      y: (e.clientY - rect.top - row.index * rowPx) / this.scale - 40,
+      y: (e.clientY - rect.top - row.index * rowPx) / this.scale - (this.rowH - 380),
     }
   }
 
@@ -799,7 +1063,7 @@ export class MangaShelf {
 
   private hitProp(e: PointerEvent): Prop | undefined {
     const rect = this.renderer.domElement.getBoundingClientRect()
-    const rowPx = ROW * this.scale
+    const rowPx = this.rowH * this.scale
     const y = e.clientY - rect.top
     const row = this.rows[Math.floor(y / rowPx)]
     if (!row) return undefined
@@ -810,7 +1074,7 @@ export class MangaShelf {
 
   private hit(e: PointerEvent): Item | undefined {
     const rect = this.renderer.domElement.getBoundingClientRect()
-    const rowPx = ROW * this.scale
+    const rowPx = this.rowH * this.scale
     const y = e.clientY - rect.top
     const row = this.rows[Math.floor(y / rowPx)]
     if (!row) return undefined
@@ -915,7 +1179,7 @@ export class MangaShelf {
       }
       if (r.shake) pulling = true
     }
-    const rowPx = ROW * this.scale
+    const rowPx = this.rowH * this.scale
     this.renderer.setScissorTest(true)
     for (const r of this.rows) {
       const y = (this.rows.length - 1 - r.index) * rowPx

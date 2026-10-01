@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
-import { useComputedColorScheme } from '@mantine/core'
+import { useComputedColorScheme, VisuallyHidden } from '@mantine/core'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLingui } from '@lingui/react/macro'
 import '@fontsource/dela-gothic-one/latin-400.css'
@@ -13,7 +13,9 @@ import { api } from '../../api/client'
 import type { SeriesDto } from '../../api/types'
 import { seriesProgressVisual } from '../ui/status'
 import { contrast, DEFAULT_SPINE, spineInk } from '../../lib/spine'
-import type { MangaShelf, ShelfBook } from './shelf3d/mangaShelf'
+import type { BoardModel, MangaShelf, ShelfBook } from './shelf3d/mangaShelf'
+
+export type { BoardModel }
 
 const MAX_SERIES = 14
 /** Candidates handed to the 3D shelf; it shows as many as fit in three quarters of its width. */
@@ -237,24 +239,33 @@ function SpineBook({ s, book, index, count, style, height, width, fitWidth }: {
  * "Reading now" as a shelf: the series you are partway through, most recently read first. Each is
  * a short run of books (one per twenty chapters, at most five) in the colour sampled from its cover,
  * and books you have finished fade like spines left in the sun. The whole run is one target: a click
- * opens the next chapter to read, not a particular book. Renders nothing when nothing is in progress.
+ * opens the next chapter to read, not a particular book.
+ *
+ * `board` is the library and reading figures, chalked on a board hung on the wall behind the books.
+ * With a board the shelf shows even when nothing is in progress; without one it renders nothing then.
+ * Without WebGL the board becomes a plain panel under the flat spines.
  */
-export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; readTracking: boolean }) {
+export function SpineShelf({ series, readTracking, board = null }: {
+  series: SeriesDto[]
+  readTracking: boolean
+  board?: BoardModel | null
+}) {
   const { t } = useLingui()
   const navigate = useNavigate()
   const scheme = useComputedColorScheme('dark')
   // Only a failure to start WebGL (or to load its chunk) drops to the flat spines.
   const [flat, setFlat] = useState(false)
-  if (!readTracking) return null
 
   // Reading history decides, not files on disk: auto-delete removes read chapters' files, and a
   // count of read files would drop to zero and hide a series someone is halfway through.
-  const reading = series
-    .map((s) => ({ s, p: seriesProgressVisual(s, readTracking) }))
-    .filter(({ s }) => s.readingStatus === 'Reading')
-    .sort((a, b) => (b.s.lastReadAt ?? '').localeCompare(a.s.lastReadAt ?? ''))
-    .slice(0, MAX_SHELF_CANDIDATES)
-  if (reading.length === 0) return null
+  const reading = readTracking
+    ? series
+        .map((s) => ({ s, p: seriesProgressVisual(s, readTracking) }))
+        .filter(({ s }) => s.readingStatus === 'Reading')
+        .sort((a, b) => (b.s.lastReadAt ?? '').localeCompare(a.s.lastReadAt ?? ''))
+        .slice(0, MAX_SHELF_CANDIDATES)
+    : []
+  if (reading.length === 0 && !board) return null
 
   // `settle` gives the 3D shelf's pull-out animation time to play; the lookup runs alongside it.
   const goTo = (id: number, settle = 0) =>
@@ -285,14 +296,41 @@ export function SpineShelf({ series, readTracking }: { series: SeriesDto[]; read
 
   return (
     <section className="spine-shelf" aria-label={t`Reading now`}>
-      <div className="spine-shelf-label">{t`Reading now`}</div>
+      {reading.length > 0 && <div className="spine-shelf-label">{t`Reading now`}</div>}
       {flat ? (
-        <FlatShelf
-          reading={reading.slice(0, MAX_SERIES).map(({ s, p }) => ({ s, total: s.mainChapterCount || p.total || p.have }))}
-          open={open}
-        />
+        <>
+          <FlatShelf
+            reading={reading.slice(0, MAX_SERIES).map(({ s, p }) => ({ s, total: s.mainChapterCount || p.total || p.have }))}
+            open={open}
+          />
+          {board && <FlatBoard board={board} />}
+        </>
       ) : (
-        <Shelf3D books={books} dark={scheme === 'dark'} onOpen={(id) => goTo(id, 500)} onFail={() => setFlat(true)} />
+        <>
+          <Shelf3D
+            books={books}
+            board={board}
+            dark={scheme === 'dark'}
+            onOpen={(id) => goTo(id, 500)}
+            onFail={() => setFlat(true)}
+          />
+          {board && (
+            <VisuallyHidden>
+              <p>{board.title}</p>
+              {[...board.groups, ...(board.progress ? [{ heading: board.progress.heading, figures: board.progress.figures }] : [])].map((g) => (
+                <dl key={g.heading} aria-label={g.heading}>
+                  {g.figures.map((f) => (
+                    <div key={f.label}>
+                      <dt>{f.label}</dt>
+                      <dd>{f.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ))}
+              {board.progress && <p>{board.progress.level}. {board.progress.caption}</p>}
+            </VisuallyHidden>
+          )}
+        </>
       )}
     </section>
   )
@@ -307,8 +345,9 @@ const SHELF_THEMES = {
  * The 3D shelf. Three.js and Matter.js arrive in their own chunk, loaded only when there is a shelf
  * to draw, and the canvas faces are only usable in a texture once their fonts have loaded.
  */
-function Shelf3D({ books, dark, onOpen, onFail }: {
+function Shelf3D({ books, board, dark, onOpen, onFail }: {
   books: ShelfBook[]
+  board: BoardModel | null
   dark: boolean
   onOpen: (id: number) => void
   onFail: () => void
@@ -316,8 +355,8 @@ function Shelf3D({ books, dark, onOpen, onFail }: {
   const { t } = useLingui()
   const host = useRef<HTMLDivElement>(null)
   const shelf = useRef<MangaShelf | null>(null)
-  const latest = useRef({ books, dark, onOpen, onFail })
-  latest.current = { books, dark, onOpen, onFail }
+  const latest = useRef({ books, board, dark, onOpen, onFail })
+  latest.current = { books, board, dark, onOpen, onFail }
 
   useEffect(() => {
     let cancelled = false
@@ -333,13 +372,14 @@ function Shelf3D({ books, dark, onOpen, onFail }: {
       })
       .then(({ MangaShelf }) => {
         if (cancelled || !host.current) return
-        const { books: b, dark: d } = latest.current
+        const { books: b, board: bd, dark: d } = latest.current
         shelf.current = new MangaShelf(
           host.current,
           b,
           d ? SHELF_THEMES.dark : SHELF_THEMES.light,
           (id) => latest.current.onOpen(id),
           (book) => t`Continue ${book.title}`,
+          bd,
         )
       })
       .catch(() => {
@@ -360,8 +400,13 @@ function Shelf3D({ books, dark, onOpen, onFail }: {
   useEffect(() => {
     shelf.current?.setTheme(dark ? SHELF_THEMES.dark : SHELF_THEMES.light)
   }, [dark])
+  // The board is compared by its content: the page rebuilds the model on every render.
+  const boardKey = JSON.stringify(board)
+  useEffect(() => {
+    shelf.current?.setBoard(latest.current.board)
+  }, [boardKey])
 
-  return <div ref={host} className="shelf3d" />
+  return <div ref={host} className="shelf3d" data-board={board ? '' : undefined} />
 }
 
 /** The flat spines, kept for a browser that cannot start WebGL. */
@@ -404,6 +449,34 @@ function FlatShelf({ reading, open }: {
           </Link>
         )
       })}
+    </div>
+  )
+}
+
+/** The board as a plain panel, for a browser that cannot start WebGL. */
+function FlatBoard({ board }: { board: BoardModel }) {
+  const columns = [
+    ...board.groups,
+    ...(board.progress
+      ? [{ heading: board.progress.heading, figures: [{ label: board.progress.level, value: board.progress.caption }, ...board.progress.figures] }]
+      : []),
+  ]
+  return (
+    <div className="chalkboard-flat">
+      <div className="chalkboard-flat-title">{board.title}</div>
+      <div className="chalkboard-flat-columns">
+        {columns.map((g) => (
+          <dl key={g.heading}>
+            <dt className="chalkboard-flat-heading">{g.heading}</dt>
+            {g.figures.map((f) => (
+              <div key={f.label} className="chalkboard-flat-row" data-tone={('tone' in f && f.tone) || undefined}>
+                <dt>{f.label}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ))}
+      </div>
     </div>
   )
 }
