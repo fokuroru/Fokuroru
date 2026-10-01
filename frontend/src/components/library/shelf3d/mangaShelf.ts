@@ -845,8 +845,32 @@ export class MangaShelf {
     const font = (size: number) => CHALK_FONT.replace('{size}', String(size))
 
     // ---- pen: wobbly lines, each drawn twice with a hair of offset and a different weight
-    const stroke = (pts: [number, number][], color: string, lw = 2.3, wobble = 1.4) => {
-      if (pts.length < 2) return
+    /** Breaks a line into short pieces and pushes them off it by a slow, uneven drift, so a straight line comes out hand-ruled. */
+    const drift = (pts: [number, number][], wobble: number): [number, number][] => {
+      const out: [number, number][] = []
+      for (let i = 0; i < pts.length - 1; i++) {
+        const [x0, y0] = pts[i]
+        const [x1, y1] = pts[i + 1]
+        const length = Math.hypot(x1 - x0, y1 - y0)
+        const pieces = Math.max(1, Math.round(length / 7))
+        const nx = length ? -(y1 - y0) / length : 0
+        const ny = length ? (x1 - x0) / length : 0
+        const amp = Math.min(1.6, 0.35 + length * 0.018) * Math.max(0.6, wobble)
+        const phase = rnd() * 6.3
+        const wave = 0.5 + rnd() * 0.9
+        for (let k = 0; k < pieces; k++) {
+          const t = k / pieces
+          // Ends stay near where they were meant to land; the middle wanders furthest.
+          const off = (Math.sin(phase + t * length * 0.09 * wave) * 0.8 + jit(0.6)) * amp * Math.sin(Math.PI * t)
+          out.push([x0 + (x1 - x0) * t + nx * off, y0 + (y1 - y0) * t + ny * off])
+        }
+      }
+      out.push(pts[pts.length - 1])
+      return out
+    }
+    const stroke = (drawn: [number, number][], color: string, lw = 2.3, wobble = 1.4) => {
+      if (drawn.length < 2) return
+      const pts = drift(drawn, wobble)
       for (const [alpha, extra] of [[0.9, 1], [0.4, 1.6]] as const) {
         c.globalAlpha = alpha * fade
         c.strokeStyle = color
