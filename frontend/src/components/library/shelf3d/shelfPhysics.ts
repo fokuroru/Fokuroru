@@ -5,7 +5,48 @@ const { Engine, Bodies, Body, Composite, Constraint, Events, Query, Sleeping, Ve
 /** Three times Matter's default: at shelf scale the default had books drifting down like paper. */
 const GRAVITY_SCALE = 0.003
 
-export type BookBody = Matter.Body & { bookWidth: number; bookHeight: number; chalk?: boolean }
+/**
+ * A body on the shelf. The simulation is two-dimensional across the shelf face; depth is a position
+ * (`z`, towards the viewer) and a thickness (`depth`) on top of it. Two bodies only meet if their
+ * depths overlap, so a pot standing in front of a book simply passes it, and a book pulled forward
+ * stands clear of the row behind. `zTarget` is where depth is heading: it eases there, and stops
+ * short rather than push into something.
+ */
+export type BookBody = Matter.Body & {
+  bookWidth: number
+  bookHeight: number
+  chalk?: boolean
+  z: number
+  zTarget: number
+  depth: number
+}
+
+/**
+ * Where the shelf's depth begins (the wall) and the furthest forward anything's front face may reach.
+ * The plank ends at 13, and books stand with their fronts at 66, so a book can come forward a little
+ * further than it stands but never so far that it looks off the shelf.
+ */
+const SHELF_BACK = -147
+const SHELF_FRONT = 80
+
+interface DepthFilter extends Matter.ICollisionFilter {
+  z?: number
+  depth?: number
+}
+
+const depthsOverlap = (a: DepthFilter, b: DepthFilter) =>
+  a.depth === undefined || b.depth === undefined || Math.abs((a.z ?? 0) - (b.z ?? 0)) < (a.depth + b.depth) / 2
+
+// Matter reads `Detector.canCollide` afresh on every pass, so the depth rule goes in beside the
+// categories and masks. Bodies without a depth (the plank, the end walls) span all of it.
+const matterDetector = Matter.Detector as typeof Matter.Detector & { depthAware?: boolean }
+if (!matterDetector.depthAware) {
+  const canCollide = matterDetector.canCollide
+  matterDetector.canCollide = (a, b) => canCollide(a, b) && depthsOverlap(a, b)
+  matterDetector.depthAware = true
+}
+
+const zBounds = (depth: number): [number, number] => [SHELF_BACK + depth / 2 + 2, SHELF_FRONT - depth / 2]
 
 /**
  * Collision categories. Everything else keeps Matter's default (1) and so meets everything. Chalk
@@ -83,7 +124,7 @@ export class ShelfPhysics {
   }
 
   /** Adds an upright book whose bottom-left corner is at (x, y), optionally already tipped by `angle`. */
-  add(x: number, y: number, w: number, h: number, angle = 0): BookBody {
+  add(x: number, y: number, w: number, h: number, angle = 0, depth = 132): BookBody {
     const body = Bodies.rectangle(x + w / 2, y + h / 2, w, h, {
       friction: 0.55,
       frictionStatic: 0.9,
@@ -94,10 +135,53 @@ export class ShelfPhysics {
     }) as BookBody
     body.bookWidth = w
     body.bookHeight = h
+    this.setDepth(body, 0, depth)
     if (angle) Body.setAngle(body, angle)
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
     return body
+  }
+
+  /** Gives a body its depth: where it stands (clamped to the shelf) and how thick it is. */
+  setDepth(body: BookBody, z: number, depth: number) {
+    const [min, max] = zBounds(depth)
+    body.depth = depth
+    body.z = body.zTarget = Math.max(min, Math.min(max, z))
+    const filter = body.collisionFilter as DepthFilter
+    filter.z = body.z
+    filter.depth = depth
+  }
+
+  /** Pushes a body towards the viewer (positive) or back towards the wall, within the shelf. */
+  nudgeDepth(body: BookBody, dz: number) {
+    const [min, max] = zBounds(body.depth)
+    body.zTarget = Math.max(min, Math.min(max, body.zTarget + dz))
+    Sleeping.set(body, false)
+  }
+
+  private zOverlap(a: Matter.Body, b: Matter.Body) {
+    return depthsOverlap(a.collisionFilter as DepthFilter, b.collisionFilter as DepthFilter)
+  }
+
+  /** Whether moving `body` to `z` would put it into something it is now clear of. */
+  private depthBlocked(body: BookBody, z: number): boolean {
+    const was = (body.collisionFilter as DepthFilter).z
+    ;(body.collisionFilter as DepthFilter).z = z
+    const blocked = this.bodies.some(
+      (other) =>
+        other !== body &&
+        !this.zOverlapAt(body, was ?? z, other) &&
+        this.zOverlap(body, other) &&
+        Query.collides(body, [other]).length > 0,
+    )
+    ;(body.collisionFilter as DepthFilter).z = was
+    return blocked
+  }
+
+  /** Whether `body`, if it stood at `z`, would overlap `other` in depth. */
+  private zOverlapAt(body: BookBody, z: number, other: Matter.Body) {
+    const o = other.collisionFilter as DepthFilter
+    return o.depth === undefined || Math.abs(z - (o.z ?? 0)) < (body.depth + o.depth) / 2
   }
 
   /**
@@ -108,7 +192,7 @@ export class ShelfPhysics {
    * the point or rests tilted against it. The drawn leaves bend out of the way of books themselves
    * (see the renderer). Returns the body and how far its centre of mass sits above the plank.
    */
-  addPlant(x: number, potWidth: number, potHeight: number, leafSpread: number, leafHeight: number) {
+  addPlant(x: number, potWidth: number, potHeight: number, leafSpread: number, leafHeight: number, z = 0) {
     const column = leafHeight * 0.75
     const pot = Bodies.rectangle(x, this.floor - potHeight / 2, potWidth, potHeight, { density: 0.006 })
     const leaves = Bodies.trapezoid(x, this.floor - potHeight - column / 2, Math.min(leafSpread, potWidth) * 0.7, column, 0.92, { density: 0.0004 })
@@ -122,6 +206,7 @@ export class ShelfPhysics {
     }) as BookBody
     body.bookWidth = potWidth
     body.bookHeight = potHeight + column
+    this.setDepth(body, z, potWidth)
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
     return { body, centreAboveFloor: this.floor - body.position.y }
@@ -132,7 +217,7 @@ export class ShelfPhysics {
    * so a knock slides it, and light, so a book shoves it about. It ignores the end walls and the
    * overhang of the plank, which is what lets it go over the edge.
    */
-  addChalk(x: number, y: number, length: number, thickness: number, angle = 0): BookBody {
+  addChalk(x: number, y: number, length: number, thickness: number, angle = 0, z = 0): BookBody {
     const body = Bodies.rectangle(x, y, length, thickness, {
       chamfer: { radius: thickness * 0.45 },
       friction: 0.12,
@@ -146,6 +231,7 @@ export class ShelfPhysics {
     body.bookWidth = length
     body.bookHeight = thickness
     body.chalk = true
+    this.setDepth(body, z, thickness)
     if (angle) Body.setAngle(body, angle)
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
@@ -161,7 +247,7 @@ export class ShelfPhysics {
 
   /** Every body except `except`, for a renderer asking what occupies a point. */
   bodiesExcept(except: Matter.Body): Matter.Body[] {
-    return Composite.allBodies(this.engine.world).filter((b) => b !== except && !b.isStatic)
+    return Composite.allBodies(this.engine.world).filter((b) => b !== except && !b.isStatic && this.zOverlap(except, b))
   }
 
   /** Whether any of `bodies` covers a point. */
@@ -219,7 +305,7 @@ export class ShelfPhysics {
    * other body, the plank and the shelf ends included, so a cover opening into it stays out of them.
    */
   clearance(body: BookBody, side: 1 | -1, reach: number): number {
-    const others = Composite.allBodies(this.engine.world).filter((b) => b !== body)
+    const others = Composite.allBodies(this.engine.world).filter((b) => b !== body && this.zOverlap(body, b))
     const out = Vector.rotate({ x: side, y: 0 }, body.angle)
     let free = reach
     for (const along of [-0.4, 0, 0.4]) {
@@ -264,7 +350,7 @@ export class ShelfPhysics {
    * back by its pin every step, which reads as speed while it stays exactly where it is.
    */
   get still(): boolean {
-    return !this.hand && this.lastMove.distance < 0.02 && this.lastMove.turn < 0.0005
+    return !this.hand && this.lastMove.distance < 0.02 && this.lastMove.turn < 0.0005 && !this.bodies.some((b) => Math.abs(b.zTarget - b.z) > 0.05)
   }
 
   /**
@@ -298,6 +384,19 @@ export class ShelfPhysics {
         this.constraint.pointA.x = hand.start.x + Math.sin(hand.time * 3) * 1.2 * lift * hand.direction
         this.constraint.pointA.y = hand.start.y - 10 * lift + Math.sin(hand.time * 4) * 0.5 * lift
       }
+    }
+    // Depth eases towards its target, and stops where something is in the way.
+    for (const body of this.bodies) {
+      if (body.zTarget === body.z) continue
+      const gap = body.zTarget - body.z
+      const next = Math.abs(gap) < 0.05 ? body.zTarget : body.z + gap * 0.09
+      if (this.depthBlocked(body, next)) {
+        body.zTarget = body.z
+        continue
+      }
+      body.z = next
+      ;(body.collisionFilter as DepthFilter).z = next
+      Sleeping.set(body, false)
     }
     const before = this.bodies.map((body) => ({ x: body.position.x, y: body.position.y, a: body.angle }))
     Engine.update(this.engine, dt)

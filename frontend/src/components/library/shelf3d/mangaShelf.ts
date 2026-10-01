@@ -99,6 +99,8 @@ interface Row {
 const ROW = 420
 /** Extra wall above the books while a chalkboard hangs there. */
 const BOARD_ROOM = 140
+/** One step of the wheel or an arrow key when pushing something back or forward. */
+const DEPTH_STEP = 22
 const CHALK_FONT = "700 {size}px 'Comic Neue', 'Comic Sans MS', cursive"
 /** Narrower containers are drawn at this logical width and scaled down, so a phone still gets a shelf. */
 const MIN_LOGICAL_WIDTH = 640
@@ -121,6 +123,8 @@ const FLUTTER_COOLDOWN_MS = 1200
 const LEAF_LAG_MS = 55
 /** Landings softer than this (see `ShelfPhysics.onImpact`) do not shake the shelf. */
 const IMPACT_MIN = 60
+/** Share of books that stand a little off the line of the rest. */
+const SLIGHT_DEPTH_SHARE = 0.25
 /** Share of page loads that scatter some sticks of chalk on the shelf. */
 const CHALK_CHANCE = 0.35
 /** Share of page loads that put a potted plant in the shelf's empty space. */
@@ -133,7 +137,10 @@ const SHAKE_MAX = 3.5
 
 /**
  * The Reading now shelf as solid volumes: Three.js books over Matter.js bodies, one camera per shelf
- * row. Hover lifts a book, a drag guides it, a click opens it. Rendering stops whenever every book is
+ * row. Hover lifts a book, a drag guides it, a click opens it. Everything on the shelf also has a depth:
+ * with something held, the wheel (or Shift and a vertical drag) pushes it back and forward, and a
+ * focused book answers the up and down arrows. Things at different depths do not meet, so a pot can
+ * stand in front of a book, or a book be pulled out of the row. Rendering stops whenever every book is
  * asleep and nothing is held, so an idle shelf costs nothing.
  *
  * Adapted from the manga-shelf reference (Three.js and Matter.js, both MIT).
@@ -158,7 +165,7 @@ export class MangaShelf {
   /** Decided once per page load too: how many sticks of chalk, usually none. */
   private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
-  private drag: { x: number; y: number; moved: boolean; at: number } | null = null
+  private drag: { x: number; y: number; moved: boolean; at: number; lastY: number } | null = null
   private access: HTMLDivElement | null = null
   private frame = 0
   private last = 0
@@ -177,6 +184,7 @@ export class MangaShelf {
   private cssWidth = 0
   /** Height of one row in world units: taller while a chalkboard needs wall above the books. */
   private rowH = ROW
+  private readonly ray = new T.Raycaster()
   private board: BoardModel | null
   private boardMaterial: T.MeshStandardMaterial | null = null
   private wallSize = { w: 0, h: 0 }
@@ -219,8 +227,15 @@ export class MangaShelf {
         const dx = (e.clientX - this.drag.x) / this.scale
         const dy = (e.clientY - this.drag.y) / this.scale
         if (Math.hypot(dx, dy) > CLICK_SLOP) this.drag.moved = true
-        if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row))
-        if (this.heldProp) this.heldProp.row.physics.moveTo(this.worldPoint(e, this.heldProp.row))
+        const held = this.selected ?? this.heldProp
+        if (held && e.shiftKey) {
+          // Shift turns the drag into a push: down brings it towards you, up sends it back.
+          held.row.physics.nudgeDepth(held.body, ((e.clientY - this.drag.lastY) / this.scale) * 1.1)
+        } else {
+          if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row, this.selected.body.z))
+          if (this.heldProp) this.heldProp.row.physics.moveTo(this.worldPoint(e, this.heldProp.row, this.heldProp.body.z))
+        }
+        this.drag.lastY = e.clientY
         this.wake()
         return
       }
@@ -236,8 +251,8 @@ export class MangaShelf {
         const prop = this.hitProp(e)
         if (!prop || this.reduced.matches) return
         this.heldProp = prop
-        prop.row.physics.grab(prop.body, 1, this.worldPoint(e, prop.row))
-        this.drag = { x: e.clientX, y: e.clientY, moved: true, at: performance.now() }
+        prop.row.physics.grab(prop.body, 1, this.worldPoint(e, prop.row, prop.body.z))
+        this.drag = { x: e.clientX, y: e.clientY, moved: true, at: performance.now(), lastY: e.clientY }
         canvas.setPointerCapture(e.pointerId)
         e.preventDefault()
         this.wake()
@@ -247,13 +262,23 @@ export class MangaShelf {
       if (!this.reduced.matches) {
         this.selected?.row.physics.release()
         this.selected = item
-        item.row.physics.grab(item.body, 1, this.worldPoint(e, item.row))
+        item.row.physics.grab(item.body, 1, this.worldPoint(e, item.row, item.body.z))
         this.wake()
       }
-      this.drag = { x: e.clientX, y: e.clientY, moved: false, at: performance.now() }
+      this.drag = { x: e.clientX, y: e.clientY, moved: false, at: performance.now(), lastY: e.clientY }
       canvas.setPointerCapture(e.pointerId)
       e.preventDefault()
     }, options)
+    // The wheel pushes whatever is held back (up) or forward (down). Left alone when nothing is held,
+    // so the page still scrolls.
+    canvas.addEventListener('wheel', (e) => {
+      const held = this.drag ? this.selected ?? this.heldProp : null
+      if (!held) return
+      e.preventDefault()
+      held.row.physics.nudgeDepth(held.body, Math.sign(e.deltaY) * DEPTH_STEP)
+      this.drag!.moved = true
+      this.wake()
+    }, { passive: false, signal: this.abort.signal })
     canvas.addEventListener('pointerup', (e) => {
       const drag = this.drag
       const item = this.selected ?? this.hit(e)
@@ -1077,8 +1102,9 @@ export class MangaShelf {
       return
     }
     const x = from + Math.random() * (to - from)
+    // Anywhere along the plank's depth: the empty end has room for it to stand forward or back.
     const { body, centreAboveFloor } = row.physics.addPlant(
-      x, plant.potWidth, plant.potHeight, plant.leafSpread, plant.leafHeight,
+      x, plant.potWidth, plant.potHeight, plant.leafSpread, plant.leafHeight, -60 + Math.random() * 70,
     )
     // The model's origin is its base; the body's is its centre of mass.
     const model = new T.Group()
@@ -1119,7 +1145,9 @@ export class MangaShelf {
       }
       if (taken.some((t) => Math.abs(t - x) < length * 0.9)) continue
       taken.push(x)
-      const body = row.physics.addChalk(x, row.physics.floor - 30 - Math.random() * 70, length, thickness, (Math.random() - 0.5) * 1.4)
+      const body = row.physics.addChalk(
+        x, row.physics.floor - 30 - Math.random() * 70, length, thickness, (Math.random() - 0.5) * 1.4, -110 + Math.random() * 120,
+      )
       const geometry = new T.CylinderGeometry(thickness / 2, thickness / 2, length, 14)
       geometry.rotateZ(Math.PI / 2)
       const model = new T.Mesh(geometry, new T.MeshStandardMaterial({ color: colours[Math.floor(Math.random() * colours.length)], roughness: 1 }))
@@ -1194,6 +1222,10 @@ export class MangaShelf {
     const row = this.newRow(width)
     for (const p of planShelf(this.books.map((b) => this.styled(b)), width, this.emptyShare)) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
+      // Now and then a book sits a little forward or back of the rest, never by much.
+      if (Math.random() < SLIGHT_DEPTH_SHARE) {
+        row.physics.setDepth(body, (Math.random() < 0.6 ? -1 : 1) * (5 + Math.random() * 11), DEPTH)
+      }
       const { group: model, hinges } = this.model(p.book)
       row.scene.add(model)
       const item: Item = { body, model, row, book: p.book, hinges }
@@ -1219,6 +1251,13 @@ export class MangaShelf {
       button.addEventListener('focus', () => this.select(item))
       button.addEventListener('blur', () => this.select(null))
       button.addEventListener('click', () => this.pull(item))
+      // Up and down push the focused book back and forward, as the wheel does for a held one.
+      button.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+        e.preventDefault()
+        item.row.physics.nudgeDepth(item.body, e.key === 'ArrowDown' ? DEPTH_STEP : -DEPTH_STEP)
+        this.wake()
+      })
       this.access.append(button)
     }
     this.container.append(this.access)
@@ -1227,14 +1266,24 @@ export class MangaShelf {
 
   // ---- interaction and the frame loop -----------------------------------
 
-  /** A pointer position as a point in a row's physics world (the spine plane, y down from the top). */
-  private worldPoint(e: PointerEvent, row: Row) {
+  /**
+   * A pointer position as a point in a row's physics world (the spine plane, y down from the top),
+   * found on the plane `z` units towards the viewer: a thing pulled forward is nearer the camera, so
+   * the same screen point is a different place in its world.
+   */
+  private worldPoint(e: PointerEvent, row: Row, z = 0) {
     const rect = this.renderer.domElement.getBoundingClientRect()
     const rowPx = this.rowH * this.scale
-    return {
-      x: (e.clientX - rect.left) / this.scale,
-      y: (e.clientY - rect.top - row.index * rowPx) / this.scale - (this.rowH - 380),
-    }
+    row.camera.updateMatrixWorld()
+    this.ray.setFromCamera(
+      new T.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        1 - ((e.clientY - rect.top - row.index * rowPx) / rowPx) * 2,
+      ),
+      row.camera,
+    )
+    const at = this.ray.ray.intersectPlane(new T.Plane(new T.Vector3(0, 0, 1), -z), new T.Vector3())
+    return at ? { x: at.x + this.logicalWidth / 2, y: 380 - at.y } : { x: 0, y: 0 }
   }
 
   /** Clicked: the book leaves the simulation and slides out towards the viewer, then it opens. */
@@ -1379,10 +1428,10 @@ export class MangaShelf {
    * line rather than by a ray that has to land on it.
    */
   private hitStick(e: PointerEvent, row: Row): Stick | undefined {
-    const point = this.worldPoint(e, row)
     let best: Stick | undefined
     let bestDistance = 9
     for (const st of this.sticks) {
+      const point = this.worldPoint(e, row, st.body.z)
       const half = (st.body as BookBody).bookWidth / 2
       const dx = Math.cos(st.body.angle) * half
       const dy = Math.sin(st.body.angle) * half
@@ -1479,25 +1528,25 @@ export class MangaShelf {
     }
     let pulling = scrolling
     for (const i of this.items) {
-      i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, 0)
+      i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, i.body.z)
       i.model.rotation.z = -i.body.angle
       pulling = this.flutter(i) || pulling
       if (i.pulledAt !== undefined) {
         const t = Math.min(1, (performance.now() - i.pulledAt) / PULL_MS)
         const e = 1 - (1 - t) ** 3
-        i.model.position.z = e * 320
+        i.model.position.z = i.body.z + e * 320
         i.model.position.y += e * 30
         i.model.rotation.y = -e * 0.35
         pulling ||= t < 1
       }
     }
     for (const p of this.props) {
-      p.model.position.set(p.body.position.x - this.logicalWidth / 2, 380 - p.body.position.y, 0)
+      p.model.position.set(p.body.position.x - this.logicalWidth / 2, 380 - p.body.position.y, p.body.z)
       p.model.rotation.z = -p.body.angle
       pulling = this.sway(p, elapsed) || pulling
     }
     for (const st of this.sticks) {
-      st.model.position.set(st.body.position.x - this.logicalWidth / 2, 380 - st.body.position.y, 0)
+      st.model.position.set(st.body.position.x - this.logicalWidth / 2, 380 - st.body.position.y, st.body.z)
       st.model.rotation.z = -st.body.angle
     }
     // Chalk that has gone over the edge and is falling away for good.
