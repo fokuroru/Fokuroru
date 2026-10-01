@@ -38,7 +38,6 @@ export const NAV_SECTIONS: { label: MessageDescriptor; items: NavItem[] }[] = [
       { label: msg`Library`, path: '/library', icon: IconLibrary },
       { label: msg`Add series`, path: '/add', icon: IconPlus },
       { label: msg`Discover`, path: '/discover', icon: IconSparkles },
-      { label: msg`Import`, path: '/import', icon: IconFolderDown },
       // "Stats" rather than "Rewind": the page is a standing reading dashboard, and Rewind is the
       // year playback it launches. Naming the whole thing after the once-a-year part is what made
       // it read as somewhere you visit in January. /rewind still redirects here.
@@ -46,16 +45,15 @@ export const NAV_SECTIONS: { label: MessageDescriptor; items: NavItem[] }[] = [
     ],
   },
   {
-    label: msg`Automation`,
+    label: msg`System`,
     items: [
       { label: msg`Activity`, path: '/activity', icon: IconActivity },
       { label: msg`Requests`, path: '/requests', icon: IconInbox },
       { label: msg`Scrobble`, path: '/scrobble', icon: IconRefreshDot },
+      { label: msg`Import`, path: '/import', icon: IconFolderDown },
+      { label: msg`Health`, path: '/health', icon: IconHeartbeat },
+      { label: msg`Settings`, path: '/settings', icon: IconSettings },
     ],
-  },
-  {
-    label: msg`System`,
-    items: [{ label: msg`Health`, path: '/health', icon: IconHeartbeat }, { label: msg`Settings`, path: '/settings', icon: IconSettings }],
   },
 ]
 
