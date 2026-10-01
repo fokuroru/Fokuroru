@@ -312,6 +312,9 @@ export class MangaShelf {
   private figureUrls: string[] = []
   private figureUrl: string | null = null
   private readonly figureData = new Map<string, Promise<ArrayBuffer | null>>()
+  private renderedFigureUrl: string | null = null
+  private figureProp: Prop | null = null
+  private readonly spawnedBooks = new Set<number>()
   /** Decided once per page load too: how many sticks of chalk, usually none. */
   private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
@@ -333,6 +336,7 @@ export class MangaShelf {
   private generation = 0
   /** Where the canvas sat on screen last frame, and how fast it was moving, to feel the page scroll. */
   private scrollTrack: { top: number; velocity: number } | null = null
+  private lastScrollAt = -Infinity
   private logicalWidth = 0
   private scale = 1
   private cssWidth = 0
@@ -473,6 +477,7 @@ export class MangaShelf {
     }
     // Scroll events do not bubble; capturing on the document catches whichever element scrolls.
     document.addEventListener('scroll', () => {
+      this.lastScrollAt = performance.now()
       if (!this.reduced.matches) this.wake()
     }, { capture: true, passive: true, signal: this.abort.signal })
     window.addEventListener('blur', () => this.release(), options)
@@ -490,16 +495,23 @@ export class MangaShelf {
       if (document.hidden) this.release()
     }, options)
 
-    this.resizeObserver = new ResizeObserver(() => {
-      const width = Math.floor(container.clientWidth)
-      if (width > 0 && width !== this.cssWidth) {
-        this.cssWidth = width
-        this.scale = Math.min(1, width / MIN_LOGICAL_WIDTH)
-        this.logicalWidth = Math.round(width / this.scale)
-        void this.layout()
-      }
-    })
+    this.resizeObserver = new ResizeObserver(() => this.resizeViewport(Math.floor(container.clientWidth)))
     this.resizeObserver.observe(container)
+  }
+
+  private resizeViewport(width: number) {
+    if (width <= 0 || width === this.cssWidth) return
+    this.cssWidth = width
+    if (this.rows.length) {
+      this.scale = width / this.logicalWidth
+      this.sizeCanvas()
+      this.scrollTrack = null
+      this.wake()
+      return
+    }
+    this.scale = Math.min(1, width / MIN_LOGICAL_WIDTH)
+    this.logicalWidth = Math.round(width / this.scale)
+    void this.layout()
   }
 
   /** The URLs of the user's figure models. One is picked per page load and kept while it stays in the list. */
@@ -514,25 +526,25 @@ export class MangaShelf {
   }
 
   setBooks(books: ShelfBook[]) {
+    if (JSON.stringify(books) === JSON.stringify(this.books)) return
     this.books = books
     if (this.cssWidth) void this.layout()
   }
 
   /**
-   * Changes what is chalked on the board. Rewriting the figures redraws the board alone; a board
-   * appearing or going away changes the height of the wall, which relays the shelf out.
+   * Changes the wall texture without rebuilding the shelf or moving any body.
    */
   setBoard(board: BoardModel | null) {
-    const had = this.board !== null
     this.board = board
     if (!this.cssWidth) return
-    if (had !== (board !== null) || (board && !this.boardMaterial)) {
+    if (!this.rows.length) {
       void this.layout()
       return
     }
-    if (board && this.boardMaterial) {
+    if (this.boardMaterial) {
       this.boardMaterial.map?.dispose()
-      this.boardMaterial.map = this.wallTexture(this.wallSize.w, this.wallSize.h, board)
+      this.boardMaterial.map = board ? this.wallTexture(this.wallSize.w, this.wallSize.h, board) : null
+      this.boardMaterial.color.set(board ? '#ffffff' : this.theme.wall)
       this.boardMaterial.needsUpdate = true
       this.wake()
     }
@@ -540,7 +552,14 @@ export class MangaShelf {
 
   setTheme(theme: ShelfTheme) {
     this.theme = theme
-    if (this.cssWidth) void this.layout()
+    for (const row of this.rows) {
+      ;(row.shelf.material as T.MeshStandardMaterial).color.set(theme.shelf)
+      const wall = row.scene.getObjectByName('shelf-wall') as T.Mesh | undefined
+      if (wall) for (const material of wall.material as T.MeshStandardMaterial[]) {
+        if (!material.map) material.color.set(theme.wall)
+      }
+    }
+    this.wake()
   }
 
   destroy() {
@@ -1784,6 +1803,7 @@ export class MangaShelf {
     const prop: Prop = { body, model, row, centreAboveFloor, lastVx: 0, leaves: [] }
     model.traverse((n) => (n.userData.prop = prop))
     this.props.push(prop)
+    this.figureProp = prop
     return x + half
   }
 
@@ -2286,23 +2306,21 @@ export class MangaShelf {
     scene.add(shelf)
     const wallHeight = this.rowH - 20
     const wallMaterial = new T.MeshStandardMaterial({ color: this.theme.wall, roughness: 1 })
-    let faces: T.Material | T.Material[] = wallMaterial
-    if (this.board) {
-      // The whole wall is the chalkboard: its front face carries the slate and everything on it.
-      this.wallSize = { w: width + 12, h: wallHeight }
-      this.boardMaterial = new T.MeshStandardMaterial({ map: this.wallTexture(width + 12, wallHeight, this.board), roughness: 0.95 })
-      faces = [wallMaterial, wallMaterial, wallMaterial, wallMaterial, this.boardMaterial, wallMaterial]
-    }
+    this.wallSize = { w: width + 12, h: wallHeight }
+    this.boardMaterial = new T.MeshStandardMaterial({
+      map: this.board ? this.wallTexture(width + 12, wallHeight, this.board) : null,
+      color: this.board ? '#ffffff' : this.theme.wall, roughness: 0.95,
+    })
+    const faces = [wallMaterial, wallMaterial, wallMaterial, wallMaterial, this.boardMaterial, wallMaterial]
     const wall = new T.Mesh(new T.BoxGeometry(width + 12, wallHeight, 8), faces)
+    wall.name = 'shelf-wall'
     wall.position.set(0, 17 + wallHeight / 2, -151)
     wall.receiveShadow = true
     scene.add(wall)
-    if (this.board) {
-      this.addFrame(scene, width + 12, wallHeight)
-      this.addInk(scene, width + 12, wallHeight)
-    }
+    this.addFrame(scene, width + 12, wallHeight)
+    this.addInk(scene, width + 12, wallHeight)
     const row: Row = { scene, camera, physics: new ShelfPhysics(width), index: this.rows.length, shelf }
-    if (this.board) row.physics.addFrame(wallHeight)
+    row.physics.addFrame(wallHeight)
     // A heavy landing sets the plank, and everything on it, shuddering; the wall stays put.
     row.physics.onImpact = (strength) => {
       if (strength < IMPACT_MIN || this.reduced.matches) return
@@ -2325,16 +2343,41 @@ export class MangaShelf {
     const generation = ++this.generation
     await Promise.all([
       this.loadCovers(this.books),
-      this.prank && this.board ? loadPrankFont().then((ready) => { this.prankFontReady = ready }) : Promise.resolve(),
+      this.prank ? loadPrankFont().then((ready) => { this.prankFontReady = ready }) : Promise.resolve(),
     ])
     if (generation !== this.generation || this.abort.signal.aborted) return
+    if (this.rows.length) {
+      this.refreshBooks()
+      if (this.renderedFigureUrl !== this.figureUrl) {
+        const figure = this.figureRoll < this.figureChance ? await this.loadFigure() : null
+        if (generation !== this.generation || this.abort.signal.aborted) {
+          if (figure) this.disposeModel(figure)
+          return
+        }
+        if (this.figureProp) {
+          if (this.heldProp === this.figureProp) this.release()
+          this.figureProp.row.physics.remove(this.figureProp.body)
+          this.disposeModel(this.figureProp.model)
+          this.props = this.props.filter((prop) => prop !== this.figureProp)
+          this.figureProp = null
+        }
+        this.renderedFigureUrl = this.figureUrl
+        if (figure) {
+          const end = this.items.reduce((x, item) => Math.max(x, item.body.bounds.max.x), 0)
+          this.placeFigure(this.rows[0], this.logicalWidth, end, figure)
+        }
+      }
+      this.wake()
+      return
+    }
     const figure = this.figureRoll < this.figureChance ? await this.loadFigure() : null
     if (generation !== this.generation || this.abort.signal.aborted) {
       if (figure) this.disposeModel(figure)
       return
     }
     this.clear()
-    this.rowH = this.board ? ROW + BOARD_ROOM : ROW
+    this.rowH = ROW + BOARD_ROOM
+    this.renderedFigureUrl = this.figureUrl
     const width = this.logicalWidth
     const row = this.newRow(width)
     if (this.overhang === null) {
@@ -2377,11 +2420,13 @@ export class MangaShelf {
       const item: Item = { body, model, row, book: p.book, hinges }
       model.traverse((n) => (n.userData.item = item))
       this.items.push(item)
+      this.spawnedBooks.add(item.book.id)
     }
+    for (const book of this.books) this.spawnedBooks.add(book.id)
     // The chalk is thrown in once the books have had a moment on screen, and only once there are books to
     // put it beside: against an empty shelf it would land where the books are about to go.
     const extras = () => {
-      if (generation !== this.generation || this.abort.signal.aborted) return
+      if (!this.rows.includes(row) || this.abort.signal.aborted) return
       this.placeChalk(row, width)
       this.wake()
     }
@@ -2393,6 +2438,16 @@ export class MangaShelf {
       }
     }
 
+    this.sizeCanvas()
+
+    this.access = document.createElement('div')
+    this.access.className = 'shelf3d-access'
+    for (const item of this.items) this.addBookButton(item)
+    this.container.append(this.access)
+    this.wake()
+  }
+
+  private sizeCanvas() {
     const rowPx = this.rowH * this.scale
     this.renderer.setSize(this.cssWidth, this.rows.length * rowPx, false)
     const canvas = this.renderer.domElement
@@ -2401,10 +2456,9 @@ export class MangaShelf {
     // The placeholder height only held the space while this loaded; now the canvas says how tall it is, and nothing more is kept under it.
     this.container.style.minHeight = `${this.rows.length * rowPx}px`
 
-    // Keyboard and screen readers get real buttons; focusing one lifts its book, Enter opens it.
-    this.access = document.createElement('div')
-    this.access.className = 'shelf3d-access'
-    for (const item of this.items) {
+  }
+
+  private addBookButton(item: Item) {
       const button = document.createElement('button')
       item.button = button
       button.type = 'button'
@@ -2419,10 +2473,58 @@ export class MangaShelf {
         item.row.physics.nudgeDepth(item.body, e.key === 'ArrowDown' ? DEPTH_STEP : -DEPTH_STEP)
         this.wake()
       })
-      this.access.append(button)
+      this.access?.append(button)
+  }
+
+  private refreshBooks() {
+    const incoming = new Map(this.books.map((book) => [book.id, book]))
+    for (const item of [...this.items]) {
+      const book = incoming.get(item.book.id)
+      if (!book) {
+        if (this.selected === item) this.release()
+        item.row.physics.remove(item.body)
+        this.disposeModel(item.model)
+        item.button?.remove()
+        this.items = this.items.filter((other) => other !== item)
+        continue
+      }
+      if (book.title === item.book.title && book.author === item.book.author
+        && book.number === item.book.number && book.coverUrl === item.book.coverUrl) continue
+      const updated = { ...item.book, title: book.title, author: book.author, number: book.number, coverUrl: book.coverUrl }
+      if (book.coverUrl !== item.book.coverUrl) updated.look = this.styled(book).look
+      const { group, hinges } = this.model(updated)
+      group.position.copy(item.model.position)
+      group.quaternion.copy(item.model.quaternion)
+      this.disposeModel(item.model)
+      item.model = group
+      item.hinges = hinges
+      item.book = updated
+      group.traverse((node) => (node.userData.item = item))
+      item.row.scene.add(group)
+      if (item.button) item.button.textContent = this.label(updated)
     }
-    this.container.append(this.access)
-    this.wake()
+    for (const id of this.spawnedBooks) if (!incoming.has(id)) this.spawnedBooks.delete(id)
+    const additions = this.books.filter((book) => !this.spawnedBooks.has(book.id))
+    if (!additions.length) return
+    const plan = planShelf(this.books.map((book) => this.styled(book)), this.logicalWidth, this.emptyShare)
+    const row = this.rows[0]
+    for (const placement of plan) {
+      if (this.spawnedBooks.has(placement.book.id)) continue
+      const { book, x, y, angle } = placement
+      const body = row.physics.add(x, y, book.width, book.height, angle, book.depth)
+      const { group: model, hinges } = this.model(book)
+      const item: Item = { body, model, row, book, hinges }
+      model.traverse((node) => (node.userData.item = item))
+      row.scene.add(model)
+      this.items.push(item)
+      this.spawnedBooks.add(book.id)
+      this.addBookButton(item)
+    }
+    for (const book of additions) this.spawnedBooks.add(book.id)
+    if (this.items.length && !this.extrasSeen) {
+      this.extrasSeen = true
+      this.placeChalk(row, this.logicalWidth)
+    }
   }
 
   // ---- interaction and the frame loop -----------------------------------
@@ -2677,6 +2779,11 @@ export class MangaShelf {
    * flick that starts or stops sharply jolts the books. Returns true while the shelf is still moving.
    */
   private feelScroll(elapsedMs: number): boolean {
+    if (performance.now() - this.lastScrollAt > 250) {
+      this.scrollTrack = null
+      for (const row of this.rows) row.physics.shelfAcceleration = { x: 0, y: 0 }
+      return false
+    }
     const top = this.container.getBoundingClientRect().top / this.scale
     const track = this.scrollTrack
     let accel = 0

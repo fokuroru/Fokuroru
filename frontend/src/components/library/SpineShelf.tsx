@@ -408,7 +408,7 @@ function Shelf3D({ books, board, figures, figureChance, figureScale, dark, onOpe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const key = books.map((b) => `${b.id}:${b.number}`).join('|')
+  const key = JSON.stringify(books)
   useEffect(() => {
     shelf.current?.setBooks(latest.current.books)
   }, [key])
