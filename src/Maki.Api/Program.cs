@@ -111,6 +111,7 @@ try
         options.UseSqlite($"Data Source={paths.DatabasePath}"));
 
     builder.Services.AddScoped<BackupService>();
+    builder.Services.AddScoped<ShelfFigureStore>();
 
     // MangaBaka: uncached requests are limited to 30/min (search) and 120/min (lookup).
     // Replenish smoothly (1 token / 2 s = 30/min) instead of in per-minute chunks, and

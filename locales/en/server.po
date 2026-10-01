@@ -1590,6 +1590,30 @@ msgstr "This file is not a readable Fōkurōru backup. The zip or its manifest i
 msgid "error.system.noFileUploaded"
 msgstr "No file uploaded."
 
+#: src/Maki.Api/Controllers/ShelfFiguresController.cs
+msgid "error.figures.noFile"
+msgstr "No file uploaded."
+
+#: src/Maki.Api/Controllers/ShelfFiguresController.cs, src/Maki.Api/Services/ShelfFigureStore.cs
+msgid "error.figures.tooLarge"
+msgstr "That file is too large. Figures can be up to {max} MB."
+
+#: src/Maki.Api/Services/ShelfFigureStore.cs
+msgid "error.figures.tooMany"
+msgstr "You have reached the limit of {max} figures. Remove one to add another."
+
+#: src/Maki.Api/Services/GlbInspector.cs
+msgid "error.figures.notGlb"
+msgstr "That is not a valid GLB file."
+
+#: src/Maki.Api/Services/GlbInspector.cs
+msgid "error.figures.unsupported"
+msgstr "That model uses compression the shelf cannot read. Export it again without Draco or Meshopt compression."
+
+#: src/Maki.Api/Services/GlbInspector.cs
+msgid "error.figures.external"
+msgstr "That model points to files outside itself. Export it as a single GLB with its textures embedded."
+
 #: src/Maki.Api/Services/BackupService.cs
 msgid "error.system.backupInProgress"
 msgstr "Another backup is being created right now. Try again in a moment."
