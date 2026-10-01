@@ -4330,3 +4330,66 @@ export function useTestNotification() {
     meta: { silent: true },
   })
 }
+
+
+export interface ShelfFigure {
+  id: string
+  name: string
+  size: number
+  addedAt: string
+  /** Where the GLB is served, same origin and behind the session cookie. */
+  url: string
+}
+
+export interface ShelfFigureList {
+  maxCount: number
+  maxMegabytes: number
+  figures: ShelfFigure[]
+}
+
+/** The GLB figures the signed-in user has added for their Home shelf. */
+export function useShelfFigures() {
+  return useQuery({
+    queryKey: ['shelf-figures'],
+    queryFn: () => api<ShelfFigureList>('/shelf-figures'),
+    staleTime: 60_000,
+  })
+}
+
+export function useUploadShelfFigure() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const init = await getInitialize()
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch(`${init.apiRoot}/shelf-figures`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        // Only the antiforgery token: a JSON Content-Type would stop the browser writing the multipart boundary.
+        headers: xsrfHeader(),
+        body: form,
+      })
+      if (!res.ok) {
+        let message = ''
+        try {
+          message = ((await res.json()) as { error?: string }).error ?? ''
+        } catch {
+          // Not JSON: fall through to the generic message.
+        }
+        const status = res.status
+        throw new Error(message || t`Upload failed: ${status}`)
+      }
+      return (await res.json()) as ShelfFigure
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['shelf-figures'] }),
+  })
+}
+
+export function useDeleteShelfFigure() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api<void>(`/shelf-figures/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['shelf-figures'] }),
+  })
+}

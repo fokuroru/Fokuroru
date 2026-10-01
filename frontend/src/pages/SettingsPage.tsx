@@ -15,6 +15,7 @@ import {
   Checkbox,
   Code,
   FileButton,
+  Divider,
   Group,
   Modal,
   MultiSelect,
@@ -79,6 +80,9 @@ import {
   useRestoreBackup,
   useSaveBackupSettings,
   useUploadRestore,
+  useShelfFigures,
+  useUploadShelfFigure,
+  useDeleteShelfFigure,
   downloadBackup,
   useCompleteSetup,
   useConnectionSettings,
@@ -2474,6 +2478,66 @@ function SeriesPageSection() {
  * Whether Home exists at all, and the way into the page layout editors. The sections themselves are
  * arranged on Home and Discover, in their edit mode, rather than from a list here.
  */
+/** The user's own GLB figures, which stand on the Home shelf now and then. */
+function ShelfFiguresBlock() {
+  const { t } = useLingui()
+  const { data } = useShelfFigures()
+  const upload = useUploadShelfFigure()
+  const remove = useDeleteShelfFigure()
+  const figures = data?.figures ?? []
+  const maxCount = data?.maxCount ?? 12
+  const maxMegabytes = data?.maxMegabytes ?? 30
+
+  return (
+    <div>
+      <Text fw={500} size="sm" mb={4}>
+        <Trans>Shelf figures</Trans>
+      </Text>
+      <SettingsHelp mb="xs">
+        <Trans>
+          Add your own 3D models (.glb) and one of them sometimes stands on the Home shelf, on a small
+          base. It can be picked up and knocked over like the books. Keep them light: a model under
+          about 2 MB and 50,000 triangles loads quickly. Up to {maxCount} models of {maxMegabytes} MB
+          each. Models you add are only seen by you.
+        </Trans>
+      </SettingsHelp>
+      {figures.length > 0 && (
+        <Stack gap={6} mb="sm">
+          {figures.map((f) => (
+            <Group key={f.id} justify="space-between" wrap="nowrap">
+              <Text size="sm" truncate>
+                {f.name} <Text span size="xs" c="dimmed">{formatBytes(f.size)}</Text>
+              </Text>
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                aria-label={t`Remove ${f.name}`}
+                loading={remove.isPending && remove.variables === f.id}
+                onClick={() => remove.mutate(f.id)}
+              >
+                <IconTrash size={16} />
+              </ActionIcon>
+            </Group>
+          ))}
+        </Stack>
+      )}
+      <FileButton onChange={(f) => f && upload.mutate(f)} accept=".glb,model/gltf-binary">
+        {(props) => (
+          <Button
+            {...props}
+            variant="default"
+            leftSection={<IconUpload size={16} />}
+            loading={upload.isPending}
+            disabled={figures.length >= maxCount}
+          >
+            <Trans>Add a model</Trans>
+          </Button>
+        )}
+      </FileButton>
+    </div>
+  )
+}
+
 function HomeSectionsSection() {
   const { t } = useLingui()
   const { data: ui } = useUiSettings()
@@ -2528,6 +2592,9 @@ function HomeSectionsSection() {
           </Button>
         )}
       </Group>
+
+      <Divider my="md" />
+      <ShelfFiguresBlock />
     </SettingsSection>
   )
 }

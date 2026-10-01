@@ -2120,6 +2120,10 @@ msgstr "{chapterLanguageToken}을(를) 설정의 챕터 형식에 추가하여 �
 msgid "Add {title} to library"
 msgstr "라이브러리에 {title} 추가"
 
+#: src/pages/SettingsPage.tsx
+msgid "Add a model"
+msgstr ""
+
 #: src/components/layout/PageLayoutEditor.tsx
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
@@ -2213,6 +2217,10 @@ msgstr "읽지 않은 시리즈를 읽을 예정으로 추가"
 #, fuzzy
 msgid "Add user"
 msgstr "사용자 추가"
+
+#: src/pages/SettingsPage.tsx
+msgid "Add your own 3D models (.glb) and one of them sometimes stands on the Home shelf, on a small base. It can be picked up and knocked over like the books. Keep them light: a model under about 2 MB and 50,000 triangles loads quickly. Up to {maxCount} models of {maxMegabytes} MB each. Models you add are only seen by you."
+msgstr ""
 
 #: src/pages/stats/ActivityFeed.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
@@ -11719,6 +11727,11 @@ msgstr "파일 다시 연결은 각 권 파일을 읽어 안에 든 챕터를 �
 msgid "Remove"
 msgstr "제거"
 
+#. placeholder {0}: f.name
+#: src/pages/SettingsPage.tsx
+msgid "Remove {0}"
+msgstr ""
+
 #: src/components/TagBrowserModal.tsx
 #, fuzzy
 msgid "Remove {label}"
@@ -13360,6 +13373,10 @@ msgstr "읽은 시리즈의 비율입니다."
 
 #: src/api/upgrades.ts
 msgid "Shares a file with another chapter"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Shelf figures"
 msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx

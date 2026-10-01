@@ -1763,6 +1763,10 @@ msgstr "Add {chapterLanguageToken} to the chapter format in Settings to tell the
 msgid "Add {title} to library"
 msgstr "Add {title} to library"
 
+#: src/pages/SettingsPage.tsx
+msgid "Add a model"
+msgstr "Add a model"
+
 #: src/components/layout/PageLayoutEditor.tsx
 #: src/components/rails/CustomRailSection.tsx
 msgid "Add a rail"
@@ -1842,6 +1846,10 @@ msgstr "Add unread series as plan-to-read"
 #: src/components/settings/UsersSection.tsx
 msgid "Add user"
 msgstr "Add user"
+
+#: src/pages/SettingsPage.tsx
+msgid "Add your own 3D models (.glb) and one of them sometimes stands on the Home shelf, on a small base. It can be picked up and knocked over like the books. Keep them light: a model under about 2 MB and 50,000 triangles loads quickly. Up to {maxCount} models of {maxMegabytes} MB each. Models you add are only seen by you."
+msgstr "Add your own 3D models (.glb) and one of them sometimes stands on the Home shelf, on a small base. It can be picked up and knocked over like the books. Keep them light: a model under about 2 MB and 50,000 triangles loads quickly. Up to {maxCount} models of {maxMegabytes} MB each. Models you add are only seen by you."
 
 #: src/pages/stats/ActivityFeed.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
@@ -9799,6 +9807,11 @@ msgstr "Relink reads each volume file to find the chapters inside it. Anything i
 msgid "Remove"
 msgstr "Remove"
 
+#. placeholder {0}: f.name
+#: src/pages/SettingsPage.tsx
+msgid "Remove {0}"
+msgstr "Remove {0}"
+
 #: src/components/TagBrowserModal.tsx
 msgid "Remove {label}"
 msgstr "Remove {label}"
@@ -11175,6 +11188,10 @@ msgstr "Share of the series you've read."
 #: src/api/upgrades.ts
 msgid "Shares a file with another chapter"
 msgstr "Shares a file with another chapter"
+
+#: src/pages/SettingsPage.tsx
+msgid "Shelf figures"
+msgstr "Shelf figures"
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Shift + Space"

@@ -10,6 +10,7 @@ import '@fontsource/rubik-mono-one/latin-400.css'
 import '@fontsource/mochiy-pop-one/latin-400.css'
 import '@fontsource/potta-one/latin-400.css'
 import { api } from '../../api/client'
+import { useShelfFigures } from '../../api/hooks'
 import type { SeriesDto } from '../../api/types'
 import { seriesProgressVisual } from '../ui/status'
 import { contrast, DEFAULT_SPINE, spineInk } from '../../lib/spine'
@@ -254,6 +255,8 @@ export function SpineShelf({ series, readTracking, board = null }: {
   const { t } = useLingui()
   const navigate = useNavigate()
   const scheme = useComputedColorScheme('dark')
+  const { data: figureList } = useShelfFigures()
+  const figureUrls = (figureList?.figures ?? []).map((f) => f.url)
   // Only a failure to start WebGL (or to load its chunk) drops to the flat spines.
   const [flat, setFlat] = useState(false)
 
@@ -310,6 +313,7 @@ export function SpineShelf({ series, readTracking, board = null }: {
           <Shelf3D
             books={books}
             board={board}
+            figures={figureUrls}
             dark={scheme === 'dark'}
             onOpen={(id) => goTo(id, 500)}
             onFail={() => setFlat(true)}
@@ -344,9 +348,11 @@ const SHELF_THEMES = {
  * The 3D shelf. Three.js and Matter.js arrive in their own chunk, loaded only when there is a shelf
  * to draw, and the canvas faces are only usable in a texture once their fonts have loaded.
  */
-function Shelf3D({ books, board, dark, onOpen, onFail }: {
+function Shelf3D({ books, board, figures, dark, onOpen, onFail }: {
   books: ShelfBook[]
   board: BoardModel | null
+  /** URLs of the figure models the user has added. */
+  figures: string[]
   dark: boolean
   onOpen: (id: number) => void
   onFail: () => void
@@ -354,8 +360,8 @@ function Shelf3D({ books, board, dark, onOpen, onFail }: {
   const { t } = useLingui()
   const host = useRef<HTMLDivElement>(null)
   const shelf = useRef<MangaShelf | null>(null)
-  const latest = useRef({ books, board, dark, onOpen, onFail })
-  latest.current = { books, board, dark, onOpen, onFail }
+  const latest = useRef({ books, board, figures, dark, onOpen, onFail })
+  latest.current = { books, board, figures, dark, onOpen, onFail }
 
   useEffect(() => {
     let cancelled = false
@@ -379,6 +385,7 @@ function Shelf3D({ books, board, dark, onOpen, onFail }: {
           (id) => latest.current.onOpen(id),
           (book) => t`Continue ${book.title}`,
           bd,
+          latest.current.figures,
         )
       })
       .catch(() => {
@@ -404,6 +411,11 @@ function Shelf3D({ books, board, dark, onOpen, onFail }: {
   useEffect(() => {
     shelf.current?.setBoard(latest.current.board)
   }, [boardKey])
+
+  const figuresKey = figures.join('|')
+  useEffect(() => {
+    shelf.current?.setFigures(latest.current.figures)
+  }, [figuresKey])
 
   return <div ref={host} className="shelf3d" data-board={board ? '' : undefined} />
 }

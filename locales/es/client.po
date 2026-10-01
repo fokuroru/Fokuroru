@@ -2120,6 +2120,10 @@ msgstr "Añade {chapterLanguageToken} al formato del capítulo en Ajustes para d
 msgid "Add {title} to library"
 msgstr "Añadir {title} a la biblioteca"
 
+#: src/pages/SettingsPage.tsx
+msgid "Add a model"
+msgstr ""
+
 #: src/components/layout/PageLayoutEditor.tsx
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
@@ -2213,6 +2217,10 @@ msgstr "Añadir series no leídas como pendientes de lectura"
 #, fuzzy
 msgid "Add user"
 msgstr "Añadir usuario"
+
+#: src/pages/SettingsPage.tsx
+msgid "Add your own 3D models (.glb) and one of them sometimes stands on the Home shelf, on a small base. It can be picked up and knocked over like the books. Keep them light: a model under about 2 MB and 50,000 triangles loads quickly. Up to {maxCount} models of {maxMegabytes} MB each. Models you add are only seen by you."
+msgstr ""
 
 #: src/pages/stats/ActivityFeed.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
@@ -11719,6 +11727,11 @@ msgstr "Al volver a vincular, se lee cada archivo de tomo para encontrar los cap
 msgid "Remove"
 msgstr "Eliminar"
 
+#. placeholder {0}: f.name
+#: src/pages/SettingsPage.tsx
+msgid "Remove {0}"
+msgstr ""
+
 #: src/components/TagBrowserModal.tsx
 #, fuzzy
 msgid "Remove {label}"
@@ -13360,6 +13373,10 @@ msgstr "Parte de las series que has leído."
 
 #: src/api/upgrades.ts
 msgid "Shares a file with another chapter"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Shelf figures"
 msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx

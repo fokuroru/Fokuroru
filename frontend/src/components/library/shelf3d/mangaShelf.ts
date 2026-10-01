@@ -163,9 +163,8 @@ const S_DOODLE_SHARE = 0.05
 const CHALK_CHANCE = 0.35
 /** Share of page loads that put a potted plant in the shelf's empty space. */
 const PLANT_CHANCE = 0.03
-/** A collectable figure on its own base, from a GLB kept out of the repository. Absent file, no figure. */
-const FIGURE_CHANCE = 0.25
-const FIGURE_URL = '/figures/figure.glb'
+/** How often a figure stands on the shelf, when the user has added any GLB models in Settings. */
+const FIGURE_CHANCE = 0.5
 const FIGURE_HEIGHT = 200
 const FIGURE_BASE_RADIUS = 38
 /** How strongly page scrolling is felt on the shelf, and the most it can jolt, in multiples of gravity. */
@@ -205,7 +204,10 @@ export class MangaShelf {
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
   private readonly withFigure = Math.random() < FIGURE_CHANCE
-  private figureData: Promise<ArrayBuffer | null> | null = null
+  /** The user's figure models, and the one this page load stands on the shelf. */
+  private figureUrls: string[] = []
+  private figureUrl: string | null = null
+  private readonly figureData = new Map<string, Promise<ArrayBuffer | null>>()
   /** Decided once per page load too: how many sticks of chalk, usually none. */
   private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
@@ -255,8 +257,10 @@ export class MangaShelf {
     onOpen: (id: number) => void,
     label: (book: ShelfBook) => string,
     board: BoardModel | null = null,
+    figures: string[] = [],
   ) {
     this.container = container
+    this.setFigures(figures)
     this.board = board
     this.books = books
     this.theme = theme
@@ -373,6 +377,17 @@ export class MangaShelf {
       }
     })
     this.resizeObserver.observe(container)
+  }
+
+  /** The URLs of the user's figure models. One is picked per page load and kept while it stays in the list. */
+  setFigures(urls: string[]) {
+    if (urls.length === this.figureUrls.length && urls.every((u, i) => u === this.figureUrls[i])) return
+    this.figureUrls = urls
+    const was = this.figureUrl
+    if (!this.figureUrl || !urls.includes(this.figureUrl)) {
+      this.figureUrl = urls.length > 0 ? urls[Math.floor(Math.random() * urls.length)] : null
+    }
+    if (this.cssWidth && (this.figureUrl !== was)) void this.layout()
   }
 
   setBooks(books: ShelfBook[]) {
@@ -1474,10 +1489,14 @@ export class MangaShelf {
     this.props.push(prop)
   }
 
-  /** Fetches the figure's GLB once, and parses a fresh copy per layout, since a layout disposes what it drew. */
+  /** Fetches the chosen figure's GLB once, and parses a fresh copy per layout, since a layout disposes what it drew. */
   private async loadFigure(): Promise<T.Object3D | null> {
-    this.figureData ??= fetch(FIGURE_URL).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null)
-    const data = await this.figureData
+    const url = this.figureUrl
+    if (!url) return null
+    if (!this.figureData.has(url)) {
+      this.figureData.set(url, fetch(url).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null))
+    }
+    const data = await this.figureData.get(url)!
     if (!data) return null
     try {
       return (await new GLTFLoader().parseAsync(data.slice(0), '')).scene
