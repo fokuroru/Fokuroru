@@ -1,4 +1,5 @@
-import { ActionIcon, Group, Tooltip } from '@mantine/core'
+import { ActionIcon, Button, Group, Tooltip } from '@mantine/core'
+import { IconExternalLink } from '@tabler/icons-react'
 import type { MouseEvent } from 'react'
 import { useLingui } from '@lingui/react/macro'
 import type { MetadataLink } from '../api/types'
@@ -68,6 +69,41 @@ export function MetadataLinks({
               <MetadataSiteIcon site={link.site} monogram={info.short} size={compact ? 12 : 14} />
             </ActionIcon>
           </Tooltip>
+        )
+      })}
+    </Group>
+  )
+}
+
+/** Sites that can be searched by title, for finding a series somewhere that has no link stored for it. */
+const SEARCH_SITES: { key: string; label: string; url: (query: string) => string }[] = [
+  { key: 'comix', label: 'Comix', url: (q) => `https://comix.to/browse?q=${q}&sort=relevance%3Adesc` },
+  { key: 'mangadot', label: 'MangaDot', url: (q) => `https://mangadot.net/search?search=${q}` },
+]
+
+/** One button per site, each opening that site's search for the title in a new tab. */
+export function SearchOnLinks({ title }: { title: string }) {
+  const { t } = useLingui()
+  const query = encodeURIComponent(title)
+  return (
+    <Group gap="xs" wrap="wrap">
+      {SEARCH_SITES.map((site) => {
+        const { label } = site
+        return (
+          <Button
+            key={site.key}
+            component="a"
+            href={site.url(query)}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="compact-sm"
+            variant="light"
+            color="gray"
+            rightSection={<IconExternalLink size={13} />}
+            aria-label={t`Search for this series on ${label}`}
+          >
+            {label}
+          </Button>
         )
       })}
     </Group>

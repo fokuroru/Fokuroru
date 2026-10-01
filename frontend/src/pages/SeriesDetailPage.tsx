@@ -128,7 +128,7 @@ import { usePageLabel } from '../lib/navHistory'
 import { AnimeCoverageBar } from '../components/AnimeCoverageBar'
 import { LinkChaptersModal } from '../components/LinkChaptersModal'
 import { RelinkFilesModal } from '../components/RelinkFilesModal'
-import { MetadataLinks } from '../components/MetadataLinks'
+import { MetadataLinks, SearchOnLinks } from '../components/MetadataLinks'
 import { RelatedSeriesSection } from '../components/RelatedSeriesSection'
 import { TagBuckets } from '../components/TagBuckets'
 import { SimilarSeriesSection } from '../components/SimilarSeriesSection'
@@ -1898,6 +1898,13 @@ export default function SeriesDetailPage() {
                         </Group>
                       </div>
                   )}
+                  <div>
+                    <Divider mb="sm" color="var(--hairline)" />
+                    <Title order={4} fz={14} mb={10}>
+                      <Trans>Search on</Trans>
+                    </Title>
+                    <SearchOnLinks title={series.title} />
+                  </div>
                 </Stack>
               </Panel>
 
@@ -2831,6 +2838,18 @@ export default function SeriesDetailPage() {
                                               </Badge>
                                             </Tooltip>
                                         )}
+                                        {read && rowProgress?.deleteAt && (
+                                            <Tooltip label={t`Its file is deleted automatically some time after it is read`} withArrow>
+                                              <Badge size="sm" color="gray" variant="light" leftSection={<IconTrash size={12} />} className="tnum">
+                                                {(() => {
+                                                  const left = Math.ceil((new Date(rowProgress.deleteAt).getTime() - Date.now()) / 86_400_000)
+                                                  return left <= 0
+                                                      ? t`Deleting soon`
+                                                      : plural(left, { one: 'Deleting in # day', other: 'Deleting in # days' })
+                                                })()}
+                                              </Badge>
+                                            </Tooltip>
+                                        )}
                                         {/* Shown alongside Read when a finished chapter is being re-read. */}
                                         {inProgress && (
                                             <Badge size="sm" color="var(--info)" variant="light" className="tnum">
@@ -2847,18 +2866,6 @@ export default function SeriesDetailPage() {
                                     </Table.Td>
                                     <Table.Td onClick={(e) => e.stopPropagation()}>
                                       <Group gap={2} wrap="nowrap" justify="flex-end">
-                                        {read && rowProgress?.deleteAt && (
-                                            <Tooltip label={t`Its file is deleted automatically some time after it is read`} withArrow>
-                                              <Badge size="sm" color="gray" variant="light" leftSection={<IconTrash size={12} />} className="tnum">
-                                                {(() => {
-                                                  const left = Math.ceil((new Date(rowProgress.deleteAt).getTime() - Date.now()) / 86_400_000)
-                                                  return left <= 0
-                                                      ? t`Deleting soon`
-                                                      : plural(left, { one: 'Deleting in # day', other: 'Deleting in # days' })
-                                                })()}
-                                              </Badge>
-                                            </Tooltip>
-                                        )}
                                         {c.hasFile && (
                                             <>
                                               <Tooltip label={read ? t`Mark unread` : t`Mark read`} withArrow>
@@ -2871,13 +2878,6 @@ export default function SeriesDetailPage() {
                                                   {!read ? <IconEye size={17} /> : <IconEyeOff size={17} />}
                                                 </ActionIcon>
                                               </Tooltip>
-                                              <Tooltip label={t`Read`} withArrow>
-                                                <ActionIcon
-                                                    component={Link}
-                                                    to={`/read/${c.id}`}
-                                                    variant="subtle"
-                                                    color="brand"
-                                                    aria-label={t`Read ${chapterLbl}`}
                                               {chapterNumber !== null && previousUnread(c).length > 0 && (
                                                 <Tooltip label={t`Mark previous chapters as read`} withArrow>
                                                   <ActionIcon
@@ -2890,6 +2890,13 @@ export default function SeriesDetailPage() {
                                                   </ActionIcon>
                                                 </Tooltip>
                                               )}
+                                              <Tooltip label={t`Read`} withArrow>
+                                                <ActionIcon
+                                                    component={Link}
+                                                    to={`/read/${c.id}`}
+                                                    variant="subtle"
+                                                    color="brand"
+                                                    aria-label={t`Read ${chapterLbl}`}
                                                 >
                                                   <IconBook size={17} />
                                                 </ActionIcon>
