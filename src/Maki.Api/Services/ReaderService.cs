@@ -611,10 +611,11 @@ public class ReaderService(
     /// Kavita still hears about it: one push per series, for the highest chapter marked.
     /// <para>
     /// Page counts come from the file's measured count when the file backs only this chapter, and
-    /// from the archive slice otherwise. A chapter with neither is skipped, like the reader would.
+    /// from the archive slice otherwise. A chapter with neither is skipped unless marking it
+    /// unwanted too; that explicit action includes missing chapters without inventing page counts.
     /// </para>
     /// </summary>
-    public async Task<int> MarkReadAsync(IReadOnlyList<int> chapterIds, CancellationToken ct)
+    public async Task<int> MarkReadAsync(IReadOnlyList<int> chapterIds, CancellationToken ct, bool markUnwanted = false)
     {
         if (chapterIds.Count == 0)
         {
@@ -622,13 +623,14 @@ public class ReaderService(
         }
 
         var chapters = await db.Chapters
-            .Where(c => chapterIds.Contains(c.Id) && c.ChapterFileId != null)
+            .Where(c => chapterIds.Contains(c.Id) && (c.ChapterFileId != null || markUnwanted))
             .Select(c => new
             {
+                Chapter = c,
                 c.Id,
                 c.SeriesId,
                 c.Number,
-                MeasuredPages = c.ChapterFile!.PageCount,
+                MeasuredPages = c.ChapterFileId != null ? c.ChapterFile!.PageCount : null,
                 SharesFile = db.Chapters.Any(o => o.ChapterFileId == c.ChapterFileId && o.Id != c.Id),
             })
             .ToListAsync(ct);
@@ -648,6 +650,7 @@ public class ReaderService(
         var pushTo = new Dictionary<int, decimal>();
         foreach (var chapter in chapters)
         {
+            if (markUnwanted) chapter.Chapter.Wanted = false;
             existing.TryGetValue(chapter.Id, out var row);
             if (row is { Completed: true, Watched: false })
             {
@@ -655,10 +658,10 @@ public class ReaderService(
                 continue;
             }
 
-            var pageCount = !chapter.SharesFile && chapter.MeasuredPages is > 0 and var measured
+            var pageCount = chapter.Chapter.ChapterFileId == null ? 0 : !chapter.SharesFile && chapter.MeasuredPages is > 0 and var measured
                 ? measured
                 : (await SliceAsync(chapter.Id, ct))?.PageCount;
-            if (pageCount is not > 0)
+            if (pageCount is not > 0 && !markUnwanted)
             {
                 continue;
             }
@@ -674,9 +677,10 @@ public class ReaderService(
                 db.ChapterProgress.Add(row);
             }
 
-            row.PageIndex = pageCount.Value - 1;
-            row.PageCount = pageCount.Value;
+            row.PageIndex = Math.Max(0, (pageCount ?? 0) - 1);
+            row.PageCount = pageCount ?? 0;
             row.Completed = true;
+            row.CompletedAt ??= now;
             row.Watched = false;
             row.External = false;
             row.UnreadAt = null;
@@ -692,6 +696,7 @@ public class ReaderService(
 
         if (changed.Count == 0)
         {
+            if (markUnwanted) await db.SaveChangesAsync(ct);
             return read;
         }
 
@@ -710,6 +715,10 @@ public class ReaderService(
         foreach (var seriesId in changed)
         {
             var (maxChapter, maxVolume) = await RecomputeMarksAsync(seriesId, ct);
+            if (markUnwanted && pushTo.TryGetValue(seriesId, out var markedChapter))
+            {
+                maxChapter = Math.Max(maxChapter, (double)markedChapter);
+            }
             await progress.ImportSilentAsync(UserId, seriesId, kavitaSeriesId: null,
                 titles.GetValueOrDefault(seriesId, string.Empty), maxChapter, maxVolume, ct);
         }

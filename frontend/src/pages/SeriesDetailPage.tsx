@@ -1043,22 +1043,22 @@ export default function SeriesDetailPage() {
 
   const setChaptersState = useSetChaptersState(seriesId)
 
-  /** The unread chapters numbered below this one: what "mark previous chapters as read" would tick. */
-  const previousUnread = (chapter: ChapterDto): number[] =>
+  /** Every numbered chapter before this one, including missing and already-read chapters. */
+  const previousChapters = (chapter: ChapterDto): number[] =>
     chapter.number === null
         ? []
         : (chapters ?? [])
-            .filter((o) => o.number !== null && o.number < chapter.number! && !o.isOneShot && !readStateFor(o).read)
+            .filter((o) => o.number !== null && o.number < chapter.number!)
             .map((o) => o.id)
 
   /**
    * Applies a read state to a set of chapters and reports what happened. Shared by the select-mode
    * toolbar and the per-span menu so the two can't drift on which queries get invalidated.
    */
-  const applyReadState = (chapterIds: number[], state: ChapterReadState, done?: () => void) => {
+  const applyReadState = (chapterIds: number[], state: ChapterReadState, done?: () => void, markUnwanted = false) => {
     if (chapterIds.length === 0) return
     setChaptersState.mutate(
-        { chapterIds, state },
+        { chapterIds, state, markUnwanted },
         {
           onSuccess: (r) => {
             const message =
@@ -2878,18 +2878,6 @@ export default function SeriesDetailPage() {
                                                   {!read ? <IconEye size={17} /> : <IconEyeOff size={17} />}
                                                 </ActionIcon>
                                               </Tooltip>
-                                              {chapterNumber !== null && previousUnread(c).length > 0 && (
-                                                <Tooltip label={t`Mark previous chapters as read`} withArrow>
-                                                  <ActionIcon
-                                                      variant="subtle"
-                                                      color="gray"
-                                                      onClick={() => applyReadState(previousUnread(c), 'read')}
-                                                      aria-label={t`Mark the chapters before ${chapterLbl} as read`}
-                                                  >
-                                                    <IconChecks size={17} />
-                                                  </ActionIcon>
-                                                </Tooltip>
-                                              )}
                                               <Tooltip label={t`Read`} withArrow>
                                                 <ActionIcon
                                                     component={Link}
@@ -2902,6 +2890,18 @@ export default function SeriesDetailPage() {
                                                 </ActionIcon>
                                               </Tooltip>
                                             </>
+                                        )}
+                                        {can('EditMetadata') && chapterNumber !== null && previousChapters(c).length > 0 && (
+                                            <Tooltip label={t`Mark previous chapters as read`} withArrow>
+                                              <ActionIcon
+                                                  variant="subtle"
+                                                  color="gray"
+                                                  onClick={() => applyReadState(previousChapters(c), 'read', undefined, true)}
+                                                  aria-label={t`Mark the chapters before ${chapterLbl} as read`}
+                                              >
+                                                <IconChecks size={17} />
+                                              </ActionIcon>
+                                            </Tooltip>
                                         )}
                                         {c.hasFile && can('DeleteSeries') && (
                                             <Tooltip label={t`Delete file`} withArrow>

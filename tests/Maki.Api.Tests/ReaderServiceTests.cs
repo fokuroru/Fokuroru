@@ -294,6 +294,50 @@ public sealed class ReaderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task MarkPreviousReadIncludesMissingChaptersAndUnwantsAlreadyReadChapters()
+    {
+        var (seriesId, chapters) = SeedFromCbz("previous.cbz", ["001.jpg", "002.jpg"],
+            [(1m, null), (2m, null), (3m, null)]);
+        using (var db = _db.NewContext())
+        {
+            db.Chapters.Single(c => c.Id == chapters[2m]).ChapterFileId = null;
+            db.SaveChanges();
+        }
+        var reader = Reader();
+        Assert.Equal(1, await reader.MarkReadAsync([chapters[1m]], CancellationToken.None));
+        Assert.Equal(2, await reader.MarkReadAsync([chapters[1m], chapters[2m]], CancellationToken.None, markUnwanted: true));
+        using var after = _db.NewContext(TestUser);
+        Assert.All(after.Chapters.Where(c => c.Id == chapters[1m] || c.Id == chapters[2m]), c => Assert.False(c.Wanted));
+        var missing = after.ChapterProgress.Single(p => p.ChapterId == chapters[2m]);
+        Assert.True(missing.Completed);
+        Assert.False(missing.Watched);
+        Assert.Null(missing.UnreadAt);
+        Assert.NotNull(missing.CompletedAt);
+        Assert.Equal(0, missing.PageCount);
+        Assert.Equal(0, missing.PageIndex);
+        Assert.Equal(2, after.ReadingStates.Single(r => r.SeriesId == seriesId).MaxChapter);
+        Assert.True(after.Chapters.Single(c => c.Id == chapters[3m]).Wanted);
+        Assert.DoesNotContain(after.ChapterProgress, p => p.ChapterId == chapters[3m]);
+        Assert.NotNull(after.Chapters.Single(c => c.Id == chapters[1m]).ChapterFileId);
+        Assert.Empty(Events());
+    }
+
+    [Fact]
+    public async Task OrdinaryBulkMarkReadStillSkipsMissingChaptersAndKeepsThemWanted()
+    {
+        var (_, chapters) = SeedFromCbz("missing.cbz", ["001.jpg"], [(1m, null)]);
+        using (var db = _db.NewContext())
+        {
+            db.Chapters.Single(c => c.Id == chapters[1m]).ChapterFileId = null;
+            db.SaveChanges();
+        }
+        Assert.Equal(0, await Reader().MarkReadAsync([chapters[1m]], CancellationToken.None));
+        using var after = _db.NewContext(TestUser);
+        Assert.Empty(after.ChapterProgress);
+        Assert.True(after.Chapters.Single(c => c.Id == chapters[1m]).Wanted);
+    }
+
+    [Fact]
     public async Task BulkMarkReadUsesTheMeasuredPageCountWithoutOpeningTheArchive()
     {
         var (seriesId, chapters) = SeedFromCbz("measured.cbz", ["001.jpg"], [(1m, null)]);

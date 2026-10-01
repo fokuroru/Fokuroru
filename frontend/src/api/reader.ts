@@ -345,12 +345,13 @@ export type ChapterReadState = 'read' | 'watched' | 'unread'
 export function useSetChaptersState(seriesId: number) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ chapterIds, state }: { chapterIds: number[]; state: ChapterReadState }) =>
+    mutationFn: ({ chapterIds, state, markUnwanted = false }: { chapterIds: number[]; state: ChapterReadState; markUnwanted?: boolean }) =>
       api<{ updated: number }>('/reader/chapters/state', {
         method: 'POST',
-        body: JSON.stringify({ chapterIds, state }),
+        body: JSON.stringify({ chapterIds, state, markUnwanted }),
       }),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['chapters', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['reader-progress', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['reader-continue', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['series', seriesId] })

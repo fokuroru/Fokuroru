@@ -70,7 +70,7 @@ export const CoverCard = memo(function CoverCard({
     series,
     readTracking,
   )
-  const { readChapterCount } = series
+  const { readMainChapters, mainChapterCount } = series
   const totalLabel = total || '?'
   const downloadTip = download ? renderLabel(download.label) : null
 
@@ -102,20 +102,20 @@ export const CoverCard = memo(function CoverCard({
             {readPct !== null && readPct > 0 && (
               <span
                 className="cover-ring"
-                data-complete={unread === 0 || undefined}
+                data-complete={readPct === 100 || undefined}
                 data-state={series.readingStatus ?? undefined}
                 data-tip={
-                  unread !== 0
-                    ? t`${readChapterCount} of ${have} downloaded read`
+                  readPct !== 100
+                    ? t`${readMainChapters} of ${mainChapterCount} main chapters read`
                     : series.readingStatus === 'Completed'
                       ? t`Completed: every chapter read, and the series has ended`
                       : series.readingStatus === 'UpToDate'
                         ? t`Up to date: every chapter out so far read`
-                        : t`All downloaded chapters read`
+                        : t`All main chapters read`
                 }
                 style={{ '--ring-pct': `${readPct}%` } as React.CSSProperties}
               >
-                {unread === 0 && <IconCheck size={14} stroke={2.2} className="cover-ring-check" />}
+                {readPct === 100 && <IconCheck size={14} stroke={2.2} className="cover-ring-check" />}
               </span>
             )}
             {downloadTip && (

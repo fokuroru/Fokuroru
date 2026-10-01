@@ -123,7 +123,8 @@ export function SeriesHero({
     // nothing about what goes in the slot. The defaults on the gap are never rendered, since every
     // use of them sits behind `sourceGap &&`; they are here to keep the destructure typed as numbers.
     const { have: haveCount, total: totalCount } = progress
-    const readCount = series.readChapterCount ?? 0
+    const readCount = series.readMainChapters ?? 0
+    const mainCount = series.mainChapterCount ?? 0
     const { highest = 0, total: listed = 0, missing = 0 } = sourceGap ?? {}
 
     // One quiet line of facts rather than a row of coloured pills: none of these is a state anyone
@@ -298,17 +299,17 @@ export function SeriesHero({
                             <Trans>Progress</Trans>
                         </Title>
 
-                        {readTracking && series.readChapterCount != null && progress.have > 0 && (
+                        {readTracking && mainCount > 0 && (
                             <Box mt="md">
                                 <Group gap={9} c="var(--ink-3)">
                                     <IconBook size={17} />
                                     <Text size="sm" fw={600} c="var(--ink)">
-                                        <Trans>Reading</Trans>
+                                        <Trans>Series completion</Trans>
                                     </Text>
                                 </Group>
                                 <Progress
                                     mt={12}
-                                    value={Math.min(100, (series.readChapterCount / progress.have) * 100)}
+                                    value={progress.readPct ?? 0}
                                     color="var(--spine-fg)"
                                     radius="xl"
                                 />
@@ -316,11 +317,11 @@ export function SeriesHero({
                                     <Text size="sm" c="var(--ink-2)" className="tnum">
                                         <Trans>
                                             {readCount} /{' '}
-                                            <Plural value={haveCount} one="# chapter" other="# chapters" />
+                                            <Plural value={mainCount} one="# main chapter" other="# main chapters" />
                                         </Trans>
                                     </Text>
                                     <Text size="sm" fw={600} c="var(--ink-2)" className="tnum">
-                                        {Math.round((series.readChapterCount / progress.have) * 100)}%
+                                        {Math.round(progress.readPct ?? 0)}%
                                     </Text>
                                 </Group>
                                 <Divider my="md" color="var(--hairline)" />

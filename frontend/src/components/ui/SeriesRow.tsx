@@ -41,7 +41,7 @@ export const SeriesRow = memo(function SeriesRow({
     series,
     readTracking,
   )
-  const { readChapterCount } = series
+  const { readMainChapters, mainChapterCount } = series
 
   const thumbSize = density === 'compact' ? 48 : density === 'comfortable' ? 72 : 56
   const thumbH = thumbSize * 1.5
@@ -127,7 +127,7 @@ export const SeriesRow = memo(function SeriesRow({
           {readPct !== null && (
             <span
               className="cover-ring"
-              data-tip={t`${readChapterCount} of ${have} downloaded read`}
+              data-tip={t`${readMainChapters} of ${mainChapterCount} main chapters read`}
               style={{ '--ring-pct': `${readPct}%` } as React.CSSProperties}
             />
           )}

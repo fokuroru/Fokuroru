@@ -196,7 +196,7 @@ export interface SeriesProgressVisual {
   /** Download bar width, 0–100. */
   pct: number
   complete: boolean
-  /** Read ring, 0–100, or null when there is nothing trustworthy to show. */
+  /** Series completion: main releases read / all listed main releases, independent of storage. */
   readPct: number | null
   /**
    * Downloaded chapters still unread: 0 meaning "all read", null meaning nothing tracks it.
@@ -214,9 +214,10 @@ export interface SeriesProgressVisual {
  * "0/?" next to a Chapters tab listing every known chapter as missing. Fall back to the known
  * count so the card reads "0/207", and mark it so it isn't mistaken for real progress.
  *
- * The denominator only moves when the user changes what they want. Chapters merely waiting to
+ * The download denominator only moves when the user changes what they want. Chapters merely waiting to
  * download are still wanted, so a series held back by Smart mode or fetched in batches reads
  * "10 / 207" rather than the "10 / 10" it used to.
+ * The reading ring uses distinct main releases from history, including removed and unwanted chapters.
  *
  * `readTracking` false blanks the read fields: nothing is tracking reading, so a stale
  * ReadingState row from a Kavita connection that has since been removed can't linger on a card.
@@ -227,6 +228,8 @@ export function seriesProgressVisual(
     knownChapterCount: number
     chapterFileCount: number
     readChapterCount: number | null
+    readMainChapters?: number | null
+    mainChapterCount?: number | null
   },
   readTracking: boolean,
 ): SeriesProgressVisual {
@@ -241,7 +244,9 @@ export function seriesProgressVisual(
     have,
     pct: !nothingWanted && total > 0 ? Math.min(100, (have / total) * 100) : 0,
     complete: !nothingWanted && total > 0 && have >= total,
-    readPct: tracked ? Math.min(100, (s.readChapterCount! / have) * 100) : null,
+    readPct: readTracking && (s.mainChapterCount ?? 0) > 0
+      ? Math.min(100, ((s.readMainChapters ?? 0) / s.mainChapterCount!) * 100)
+      : null,
     unread: tracked ? Math.max(0, have - s.readChapterCount!) : null,
   }
 }

@@ -45,7 +45,7 @@ public record SeriesReadingProfileRequest(int? ProfileId);
 /// <see cref="ReaderService.MarkWatchedAsync"/> for what that does and does not record.
 /// </para>
 /// </summary>
-public record SetChaptersStateRequest(int[] ChapterIds, string State);
+public record SetChaptersStateRequest(int[] ChapterIds, string State, bool MarkUnwanted = false);
 
 /// <summary>
 /// Serves pages out of the library's CBZ files and records what has been read.
@@ -551,6 +551,10 @@ public class ReaderController(
         }
 
         var state = (req.State ?? string.Empty).ToLowerInvariant();
+        if (req.MarkUnwanted && !currentUser.Permissions.Grants(MakiPermission.EditMetadata))
+        {
+            return Forbid();
+        }
         if (state is not ("read" or "watched" or "unread"))
         {
             return this.Fail(localizer, "error.reader.invalidState");
@@ -576,7 +580,7 @@ public class ReaderController(
             return Ok(new { updated = visible.Count });
         }
 
-        return Ok(new { updated = await reader.MarkReadAsync(visible, ct) });
+        return Ok(new { updated = await reader.MarkReadAsync(visible, ct, req.MarkUnwanted) });
     }
 
     /// <summary>
