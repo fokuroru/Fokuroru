@@ -1683,11 +1683,7 @@ export class MangaShelf {
     const x = from + Math.random() * (to - from)
     // Anywhere along the plank's depth: the empty end has room for it to stand forward or back.
     const z = -60 + Math.random() * 70
-    const saucerBody = row.physics.add(
-      x - plant.saucerWidth / 2, row.physics.floor - plant.saucerHeight,
-      plant.saucerWidth, plant.saucerHeight, 0, plant.saucerWidth,
-    )
-    row.physics.setDepth(saucerBody, z, plant.saucerWidth)
+    const saucerBody = row.physics.addSaucer(x, plant.saucerWidth, plant.saucerHeight, z)
     const saucerModel = new T.Group()
     plant.saucer.position.y -= plant.saucerHeight / 2
     saucerModel.add(plant.saucer)

@@ -211,6 +211,17 @@ export class ShelfPhysics {
     return body
   }
 
+  /** A thin ceramic saucer needs enough mass to settle under a pot or a book. */
+  addSaucer(x: number, width: number, height: number, z = 0): BookBody {
+    const body = this.add(x - width / 2, this.floor - height, width, height, 0, width)
+    Body.setDensity(body, 0.02)
+    body.friction = 0.8
+    body.frictionStatic = 1
+    body.restitution = 0
+    this.setDepth(body, z, width)
+    return body
+  }
+
   /** Gives a body its depth: where it stands (clamped to the shelf) and how thick it is. */
   setDepth(body: BookBody, z: number, depth: number) {
     const [min, max] = zBounds(depth)

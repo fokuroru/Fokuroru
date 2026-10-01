@@ -39,8 +39,7 @@ assert.equal(shelf.engine.events?.collisionActive?.length ?? 0, 0, 'destroy remo
 
 const plantShelf = new ShelfPhysics(600)
 try {
-  const plate = plantShelf.add(267, plantShelf.floor - 5, 66, 5, 0, 66)
-  plantShelf.setDepth(plate, -30, 66)
+  const plate = plantShelf.addSaucer(300, 66, 5, -30)
   const { body: pot } = plantShelf.addPlant(300, 70, 70, 100, 180, -30, 5)
   assert.equal(plantShelf.hasSupport(pot), true, 'the pot starts on its saucer')
   for (let i = 0; i < 240; i++) plantShelf.step()
@@ -55,5 +54,33 @@ try {
   assert.equal(plantShelf.has(plate), true, 'the saucer remains in the simulation')
 } finally {
   plantShelf.destroy()
+}
+const loadedShelf = new ShelfPhysics(600)
+try {
+  const plate = loadedShelf.addSaucer(300, 66, 5, -30)
+  const book = loadedShelf.add(275, 160, 45, 180, 0, 66)
+  loadedShelf.setDepth(book, -30, 66)
+  let movement = 0
+  let rotation = 0
+  for (let i = 0; i < 1200; i++) {
+    const before = { ...plate.position }
+    const angle = plate.angle
+    loadedShelf.step()
+    if (i >= 900) {
+      movement = Math.max(movement, Math.hypot(plate.position.x - before.x, plate.position.y - before.y))
+      rotation = Math.max(rotation, Math.abs(plate.angle - angle))
+    }
+  }
+  assert.ok(movement < 0.02, `loaded saucer keeps moving: ${movement} pixels per step`)
+  assert.ok(rotation < 0.0005, `loaded saucer keeps rocking: ${rotation} radians per step`)
+  assert.ok(plate.isSleeping, 'a loaded saucer must settle to sleep')
+  const grip = { ...plate.position }
+  loadedShelf.grab(plate, 1, grip)
+  loadedShelf.moveTo({ x: grip.x - 120, y: grip.y - 100 })
+  for (let i = 0; i < 120; i++) loadedShelf.step()
+  assert.ok(plate.position.x < grip.x - 70, 'the stable saucer remains draggable')
+  assert.equal(loadedShelf.has(book), true, 'the load remains on the shelf')
+} finally {
+  loadedShelf.destroy()
 }
 console.log('Shelf physics regression checks passed')
