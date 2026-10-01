@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { PREVIEW_RETENTION_MS, previewCacheKey, readPreviewCache, writePreviewCache } from './previewCache'
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -2547,15 +2548,22 @@ export interface SourcePreview {
 /**
  * Searches every enabled source for a catalogue title and links each match's first chapter, so it
  * can be read on the site before adding. Runs only when `enabled` (a click), since it hits every
- * source; the answer is kept for ten minutes.
+ * source; the answer is kept for 30 days, including across browser reloads.
  */
-export function useSourcePreview(providerId: string | null, enabled: boolean) {
+export function useSourcePreview(providerId: string | null, enabled: boolean, userId?: number) {
+  const cacheKey = previewCacheKey(userId, providerId ?? '', 'sources')
+  const cached = readPreviewCache<SourcePreview[]>(cacheKey)
   return useQuery({
-    queryKey: ['source-preview', providerId],
-    queryFn: () =>
-      api<SourcePreview[]>(`/search/preview?metadataProviderId=${encodeURIComponent(providerId ?? '')}`),
+    queryKey: ['source-preview', providerId, userId],
+    queryFn: async () => {
+      const results = await api<SourcePreview[]>(`/search/preview?metadataProviderId=${encodeURIComponent(providerId ?? '')}`)
+      writePreviewCache(cacheKey, results)
+      return results
+    },
+    initialData: cached?.data,
+    initialDataUpdatedAt: cached?.savedAt,
     enabled: enabled && !!providerId,
-    staleTime: 10 * 60 * 1000,
+    staleTime: PREVIEW_RETENTION_MS,
     retry: false,
   })
 }

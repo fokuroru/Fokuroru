@@ -106,11 +106,11 @@ public class HousekeepingJob(
             }
         }
 
-        // Source-comparison samples and Discover previews. Each job clears its own folder when it
-        // is superseded, so anything still here belongs to one somebody looked at and closed.
+        // Comparison samples expire after a day; Discover first chapters remain for 30 days.
         foreach (var previewRoot in new[] { paths.SourcePreviewDir, paths.SeriesPreviewDir }.Where(Directory.Exists))
         {
-            var stale = DateTime.UtcNow.AddDays(-1);
+            var stale = DateTime.UtcNow.Subtract(previewRoot == paths.SeriesPreviewDir
+                ? SeriesPreviewService.KeepFinished : TimeSpan.FromDays(1));
             foreach (var dir in Directory.GetDirectories(previewRoot))
             {
                 if (ct.IsCancellationRequested)

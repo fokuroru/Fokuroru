@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Text.Json;
 using Maki.Api.Configuration;
 using Maki.Api.Localization;
 using Maki.Core.Download;
@@ -49,15 +50,14 @@ public sealed class SeriesPreviewService(
     /// <summary>Long enough for a slow source to hand over a whole chapter, short enough that a hung one gives its slot back.</summary>
     private static readonly TimeSpan JobDeadline = TimeSpan.FromMinutes(5);
 
-    private static readonly TimeSpan KeepFinished = TimeSpan.FromHours(1);
+    internal static readonly TimeSpan KeepFinished = TimeSpan.FromDays(30);
 
     private readonly ConcurrentDictionary<long, Job> _jobs = new();
     private readonly object _sync = new();
 
     /// <summary>
     /// Starts a preview for <paramref name="providerId"/>, or joins the one already running or
-    /// finished for it. A user starting a new preview gives up any other one they were the only
-    /// viewer of, so closing one overlay and opening another never trips the instance cap.
+    /// finished for it. Completed previews are retained on disk for 30 days.
     /// </summary>
     /// <exception cref="InvalidOperationException">Too many previews already fetching.</exception>
     public SeriesPreviewSnapshot Start(long providerId, Series series, int userId, ILocalizer localizer)
@@ -70,13 +70,9 @@ public sealed class SeriesPreviewService(
                 Remove(id, stale);
             }
 
-            foreach (var (id, other) in _jobs.Where(pair => pair.Key != providerId).ToList())
-            {
-                if (other.Viewers.Remove(userId) && other.Viewers.Count == 0 && !other.Finished)
-                {
-                    Remove(id, other);
-                }
-            }
+            // Closing a preview does not discard a download the user asked to keep.
+            if (!_jobs.ContainsKey(providerId) && Restore(providerId) is { } restored)
+                _jobs[providerId] = restored;
 
             if (_jobs.TryGetValue(providerId, out var existing) && existing.Status != PreviewStatus.Failed)
             {
@@ -111,18 +107,13 @@ public sealed class SeriesPreviewService(
         Viewed(providerId, userId) is { } job ? Snapshot(job, localizer) : null;
 
     /// <summary>
-    /// The viewer closed the preview. A fetch nobody else is watching is cancelled and dropped; a
-    /// finished one is kept, since reopening the same series within the hour should cost nothing.
+    /// The viewer closed the preview. Keep the requested fetch running and the result for 30 days.
     /// </summary>
     public void Release(long providerId, int userId)
     {
         lock (_sync)
         {
-            if (_jobs.TryGetValue(providerId, out var job) &&
-                job.Viewers.Remove(userId) && job.Viewers.Count == 0 && !job.Finished)
-            {
-                Remove(providerId, job);
-            }
+            if (_jobs.TryGetValue(providerId, out var job)) job.Viewers.Remove(userId);
         }
     }
 
@@ -153,7 +144,7 @@ public sealed class SeriesPreviewService(
     {
         lock (_sync)
         {
-            return _jobs.TryGetValue(providerId, out var job) && job.Viewers.Contains(userId) ? job : null;
+            return _jobs.TryGetValue(providerId, out var job) && !job.Expired && job.Viewers.Contains(userId) ? job : null;
         }
     }
 
@@ -228,6 +219,22 @@ public sealed class SeriesPreviewService(
         finally
         {
             job.MarkFinished();
+
+            if (job.Status == PreviewStatus.Ready && _jobs.TryGetValue(job.ProviderId, out var retained) && retained == job)
+            {
+                try
+                {
+                    var root = Path.GetDirectoryName(JobRoot(job))!;
+                    File.WriteAllText(Path.Combine(root, "preview.json"), JsonSerializer.Serialize(
+                        new CachedPreview(DateTime.UtcNow, job.Token, job.SourceName!, job.SourceDisplayName!,
+                            job.ChapterLabel, job.PageCount!.Value)));
+                    Directory.SetLastWriteTimeUtc(root, DateTime.UtcNow);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Could not persist preview for {ProviderId}", job.ProviderId);
+                }
+            }
 
             if (!_jobs.TryGetValue(job.ProviderId, out var current) || current != job)
             {
@@ -325,6 +332,39 @@ public sealed class SeriesPreviewService(
     private string JobRoot(Job job) =>
         Path.Combine(paths.SeriesPreviewDir, job.ProviderId.ToString(CultureInfo.InvariantCulture), job.Token);
 
+    internal sealed record CachedPreview(DateTime SavedAt, string Token, string SourceName,
+        string SourceDisplayName, string? ChapterLabel, int PageCount);
+
+    internal static CachedPreview? LoadCached(string root)
+    {
+        try
+        {
+            var cached = JsonSerializer.Deserialize<CachedPreview>(File.ReadAllText(Path.Combine(root, "preview.json")));
+            if (cached is null || DateTime.UtcNow - cached.SavedAt >= KeepFinished || cached.PageCount <= 0 ||
+                string.IsNullOrEmpty(cached.Token) || Path.GetFileName(cached.Token) != cached.Token ||
+                string.IsNullOrEmpty(cached.SourceName) || Path.GetFileName(cached.SourceName) != cached.SourceName ||
+                cached.Token is "." or ".." || cached.SourceName is "." or "..") return null;
+            var dir = Path.Combine(root, cached.Token, cached.SourceName);
+            return ReadyPages(dir, cached.PageCount).All(ready => ready) ? cached : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            return null;
+        }
+    }
+
+    private Job? Restore(long providerId)
+    {
+        var root = Path.Combine(paths.SeriesPreviewDir, providerId.ToString(CultureInfo.InvariantCulture));
+        if (LoadCached(root) is not { } cached) return null;
+        var job = new Job(providerId, cached.Token);
+        job.Serve(cached.SourceName, cached.SourceDisplayName, cached.ChapterLabel, cached.PageCount,
+            Path.Combine(root, cached.Token, cached.SourceName));
+        job.MarkReady();
+        job.MarkFinished(cached.SavedAt);
+        return job;
+    }
+
     private void Remove(long providerId, Job job)
     {
         _jobs.TryRemove(new KeyValuePair<long, Job>(providerId, job));
@@ -367,7 +407,7 @@ public sealed class SeriesPreviewService(
             }
 
             if (int.TryParse(Path.GetFileNameWithoutExtension(file), NumberStyles.None, CultureInfo.InvariantCulture, out var index)
-                && index < count)
+                && index >= 0 && index < count)
             {
                 ready[index] = true;
             }
@@ -399,14 +439,14 @@ public sealed class SeriesPreviewService(
         public const string Failed = "failed";
     }
 
-    private sealed class Job(long providerId)
+    private sealed class Job(long providerId, string? token = null)
     {
         /// <summary>Guards the fields below: the run writes them while pollers read them.</summary>
         public readonly object Sync = new();
 
         public readonly CancellationTokenSource Cts = new(JobDeadline);
 
-        public readonly string Token = Guid.NewGuid().ToString("N")[..8];
+        public readonly string Token = token ?? Guid.NewGuid().ToString("N")[..8];
 
         public long ProviderId { get; } = providerId;
 
@@ -478,7 +518,7 @@ public sealed class SeriesPreviewService(
             }
         }
 
-        public void MarkFinished() => Interlocked.Exchange(ref _finishedAtTicks, DateTime.UtcNow.Ticks);
+        public void MarkFinished(DateTime? at = null) => Interlocked.Exchange(ref _finishedAtTicks, (at ?? DateTime.UtcNow).Ticks);
 
         public void Cancel()
         {

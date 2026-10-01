@@ -3,6 +3,8 @@ import { Anchor, Badge, Button, Group, Loader, Paper, Stack, Text, Title } from 
 import { IconBook2, IconExternalLink } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useSourcePreview } from '../../api/hooks'
+import { useAuth } from '../../auth/AuthProvider'
+import { previewCacheKey, readPreviewCache, writePreviewCache } from '../../api/previewCache'
 
 /**
  * "Read before adding": looks the title up on every enabled source, the way auto-match will once
@@ -11,8 +13,10 @@ import { useSourcePreview } from '../../api/hooks'
  */
 export function SourcePreviewPanel({ providerId }: { providerId: string }) {
   const { t } = useLingui()
-  const [asked, setAsked] = useState(false)
-  const { data, isFetching, isError, refetch } = useSourcePreview(providerId, asked)
+  const { me } = useAuth()
+  const cacheKey = previewCacheKey(me?.id, providerId, 'sources-enabled')
+  const [asked, setAsked] = useState(() => readPreviewCache<boolean>(cacheKey)?.data === true)
+  const { data, isFetching, isError, refetch } = useSourcePreview(providerId, asked, me?.id)
 
   return (
     <Paper withBorder radius="lg" p="lg">
@@ -22,7 +26,10 @@ export function SourcePreviewPanel({ providerId }: { providerId: string }) {
             <Trans>Read before adding</Trans>
           </Title>
           {!asked && (
-            <Button size="xs" variant="light" leftSection={<IconBook2 size={14} />} onClick={() => setAsked(true)}>
+            <Button size="xs" variant="light" leftSection={<IconBook2 size={14} />} onClick={() => {
+              writePreviewCache(cacheKey, true)
+              setAsked(true)
+            }}>
               <Trans>Find chapter 1 on your sources</Trans>
             </Button>
           )}

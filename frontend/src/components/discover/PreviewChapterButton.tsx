@@ -1,15 +1,17 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Button, Loader, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconBook, IconCircleCheckFilled, IconRefresh } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { releaseSeriesPreview, useSeriesPreview, useStartSeriesPreview } from '../../api/preview'
+import { useAuth } from '../../auth/AuthProvider'
+import { previewCacheKey, readPreviewCache, writePreviewCache } from '../../api/previewCache'
 
 /**
  * Starts fetching chapter 1 on click and leaves the user on the card while it runs, so they can read
  * the tags and reviews in the meantime. Once the pages are in, the same button opens the reader.
- * Mounted per series: unmounting (card closed, rerolled) releases the job.
+ * Mounted per series: closing releases the viewer while keeping the preview for 30 days.
  */
 export function PreviewChapterButton({
   providerId,
@@ -21,8 +23,18 @@ export function PreviewChapterButton({
   onRead: () => void
 }) {
   const { t } = useLingui()
+  const { me } = useAuth()
+  const cacheKey = previewCacheKey(me?.id, providerId, 'chapter-enabled')
+  const [remembered] = useState(() => readPreviewCache<boolean>(cacheKey)?.data === true)
   const { mutate: start, error: startError, isPending: starting, isSuccess: started } = useStartSeriesPreview()
   const { data: preview, isError: lost } = useSeriesPreview(providerId, started)
+  const restoring = useRef(false)
+  useEffect(() => {
+    if (remembered && !restoring.current) {
+      restoring.current = true
+      start(providerId)
+    }
+  }, [remembered, providerId, start])
 
   // Released on a timer so StrictMode's mount, unmount, mount in dev keeps the job alive.
   const releaseTimer = useRef<number | undefined>(undefined)
@@ -47,13 +59,14 @@ export function PreviewChapterButton({
   }
 
   // Only a job that finished while the user waited gets a notification. One that was already
-  // ready when the button was pressed (the server keeps finished previews for an hour) opens
+  // ready when the button was pressed opens
   // straight away, since there is nothing to announce.
   const lastStatus = useRef<string | undefined>(undefined)
   useEffect(() => {
     const previous = lastStatus.current
     lastStatus.current = status
     if (status !== 'ready' || previous === 'ready') return
+    if (remembered) return
     if (previous === 'starting') {
       onRead()
       return
@@ -117,7 +130,10 @@ export function PreviewChapterButton({
   const onClick = () => {
     if (working) return
     if (status === 'ready' && !failure) read()
-    else start(providerId)
+    else {
+      writePreviewCache(cacheKey, true)
+      start(providerId)
+    }
   }
 
   return (

@@ -6,6 +6,30 @@ namespace Maki.Api.Tests;
 /// <summary>Which chapter the Discover preview opens on a source's listing.</summary>
 public class SeriesPreviewTests
 {
+    [Theory]
+    [InlineData(29, true)]
+    [InlineData(30, false)]
+    [InlineData(31, false)]
+    public void Finished_preview_survives_restart_for_thirty_days(int ageDays, bool reusable)
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"preview-test-{Guid.NewGuid():N}");
+        var pages = Path.Combine(root, "abc123", "fake");
+        Directory.CreateDirectory(pages);
+        try
+        {
+            File.WriteAllText(Path.Combine(pages, "000.jpg"), "page");
+            File.WriteAllText(Path.Combine(root, "preview.json"), System.Text.Json.JsonSerializer.Serialize(
+                new SeriesPreviewService.CachedPreview(DateTime.UtcNow.AddDays(-ageDays), "abc123", "fake", "Fake", "1", 1)));
+            Assert.Equal(reusable, SeriesPreviewService.LoadCached(root) is not null);
+            if (reusable)
+            {
+                File.Delete(Path.Combine(pages, "000.jpg"));
+                Assert.Null(SeriesPreviewService.LoadCached(root));
+            }
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
     private static SourceChapter Chapter(decimal? number, string id = "") =>
         new("fake", "s", id == "" ? number?.ToString() ?? "x" : id, number?.ToString(), number, null, null, "en", null);
 

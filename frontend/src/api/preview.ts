@@ -43,7 +43,7 @@ export function useSeriesPreview(providerId: string, enabled: boolean) {
   })
 }
 
-/** Tells the server nobody is looking any more, so a fetch still running can stop. */
+/** Releases the viewer; downloaded pages and an in-flight fetch remain available for returning. */
 export function releaseSeriesPreview(providerId: string) {
   void api(`/preview/${encodeURIComponent(providerId)}`, { method: 'DELETE' }).catch(() => {})
 }
