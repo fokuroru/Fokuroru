@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "check:secure-context": "node ../scripts/frontend/check-secure-context.mjs",
+    "check:shelf-physics": "node ../scripts/frontend/check-shelf-physics.mjs",
     "preview": "vite preview",
     "i18n:extract": "lingui extract",
     "i18n:sync": "node ../scripts/i18n/sync-server-keys.mjs",

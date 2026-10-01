@@ -272,6 +272,8 @@ export class MangaShelf {
   private quietFrames = 0
   /** Editions dealt this page load, kept across re-layouts (a resize should not restyle books). */
   private readonly dealt = new Map<number, { style: number; width: number; tall: number }>()
+  /** The spine colours worked out from each cover, or null where its colour says nothing (grey, black or white). */
+  private readonly tints = new Map<string, { bg: string; fg: string; accent: string } | null>()
   /** The few books this page load lets stand with their spine out over the plank, chosen once from those wide covers would make so. */
   private overhang: Set<number> | null = null
   private deck: number[] = []
@@ -1489,30 +1491,29 @@ export class MangaShelf {
   /** Takes a model out of the scene and frees what it used. */
   private disposeModel(model: T.Object3D) {
     model.removeFromParent()
+    const textures = new Set<T.Texture>()
     model.traverse((n) => {
+      if (n instanceof T.Light && 'shadow' in n) {
+        (n as T.DirectionalLight).shadow.dispose()
+      }
       const mesh = n as T.Mesh
       mesh.geometry?.dispose()
       const materials = mesh.material ? (Array.isArray(mesh.material) ? mesh.material : [mesh.material]) : []
-      for (const m of materials as T.MeshStandardMaterial[]) {
-        m.map?.dispose()
+      for (const m of materials) {
+        for (const value of Object.values(m)) {
+          if (value instanceof T.Texture) textures.add(value)
+        }
         m.dispose()
       }
     })
+    for (const texture of textures) texture.dispose()
   }
 
   private clear() {
     this.select(null)
     for (const r of this.rows) {
       r.physics.destroy()
-      r.scene.traverse((n) => {
-        const mesh = n as T.Mesh
-        mesh.geometry?.dispose()
-        const materials = mesh.material ? (Array.isArray(mesh.material) ? mesh.material : [mesh.material]) : []
-        for (const m of materials as T.MeshStandardMaterial[]) {
-          m.map?.dispose()
-          m.dispose()
-        }
-      })
+      this.disposeModel(r.scene)
     }
     this.rows = []
     this.items = []
@@ -1524,6 +1525,69 @@ export class MangaShelf {
     this.boardMaterial = null
     this.access?.remove()
     this.access = null
+  }
+
+  /**
+   * The colours for a spine and back cover that go with a cover: the cover's main colour is found from a
+   * small copy of it (weighting what is vivid over what is grey, black or white), the spine takes the
+   * colour opposite it on the wheel, lighter if the cover is dark and darker if it is light, with plain
+   * lettering that reads on it and an accent a little round the wheel. A cover with no main colour gives null.
+   */
+  private tintsFor(url: string, img: HTMLImageElement): { bg: string; fg: string; accent: string } | null {
+    if (this.tints.has(url)) return this.tints.get(url)!
+    let result: { bg: string; fg: string; accent: string } | null = null
+    try {
+      const size = 24
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = size
+      const c = canvas.getContext('2d', { willReadFrequently: true })!
+      c.drawImage(img, 0, 0, size, size)
+      const data = c.getImageData(0, 0, size, size).data
+      let sx = 0
+      let sy = 0
+      let weight = 0
+      let satSum = 0
+      let lightSum = 0
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i] / 255
+        const g = data[i + 1] / 255
+        const bl = data[i + 2] / 255
+        const hi = Math.max(r, g, bl)
+        const lo = Math.min(r, g, bl)
+        const l = (hi + lo) / 2
+        lightSum += l
+        const d = hi - lo
+        if (d < 0.08 || l < 0.1 || l > 0.92) continue
+        const sat = d / (1 - Math.abs(2 * l - 1))
+        const hue = (hi === r ? ((g - bl) / d) % 6 : hi === g ? (bl - r) / d + 2 : (r - g) / d + 4) / 6
+        const w = sat * (1 - Math.abs(2 * l - 1))
+        sx += Math.cos(hue * Math.PI * 2) * w
+        sy += Math.sin(hue * Math.PI * 2) * w
+        satSum += sat * w
+        weight += w
+      }
+      const pixels = data.length / 4
+      // Mostly grey, black or white: there is no colour to oppose, so the edition's own palette stands.
+      if (weight / pixels > 0.04) {
+        const hue = (Math.atan2(sy, sx) / (Math.PI * 2) + 1) % 1
+        const sat = satSum / weight
+        const coverLight = lightSum / pixels
+        const opposite = (hue + 0.5) % 1
+        const bgSat = Math.max(0.35, Math.min(0.75, 0.3 + sat * 0.45))
+        const bgLight = coverLight > 0.55 ? 0.3 : 0.72
+        const colour = (h: number, sa: number, l: number) => `#${new T.Color().setHSL(h, sa, l, T.SRGBColorSpace).getHexString(T.SRGBColorSpace)}`
+        const bg = colour(opposite, bgSat, bgLight)
+        result = {
+          bg,
+          fg: bgLight > 0.5 ? colour(opposite, 0.35, 0.1) : colour(opposite, 0.5, 0.95),
+          accent: colour((opposite + 0.09) % 1, Math.min(0.9, bgSat + 0.2), bgLight > 0.5 ? bgLight - 0.2 : bgLight + 0.2),
+        }
+      }
+    } catch {
+      result = null
+    }
+    this.tints.set(url, result)
+    return result
   }
 
   /**
@@ -1556,7 +1620,13 @@ export class MangaShelf {
     }
     // A shortened book is thinned by the same share, so it stays the shape it was dealt rather than turning fat.
     const width = Math.max(18, Math.round(deal.width * (height / b.height)))
-    return { ...b, width, height, depth, style: deal.style, look: SPINE_STYLES[deal.style] }
+    const base = SPINE_STYLES[deal.style]
+    const tint = cover && b.coverUrl ? this.tintsFor(b.coverUrl, cover) : null
+    // With a cover, the spine and back board take colours that go with it: the opposite side of the colour wheel.
+    const look: SpineStyle = tint
+      ? { ...base, ...tint, shadow: base.shadow ? { ...base.shadow, color: tint.accent } : undefined }
+      : base
+    return { ...b, width, height, depth, style: deal.style, look }
   }
 
   /**
@@ -1599,7 +1669,7 @@ export class MangaShelf {
     const url = this.figureUrl
     if (!url) return null
     if (!this.figureData.has(url)) {
-      this.figureData.set(url, fetch(url).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null))
+      this.figureData.set(url, fetch(url, { signal: this.abort.signal }).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null))
     }
     const data = await this.figureData.get(url)!
     if (!data) return null
@@ -2206,7 +2276,10 @@ export class MangaShelf {
     await this.loadCovers(this.books)
     if (generation !== this.generation || this.abort.signal.aborted) return
     const figure = this.figureRoll < this.figureChance ? await this.loadFigure() : null
-    if (generation !== this.generation || this.abort.signal.aborted) return
+    if (generation !== this.generation || this.abort.signal.aborted) {
+      if (figure) this.disposeModel(figure)
+      return
+    }
     this.clear()
     this.rowH = this.board ? ROW + BOARD_ROOM : ROW
     const width = this.logicalWidth
@@ -2237,6 +2310,8 @@ export class MangaShelf {
         0,
       )
       this.placeFigure(row, width, booksEnd, figure)
+    } else if (figure) {
+      this.disposeModel(figure)
     }
     for (const p of plan) {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle, p.book.depth)

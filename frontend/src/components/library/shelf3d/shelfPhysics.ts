@@ -527,7 +527,8 @@ export class ShelfPhysics {
 
   /** Whether something is under a body to stand on: the plank, or another body whose top is at its foot. */
   hasSupport(body: BookBody): boolean {
-    if (body.bounds.max.y >= this.floor - 4) return true
+    if (body.supported !== false && Math.abs(body.bounds.max.y - this.floor) <= 4
+      && body.bounds.max.x >= 0 && body.bounds.min.x <= this.width) return true
     for (const other of this.bodies) {
       if (other === body || Math.abs(other.z - body.z) > (other.depth + body.depth) / 2) continue
       if (other.bounds.max.x < body.bounds.min.x || other.bounds.min.x > body.bounds.max.x) continue
@@ -726,6 +727,7 @@ export class ShelfPhysics {
   destroy() {
     this.onImpact = null
     Events.off(this.engine, 'collisionStart')
+    Events.off(this.engine, 'collisionActive')
     this.release()
     Composite.clear(this.engine.world, false)
     Engine.clear(this.engine)
