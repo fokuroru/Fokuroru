@@ -414,6 +414,9 @@ export class ShelfPhysics {
    */
   grab(body: BookBody, direction = 1, at?: Matter.Vector) {
     this.release()
+    // The hover lift anchors the book where it is, so on a book in mid-air it would hold it there against
+    // gravity. Only a book that is standing on something is lifted.
+    if (!at && !this.hasSupport(body)) return
     Sleeping.set(body, false)
     const offset = at
       ? Vector.sub(at, body.position)
@@ -520,6 +523,17 @@ export class ShelfPhysics {
     filter.z = wantZ
     filter.depth = wantDepth
     Sleeping.set(body, false)
+  }
+
+  /** Whether something is under a body to stand on: the plank, or another body whose top is at its foot. */
+  hasSupport(body: BookBody): boolean {
+    if (body.bounds.max.y >= this.floor - 4) return true
+    for (const other of this.bodies) {
+      if (other === body || Math.abs(other.z - body.z) > (other.depth + body.depth) / 2) continue
+      if (other.bounds.max.x < body.bounds.min.x || other.bounds.min.x > body.bounds.max.x) continue
+      if (Math.abs(other.bounds.min.y - body.bounds.max.y) <= 6) return true
+    }
+    return false
   }
 
   /** Whether a body is still in the simulation. */
