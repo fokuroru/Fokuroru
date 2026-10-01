@@ -16,18 +16,24 @@ export type BookBody = Matter.Body & {
   bookWidth: number
   bookHeight: number
   chalk?: boolean
+  /** Whether its centre is over the plank, so the plank holds it up. */
+  supported?: boolean
+  /** The collision mask it has while supported. */
+  baseMask?: number
   z: number
   zTarget: number
   depth: number
 }
 
 /**
- * Where the shelf's depth begins (the wall) and the furthest forward anything's front face may reach.
- * The plank ends at 13, and books stand with their fronts at 66, so a book can come forward a little
- * further than it stands but never so far that it looks off the shelf.
+ * Where the shelf's depth begins (the wall) and the furthest forward a body's front face may reach.
+ * Past the front edge of the plank (see `PLANK_FRONT`) a body is no longer held up, so it can be
+ * pulled off the shelf and falls.
  */
 const SHELF_BACK = -147
-const SHELF_FRONT = 80
+const SHELF_FRONT = 150
+/** The plank, in the same units: it runs from the wall to 13, and holds up anything whose centre is over it. */
+const PLANK_FRONT = 13
 
 interface DepthFilter extends Matter.ICollisionFilter {
   z?: number
@@ -57,6 +63,7 @@ const CATEGORY_CHALK = 0x0002
 const CATEGORY_VISIBLE_PLANK = 0x0004
 const CATEGORY_PLANK = 0x0008
 const CATEGORY_WALL = 0x0010
+const PLANK_BITS = CATEGORY_PLANK | CATEGORY_VISIBLE_PLANK
 
 interface Hand {
   start: Matter.Vector
@@ -135,7 +142,8 @@ export class ShelfPhysics {
     }) as BookBody
     body.bookWidth = w
     body.bookHeight = h
-    this.setDepth(body, 0, depth)
+    // A book's depth is measured from its middle: the spine faces the viewer and the pages run back from it.
+    this.setDepth(body, -depth / 2, depth)
     if (angle) Body.setAngle(body, angle)
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
@@ -150,6 +158,23 @@ export class ShelfPhysics {
     const filter = body.collisionFilter as DepthFilter
     filter.z = body.z
     filter.depth = depth
+    body.baseMask = filter.mask
+    body.supported = true
+    this.holdUp(body)
+  }
+
+  /**
+   * The plank holds a body up while its centre is over it, and lets go once the centre is past the
+   * front edge: it is then in the air, and falls. Done with the collision mask, so it takes effect on
+   * the next step.
+   */
+  private holdUp(body: BookBody) {
+    const over = body.z <= PLANK_FRONT
+    if (over === (body.supported ?? true) && body.baseMask !== undefined) return
+    body.supported = over
+    const base = body.baseMask ?? body.collisionFilter.mask ?? 0xffffffff
+    body.collisionFilter.mask = over ? base : base & ~PLANK_BITS
+    Sleeping.set(body, false)
   }
 
   /** Pushes a body towards the viewer (positive) or back towards the wall, within the shelf. */
@@ -220,11 +245,13 @@ export class ShelfPhysics {
   addChalk(x: number, y: number, length: number, thickness: number, angle = 0, z = 0): BookBody {
     const body = Bodies.rectangle(x, y, length, thickness, {
       chamfer: { radius: thickness * 0.45 },
-      friction: 0.12,
-      frictionStatic: 0.25,
-      frictionAir: 0.012,
-      restitution: 0.18,
-      density: 0.0012,
+      // Heavy and grippy enough that a book lying across it settles rather than shaking it: at the
+      // old density the stick was forty times lighter than the book and spun under it.
+      friction: 0.3,
+      frictionStatic: 0.7,
+      frictionAir: 0.02,
+      restitution: 0.02,
+      density: 0.012,
       sleepThreshold: 90,
       collisionFilter: { category: CATEGORY_CHALK, mask: 0x0001 | CATEGORY_CHALK | CATEGORY_VISIBLE_PLANK, group: 0 },
     }) as BookBody
@@ -238,9 +265,9 @@ export class ShelfPhysics {
     return body
   }
 
-  /** Takes out the chalk that has fallen off the shelf, and returns it so the renderer can drop its model. */
+  /** Takes out whatever has fallen off the shelf, and returns it so the renderer can drop its model. */
   reap(): BookBody[] {
-    const lost = this.bodies.filter((b) => b.chalk && b.position.y > this.floor + 500)
+    const lost = this.bodies.filter((b) => b.position.y > this.floor + 500)
     for (const body of lost) this.remove(body)
     return lost
   }
@@ -396,6 +423,7 @@ export class ShelfPhysics {
       }
       body.z = next
       ;(body.collisionFilter as DepthFilter).z = next
+      this.holdUp(body)
       Sleeping.set(body, false)
     }
     const before = this.bodies.map((body) => ({ x: body.position.x, y: body.position.y, a: body.angle }))

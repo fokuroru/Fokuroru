@@ -47,6 +47,8 @@ interface Item {
   book: Styled
   /** Set once clicked: the book slides out towards the viewer while the next page loads. */
   pulledAt?: number
+  /** The hidden button that makes the book reachable from the keyboard. */
+  button?: HTMLButtonElement
   hinges: Hinges
   /** A brief flutter in progress: which board swings, how far, and since when. */
   flutter?: { at: number; side: 'front' | 'back'; angle: number }
@@ -232,7 +234,7 @@ export class MangaShelf {
           // Shift turns the drag into a push: down brings it towards you, up sends it back.
           held.row.physics.nudgeDepth(held.body, ((e.clientY - this.drag.lastY) / this.scale) * 1.1)
         } else {
-          if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row, this.selected.body.z))
+          if (this.selected) this.selected.row.physics.moveTo(this.worldPoint(e, this.selected.row, this.selected.body.z + DEPTH / 2))
           if (this.heldProp) this.heldProp.row.physics.moveTo(this.worldPoint(e, this.heldProp.row, this.heldProp.body.z))
         }
         this.drag.lastY = e.clientY
@@ -262,7 +264,7 @@ export class MangaShelf {
       if (!this.reduced.matches) {
         this.selected?.row.physics.release()
         this.selected = item
-        item.row.physics.grab(item.body, 1, this.worldPoint(e, item.row, item.body.z))
+        item.row.physics.grab(item.body, 1, this.worldPoint(e, item.row, item.body.z + DEPTH / 2))
         this.wake()
       }
       this.drag = { x: e.clientX, y: e.clientY, moved: false, at: performance.now(), lastY: e.clientY }
@@ -1049,6 +1051,20 @@ export class MangaShelf {
 
   // ---- layout ------------------------------------------------------------
 
+  /** Takes a model out of the scene and frees what it used. */
+  private disposeModel(model: T.Object3D) {
+    model.removeFromParent()
+    model.traverse((n) => {
+      const mesh = n as T.Mesh
+      mesh.geometry?.dispose()
+      const materials = mesh.material ? (Array.isArray(mesh.material) ? mesh.material : [mesh.material]) : []
+      for (const m of materials as T.MeshStandardMaterial[]) {
+        m.map?.dispose()
+        m.dispose()
+      }
+    })
+  }
+
   private clear() {
     this.select(null)
     for (const r of this.rows) {
@@ -1224,7 +1240,7 @@ export class MangaShelf {
       const body = row.physics.add(p.x, p.y, p.book.width, p.book.height, p.angle)
       // Now and then a book sits a little forward or back of the rest, never by much.
       if (Math.random() < SLIGHT_DEPTH_SHARE) {
-        row.physics.setDepth(body, (Math.random() < 0.6 ? -1 : 1) * (5 + Math.random() * 11), DEPTH)
+        row.physics.setDepth(body, -DEPTH / 2 + (Math.random() < 0.6 ? -1 : 1) * (5 + Math.random() * 11), DEPTH)
       }
       const { group: model, hinges } = this.model(p.book)
       row.scene.add(model)
@@ -1246,6 +1262,7 @@ export class MangaShelf {
     this.access.className = 'shelf3d-access'
     for (const item of this.items) {
       const button = document.createElement('button')
+      item.button = button
       button.type = 'button'
       button.textContent = this.label(item.book)
       button.addEventListener('focus', () => this.select(item))
@@ -1528,13 +1545,14 @@ export class MangaShelf {
     }
     let pulling = scrolling
     for (const i of this.items) {
-      i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, i.body.z)
+      // The model is drawn from the spine, which faces the viewer, so it sits half a depth in front of the body's middle.
+      i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, i.body.z + DEPTH / 2)
       i.model.rotation.z = -i.body.angle
       pulling = this.flutter(i) || pulling
       if (i.pulledAt !== undefined) {
         const t = Math.min(1, (performance.now() - i.pulledAt) / PULL_MS)
         const e = 1 - (1 - t) ** 3
-        i.model.position.z = i.body.z + e * 320
+        i.model.position.z = i.body.z + DEPTH / 2 + e * 320
         i.model.position.y += e * 30
         i.model.rotation.y = -e * 0.35
         pulling ||= t < 1
@@ -1549,17 +1567,34 @@ export class MangaShelf {
       st.model.position.set(st.body.position.x - this.logicalWidth / 2, 380 - st.body.position.y, st.body.z)
       st.model.rotation.z = -st.body.angle
     }
-    // Chalk that has gone over the edge and is falling away for good.
+    // Whatever has gone over the edge and is falling away for good: a book pulled off the front, a
+    // stick knocked off the end. Its model is dropped; the rest of the shelf carries on.
     for (const r of this.rows) {
       for (const lost of r.physics.reap()) {
-        const i = this.sticks.findIndex((st) => st.body === lost)
-        if (i < 0) continue
-        const [gone] = this.sticks.splice(i, 1)
-        if (this.heldProp === gone) this.heldProp = null
-        gone.model.removeFromParent()
-        const mesh = gone.model as T.Mesh
-        mesh.geometry.dispose()
-        ;(mesh.material as T.Material).dispose()
+        const item = this.items.findIndex((it) => it.body === lost)
+        if (item >= 0) {
+          const [gone] = this.items.splice(item, 1)
+          if (this.selected === gone) {
+            this.selected = null
+            this.drag = null
+          }
+          gone.button?.remove()
+          this.disposeModel(gone.model)
+          continue
+        }
+        const prop = this.props.findIndex((p) => p.body === lost)
+        if (prop >= 0) {
+          const [gone] = this.props.splice(prop, 1)
+          if (this.heldProp === gone) this.heldProp = null
+          this.disposeModel(gone.model)
+          continue
+        }
+        const stick = this.sticks.findIndex((st) => st.body === lost)
+        if (stick >= 0) {
+          const [gone] = this.sticks.splice(stick, 1)
+          if (this.heldProp === gone) this.heldProp = null
+          this.disposeModel(gone.model)
+        }
       }
     }
     // Shelf shudder: a fast decaying bounce applied to the plank and everything on it.
