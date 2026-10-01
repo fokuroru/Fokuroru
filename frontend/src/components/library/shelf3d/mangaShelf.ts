@@ -2270,6 +2270,8 @@ export class MangaShelf {
     // Whatever has gone over the edge and is falling away for good: a book pulled off the front, a
     // stick knocked off the end. Its model is dropped; the rest of the shelf carries on.
     for (const r of this.rows) {
+    // The placeholder height only held the space while this loaded; now the canvas says how tall it is, and nothing more is kept under it.
+    this.container.style.minHeight = `${this.rows.length * rowPx}px`
       for (const lost of r.physics.reap()) {
         const item = this.items.findIndex((it) => it.body === lost)
         if (item >= 0) {

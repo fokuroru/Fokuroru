@@ -8336,7 +8336,7 @@ body.reader-open {
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-xs);
-  margin-bottom: var(--mantine-spacing-xl);
+  margin-bottom: var(--mantine-spacing-sm);
 }
 .spine-shelf-row {
   display: flex;
@@ -8556,7 +8556,8 @@ body.reader-open {
   min-height: min(420px, 65vw);
 }
 .shelf3d[data-board] {
-  min-height: min(620px, 96vw);
+  /* The height of the board row it will hold, no more: any extra shows as a gap under the shelf. */
+  min-height: min(560px, 86vw);
 }
 .shelf3d-canvas {
   display: block;
