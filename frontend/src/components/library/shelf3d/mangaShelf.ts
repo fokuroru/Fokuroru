@@ -31,7 +31,6 @@ export interface BoardFigure {
  * the scene knows nothing about languages.
  */
 export interface BoardModel {
-  title: string
   groups: { heading: string; figures: BoardFigure[] }[]
   progress?: { heading: string; level: string; caption: string; fraction: number; figures: BoardFigure[] }
 }
@@ -88,8 +87,7 @@ interface Row {
 /** Height of one shelf row in world units; the camera is framed on exactly this. */
 const ROW = 420
 /** Extra wall above the books while a chalkboard hangs there. */
-const BOARD_ROOM = 200
-const BOARD_HEIGHT = 240
+const BOARD_ROOM = 140
 const CHALK_FONT = "700 {size}px 'Comic Neue', 'Comic Sans MS', cursive"
 /** Narrower containers are drawn at this logical width and scaled down, so a phone still gets a shelf. */
 const MIN_LOGICAL_WIDTH = 640
@@ -164,7 +162,9 @@ export class MangaShelf {
   private rowH = ROW
   private board: BoardModel | null
   private boardMaterial: T.MeshStandardMaterial | null = null
-  private boardSize = { w: 0, h: BOARD_HEIGHT }
+  private wallSize = { w: 0, h: 0 }
+  /** Fixed for the page load, so the doodles and the arrangement hold still when the figures change. */
+  private readonly seed = (Math.random() * 2 ** 32) >>> 0
 
   private readonly container: HTMLElement
   private books: ShelfBook[]
@@ -286,7 +286,7 @@ export class MangaShelf {
     }
     if (board && this.boardMaterial) {
       this.boardMaterial.map?.dispose()
-      this.boardMaterial.map = this.boardTexture(board)
+      this.boardMaterial.map = this.wallTexture(this.wallSize.w, this.wallSize.h, board)
       this.boardMaterial.needsUpdate = true
       this.wake()
     }
@@ -558,212 +558,451 @@ export class MangaShelf {
 
   // ---- the chalkboard ----------------------------------------------------
 
-  /** Hung on the wall behind the books: a wooden frame on two cords, a slate, and a ledge with chalk. */
-  private addBoard(scene: T.Scene, width: number, model: BoardModel) {
-    const w = Math.max(360, Math.min(640, width - 80))
-    const h = BOARD_HEIGHT
-    this.boardSize = { w, h }
-    const cy = this.rowH - 18 - (h + 22) / 2
+  /** A wooden frame round the wall. The plank is the bottom edge, so there is no bottom bar. */
+  private addFrame(scene: T.Scene, width: number, height: number) {
     const wood = new T.MeshStandardMaterial({ color: '#6b4a2f', roughness: 0.8 })
-    const lightWood = new T.MeshStandardMaterial({ color: '#8a6a45', roughness: 0.75 })
-
-    const frame = new T.Mesh(new T.BoxGeometry(w + 22, h + 22, 12), wood)
-    frame.position.set(0, cy, -141)
-    frame.castShadow = true
-    frame.receiveShadow = true
-    scene.add(frame)
-
-    this.boardMaterial = new T.MeshStandardMaterial({ map: this.boardTexture(model), roughness: 0.95 })
-    const slate = new T.Mesh(new T.PlaneGeometry(w, h), this.boardMaterial)
-    slate.position.set(0, cy, -134.8)
-    slate.receiveShadow = true
-    scene.add(slate)
-
-    const ledgeY = cy - (h + 22) / 2 - 3
-    const ledge = new T.Mesh(new T.BoxGeometry(w + 30, 6, 20), lightWood)
-    ledge.position.set(0, ledgeY, -128)
-    ledge.castShadow = true
-    ledge.receiveShadow = true
-    scene.add(ledge)
-
-    const chalk = (x: number, length: number, color: string, turn: number) => {
-      const stick = new T.Mesh(
-        new T.CylinderGeometry(2.4, 2.4, length, 10),
-        new T.MeshStandardMaterial({ color, roughness: 1 }),
-      )
-      stick.rotation.z = Math.PI / 2
-      stick.rotation.y = turn
-      stick.position.set(x, ledgeY + 3 + 2.4, -126)
-      stick.castShadow = true
-      scene.add(stick)
+    const t = 12
+    const add = (w: number, h: number, x: number, y: number) => {
+      const bar = new T.Mesh(new T.BoxGeometry(w, h, 14), wood)
+      bar.position.set(x, y, -143)
+      bar.castShadow = true
+      bar.receiveShadow = true
+      scene.add(bar)
     }
-    chalk(-w / 2 + 40, 24, '#f3efe2', 0.2)
-    chalk(-w / 2 + 70, 15, '#f7a8bf', -0.35)
-    const eraser = new T.Mesh(new T.BoxGeometry(34, 8, 14), new T.MeshStandardMaterial({ color: '#2a2a2a', roughness: 1 }))
-    eraser.position.set(w / 2 - 50, ledgeY + 3 + 4, -127)
-    eraser.castShadow = true
-    scene.add(eraser)
-    const eraserBack = new T.Mesh(new T.BoxGeometry(34, 4, 14), lightWood)
-    eraserBack.position.set(w / 2 - 50, ledgeY + 3 + 10, -127)
-    scene.add(eraserBack)
-
-    // Two cords from a nail above, to the top corners of the frame.
-    const nail = new T.Vector3(0, cy + (h + 22) / 2 + 34, -145)
-    const cord = new T.MeshStandardMaterial({ color: '#cbb98a', roughness: 1 })
-    for (const sign of [-1, 1]) {
-      const corner = new T.Vector3(sign * (w / 2 - 40), cy + (h + 22) / 2, -134)
-      const length = nail.distanceTo(corner)
-      const rope = new T.Mesh(new T.CylinderGeometry(0.9, 0.9, length, 6), cord)
-      rope.position.copy(nail).add(corner).multiplyScalar(0.5)
-      rope.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), corner.clone().sub(nail).normalize())
-      scene.add(rope)
-    }
-    const head = new T.Mesh(new T.SphereGeometry(3.2, 10, 8), new T.MeshStandardMaterial({ color: '#555', metalness: 0.6, roughness: 0.4 }))
-    head.position.copy(nail)
-    scene.add(head)
+    add(width + t * 2, t, 0, 17 + height + t / 2)
+    add(t, height + t, -(width / 2 + t / 2), 17 + (height - t) / 2 + t / 2)
+    add(t, height + t, width / 2 + t / 2, 17 + (height - t) / 2 + t / 2)
   }
 
-  private boardTexture(model: BoardModel): T.CanvasTexture {
-    const { w, h } = this.boardSize
-    return this.texture(w, h, (ctx) => this.drawBoard(ctx, w, h, model))
-  }
+  /**
+   * The wall as a slate with chalk on it: blocks of figures at random places and slight tilts, a few
+   * doodles, faint ghosts of old writing and eraser wipes. Chalk is drawn on a layer of its own and
+   * then worn away with specks, so it reads as dust on slate rather than as ink. The books stand in
+   * front of it, so some of it is always hidden behind them.
+   */
+  private wallTexture(w: number, h: number, model: BoardModel): T.CanvasTexture {
+    const scale = Math.min(2, 4096 / Math.max(w, h))
+    const px = (n: number) => Math.max(1, Math.ceil(n * scale))
+    const base = document.createElement('canvas')
+    base.width = px(w)
+    base.height = px(h)
+    const g = base.getContext('2d')!
+    g.scale(scale, scale)
+    const layer = document.createElement('canvas')
+    layer.width = base.width
+    layer.height = base.height
+    const c = layer.getContext('2d')!
+    c.scale(scale, scale)
 
-  /** Chalk on slate: text drawn twice with a hair of offset so it reads as dust, not as print. */
-  private drawBoard(ctx: CanvasRenderingContext2D, w: number, h: number, m: BoardModel) {
-    const slate = ctx.createLinearGradient(0, 0, w, h)
-    slate.addColorStop(0, '#2f3d35')
-    slate.addColorStop(1, '#222c26')
-    ctx.fillStyle = slate
-    ctx.fillRect(0, 0, w, h)
-
-    // Old wipes and dust: fixed, so a redraw never makes the board shimmer.
-    let seed = 0x9e3779b9
+    let state = this.seed
     const rnd = () => {
-      seed = (seed + 0x6d2b79f5) | 0
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+      state = (state + 0x6d2b79f5) | 0
+      let t = Math.imul(state ^ (state >>> 15), 1 | state)
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296
     }
-    ctx.save()
-    ctx.fillStyle = '#ffffff'
-    for (let i = 0; i < 16; i++) {
-      ctx.globalAlpha = 0.025 + rnd() * 0.035
-      ctx.beginPath()
-      ctx.ellipse(rnd() * w, rnd() * h, 40 + rnd() * 90, 8 + rnd() * 20, (rnd() - 0.5) * 0.8, 0, Math.PI * 2)
-      ctx.fill()
+    const jit = (a: number) => (rnd() - 0.5) * a
+    /** 1 for fresh chalk; the old writing in the background is drawn at a sliver of it. */
+    let fade = 1
+    const pick = <V,>(list: V[]) => list[Math.floor(rnd() * list.length)]
+
+    // ---- slate
+    const slate = g.createLinearGradient(0, 0, w, h)
+    slate.addColorStop(0, '#2f3d35')
+    slate.addColorStop(0.5, '#27332c')
+    slate.addColorStop(1, '#212b25')
+    g.fillStyle = slate
+    g.fillRect(0, 0, w, h)
+    // Eraser wipes: broad low strokes laid over each other until they streak.
+    g.save()
+    g.lineCap = 'round'
+    g.strokeStyle = '#ffffff'
+    for (let i = 0; i < 9; i++) {
+      const y = rnd() * h
+      const x = rnd() * w * 0.6
+      const run = 140 + rnd() * w * 0.5
+      for (let k = 0; k < 7; k++) {
+        g.globalAlpha = 0.012 + rnd() * 0.016
+        g.lineWidth = 16 + rnd() * 26
+        g.beginPath()
+        g.moveTo(x + jit(20), y + jit(30))
+        g.lineTo(x + run, y + jit(46) - 18)
+        g.stroke()
+      }
     }
-    for (let i = 0; i < 160; i++) {
-      ctx.globalAlpha = 0.04 + rnd() * 0.08
-      ctx.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 1.5, 1 + rnd() * 1.5)
-    }
-    ctx.restore()
+    g.restore()
 
     const CREAM = '#f3efe2'
-    const colours = ['#f7a8bf', '#9ed3f5', '#f6e08a', '#a8e6b8']
-    const tones = { ok: '#a8e6b8', warn: '#f6e08a' }
+    const PALETTE = [CREAM, '#f7a8bf', '#9ed3f5', '#f6e08a', '#a8e6b8', '#c9b6f2', '#f6b78a']
+    const TONES = { ok: '#a8e6b8', warn: '#f6e08a' }
     const font = (size: number) => CHALK_FONT.replace('{size}', String(size))
+
+    // ---- pen: wobbly lines, each drawn twice with a hair of offset and a different weight
+    const stroke = (pts: [number, number][], color: string, lw = 2.3, wobble = 1.4) => {
+      if (pts.length < 2) return
+      for (const [alpha, extra] of [[0.9, 1], [0.4, 1.6]] as const) {
+        c.globalAlpha = alpha * fade
+        c.strokeStyle = color
+        c.lineWidth = lw * extra
+        c.lineCap = 'round'
+        c.lineJoin = 'round'
+        c.beginPath()
+        const p = pts.map(([x, y]) => [x + jit(wobble), y + jit(wobble)] as const)
+        c.moveTo(p[0][0], p[0][1])
+        for (let i = 1; i < p.length - 1; i++) {
+          c.quadraticCurveTo(p[i][0], p[i][1], (p[i][0] + p[i + 1][0]) / 2, (p[i][1] + p[i + 1][1]) / 2)
+        }
+        c.lineTo(p[p.length - 1][0], p[p.length - 1][1])
+        c.stroke()
+      }
+      c.globalAlpha = 1
+    }
+    /** A round shape drawn a touch past where it began, the way a hand closes a circle. */
+    const oval = (x: number, y: number, rx: number, ry: number, color: string, lw = 2.3) => {
+      const n = 16
+      const start = rnd() * Math.PI * 2
+      const pts: [number, number][] = []
+      for (let i = 0; i <= n + 2; i++) {
+        const a = start + (i / n) * Math.PI * 2
+        const k = 1 + jit(0.07)
+        pts.push([x + Math.cos(a) * rx * k, y + Math.sin(a) * ry * k])
+      }
+      stroke(pts, color, lw, 0.9)
+    }
+    const dot = (x: number, y: number, r: number, color: string) => {
+      c.globalAlpha = 0.9 * fade
+      c.fillStyle = color
+      c.beginPath()
+      c.ellipse(x + jit(0.6), y + jit(0.6), r, r * (0.85 + rnd() * 0.3), rnd() * 3, 0, Math.PI * 2)
+      c.fill()
+      c.globalAlpha = 1
+    }
+    /** A filled patch of chalk, scribbled in short diagonal strokes. */
+    const scribble = (x: number, y: number, rx: number, ry: number, color: string) => {
+      c.save()
+      c.beginPath()
+      c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2)
+      c.clip()
+      for (let sx = x - rx - ry; sx < x + rx + ry; sx += 2.4) {
+        stroke([[sx, y + ry + 2], [sx + ry * 1.6, y - ry - 2]], color, 1.6, 0.8)
+      }
+      c.restore()
+    }
+
+    const chalkText = (text: string, x: number, y: number, size: number, color: string, align: CanvasTextAlign = 'left') => {
+      c.font = font(size)
+      c.textBaseline = 'middle'
+      c.textAlign = 'left'
+      c.fillStyle = color
+      const chars = [...text]
+      const widths = chars.map((ch) => c.measureText(ch).width)
+      const total = widths.reduce((a, b) => a + b, 0)
+      let cx = align === 'right' ? x - total : align === 'center' ? x - total / 2 : x
+      chars.forEach((ch, i) => {
+        c.save()
+        c.translate(cx + widths[i] / 2, y + jit(size * 0.14))
+        c.rotate(jit(0.16))
+        const grow = 1 + jit(0.1)
+        c.scale(grow, grow)
+        c.globalAlpha = 0.36 * fade
+        c.fillText(ch, -widths[i] / 2 + 0.8, 0.7)
+        c.globalAlpha = 0.92 * fade
+        c.fillText(ch, -widths[i] / 2, 0)
+        c.restore()
+        cx += widths[i]
+      })
+      c.globalAlpha = 1
+    }
+    const measure = (text: string, size: number) => {
+      c.font = font(size)
+      return c.measureText(text).width
+    }
     const fit = (text: string, size: number, room: number) => {
-      ctx.font = font(size)
-      const width = ctx.measureText(text).width
+      const width = measure(text, size)
       return width > room ? Math.max(9, size * (room / width)) : size
     }
-    const chalk = (text: string, x: number, y: number, size: number, color: string, align: CanvasTextAlign = 'left') => {
-      ctx.font = font(size)
-      ctx.textAlign = align
-      ctx.textBaseline = 'middle'
-      ctx.fillStyle = color
-      ctx.globalAlpha = 0.34
-      ctx.fillText(text, x + 0.7, y + 0.6)
-      ctx.globalAlpha = 0.92
-      ctx.fillText(text, x, y)
-      ctx.globalAlpha = 1
-    }
     const underline = (x: number, y: number, length: number, color: string) => {
-      ctx.strokeStyle = color
-      ctx.lineCap = 'round'
-      for (const [alpha, drop] of [[0.5, 0], [0.9, 1.3]] as const) {
-        ctx.globalAlpha = alpha
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        ctx.moveTo(x, y + drop)
-        ctx.quadraticCurveTo(x + length * 0.5, y + drop + (rnd() - 0.5) * 3, x + length, y + drop + (rnd() - 0.5) * 2)
-        ctx.stroke()
-      }
-      ctx.globalAlpha = 1
+      stroke([[x, y], [x + length * 0.3, y + jit(3)], [x + length * 0.65, y + jit(3)], [x + length, y + jit(2)]], color, 2.2, 1.1)
     }
     const leader = (x0: number, x1: number, y: number) => {
-      ctx.fillStyle = CREAM
-      ctx.globalAlpha = 0.3
-      for (let x = x0; x < x1; x += 6) ctx.fillRect(x, y + 6, 1.6, 1.6)
-      ctx.globalAlpha = 1
+      for (let x = x0; x < x1; x += 6 + rnd() * 1.5) dot(x, y + 7, 0.9, CREAM)
     }
 
-    const pad = 24
-    chalk(m.title, pad, 28, fit(m.title, 28, w - pad * 2), CREAM)
-    underline(pad, 46, Math.min(w - pad * 2, 220), '#f6e08a')
-
-    const columns = m.groups.length + (m.progress ? 1 : 0)
-    if (columns === 0) return
-    const gap = 26
-    const colW = (w - pad * 2 - gap * (columns - 1)) / columns
-    const top = 72
-    const rowStep = 28
-    let col = 0
-
-    const figures = (list: BoardFigure[], x: number, first: number, step = rowStep) => {
+    // ---- the blocks of figures, drawn with their top-left corner at the origin
+    interface Block { w: number; h: number; draw: () => void }
+    const figureRows = (list: BoardFigure[], colW: number, y0: number, step: number) => {
       list.forEach((f, i) => {
-        const y = first + i * step
+        const y = y0 + i * step
         const valueSize = fit(f.value, 23, colW * 0.4)
-        const labelSize = fit(f.label, 17, colW * 0.56)
-        chalk(f.label, x, y, labelSize, CREAM)
-        chalk(f.value, x + colW, y, valueSize, f.tone ? tones[f.tone] : CREAM, 'right')
-        ctx.font = font(labelSize)
-        const labelEnd = x + ctx.measureText(f.label).width + 6
-        ctx.font = font(valueSize)
-        leader(labelEnd, x + colW - ctx.measureText(f.value).width - 6, y)
+        const labelSize = fit(f.label, 17, colW * 0.58)
+        chalkText(f.label, 0, y, labelSize, CREAM)
+        chalkText(f.value, colW, y, valueSize, f.tone ? TONES[f.tone] : CREAM, 'right')
+        leader(measure(f.label, labelSize) + 6, colW - measure(f.value, valueSize) - 6, y)
+      })
+    }
+    const blocks: Block[] = []
+    model.groups.forEach((group, gi) => {
+      const color = PALETTE[1 + ((gi + Math.floor(rnd() * 3)) % 4)]
+      const colW = 205
+      blocks.push({
+        w: colW,
+        h: 44 + group.figures.length * 28,
+        draw: () => {
+          chalkText(group.heading, 0, 10, fit(group.heading, 20, colW), color)
+          underline(0, 25, Math.min(colW, 96), color)
+          figureRows(group.figures, colW, 50, 28)
+        },
+      })
+    })
+    if (model.progress) {
+      const p = model.progress
+      const colW = 215
+      blocks.push({
+        w: colW,
+        h: 44 + 26 + 18 + 22 + p.figures.slice(0, 3).length * 27,
+        draw: () => {
+          chalkText(p.heading, 0, 10, fit(p.heading, 20, colW), '#c9b6f2')
+          underline(0, 25, 96, '#c9b6f2')
+          chalkText(p.level, 0, 52, fit(p.level, 27, colW), '#f6e08a')
+          const barY = 70
+          const barH = 12
+          stroke([[0, barY], [colW, barY + jit(1.5)], [colW + jit(1), barY + barH], [0, barY + barH + jit(1.5)], [jit(1), barY]], CREAM, 1.7, 0.8)
+          const fill = (colW - 4) * Math.min(1, Math.max(0, p.fraction))
+          c.save()
+          c.beginPath()
+          c.rect(2, barY + 1.5, fill, barH - 3)
+          c.clip()
+          for (let sx = -barH; sx < colW; sx += 5) stroke([[sx, barY + barH], [sx + barH, barY]], '#f6e08a', 1.8, 0.8)
+          c.restore()
+          chalkText(p.caption, 0, barY + barH + 15, fit(p.caption, 13, colW), CREAM)
+          figureRows(p.figures.slice(0, 3), colW, barY + barH + 41, 27)
+        },
       })
     }
 
-    for (const group of m.groups) {
-      const x = pad + col * (colW + gap)
-      const color = colours[col % colours.length]
-      chalk(group.heading, x, top, fit(group.heading, 19, colW), color)
-      underline(x, top + 14, Math.min(colW, 90), color)
-      figures(group.figures, x, top + 36)
-      col++
+    // ---- placement: random spots, small tilts, not on top of each other
+    interface Spot { x: number; y: number; w: number; h: number }
+    const placed: Spot[] = []
+    const margin = 26
+    const overlaps = (a: Spot, pad: number) =>
+      placed.some((b) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y)
+    const spotFor = (bw: number, bh: number, pad: number, upperBias: number): Spot | null => {
+      const maxX = w - margin - bw
+      const maxY = h - margin - bh
+      if (maxX <= margin || maxY <= margin) return null
+      for (let tries = 0; tries < 90; tries++) {
+        // The wall behind the books is mostly hidden, so most blocks start in the clear band above them.
+        const band = rnd() < upperBias ? Math.min(maxY, h * 0.5 - bh) : maxY
+        const spot = { x: margin + rnd() * (maxX - margin), y: margin + rnd() * Math.max(0, band - margin), w: bw, h: bh }
+        if (!overlaps(spot, pad)) return spot
+      }
+      return null
+    }
+    const order = [...blocks].sort((a, b) => b.w * b.h - a.w * a.h)
+    for (const block of order) {
+      const spot = spotFor(block.w, block.h, 18, 0.7) ?? spotFor(block.w, block.h, 4, 0.4)
+        ?? { x: margin + rnd() * Math.max(1, w - margin * 2 - block.w), y: margin + rnd() * Math.max(1, h - margin * 2 - block.h), w: block.w, h: block.h }
+      placed.push(spot)
+      c.save()
+      c.translate(spot.x + block.w / 2, spot.y + block.h / 2)
+      c.rotate(jit(0.09))
+      c.translate(-block.w / 2, -block.h / 2)
+      block.draw()
+      c.restore()
     }
 
-    if (m.progress) {
-      const p = m.progress
-      const x = pad + col * (colW + gap)
-      const color = colours[col % colours.length]
-      chalk(p.heading, x, top, fit(p.heading, 19, colW), color)
-      underline(x, top + 14, Math.min(colW, 90), color)
-      chalk(p.level, x, top + 36, fit(p.level, 26, colW), '#f6e08a')
-      // The XP bar: a chalk outline, filled with diagonal strokes up to the fraction.
-      const barY = top + 52
-      const barH = 12
-      ctx.strokeStyle = CREAM
-      ctx.globalAlpha = 0.85
-      ctx.lineWidth = 1.6
-      ctx.strokeRect(x, barY, colW, barH)
-      ctx.save()
-      ctx.beginPath()
-      ctx.rect(x + 1, barY + 1, Math.max(0, (colW - 2) * Math.min(1, Math.max(0, p.fraction))), barH - 2)
-      ctx.clip()
-      ctx.strokeStyle = '#f6e08a'
-      ctx.lineWidth = 2
-      for (let sx = x - barH; sx < x + colW; sx += 5) {
-        ctx.beginPath()
-        ctx.moveTo(sx, barY + barH)
-        ctx.lineTo(sx + barH, barY)
-        ctx.stroke()
-      }
-      ctx.restore()
-      ctx.globalAlpha = 1
-      chalk(p.caption, x, barY + barH + 14, fit(p.caption, 13, colW), CREAM)
-      figures(p.figures.slice(0, 3), x, barY + barH + 34, 26)
+    // ---- doodles
+    const sparkle = (x: number, y: number, s: number, color: string) => {
+      stroke([[x, y - s], [x + jit(1), y + s]], color, 2.2, 1)
+      stroke([[x - s, y], [x + s, y + jit(1)]], color, 2.2, 1)
+      stroke([[x - s * 0.45, y - s * 0.45], [x + s * 0.45, y + s * 0.45]], color, 1.6, 0.8)
+      stroke([[x + s * 0.45, y - s * 0.45], [x - s * 0.45, y + s * 0.45]], color, 1.6, 0.8)
     }
+    const star = (x: number, y: number, s: number, color: string) => {
+      const pts: [number, number][] = []
+      for (let i = 0; i <= 10; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5
+        const r = i % 2 ? s * 0.42 : s
+        pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r])
+      }
+      stroke(pts, color, 2.2, 1.2)
+    }
+    const heart = (x: number, y: number, s: number, color: string) => {
+      const pts: [number, number][] = []
+      for (let i = 0; i <= 22; i++) {
+        const t = (i / 22) * Math.PI * 2
+        pts.push([x + (s * 16 * Math.sin(t) ** 3) / 17, y - (s * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))) / 17])
+      }
+      stroke(pts, color, 2.4, 1)
+    }
+    const squiggle = (x: number, y: number, s: number, color: string) => {
+      const kind = Math.floor(rnd() * 3)
+      const pts: [number, number][] = []
+      if (kind === 0) {
+        const len = s * 3.2
+        for (let i = 0; i <= 16; i++) pts.push([x - len / 2 + (i / 16) * len, y + Math.sin(i * 1.15) * s * 0.28])
+      } else if (kind === 1) {
+        for (let i = 0; i <= 44; i++) {
+          const a = i * 0.34
+          pts.push([x + Math.cos(a) * (a * s * 0.07), y + Math.sin(a) * (a * s * 0.07)])
+        }
+      } else {
+        for (let i = 0; i <= 9; i++) pts.push([x - s * 1.4 + i * s * 0.31, y + (i % 2 ? -s * 0.3 : s * 0.3)])
+      }
+      stroke(pts, color, 2.2, 1.1)
+    }
+    const loops = (x: number, y: number, s: number, color: string) => {
+      const pts: [number, number][] = []
+      for (let i = 0; i <= 40; i++) {
+        const a = i * 0.55
+        pts.push([x - s * 1.6 + i * s * 0.08 + Math.cos(a) * s * 0.35, y + Math.sin(a) * s * 0.35])
+      }
+      stroke(pts, color, 2.1, 0.8)
+    }
+    const eye = (x: number, y: number, rx: number, ry: number, color: string) => {
+      scribble(x, y, rx, ry, color)
+      oval(x, y, rx, ry, color, 2)
+      // The highlight: a hole worn in the chalk.
+      c.save()
+      c.globalCompositeOperation = 'destination-out'
+      c.beginPath()
+      c.arc(x - rx * 0.3, y - ry * 0.35, Math.max(1.6, rx * 0.28), 0, Math.PI * 2)
+      c.fill()
+      c.restore()
+    }
+    const face = (x: number, y: number, s: number, color: string) => {
+      oval(x, y, s, s * 0.9, color)
+      const kind = Math.floor(rnd() * 4)
+      if (kind === 3) {
+        // Cat ears.
+        stroke([[x - s * 0.85, y - s * 0.3], [x - s * 0.8, y - s * 1.35], [x - s * 0.1, y - s * 0.8]], color)
+        stroke([[x + s * 0.85, y - s * 0.3], [x + s * 0.8, y - s * 1.35], [x + s * 0.1, y - s * 0.8]], color)
+      }
+      if (kind === 0) {
+        // Happy closed eyes.
+        stroke([[x - s * 0.6, y - s * 0.05], [x - s * 0.35, y - s * 0.3], [x - s * 0.1, y - s * 0.05]], color)
+        stroke([[x + s * 0.1, y - s * 0.05], [x + s * 0.35, y - s * 0.3], [x + s * 0.6, y - s * 0.05]], color)
+      } else {
+        eye(x - s * 0.36, y - s * 0.05, s * 0.19, s * 0.27, color)
+        eye(x + s * 0.36, y - s * 0.05, s * 0.19, s * 0.27, color)
+      }
+      stroke([[x - s * 0.18, y + s * 0.38], [x, y + s * 0.5], [x + s * 0.18, y + s * 0.38]], color, 2)
+      // Blush.
+      for (const side of [-1, 1]) {
+        for (let k = 0; k < 3; k++) {
+          const bx = x + side * s * 0.62 + (k - 1) * 3.2
+          stroke([[bx - 2, y + s * 0.3], [bx + 2, y + s * 0.18]], '#f7a8bf', 1.6, 0.4)
+        }
+      }
+      if (rnd() < 0.5) {
+        // Fringe.
+        stroke([[x - s * 0.8, y - s * 0.55], [x - s * 0.2, y - s * 0.95], [x + s * 0.15, y - s * 0.6]], color, 2, 1)
+        stroke([[x + s * 0.15, y - s * 0.62], [x + s * 0.6, y - s * 0.88], [x + s * 0.85, y - s * 0.5]], color, 2, 1)
+      }
+    }
+    const sweat = (x: number, y: number, s: number, color: string) => {
+      stroke([[x, y - s], [x - s * 0.55, y + s * 0.3], [x - s * 0.2, y + s * 0.85], [x + s * 0.3, y + s * 0.8], [x + s * 0.55, y + s * 0.25], [x, y - s]], color, 2.2, 0.9)
+      stroke([[x - s * 0.2, y + s * 0.15], [x - s * 0.15, y + s * 0.5]], color, 1.5, 0.4)
+    }
+    const anger = (x: number, y: number, s: number) => {
+      const color = '#f7a8bf'
+      for (const sign of [-1, 1]) {
+        stroke([[x + sign * s * 0.2, y - s], [x + sign * s * 0.05, y - s * 0.2], [x + sign * s * 0.7, y - s * 0.1]], color, 2.4, 0.8)
+        stroke([[x + sign * s * 0.2, y + s], [x + sign * s * 0.05, y + s * 0.2], [x + sign * s * 0.7, y + s * 0.1]], color, 2.4, 0.8)
+      }
+    }
+    const bubble = (x: number, y: number, s: number, color: string) => {
+      const pts: [number, number][] = []
+      for (let i = 0; i <= 18; i++) {
+        const a = (i / 18) * Math.PI * 2
+        pts.push([x + Math.cos(a) * s * 1.15, y + Math.sin(a) * s * 0.8])
+      }
+      stroke(pts, color, 2.2, 1)
+      stroke([[x - s * 0.5, y + s * 0.7], [x - s * 0.9, y + s * 1.35], [x - s * 0.05, y + s * 0.78]], color, 2.2, 0.8)
+      chalkText(pick(['!', '?', '…', '♪', '!?', 'zzz']), x, y, s * 0.95, color, 'center')
+    }
+    const roll = (x: number, y: number, s: number, color: string) => {
+      oval(x, y, s, s, color)
+      const pts: [number, number][] = []
+      for (let i = 0; i <= 26; i++) {
+        const a = i * 0.5
+        pts.push([x + Math.cos(a) * (a * s * 0.055), y + Math.sin(a) * (a * s * 0.055)])
+      }
+      stroke(pts, '#f7a8bf', 1.8, 0.7)
+      dot(x - s * 0.35, y + s * 0.25, 1.8, CREAM)
+      dot(x + s * 0.35, y + s * 0.25, 1.8, CREAM)
+    }
+    const flower = (x: number, y: number, s: number, color: string) => {
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 - Math.PI / 2
+        const cx = x + Math.cos(a) * s * 0.55
+        const cy = y + Math.sin(a) * s * 0.55
+        oval(cx, cy, s * 0.42, s * 0.3, color, 1.9)
+      }
+      dot(x, y, s * 0.16, '#f6e08a')
+    }
+    const note = (x: number, y: number, s: number, color: string) => {
+      stroke([[x + s * 0.4, y - s], [x + s * 0.4, y + s * 0.5]], color, 2.2, 0.6)
+      stroke([[x + s * 0.4, y - s], [x + s * 1, y - s * 0.6], [x + s * 0.95, y - s * 0.1]], color, 2.2, 0.8)
+      scribble(x, y + s * 0.55, s * 0.45, s * 0.3, color)
+    }
+    const arrow = (x: number, y: number, s: number, color: string) => {
+      stroke([[x - s, y + s * 0.4], [x - s * 0.2, y - s * 0.4], [x + s * 0.8, y - s * 0.1]], color, 2.2, 1)
+      stroke([[x + s * 0.5, y - s * 0.5], [x + s * 0.85, y - s * 0.1], [x + s * 0.4, y + s * 0.2]], color, 2.2, 0.8)
+    }
+    const cloud = (x: number, y: number, s: number, color: string) => {
+      stroke([[x - s, y + s * 0.3], [x - s * 1.1, y - s * 0.2], [x - s * 0.5, y - s * 0.5], [x - s * 0.1, y - s * 0.9], [x + s * 0.45, y - s * 0.55], [x + s * 1.1, y - s * 0.3], [x + s * 1, y + s * 0.3], [x - s, y + s * 0.3]], color, 2.2, 1.1)
+    }
+    const doodles: ((x: number, y: number, s: number, color: string) => void)[] = [
+      sparkle, sparkle, star, heart, squiggle, squiggle, loops, face, face, bubble, roll, flower, note, arrow, cloud,
+      (x, y, s, color) => { face(x, y, s, color); sweat(x + s * 1.15, y - s * 0.6, s * 0.34, '#9ed3f5') },
+      (x, y, s, color) => { face(x, y, s, color); anger(x + s * 1.1, y - s * 0.85, s * 0.3) },
+    ]
+    // Some loads are bare; most carry a handful.
+    const count = rnd() < 0.15 ? 0 : 3 + Math.floor(rnd() * 6)
+    for (let i = 0; i < count; i++) {
+      const size = 16 + rnd() * 22
+      const spot = spotFor(size * 3.2, size * 2.6, 8, 0.45)
+      if (!spot) continue
+      placed.push(spot)
+      c.save()
+      c.translate(spot.x + spot.w / 2, spot.y + spot.h / 2)
+      c.rotate(jit(0.5))
+      pick(doodles)(0, 0, size, pick(PALETTE))
+      c.restore()
+    }
+
+    // ---- ghosts of old writing, faint and large, under everything that was chalked fresh
+    c.save()
+    fade = 0.1
+    for (let i = 0; i < 3; i++) {
+      c.save()
+      c.translate(rnd() * w, rnd() * h)
+      c.rotate(jit(0.7))
+      pick(doodles)(0, 0, 40 + rnd() * 40, CREAM)
+      c.restore()
+    }
+    fade = 1
+    c.restore()
+
+    // ---- wear the chalk: tiny holes, so a line breaks up like dust
+    c.save()
+    c.setTransform(1, 0, 0, 1, 0, 0)
+    c.globalCompositeOperation = 'destination-out'
+    const specks = Math.floor((layer.width * layer.height) / 26)
+    for (let i = 0; i < specks; i++) {
+      c.globalAlpha = 0.25 + rnd() * 0.6
+      const size = 0.7 + rnd() * 1.7
+      c.fillRect(rnd() * layer.width, rnd() * layer.height, size, size)
+    }
+    c.restore()
+
+    g.setTransform(1, 0, 0, 1, 0, 0)
+    g.drawImage(layer, 0, 0)
+    const map = new T.CanvasTexture(base)
+    map.colorSpace = T.SRGBColorSpace
+    map.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy())
+    return map
   }
 
   // ---- layout ------------------------------------------------------------
@@ -860,11 +1099,19 @@ export class MangaShelf {
     shelf.receiveShadow = true
     scene.add(shelf)
     const wallHeight = this.rowH - 20
-    const wall = new T.Mesh(new T.BoxGeometry(width + 12, wallHeight, 8), new T.MeshStandardMaterial({ color: this.theme.wall, roughness: 1 }))
+    const wallMaterial = new T.MeshStandardMaterial({ color: this.theme.wall, roughness: 1 })
+    let faces: T.Material | T.Material[] = wallMaterial
+    if (this.board) {
+      // The whole wall is the chalkboard: its front face carries the slate and everything on it.
+      this.wallSize = { w: width + 12, h: wallHeight }
+      this.boardMaterial = new T.MeshStandardMaterial({ map: this.wallTexture(width + 12, wallHeight, this.board), roughness: 0.95 })
+      faces = [wallMaterial, wallMaterial, wallMaterial, wallMaterial, this.boardMaterial, wallMaterial]
+    }
+    const wall = new T.Mesh(new T.BoxGeometry(width + 12, wallHeight, 8), faces)
     wall.position.set(0, 17 + wallHeight / 2, -151)
     wall.receiveShadow = true
     scene.add(wall)
-    if (this.board) this.addBoard(scene, width, this.board)
+    if (this.board) this.addFrame(scene, width + 12, wallHeight)
     const row: Row = { scene, camera, physics: new ShelfPhysics(width), index: this.rows.length, shelf }
     // A heavy landing sets the plank, and everything on it, shuddering; the wall stays put.
     row.physics.onImpact = (strength) => {

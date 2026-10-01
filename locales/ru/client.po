@@ -16540,7 +16540,6 @@ msgid "Your folder is left alone. New chapters go into a folder Fōkurōru names
 msgstr ""
 
 #: src/api/customRails.ts
-#: src/pages/HomePage.tsx
 #, fuzzy
 msgid "Your library"
 msgstr "Ваша библиотека"
@@ -16588,7 +16587,11 @@ msgid "Your progress"
 msgstr "Ваш прогресс"
 
 #: src/components/home/homeSectionDefs.ts
-msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the board hanging behind it."
+#~ msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the board hanging behind it."
+#~ msgstr ""
+
+#: src/components/home/homeSectionDefs.ts
+msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the wall behind it, among a few doodles."
 msgstr ""
 
 #: src/api/inbox.ts

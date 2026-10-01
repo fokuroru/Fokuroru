@@ -241,8 +241,9 @@ function SpineBook({ s, book, index, count, style, height, width, fitWidth }: {
  * and books you have finished fade like spines left in the sun. The whole run is one target: a click
  * opens the next chapter to read, not a particular book.
  *
- * `board` is the library and reading figures, chalked on a board hung on the wall behind the books.
- * With a board the shelf shows even when nothing is in progress; without one it renders nothing then.
+ * `board` is the library and reading figures. With one, the whole wall behind the books is a chalkboard
+ * with the figures written on it at random places, so the books can hide some of them. The shelf then
+ * shows even when nothing is in progress; without a board it renders nothing then.
  * Without WebGL the board becomes a plain panel under the flat spines.
  */
 export function SpineShelf({ series, readTracking, board = null }: {
@@ -316,7 +317,6 @@ export function SpineShelf({ series, readTracking, board = null }: {
           />
           {board && (
             <VisuallyHidden>
-              <p>{board.title}</p>
               {[...board.groups, ...(board.progress ? [{ heading: board.progress.heading, figures: board.progress.figures }] : [])].map((g) => (
                 <dl key={g.heading} aria-label={g.heading}>
                   {g.figures.map((f) => (
@@ -463,7 +463,6 @@ function FlatBoard({ board }: { board: BoardModel }) {
   ]
   return (
     <div className="chalkboard-flat">
-      <div className="chalkboard-flat-title">{board.title}</div>
       <div className="chalkboard-flat-columns">
         {columns.map((g) => (
           <dl key={g.heading}>

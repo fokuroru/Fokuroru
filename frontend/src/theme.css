@@ -8595,11 +8595,6 @@ body.reader-open {
   color: #f3efe2;
   font-family: 'Comic Neue', 'Comic Sans MS', cursive;
 }
-.chalkboard-flat-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: var(--mantine-spacing-sm);
-}
 .chalkboard-flat-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

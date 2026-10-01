@@ -309,7 +309,7 @@ export default function HomePage() {
         }
       : undefined
   const board: BoardModel | null =
-    boardGroups.length > 0 || boardProgress ? { title: t`Your library`, groups: boardGroups, progress: boardProgress } : null
+    boardGroups.length > 0 || boardProgress ? { groups: boardGroups, progress: boardProgress } : null
 
   // One node per section key. Rendered in the user's order below; a section with nothing to show
   // yields null and takes up no space, exactly as when it is switched off.
