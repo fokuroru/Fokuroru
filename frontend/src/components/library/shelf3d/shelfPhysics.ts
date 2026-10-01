@@ -5,7 +5,17 @@ const { Engine, Bodies, Body, Composite, Constraint, Events, Query, Sleeping, Ve
 /** Three times Matter's default: at shelf scale the default had books drifting down like paper. */
 const GRAVITY_SCALE = 0.003
 
-export type BookBody = Matter.Body & { bookWidth: number; bookHeight: number }
+export type BookBody = Matter.Body & { bookWidth: number; bookHeight: number; chalk?: boolean }
+
+/**
+ * Collision categories. Everything else keeps Matter's default (1) and so meets everything. Chalk
+ * meets books, the plant, other chalk and the shelf's visible plank, but not the invisible extra
+ * plank under the shelf ends or the end walls, so a stick pushed to either end rolls off it.
+ */
+const CATEGORY_CHALK = 0x0002
+const CATEGORY_VISIBLE_PLANK = 0x0004
+const CATEGORY_PLANK = 0x0008
+const CATEGORY_WALL = 0x0010
 
 interface Hand {
   start: Matter.Vector
@@ -43,7 +53,19 @@ export class ShelfPhysics {
     this.engine = Engine.create({ enableSleeping: true, positionIterations: 12, velocityIterations: 10, constraintIterations: 6 })
     this.engine.gravity.y = 1
     this.engine.gravity.scale = GRAVITY_SCALE
-    this.plank = Bodies.rectangle(width / 2, floor + 35, width + 100, 70, { isStatic: true, friction: 0.75, restitution: 0 })
+    this.plank = Bodies.rectangle(width / 2, floor + 35, width + 100, 70, {
+      isStatic: true,
+      friction: 0.75,
+      restitution: 0,
+      collisionFilter: { category: CATEGORY_PLANK, mask: 0xffffffff, group: 0 },
+    })
+    // The plank as drawn: the same surface, but only as wide as the shelf, so chalk can leave it.
+    const visiblePlank = Bodies.rectangle(width / 2, floor + 35, width + 12, 70, {
+      isStatic: true,
+      friction: 0.75,
+      restitution: 0,
+      collisionFilter: { category: CATEGORY_VISIBLE_PLANK, mask: 0xffffffff, group: 0 },
+    })
     Events.on(this.engine, 'collisionStart', (event) => {
       for (const pair of event.pairs) {
         const book = pair.bodyA === this.plank ? pair.bodyB : pair.bodyB === this.plank ? pair.bodyA : null
@@ -51,10 +73,12 @@ export class ShelfPhysics {
       }
     })
 
+    const wall = { category: CATEGORY_WALL, mask: 0xffffffff, group: 0 }
     Composite.add(this.engine.world, [
       this.plank,
-      Bodies.rectangle(-30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5 }),
-      Bodies.rectangle(width + 30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5 }),
+      visiblePlank,
+      Bodies.rectangle(-30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5, collisionFilter: wall }),
+      Bodies.rectangle(width + 30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5, collisionFilter: wall }),
     ])
   }
 
@@ -101,6 +125,38 @@ export class ShelfPhysics {
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
     return { body, centreAboveFloor: this.floor - body.position.y }
+  }
+
+  /**
+   * A stick of chalk lying across the shelf, `x` and `y` its centre. A rounded rectangle: slippery,
+   * so a knock slides it, and light, so a book shoves it about. It ignores the end walls and the
+   * overhang of the plank, which is what lets it go over the edge.
+   */
+  addChalk(x: number, y: number, length: number, thickness: number, angle = 0): BookBody {
+    const body = Bodies.rectangle(x, y, length, thickness, {
+      chamfer: { radius: thickness * 0.45 },
+      friction: 0.12,
+      frictionStatic: 0.25,
+      frictionAir: 0.012,
+      restitution: 0.18,
+      density: 0.0012,
+      sleepThreshold: 90,
+      collisionFilter: { category: CATEGORY_CHALK, mask: 0x0001 | CATEGORY_CHALK | CATEGORY_VISIBLE_PLANK, group: 0 },
+    }) as BookBody
+    body.bookWidth = length
+    body.bookHeight = thickness
+    body.chalk = true
+    if (angle) Body.setAngle(body, angle)
+    this.bodies.push(body)
+    Composite.add(this.engine.world, body)
+    return body
+  }
+
+  /** Takes out the chalk that has fallen off the shelf, and returns it so the renderer can drop its model. */
+  reap(): BookBody[] {
+    const lost = this.bodies.filter((b) => b.chalk && b.position.y > this.floor + 500)
+    for (const body of lost) this.remove(body)
+    return lost
   }
 
   /** Every body except `except`, for a renderer asking what occupies a point. */

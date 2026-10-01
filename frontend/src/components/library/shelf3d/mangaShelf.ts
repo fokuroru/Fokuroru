@@ -69,6 +69,17 @@ interface Prop {
   leaves: { pivot: T.Group; height: number; stiffness: number; swing: number; speed: number; pressed: number }[]
 }
 
+/** Anything on the shelf the pointer can pick up and carry: the plant, a stick of chalk. */
+interface Grabbable {
+  body: BookBody
+  row: Row
+}
+
+/** A stick of chalk: a rounded rectangle in the physics, a cylinder in the scene. */
+interface Stick extends Grabbable {
+  model: T.Object3D
+}
+
 interface Hinges {
   front: { board: T.Group; leaves: T.Group[] }
   back: { board: T.Group; leaves: T.Group[] }
@@ -110,6 +121,8 @@ const FLUTTER_COOLDOWN_MS = 1200
 const LEAF_LAG_MS = 55
 /** Landings softer than this (see `ShelfPhysics.onImpact`) do not shake the shelf. */
 const IMPACT_MIN = 60
+/** Share of page loads that scatter some sticks of chalk on the shelf. */
+const CHALK_CHANCE = 0.35
 /** Share of page loads that put a potted plant in the shelf's empty space. */
 const PLANT_CHANCE = 0.03
 /** How strongly page scrolling is felt on the shelf, and the most it can jolt, in multiples of gravity. */
@@ -134,12 +147,16 @@ export class MangaShelf {
   private items: Item[] = []
   /** Things on the shelf that are not books: physical, but never grabbed or opened. */
   private props: Prop[] = []
+  /** Sticks of chalk lying about, when this load has any. They can be knocked off the shelf. */
+  private sticks: Stick[] = []
   /** A prop (the plant) being carried: props can be moved but not opened. */
-  private heldProp: Prop | null = null
+  private heldProp: Grabbable | null = null
   /** How much of the shelf stays empty, drawn once per page load: between 2% and 30%. */
   private readonly emptyShare = 0.02 + Math.random() * 0.28
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
+  /** Decided once per page load too: how many sticks of chalk, usually none. */
+  private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
   private drag: { x: number; y: number; moved: boolean; at: number } | null = null
   private access: HTMLDivElement | null = null
@@ -1024,6 +1041,7 @@ export class MangaShelf {
     this.rows = []
     this.items = []
     this.props = []
+    this.sticks = []
     this.boardMaterial = null
     this.access?.remove()
     this.access = null
@@ -1077,6 +1095,41 @@ export class MangaShelf {
     }
     model.traverse((n) => (n.userData.prop = prop))
     this.props.push(prop)
+  }
+
+  /**
+   * Drops a few sticks of chalk into the empty part of the shelf, clear of the books and of each
+   * other. They start a little above the plank at a random tilt, so they land with a clatter, and
+   * from then on they are ordinary bodies: books shove them, they can be picked up, and one pushed
+   * to either end goes over the edge. Skipped if a crowded shelf leaves no room.
+   */
+  private placeChalk(row: Row, width: number) {
+    const booksEnd = this.items.reduce((end, i) => Math.max(end, i.body.bounds.max.x), 0)
+    const colours = ['#f3efe2', '#f7a8bf', '#9ed3f5', '#f6e08a', '#a8e6b8']
+    const taken: number[] = []
+    for (let i = 0; i < this.chalkCount; i++) {
+      const length = 54 + Math.random() * 26
+      const thickness = 8 + Math.random() * 2.5
+      const from = booksEnd + 24 + length / 2
+      const to = width - 12 - length / 2
+      if (to < from) break
+      let x = from + Math.random() * (to - from)
+      for (let tries = 0; tries < 12 && taken.some((t) => Math.abs(t - x) < length * 0.9); tries++) {
+        x = from + Math.random() * (to - from)
+      }
+      if (taken.some((t) => Math.abs(t - x) < length * 0.9)) continue
+      taken.push(x)
+      const body = row.physics.addChalk(x, row.physics.floor - 30 - Math.random() * 70, length, thickness, (Math.random() - 0.5) * 1.4)
+      const geometry = new T.CylinderGeometry(thickness / 2, thickness / 2, length, 14)
+      geometry.rotateZ(Math.PI / 2)
+      const model = new T.Mesh(geometry, new T.MeshStandardMaterial({ color: colours[Math.floor(Math.random() * colours.length)], roughness: 1 }))
+      model.castShadow = true
+      model.receiveShadow = true
+      row.scene.add(model)
+      const stick: Stick = { body, model, row }
+      model.userData.prop = stick
+      this.sticks.push(stick)
+    }
   }
 
   private newRow(width: number): Row {
@@ -1148,6 +1201,7 @@ export class MangaShelf {
       this.items.push(item)
     }
     if (this.withPlant) this.placePlant(row, width)
+    this.placeChalk(row, width)
 
     const rowPx = this.rowH * this.scale
     this.renderer.setSize(this.cssWidth, this.rows.length * rowPx, false)
@@ -1308,7 +1362,7 @@ export class MangaShelf {
     return leaf.pressed
   }
 
-  private hitProp(e: PointerEvent): Prop | undefined {
+  private hitProp(e: PointerEvent): Grabbable | undefined {
     const rect = this.renderer.domElement.getBoundingClientRect()
     const rowPx = this.rowH * this.scale
     const y = e.clientY - rect.top
@@ -1316,7 +1370,35 @@ export class MangaShelf {
     if (!row) return undefined
     const ray = new T.Raycaster()
     ray.setFromCamera(new T.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, 1 - ((y % rowPx) / rowPx) * 2), row.camera)
-    return ray.intersectObjects(row.scene.children, true).find((h) => h.object.userData.prop)?.object.userData.prop as Prop | undefined
+    const hit = ray.intersectObjects(row.scene.children, true).find((h) => h.object.userData.prop)?.object.userData.prop as Grabbable | undefined
+    return hit ?? this.hitStick(e, row)
+  }
+
+  /**
+   * A stick of chalk is a few pixels thick, so it is picked by how near the pointer is to its centre
+   * line rather than by a ray that has to land on it.
+   */
+  private hitStick(e: PointerEvent, row: Row): Stick | undefined {
+    const point = this.worldPoint(e, row)
+    let best: Stick | undefined
+    let bestDistance = 9
+    for (const st of this.sticks) {
+      const half = (st.body as BookBody).bookWidth / 2
+      const dx = Math.cos(st.body.angle) * half
+      const dy = Math.sin(st.body.angle) * half
+      // Distance from the point to the segment along the stick, less its radius.
+      const ax = st.body.position.x - dx
+      const ay = st.body.position.y - dy
+      const abx = dx * 2
+      const aby = dy * 2
+      const t = Math.max(0, Math.min(1, ((point.x - ax) * abx + (point.y - ay) * aby) / (abx * abx + aby * aby)))
+      const distance = Math.hypot(point.x - (ax + abx * t), point.y - (ay + aby * t)) - (st.body as BookBody).bookHeight / 2
+      if (distance < bestDistance) {
+        bestDistance = distance
+        best = st
+      }
+    }
+    return best
   }
 
   private hit(e: PointerEvent): Item | undefined {
@@ -1413,6 +1495,23 @@ export class MangaShelf {
       p.model.position.set(p.body.position.x - this.logicalWidth / 2, 380 - p.body.position.y, 0)
       p.model.rotation.z = -p.body.angle
       pulling = this.sway(p, elapsed) || pulling
+    }
+    for (const st of this.sticks) {
+      st.model.position.set(st.body.position.x - this.logicalWidth / 2, 380 - st.body.position.y, 0)
+      st.model.rotation.z = -st.body.angle
+    }
+    // Chalk that has gone over the edge and is falling away for good.
+    for (const r of this.rows) {
+      for (const lost of r.physics.reap()) {
+        const i = this.sticks.findIndex((st) => st.body === lost)
+        if (i < 0) continue
+        const [gone] = this.sticks.splice(i, 1)
+        if (this.heldProp === gone) this.heldProp = null
+        gone.model.removeFromParent()
+        const mesh = gone.model as T.Mesh
+        mesh.geometry.dispose()
+        ;(mesh.material as T.Material).dispose()
+      }
     }
     // Shelf shudder: a fast decaying bounce applied to the plank and everything on it.
     for (const r of this.rows) {
