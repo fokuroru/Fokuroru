@@ -807,6 +807,10 @@ msgid "{left, plural, one {# left} other {# left}} · ~{eta}"
 msgstr "{left, plural, one {Остался #} few {Осталось #} many {Осталось #} other {Осталось #}} · ~{eta}"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "{left, plural, one {Deleting in # day} other {Deleting in # days}}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "{lineLabel} · click to collapse"
 msgstr "{lineLabel} · нажмите, чтобы свернуть"
@@ -2893,7 +2897,6 @@ msgid "Automatic upgrades are off, needs your call"
 msgstr ""
 
 #: src/components/series/SeriesActionsMenu.tsx
-#: src/nav.ts
 #, fuzzy
 msgid "Automation"
 msgstr "Автоматизация"
@@ -5042,6 +5045,10 @@ msgstr "Удаляется"
 #, fuzzy
 msgid "Deleting files needs the Delete series permission"
 msgstr "Для удаления файлов нужно разрешение на удаление серий"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deleting soon"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -7434,6 +7441,10 @@ msgstr "Итальянский"
 msgid "Items {start}–{end}"
 msgstr "Элементы {start}–{end}"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Its file is deleted automatically some time after it is read"
+msgstr ""
+
 #: src/api/upgrades.ts
 msgid "Its volumes aren't mapped to your chapters yet"
 msgstr ""
@@ -7544,6 +7555,10 @@ msgstr ""
 
 #: src/components/SourceMeasurePanel.tsx
 msgid "Keep manual priority, but renumber it to follow the measured order."
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Keep the last chapter read"
 msgstr ""
 
 #: src/components/SetupWizard.tsx
@@ -8370,6 +8385,10 @@ msgid "Mark chapters watched"
 msgstr "Отметить главы как просмотренные"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Mark previous chapters as read"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Mark read"
 msgstr "Отметить прочитанным"
@@ -8379,6 +8398,10 @@ msgstr "Отметить прочитанным"
 #, fuzzy
 msgid "mark read in kavita, push to kavita, import read status, kavita progress"
 msgstr "отметить прочитанным в kavita, отправить в kavita, импортировать статус чтения, прогресс kavita"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Mark the chapters before {chapterLbl} as read"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -9005,6 +9028,10 @@ msgstr "нейтрально, вес как у полки"
 #, fuzzy
 msgid "never"
 msgstr "никогда"
+
+#: src/pages/SettingsPage.tsx
+msgid "Never deletes the chapter someone read most recently in a series, so the place they are up to is always on disk."
+msgstr ""
 
 #: src/components/ImportListsSection.tsx
 #, fuzzy
@@ -12793,6 +12820,10 @@ msgstr "Искать «{typed}»"
 msgid "Search for a series and request it - it will show up here once you do."
 msgstr "Найдите серию и запросите её, после этого она появится здесь."
 
+#: src/components/MetadataLinks.tsx
+msgid "Search for this series on {label}"
+msgstr ""
+
 #: src/components/CatalogueRules.tsx
 #, fuzzy
 msgid "Search genres and tags"
@@ -12820,6 +12851,10 @@ msgstr "Найти в MangaBaka и начать загрузку."
 #, fuzzy
 msgid "Search missing"
 msgstr "Поиск отсутствующих"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Search on"
+msgstr ""
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy

@@ -807,6 +807,10 @@ msgid "{left, plural, one {# left} other {# left}} · ~{eta}"
 msgstr "{left, plural, other {还剩 # 个}} · 约 {eta}"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "{left, plural, one {Deleting in # day} other {Deleting in # days}}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "{lineLabel} · click to collapse"
 msgstr "{lineLabel} · 点击收起"
@@ -2893,7 +2897,6 @@ msgid "Automatic upgrades are off, needs your call"
 msgstr ""
 
 #: src/components/series/SeriesActionsMenu.tsx
-#: src/nav.ts
 #, fuzzy
 msgid "Automation"
 msgstr "自动化"
@@ -5042,6 +5045,10 @@ msgstr "正在删除"
 #, fuzzy
 msgid "Deleting files needs the Delete series permission"
 msgstr "删除文件需要“删除系列”权限"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deleting soon"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -7434,6 +7441,10 @@ msgstr "意大利语"
 msgid "Items {start}–{end}"
 msgstr "项目 {start}–{end}"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Its file is deleted automatically some time after it is read"
+msgstr ""
+
 #: src/api/upgrades.ts
 msgid "Its volumes aren't mapped to your chapters yet"
 msgstr ""
@@ -7544,6 +7555,10 @@ msgstr ""
 
 #: src/components/SourceMeasurePanel.tsx
 msgid "Keep manual priority, but renumber it to follow the measured order."
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Keep the last chapter read"
 msgstr ""
 
 #: src/components/SetupWizard.tsx
@@ -8370,6 +8385,10 @@ msgid "Mark chapters watched"
 msgstr "将章节标记为已看过"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Mark previous chapters as read"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Mark read"
 msgstr "标记为已读"
@@ -8379,6 +8398,10 @@ msgstr "标记为已读"
 #, fuzzy
 msgid "mark read in kavita, push to kavita, import read status, kavita progress"
 msgstr "在 kavita 中标记已读, 推送到 kavita, 导入阅读状态, kavita 阅读进度"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Mark the chapters before {chapterLbl} as read"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -9005,6 +9028,10 @@ msgstr "中性，基准值为书架权重"
 #, fuzzy
 msgid "never"
 msgstr "从不"
+
+#: src/pages/SettingsPage.tsx
+msgid "Never deletes the chapter someone read most recently in a series, so the place they are up to is always on disk."
+msgstr ""
 
 #: src/components/ImportListsSection.tsx
 #, fuzzy
@@ -12793,6 +12820,10 @@ msgstr "搜索“{typed}”"
 msgid "Search for a series and request it - it will show up here once you do."
 msgstr "搜索并请求一个系列，完成后它会显示在这里。"
 
+#: src/components/MetadataLinks.tsx
+msgid "Search for this series on {label}"
+msgstr ""
+
 #: src/components/CatalogueRules.tsx
 #, fuzzy
 msgid "Search genres and tags"
@@ -12820,6 +12851,10 @@ msgstr "搜索 MangaBaka 并开始下载。"
 #, fuzzy
 msgid "Search missing"
 msgstr "搜索缺失项"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Search on"
+msgstr ""
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy

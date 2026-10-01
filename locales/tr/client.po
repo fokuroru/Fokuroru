@@ -807,6 +807,10 @@ msgid "{left, plural, one {# left} other {# left}} · ~{eta}"
 msgstr "{left, plural, one {# kaldı} other {# kaldı}} · ~{eta}"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "{left, plural, one {Deleting in # day} other {Deleting in # days}}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "{lineLabel} · click to collapse"
 msgstr "{lineLabel} · daraltmak için tıklayın"
@@ -2893,7 +2897,6 @@ msgid "Automatic upgrades are off, needs your call"
 msgstr ""
 
 #: src/components/series/SeriesActionsMenu.tsx
-#: src/nav.ts
 #, fuzzy
 msgid "Automation"
 msgstr "Otomasyon"
@@ -5042,6 +5045,10 @@ msgstr "Siliniyor"
 #, fuzzy
 msgid "Deleting files needs the Delete series permission"
 msgstr "Dosyaları silmek için Serileri silme izni gerekir"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deleting soon"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -7434,6 +7441,10 @@ msgstr "İtalyanca"
 msgid "Items {start}–{end}"
 msgstr "Öğeler {start}–{end}"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Its file is deleted automatically some time after it is read"
+msgstr ""
+
 #: src/api/upgrades.ts
 msgid "Its volumes aren't mapped to your chapters yet"
 msgstr ""
@@ -7544,6 +7555,10 @@ msgstr ""
 
 #: src/components/SourceMeasurePanel.tsx
 msgid "Keep manual priority, but renumber it to follow the measured order."
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Keep the last chapter read"
 msgstr ""
 
 #: src/components/SetupWizard.tsx
@@ -8370,6 +8385,10 @@ msgid "Mark chapters watched"
 msgstr "Bölümleri izlendi olarak işaretle"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Mark previous chapters as read"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Mark read"
 msgstr "Okundu işaretle"
@@ -8379,6 +8398,10 @@ msgstr "Okundu işaretle"
 #, fuzzy
 msgid "mark read in kavita, push to kavita, import read status, kavita progress"
 msgstr "kavita'da okundu olarak işaretle, kavita'ya gönder, okuma durumunu içe aktar, kavita ilerlemesi"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Mark the chapters before {chapterLbl} as read"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -9005,6 +9028,10 @@ msgstr "nötr, raf ağırlığıyla başlar"
 #, fuzzy
 msgid "never"
 msgstr "asla"
+
+#: src/pages/SettingsPage.tsx
+msgid "Never deletes the chapter someone read most recently in a series, so the place they are up to is always on disk."
+msgstr ""
 
 #: src/components/ImportListsSection.tsx
 #, fuzzy
@@ -12793,6 +12820,10 @@ msgstr "“{typed}” için ara"
 msgid "Search for a series and request it - it will show up here once you do."
 msgstr "Bir seri arayın ve isteyin, bunu yaptığınızda burada görünecek."
 
+#: src/components/MetadataLinks.tsx
+msgid "Search for this series on {label}"
+msgstr ""
+
 #: src/components/CatalogueRules.tsx
 #, fuzzy
 msgid "Search genres and tags"
@@ -12820,6 +12851,10 @@ msgstr "MangaBaka'da arayın ve indirmeye başlayın."
 #, fuzzy
 msgid "Search missing"
 msgstr "Eksikleri ara"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Search on"
+msgstr ""
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy

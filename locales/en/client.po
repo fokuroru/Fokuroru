@@ -671,6 +671,10 @@ msgid "{left, plural, one {# left} other {# left}} · ~{eta}"
 msgstr "{left, plural, one {# left} other {# left}} · ~{eta}"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "{left, plural, one {Deleting in # day} other {Deleting in # days}}"
+msgstr "{left, plural, one {Deleting in # day} other {Deleting in # days}}"
+
+#: src/pages/SeriesDetailPage.tsx
 msgid "{lineLabel} · click to collapse"
 msgstr "{lineLabel} · click to collapse"
 
@@ -2409,7 +2413,6 @@ msgid "Automatic upgrades are off, needs your call"
 msgstr "Automatic upgrades are off, needs your call"
 
 #: src/components/series/SeriesActionsMenu.tsx
-#: src/nav.ts
 msgid "Automation"
 msgstr "Automation"
 
@@ -4213,6 +4216,10 @@ msgstr "Deleting"
 #: src/components/RelinkFilesModal.tsx
 msgid "Deleting files needs the Delete series permission"
 msgstr "Deleting files needs the Delete series permission"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deleting soon"
+msgstr "Deleting soon"
 
 #: src/pages/HealthPage.tsx
 msgid "Deletion review #{opId}"
@@ -6205,6 +6212,10 @@ msgstr "Italian"
 msgid "Items {start}–{end}"
 msgstr "Items {start}–{end}"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Its file is deleted automatically some time after it is read"
+msgstr "Its file is deleted automatically some time after it is read"
+
 #: src/api/upgrades.ts
 msgid "Its volumes aren't mapped to your chapters yet"
 msgstr "Its volumes aren't mapped to your chapters yet"
@@ -6300,6 +6311,10 @@ msgstr "Keep folder name, but put new downloads in a Fōkurōru standard folder"
 #: src/components/SourceMeasurePanel.tsx
 msgid "Keep manual priority, but renumber it to follow the measured order."
 msgstr "Keep manual priority, but renumber it to follow the measured order."
+
+#: src/pages/SettingsPage.tsx
+msgid "Keep the last chapter read"
+msgstr "Keep the last chapter read"
 
 #: src/components/SetupWizard.tsx
 msgid "Keep the name, download into a new standard folder"
@@ -6987,6 +7002,10 @@ msgid "Mark chapters watched"
 msgstr "Mark chapters watched"
 
 #: src/pages/SeriesDetailPage.tsx
+msgid "Mark previous chapters as read"
+msgstr "Mark previous chapters as read"
+
+#: src/pages/SeriesDetailPage.tsx
 msgid "Mark read"
 msgstr "Mark read"
 
@@ -6994,6 +7013,10 @@ msgstr "Mark read"
 #: src/pages/settings/registry.ts
 msgid "mark read in kavita, push to kavita, import read status, kavita progress"
 msgstr "mark read in kavita, push to kavita, import read status, kavita progress"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Mark the chapters before {chapterLbl} as read"
+msgstr "Mark the chapters before {chapterLbl} as read"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Mark unread"
@@ -7519,6 +7542,10 @@ msgstr "neutral, seeds at shelf weight"
 #: src/pages/ActivityPage.tsx
 msgid "never"
 msgstr "never"
+
+#: src/pages/SettingsPage.tsx
+msgid "Never deletes the chapter someone read most recently in a series, so the place they are up to is always on disk."
+msgstr "Never deletes the chapter someone read most recently in a series, so the place they are up to is always on disk."
 
 #: src/components/ImportListsSection.tsx
 msgid "Never run."
@@ -10700,6 +10727,10 @@ msgstr "Search for “{typed}”"
 msgid "Search for a series and request it - it will show up here once you do."
 msgstr "Search for a series and request it - it will show up here once you do."
 
+#: src/components/MetadataLinks.tsx
+msgid "Search for this series on {label}"
+msgstr "Search for this series on {label}"
+
 #: src/components/CatalogueRules.tsx
 msgid "Search genres and tags"
 msgstr "Search genres and tags"
@@ -10723,6 +10754,10 @@ msgstr "Search MangaBaka and start downloading."
 #: src/pages/LibraryPage.tsx
 msgid "Search missing"
 msgstr "Search missing"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Search on"
+msgstr "Search on"
 
 #: src/components/SourceMappingsSection.tsx
 msgid "Search or paste a series URL"
