@@ -297,7 +297,6 @@ export function SpineShelf({ series, readTracking, board = null }: {
 
   return (
     <section className="spine-shelf" aria-label={t`Reading now`}>
-      {reading.length > 0 && <div className="spine-shelf-label">{t`Reading now`}</div>}
       {flat ? (
         <>
           <FlatShelf

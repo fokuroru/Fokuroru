@@ -8338,11 +8338,6 @@ body.reader-open {
   gap: var(--mantine-spacing-xs);
   margin-bottom: var(--mantine-spacing-xl);
 }
-.spine-shelf-label {
-  font-size: var(--type-section);
-  font-weight: 700;
-  color: var(--ink-hi);
-}
 .spine-shelf-row {
   display: flex;
   align-items: flex-end;

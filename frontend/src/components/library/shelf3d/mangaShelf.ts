@@ -990,10 +990,10 @@ export class MangaShelf {
       const colW = 215
       blocks.push({
         w: colW,
-        h: 44 + 26 + 18 + 22 + p.figures.slice(0, 3).length * 27,
+        h: 10 + 26 + 18 + 22 + p.figures.slice(0, 3).length * 27,
         draw: () => {
-          chalkText(p.heading, 0, 10, fit(p.heading, 20, colW), '#c9b6f2')
-          underline(0, 25, 96, '#c9b6f2')
+          // No heading of its own: the level and its bar open the block, so everything sits where the heading was.
+          c.translate(0, -34)
           chalkText(p.level, 0, 52, fit(p.level, 27, colW), '#f6e08a')
           const barY = 70
           const barH = 12

@@ -41,7 +41,7 @@ import {
   type RecommendationItem,
 } from '../api/hooks'
 import { useCustomRails } from '../api/customRails'
-import { AddRailButton, CustomRailSection } from '../components/rails/CustomRailSection'
+import { CustomRailSection } from '../components/rails/CustomRailSection'
 import { PageLayoutEditor, PageLayoutEditorLoading } from '../components/layout/PageLayoutEditor'
 import { useLayoutEditMode } from '../components/layout/useLayoutEditMode'
 import { reconcileLayout, sectionVisible } from '../components/layout/pageLayout'
@@ -164,24 +164,7 @@ export default function HomePage() {
   const popular = rails?.find((r) => r.key === 'popular')?.items ?? []
   const youMightLike = recommendations.data?.pages[0]?.similar?.slice(0, RAIL_SIZE) ?? []
 
-  const header = (
-    <PageHeader
-      title={t`Home`}
-      description={t`Pick up where you left off.`}
-      actions={
-        editing ? undefined : (
-          <>
-            <Button variant="default" leftSection={<IconLayoutDashboard size={16} />} onClick={enterEditing}>
-              <Trans>Edit layout</Trans>
-            </Button>
-            <Button component={Link} to="/add" leftSection={<IconPlus size={16} />}>
-              <Trans>Add series</Trans>
-            </Button>
-          </>
-        )
-      }
-    />
-  )
+  const header = <PageHeader title={t`Home`} description={t`Pick up where you left off.`} />
 
   if (editing) {
     return (
@@ -222,7 +205,6 @@ export default function HomePage() {
   if (!seriesLoading && seriesFailed) {
     return (
       <SurfaceFrame width="full" pageStyle="editorial">
-        {header}
         <EmptyState
           title={t`Couldn't load your library`}
           actionLabel={t`Retry`}
@@ -233,10 +215,9 @@ export default function HomePage() {
   }
 
   if (!seriesLoading && !hasLibrary) {
-    // No header actions: the empty state carries "Add series" itself, and there is no layout to edit.
+    // The empty state carries "Add series" itself, and there is no layout to edit.
     return (
       <SurfaceFrame width="full" pageStyle="editorial">
-        <PageHeader title={t`Home`} description={t`Pick up where you left off.`} />
         <EmptyState
           art="shelf"
           title={t`Nothing in your library yet`}
@@ -257,7 +238,6 @@ export default function HomePage() {
   if (uiLoading) {
     return (
       <SurfaceFrame width="full" pageStyle="editorial">
-        {header}
         <RailSkeleton title />
         <RailSkeleton title />
       </SurfaceFrame>
@@ -423,8 +403,6 @@ export default function HomePage() {
 
   return (
     <SurfaceFrame width="full" pageStyle="editorial">
-      {header}
-
       {visible.length === 0 ? (
         <EmptyState
           title={t`Every section is switched off`}
@@ -437,7 +415,9 @@ export default function HomePage() {
       )}
 
       <Group justify="center" mt="xl">
-        <AddRailButton placement="home" />
+        <Button variant="default" leftSection={<IconLayoutDashboard size={16} />} onClick={enterEditing}>
+          <Trans>Edit layout</Trans>
+        </Button>
       </Group>
 
       <DiscoverDetailModal
