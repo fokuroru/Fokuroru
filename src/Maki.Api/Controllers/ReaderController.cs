@@ -1,8 +1,10 @@
 ﻿using Maki.Api.Auth;
 using Maki.Api.Configuration;
 using Maki.Api.Dtos;
+using Maki.Api.Jobs;
 using Maki.Api.Localization;
 using Maki.Api.Services;
+using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Images;
 using Maki.Core.Progress;
@@ -688,17 +690,35 @@ public class ReaderController(
     /// </para>
     /// </summary>
     [HttpGet("series/{seriesId:int}/progress")]
-    public async Task<IActionResult> SeriesProgress(int seriesId, CancellationToken ct)
+    public async Task<IActionResult> SeriesProgress(
+        int seriesId, [FromServices] IAppSettings settings, CancellationToken ct)
     {
         var rows = await db.ChapterProgress
             .Where(p => p.SeriesId == seriesId)
             .Select(p => new
             {
                 p.ChapterId, p.PageIndex, p.PageCount, p.Completed, p.External, p.Watched,
-                p.UnreadAt, p.UpdatedAt
+                p.UnreadAt, p.UpdatedAt, p.CompletedAt
             })
             .ToListAsync(ct);
-        return Ok(rows);
+
+        // When auto-delete will take each chapter's file, for the table to count down to. Only the
+        // chapters it would actually take: read, with a file, and not the one held back as the last read.
+        var days = await AutoDeleteReadChaptersJob.DaysAsync(settings, ct);
+        var withFile = days > 0
+            ? (await db.Chapters.Where(c => c.SeriesId == seriesId && c.ChapterFileId != null).Select(c => c.Id).ToListAsync(ct)).ToHashSet()
+            : [];
+        var kept = days > 0 && await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct)
+            ? await AutoDeleteReadChaptersJob.LastReadChapterIdsAsync(db, ct)
+            : [];
+        return Ok(rows.Select(p => new
+        {
+            p.ChapterId, p.PageIndex, p.PageCount, p.Completed, p.External, p.Watched, p.UnreadAt, p.UpdatedAt,
+            DeleteAt = days > 0 && p.Completed && p.UnreadAt == null && p.CompletedAt is { } done
+                       && withFile.Contains(p.ChapterId) && !kept.Contains(p.ChapterId)
+                ? (DateTime?)DateTime.SpecifyKind(done, DateTimeKind.Utc).AddDays(days)
+                : null,
+        }));
     }
 
     /// <summary>

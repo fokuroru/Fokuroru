@@ -80,6 +80,8 @@ export interface ChapterProgressDto {
    */
   unreadAt: string | null
   updatedAt: string
+  /** When auto-delete will remove this chapter's file (UTC). Null when it won't, or when auto-delete is off. */
+  deleteAt: string | null
 }
 
 /**
