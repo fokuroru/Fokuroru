@@ -1,5 +1,5 @@
 import * as T from 'three'
-import { ShelfPhysics, type BookBody } from './shelfPhysics'
+import { PLANK_FRONT, ShelfPhysics, type BookBody } from './shelfPhysics'
 import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
 
@@ -80,6 +80,13 @@ interface Grabbable {
 /** A stick of chalk: a rounded rectangle in the physics, a cylinder in the scene. */
 interface Stick extends Grabbable {
   model: T.Object3D
+  /** What it writes with. */
+  color: string
+  /** 0 lying about, 1 held up at the board in the writing grip; eases between. */
+  lean: number
+  /** Whether the tip is put onto the board (the wheel toggles it; Space holds it down), and how far off it is now. */
+  penDown: boolean
+  air: number
 }
 
 interface Hinges {
@@ -103,6 +110,15 @@ const ROW = 420
 const BOARD_ROOM = 140
 /** One step of the wheel or an arrow key when pushing something back or forward. */
 const DEPTH_STEP = 22
+/** Where a stick in the writing grip has its tip: against the wall. */
+const WRITE_Z = -141
+/** The writing grip: how far it turns to point into the board, and how far its tip is held above the hand. */
+const GRIP_YAW = 0.9
+const GRIP_ROLL = 0.45
+/** How high above the plank, in world units, a stick has to be lifted to be fully in the writing grip. */
+const GRIP_LIFT = 60
+/** How far the tip of a held stick comes off the board when it is lifted away from it. */
+const PEN_LIFT = 46
 const CHALK_FONT = "700 {size}px 'Comic Neue', 'Comic Sans MS', cursive"
 /** Narrower containers are drawn at this logical width and scaled down, so a phone still gets a shelf. */
 const MIN_LOGICAL_WIDTH = 640
@@ -127,6 +143,8 @@ const LEAF_LAG_MS = 55
 const IMPACT_MIN = 60
 /** Share of books that stand a little off the line of the rest. */
 const SLIGHT_DEPTH_SHARE = 0.25
+/** Share of page loads whose wall carries a cluster of Cool S doodles, the pointed school-notebook S. */
+const S_DOODLE_SHARE = 0.05
 /** Share of page loads that scatter some sticks of chalk on the shelf. */
 const CHALK_CHANCE = 0.35
 /** Share of page loads that put a potted plant in the shelf's empty space. */
@@ -160,6 +178,7 @@ export class MangaShelf {
   private sticks: Stick[] = []
   /** A prop (the plant) being carried: props can be moved but not opened. */
   private heldProp: Grabbable | null = null
+  private penKey = false
   /** How much of the shelf stays empty, drawn once per page load: between 2% and 30%. */
   private readonly emptyShare = 0.02 + Math.random() * 0.28
   /** Decided once per page load, so a resize does not make the plant come and go. */
@@ -190,6 +209,11 @@ export class MangaShelf {
   private board: BoardModel | null
   private boardMaterial: T.MeshStandardMaterial | null = null
   private wallSize = { w: 0, h: 0 }
+  /** What the user has written on the wall, kept for the page load and laid over the wall's own chalk. */
+  private ink: HTMLCanvasElement | null = null
+  private inkTexture: T.CanvasTexture | null = null
+  /** Where the stick last touched the wall, so a drag draws one line and not a row of dots. */
+  private inkLast: { x: number; y: number } | null = null
   /** Fixed for the page load, so the doodles and the arrangement hold still when the figures change. */
   private readonly seed = (Math.random() * 2 ** 32) >>> 0
 
@@ -253,6 +277,7 @@ export class MangaShelf {
         const prop = this.hitProp(e)
         if (!prop || this.reduced.matches) return
         this.heldProp = prop
+        if ('penDown' in prop) prop.penDown = false
         prop.row.physics.grab(prop.body, 1, this.worldPoint(e, prop.row, prop.body.z))
         this.drag = { x: e.clientX, y: e.clientY, moved: true, at: performance.now(), lastY: e.clientY }
         canvas.setPointerCapture(e.pointerId)
@@ -277,7 +302,12 @@ export class MangaShelf {
       const held = this.drag ? this.selected ?? this.heldProp : null
       if (!held) return
       e.preventDefault()
-      held.row.physics.nudgeDepth(held.body, Math.sign(e.deltaY) * DEPTH_STEP)
+      if (this.sticks.includes(held as Stick)) {
+        // A stick in hand is put onto the board or lifted off it, so a line can be started and stopped.
+        ;(held as Stick).penDown = e.deltaY < 0
+      } else {
+        held.row.physics.nudgeDepth(held.body, Math.sign(e.deltaY) * DEPTH_STEP)
+      }
       this.drag!.moved = true
       this.wake()
     }, { passive: false, signal: this.abort.signal })
@@ -295,6 +325,15 @@ export class MangaShelf {
       if (!this.reduced.matches) this.wake()
     }, { capture: true, passive: true, signal: this.abort.signal })
     window.addEventListener('blur', () => this.release(), options)
+    // Without a wheel, holding Space puts the tip of a stick in hand onto the board.
+    const pen = (e: KeyboardEvent, down: boolean) => {
+      if (e.key !== ' ') return
+      if (down && this.heldProp && this.drag) e.preventDefault()
+      this.penKey = down
+      this.wake()
+    }
+    window.addEventListener('keydown', (e) => pen(e, true), options)
+    window.addEventListener('keyup', (e) => pen(e, false), options)
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.release()
     }, options)
@@ -601,6 +640,130 @@ export class MangaShelf {
 
 
   // ---- the chalkboard ----------------------------------------------------
+
+  /**
+   * A clear sheet just in front of the wall's slate that carries whatever the user writes. It is its
+   * own canvas, so the wall can be redrawn (the figures change) without wiping it, and it is stretched
+   * to the new size if the shelf is resized.
+   */
+  private addInk(scene: T.Scene, width: number, height: number) {
+    const w = Math.ceil(width)
+    const h = Math.ceil(height)
+    if (!this.ink) {
+      this.ink = document.createElement('canvas')
+      this.ink.width = w
+      this.ink.height = h
+    } else if (this.ink.width !== w || this.ink.height !== h) {
+      const moved = document.createElement('canvas')
+      moved.width = w
+      moved.height = h
+      moved.getContext('2d')!.drawImage(this.ink, 0, 0, w, h)
+      this.ink = moved
+    }
+    this.inkTexture = new T.CanvasTexture(this.ink)
+    this.inkTexture.colorSpace = T.SRGBColorSpace
+    const sheet = new T.Mesh(
+      new T.PlaneGeometry(width, height),
+      new T.MeshStandardMaterial({ map: this.inkTexture, transparent: true, roughness: 0.95, depthWrite: false }),
+    )
+    sheet.position.set(0, 17 + height / 2, -146.6)
+    sheet.receiveShadow = true
+    scene.add(sheet)
+  }
+
+  /**
+   * Places a stick's model. Lying about, it is just its body. Lifted off the plank it goes into the
+   * writing grip: it is drawn at the wall, turned to point into it and leaning the way a hand holds
+   * chalk, with the tip where the pointer is and the other end coming forward and down. Put back
+   * down it eases back to where its body is and lies flat again. Only the picture moves: the body
+   * keeps its place on the shelf the whole time, so the stick can always be put down where it was and
+   * can never end up behind a book. Returns true while it is still moving between the two.
+   */
+  private poseStick(st: Stick): boolean {
+    const body = st.body
+    const held = this.heldProp === st && this.drag !== null
+    // Lifted clear of the plank, or put to the board with Space or the wheel, which also lets it reach the foot of the board.
+    const lifted = held ? Math.max(0, Math.min(1, (st.row.physics.floor - 6 - body.bounds.max.y) / GRIP_LIFT)) : 0
+    const lift = held && (st.penDown || this.penKey) ? 1 : lifted
+    if (held) st.row.physics.level(body)
+    st.lean += (lift - st.lean) * 0.2
+    if (Math.abs(lift - st.lean) < 0.002) st.lean = lift
+    const lean = st.lean
+    const airTarget = held && !(st.penDown || this.penKey) ? PEN_LIFT : 0
+    st.air += (airTarget - st.air) * 0.25
+    if (Math.abs(airTarget - st.air) < 0.3) st.air = airTarget
+    const wall = body.z + (WRITE_Z + st.air - body.z) * lean
+    // Moved along the line of sight from the camera, so the tip stays under the pointer while it goes back to the wall.
+    st.row.camera.updateMatrixWorld()
+    const eye = st.row.camera.position
+    const at = new T.Vector3(body.position.x - this.logicalWidth / 2, 380 - body.position.y, body.z)
+    const here = at.clone().sub(eye).multiplyScalar((wall - eye.z) / (body.z - eye.z)).add(eye)
+    st.model.rotation.set(0, -GRIP_YAW * lean, -Math.atan2(Math.sin(body.angle), Math.cos(body.angle)) * (1 - lean) - GRIP_ROLL * lean)
+    // In the grip the body's position is the tip, not the middle, so the tip is where the pointer is.
+    const toMiddle = new T.Vector3(body.bookWidth / 2, 0, 0).applyEuler(st.model.rotation)
+    st.model.position.copy(here).addScaledVector(toMiddle, lean)
+    return lean !== lift || st.air !== airTarget
+  }
+
+  /**
+   * A stick held up off the plank writes where it is on the wall: the point on the wall behind it, as
+   * seen from the camera. Lifting the stick off the shelf and dragging it over the board is all it takes.
+   * Returns true while it is marking, so the frame loop keeps going.
+   */
+  private writeInk(): boolean {
+    const stick = this.heldProp && this.sticks.find((st) => st === this.heldProp)
+    const ink = this.ink
+    if (!stick || !this.drag || !ink || !this.board) {
+      this.inkLast = null
+      return false
+    }
+    // On the plank it is only being moved about; it has to be lifted fully into the writing grip, with
+    // its tip at the wall, to write.
+    if (stick.lean < 0.85 || stick.air > 2) {
+      this.inkLast = null
+      return false
+    }
+    stick.row.camera.updateMatrixWorld()
+    const tip = new T.Vector3(stick.body.position.x - this.logicalWidth / 2, 380 - stick.body.position.y, stick.body.z)
+    const screen = tip.project(stick.row.camera)
+    this.ray.setFromCamera(new T.Vector2(screen.x, screen.y), stick.row.camera)
+    const at = this.ray.ray.intersectPlane(new T.Plane(new T.Vector3(0, 0, 1), 147), new T.Vector3())
+    if (!at) return false
+    const x = at.x + this.wallSize.w / 2
+    const y = 17 + this.wallSize.h - at.y
+    if (x < 0 || y < 0 || x > ink.width || y > ink.height) {
+      this.inkLast = null
+      return false
+    }
+    const from = this.inkLast
+    if (from && Math.hypot(x - from.x, y - from.y) < 1.2) return true
+    const ctx = ink.getContext('2d')!
+    ctx.save()
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = stick.color
+    // A soft wide pass under a firm narrow one, so it has the halo chalk dust leaves.
+    for (const [alpha, width] of [[0.3, 7], [0.88, 3.6]] as const) {
+      ctx.globalAlpha = alpha
+      ctx.lineWidth = width
+      ctx.beginPath()
+      ctx.moveTo(from?.x ?? x, from?.y ?? y)
+      ctx.lineTo(x + (Math.random() - 0.5) * 0.8, y + (Math.random() - 0.5) * 0.8)
+      ctx.stroke()
+    }
+    // Wear: a few specks rubbed out along the stroke, so the line breaks up like real chalk.
+    ctx.globalCompositeOperation = 'destination-out'
+    const length = from ? Math.hypot(x - from.x, y - from.y) : 0
+    for (let i = 0; i < 3 + length / 3; i++) {
+      const t = from ? Math.random() : 0
+      ctx.globalAlpha = 0.35 + Math.random() * 0.45
+      ctx.fillRect((from ? from.x + (x - from.x) * t : x) + (Math.random() - 0.5) * 6, (from ? from.y + (y - from.y) * t : y) + (Math.random() - 0.5) * 6, 1.3, 1.3)
+    }
+    ctx.restore()
+    this.inkLast = { x, y }
+    if (this.inkTexture) this.inkTexture.needsUpdate = true
+    return true
+  }
 
   /** A wooden frame round the wall. The plank is the bottom edge, so there is no bottom bar. */
   private addFrame(scene: T.Scene, width: number, height: number) {
@@ -1016,6 +1179,88 @@ export class MangaShelf {
       c.restore()
     }
 
+    // ---- the Cool S: the pointed, fourteen-line S every school notebook has. Drawn in a few styles,
+    // one big with smaller ones scribbled around it. A rare find: most loads never get one.
+    type CoolStyle = 'line' | 'tint' | 'hatch' | 'dots' | 'block'
+    const coolS = (h: number, color: string, style: CoolStyle) => {
+      // On a grid two wide and five tall, y up: three short verticals, a gap, three more; two diagonals
+      // joining them; a V on top and a V underneath; and two stubs from the open ends to the diagonals.
+      const lines: [number, number][][] = [
+        [[0, 4], [0, 3]], [[1, 4], [1, 3]], [[2, 4], [2, 3]],
+        [[0, 2], [0, 1]], [[1, 2], [1, 1]], [[2, 2], [2, 1]],
+        [[0, 3], [1, 2]], [[1, 3], [2, 2]],
+        [[0, 4], [1, 5], [2, 4]], [[0, 1], [1, 0], [2, 1]],
+        [[0, 2], [0.5, 2.5]], [[2, 3], [1.5, 2.5]],
+      ]
+      // The outline of the whole letter, notched where the stubs meet the diagonals.
+      const outline: [number, number][] = [
+        [1, 5], [2, 4], [2, 3], [1.5, 2.5], [2, 2], [2, 1], [1, 0], [0, 1], [0, 2], [0.5, 2.5], [0, 3], [0, 4],
+      ]
+      const u = h / 5
+      const point = ([x, y]: [number, number], dx = 0, dy = 0): [number, number] => [(x - 1) * u * 1.25 + dx, (2.5 - y) * u + dy]
+      const lw = Math.max(1.6, h * 0.03)
+      const drawLines = (dx = 0, dy = 0) => {
+        for (const line of lines) stroke(line.map((q) => point(q, dx, dy)), color, lw, Math.max(0.8, h * 0.012))
+      }
+      const trace = (dx = 0, dy = 0) => {
+        c.beginPath()
+        outline.forEach((q, i) => {
+          const [x, y] = point(q, dx, dy)
+          if (i) c.lineTo(x, y)
+          else c.moveTo(x, y)
+        })
+        c.closePath()
+      }
+      if (style === 'block') {
+        // Extruded, like the gem in the doodle: the outline stamped down and to the left, dimmer behind.
+        const was = fade
+        fade = was * 0.32
+        const depth = Math.max(4, Math.round(h * 0.14))
+        for (let step = depth; step >= 1; step--) stroke([...outline, outline[0]].map((q) => point(q, -step * 0.8, step * 0.8)), color, 1.4, 0.5)
+        fade = was
+      }
+      if (style !== 'line') {
+        c.save()
+        trace()
+        if (style === 'tint' || style === 'block') {
+          c.globalAlpha = 0.24 * fade
+          c.fillStyle = color
+          c.fill()
+        } else {
+          c.clip()
+          if (style === 'hatch') {
+            for (let x = -h; x < h; x += 4.2) stroke([[x, h * 0.7], [x + h * 0.9, -h * 0.7]], color, 1.2, 0.5)
+          } else {
+            for (let i = 0; i < h * 1.6; i++) dot((rnd() - 0.5) * h * 0.9, (rnd() - 0.5) * h * 1.05, 0.9 + rnd() * 0.5, color)
+          }
+        }
+        c.restore()
+      }
+      drawLines()
+    }
+    if (rnd() < S_DOODLE_SHARE) {
+      const styles: CoolStyle[] = ['line', 'tint', 'hatch', 'dots', 'block']
+      const count = 3 + Math.floor(rnd() * 5)
+      for (let i = 0; i < count; i++) {
+        // The first is the big one; the rest are small, like the ones scribbled around it.
+        let h = i === 0 ? 100 + rnd() * 40 : 34 + rnd() * 44
+        let spot = spotFor(h * 0.6, h * 1.05, 10, 0.5)
+        // The big one is hard to fit among the figures, so it tries again smaller rather than not at all.
+        for (const shrink of i === 0 ? [0.8, 0.65, 0.5] : []) {
+          if (spot) break
+          h *= shrink
+          spot = spotFor(h * 0.6, h * 1.05, 6, 0.5)
+        }
+        if (!spot) continue
+        placed.push(spot)
+        c.save()
+        c.translate(spot.x + spot.w / 2, spot.y + spot.h / 2)
+        c.rotate(jit(i === 0 ? 0.25 : 0.6))
+        coolS(h, pick(PALETTE), i === 0 ? pick<CoolStyle>(['line', 'tint', 'hatch', 'block']) : pick(styles))
+        c.restore()
+      }
+    }
+
     // ---- ghosts of old writing, faint and large, under everything that was chalked fresh
     c.save()
     fade = 0.1
@@ -1050,6 +1295,25 @@ export class MangaShelf {
   }
 
   // ---- layout ------------------------------------------------------------
+
+  /**
+   * Turns a model forward about the front edge of the plank by the tip its body has made, as a book
+   * does when it is pulled out far enough to overbalance. The whole model turns as one: its position
+   * about the edge, and its own rotation to match.
+   */
+  private tip(model: T.Object3D, body: BookBody) {
+    const pitch = body.pitch ?? 0
+    model.rotation.x = pitch
+    if (!pitch) return
+    // The pivot runs along the plank's front edge, at the height of the body's lowest point.
+    const edgeY = 380 - body.bounds.max.y
+    const dy = model.position.y - edgeY
+    const dz = model.position.z - PLANK_FRONT
+    const cos = Math.cos(pitch)
+    const sin = Math.sin(pitch)
+    model.position.y = edgeY + dy * cos - dz * sin
+    model.position.z = PLANK_FRONT + dy * sin + dz * cos
+  }
 
   /** Takes a model out of the scene and frees what it used. */
   private disposeModel(model: T.Object3D) {
@@ -1166,11 +1430,12 @@ export class MangaShelf {
       )
       const geometry = new T.CylinderGeometry(thickness / 2, thickness / 2, length, 14)
       geometry.rotateZ(Math.PI / 2)
-      const model = new T.Mesh(geometry, new T.MeshStandardMaterial({ color: colours[Math.floor(Math.random() * colours.length)], roughness: 1 }))
+      const color = colours[Math.floor(Math.random() * colours.length)]
+      const model = new T.Mesh(geometry, new T.MeshStandardMaterial({ color, roughness: 1 }))
       model.castShadow = true
       model.receiveShadow = true
       row.scene.add(model)
-      const stick: Stick = { body, model, row }
+      const stick: Stick = { body, model, row, color, lean: 0, penDown: false, air: 0 }
       model.userData.prop = stick
       this.sticks.push(stick)
     }
@@ -1186,8 +1451,10 @@ export class MangaShelf {
     const light = new T.DirectionalLight('#fff6e4', 2.1)
     light.position.set(-width * 0.35, 650, 450)
     light.castShadow = true
-    light.shadow.mapSize.set(1024, 1024)
-    Object.assign(light.shadow.camera, { left: -width, right: width, top: 600 + (this.rowH - ROW), bottom: -500, near: 1, far: 1600 })
+    light.shadow.mapSize.set(2048, 2048)
+    // Wide enough to take in the far corners of the wall however wide the shelf is, or the shadows stop short of them.
+    const reach = Math.max(width, 900) * 0.9 + this.rowH
+    Object.assign(light.shadow.camera, { left: -reach, right: reach, top: reach, bottom: -reach, near: 1, far: reach * 2.4 })
     light.shadow.bias = -0.0004
     light.shadow.normalBias = 0.6
     scene.add(light)
@@ -1208,7 +1475,10 @@ export class MangaShelf {
     wall.position.set(0, 17 + wallHeight / 2, -151)
     wall.receiveShadow = true
     scene.add(wall)
-    if (this.board) this.addFrame(scene, width + 12, wallHeight)
+    if (this.board) {
+      this.addFrame(scene, width + 12, wallHeight)
+      this.addInk(scene, width + 12, wallHeight)
+    }
     const row: Row = { scene, camera, physics: new ShelfPhysics(width), index: this.rows.length, shelf }
     // A heavy landing sets the plank, and everything on it, shuddering; the wall stays put.
     row.physics.onImpact = (strength) => {
@@ -1437,7 +1707,7 @@ export class MangaShelf {
     const ray = new T.Raycaster()
     ray.setFromCamera(new T.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, 1 - ((y % rowPx) / rowPx) * 2), row.camera)
     const hit = ray.intersectObjects(row.scene.children, true).find((h) => h.object.userData.prop)?.object.userData.prop as Grabbable | undefined
-    return hit ?? this.hitStick(e, row)
+    return this.hitStick(e, row) ?? hit
   }
 
   /**
@@ -1446,7 +1716,7 @@ export class MangaShelf {
    */
   private hitStick(e: PointerEvent, row: Row): Stick | undefined {
     let best: Stick | undefined
-    let bestDistance = 9
+    let bestDistance = 12
     for (const st of this.sticks) {
       const point = this.worldPoint(e, row, st.body.z)
       const half = (st.body as BookBody).bookWidth / 2
@@ -1495,6 +1765,7 @@ export class MangaShelf {
 
   private release() {
     this.drag = null
+    this.inkLast = null
     if (this.heldProp) {
       this.heldProp.row.physics.release()
       this.heldProp = null
@@ -1548,6 +1819,7 @@ export class MangaShelf {
       // The model is drawn from the spine, which faces the viewer, so it sits half a depth in front of the body's middle.
       i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, i.body.z + DEPTH / 2)
       i.model.rotation.z = -i.body.angle
+      if (i.pulledAt === undefined) this.tip(i.model, i.body)
       pulling = this.flutter(i) || pulling
       if (i.pulledAt !== undefined) {
         const t = Math.min(1, (performance.now() - i.pulledAt) / PULL_MS)
@@ -1561,12 +1833,10 @@ export class MangaShelf {
     for (const p of this.props) {
       p.model.position.set(p.body.position.x - this.logicalWidth / 2, 380 - p.body.position.y, p.body.z)
       p.model.rotation.z = -p.body.angle
+      this.tip(p.model, p.body)
       pulling = this.sway(p, elapsed) || pulling
     }
-    for (const st of this.sticks) {
-      st.model.position.set(st.body.position.x - this.logicalWidth / 2, 380 - st.body.position.y, st.body.z)
-      st.model.rotation.z = -st.body.angle
-    }
+    for (const st of this.sticks) pulling = this.poseStick(st) || pulling
     // Whatever has gone over the edge and is falling away for good: a book pulled off the front, a
     // stick knocked off the end. Its model is dropped; the rest of the shelf carries on.
     for (const r of this.rows) {
@@ -1597,6 +1867,7 @@ export class MangaShelf {
         }
       }
     }
+    pulling = this.writeInk() || pulling
     // Shelf shudder: a fast decaying bounce applied to the plank and everything on it.
     for (const r of this.rows) {
       const dy = r.shake ? this.shakeAt(r.shake, performance.now()) : 0

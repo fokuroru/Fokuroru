@@ -20,6 +20,9 @@ export type BookBody = Matter.Body & {
   supported?: boolean
   /** The collision mask it has while supported. */
   baseMask?: number
+  /** How far it has tipped forward over the plank's front edge, in radians, and how fast it is turning. */
+  pitch?: number
+  pitchSpeed?: number
   z: number
   zTarget: number
   depth: number
@@ -33,7 +36,9 @@ export type BookBody = Matter.Body & {
 const SHELF_BACK = -147
 const SHELF_FRONT = 150
 /** The plank, in the same units: it runs from the wall to 13, and holds up anything whose centre is over it. */
-const PLANK_FRONT = 13
+export const PLANK_FRONT = 13
+/** Tipped this far over the edge, a body can no longer balance on it and lets go. */
+const TIP_LIMIT = 1.15
 
 interface DepthFilter extends Matter.ICollisionFilter {
   z?: number
@@ -169,7 +174,8 @@ export class ShelfPhysics {
    * the next step.
    */
   private holdUp(body: BookBody) {
-    const over = body.z <= PLANK_FRONT
+    // A chalk stick has nothing to tip over; anything else keeps its hold on the plank while it pivots.
+    const over = body.z <= PLANK_FRONT || (!body.chalk && (body.pitch ?? 0) < TIP_LIMIT)
     if (over === (body.supported ?? true) && body.baseMask !== undefined) return
     body.supported = over
     const base = body.baseMask ?? body.collisionFilter.mask ?? 0xffffffff
@@ -322,7 +328,7 @@ export class ShelfPhysics {
     const grip = this.constraint.pointB
     this.hand.target = {
       x: Math.max(hx + grip.x, Math.min(this.width - hx + grip.x, point.x)),
-      y: Math.max(-40, Math.min(this.floor - hy + grip.y - 1, point.y)),
+      y: Math.max(-170, Math.min(this.floor - hy + grip.y - 1, point.y)),
     }
   }
 
@@ -356,6 +362,13 @@ export class ShelfPhysics {
     Composite.remove(this.engine.world, body)
     const i = this.bodies.indexOf(body)
     if (i >= 0) this.bodies.splice(i, 1)
+  }
+
+  /** Stops a held stick from spinning about its grip: it settles level instead of swinging round. */
+  level(body: BookBody) {
+    const angle = Math.atan2(Math.sin(body.angle), Math.cos(body.angle))
+    Body.setAngularVelocity(body, 0)
+    Body.setAngle(body, angle * 0.85)
   }
 
   release() {
@@ -425,6 +438,30 @@ export class ShelfPhysics {
       ;(body.collisionFilter as DepthFilter).z = next
       this.holdUp(body)
       Sleeping.set(body, false)
+    }
+    // Tipping: a body resting on the plank with its centre past the front edge pivots forward about the
+    // edge, faster the further past it is, and lets go once it has turned far enough; then it falls and
+    // keeps turning as it drops. Back over the plank, or lifted off it, it rights itself.
+    const seconds = dt / 1000
+    for (const body of this.bodies) {
+      if (body.chalk) continue
+      const overhang = body.z - PLANK_FRONT
+      const resting = body.bounds.max.y >= this.floor - 4
+      let pitch = body.pitch ?? 0
+      let speed = body.pitchSpeed ?? 0
+      if (body.supported === false) {
+        speed += 6 * seconds
+        pitch = Math.min(2.1, pitch + speed * seconds)
+      } else if (overhang > 0 && resting) {
+        speed += (5 + 0.08 * overhang) * seconds
+        pitch += speed * seconds
+      } else {
+        speed = 0
+        pitch = pitch < 0.002 ? 0 : pitch * 0.85
+      }
+      body.pitch = pitch
+      body.pitchSpeed = speed
+      if (pitch >= TIP_LIMIT && body.supported !== false) this.holdUp(body)
     }
     const before = this.bodies.map((body) => ({ x: body.position.x, y: body.position.y, a: body.angle }))
     Engine.update(this.engine, dt)
