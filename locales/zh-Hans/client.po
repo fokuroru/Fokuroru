@@ -9557,6 +9557,10 @@ msgstr "尚无标签数据"
 msgid "No tags yet."
 msgstr "暂无标签。"
 
+#: src/pages/SettingsPage.tsx
+msgid "No textures, so it will show as plain white."
+msgstr ""
+
 #: src/pages/stats/sections/RhythmSection.tsx
 #, fuzzy
 msgid "No timed reading yet"

@@ -1608,7 +1608,7 @@ msgstr "That is not a valid GLB file."
 
 #: src/Maki.Api/Services/GlbInspector.cs
 msgid "error.figures.unsupported"
-msgstr "That model uses compression the shelf cannot read. Export it again without Draco or Meshopt compression."
+msgstr "That model uses compression the shelf cannot read. Export it again without Draco, Meshopt or KTX2 compression."
 
 #: src/Maki.Api/Services/GlbInspector.cs
 msgid "error.figures.external"

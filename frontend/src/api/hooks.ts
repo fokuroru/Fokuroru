@@ -4337,6 +4337,8 @@ export interface ShelfFigure {
   name: string
   size: number
   addedAt: string
+  /** False when the model has no textures or vertex colours, so it shows as plain white. */
+  textured: boolean
   /** Where the GLB is served, same origin and behind the session cookie. */
   url: string
 }

@@ -6,7 +6,8 @@ using Maki.Core.Security;
 namespace Maki.Api.Services;
 
 /// <summary>A figure the user has added for their Home shelf.</summary>
-public record ShelfFigure(string Id, string Name, long Size, DateTime AddedAt);
+/// <param name="Textured">False when the model carries no images or vertex colours, so it will look plain white.</param>
+public record ShelfFigure(string Id, string Name, long Size, DateTime AddedAt, bool Textured = true);
 
 public class ShelfFigureException(string key, object? args = null) : Exception(key)
 {
@@ -31,7 +32,7 @@ public partial class ShelfFigureStore(AppPaths paths, ICurrentUser user)
 
     private string Dir => Path.Combine(paths.ConfigDir, "figures", user.UserId.ToString());
 
-    private sealed record Meta(string Name, DateTime AddedAt);
+    private sealed record Meta(string Name, DateTime AddedAt, bool Textured = true);
 
     public IReadOnlyList<ShelfFigure> List()
     {
@@ -50,7 +51,7 @@ public partial class ShelfFigureStore(AppPaths paths, ICurrentUser user)
             }
 
             var meta = ReadMeta(id);
-            figures.Add(new ShelfFigure(id, meta?.Name ?? id, new FileInfo(file).Length, meta?.AddedAt ?? File.GetCreationTimeUtc(file)));
+            figures.Add(new ShelfFigure(id, meta?.Name ?? id, new FileInfo(file).Length, meta?.AddedAt ?? File.GetCreationTimeUtc(file), meta?.Textured ?? true));
         }
 
         return figures.OrderBy(f => f.AddedAt).ToList();
@@ -77,7 +78,8 @@ public partial class ShelfFigureStore(AppPaths paths, ICurrentUser user)
         }
 
         var bytes = buffer.ToArray();
-        if (GlbInspector.Check(bytes) is { } key)
+        var report = GlbInspector.Inspect(bytes);
+        if (report.Error is { } key)
         {
             throw new ShelfFigureException(key);
         }
@@ -87,8 +89,8 @@ public partial class ShelfFigureStore(AppPaths paths, ICurrentUser user)
         var label = CleanName(name);
         await File.WriteAllBytesAsync(Path.Combine(Dir, id + ".glb"), bytes, ct);
         var added = DateTime.UtcNow;
-        await File.WriteAllTextAsync(Path.Combine(Dir, id + ".json"), JsonSerializer.Serialize(new Meta(label, added)), ct);
-        return new ShelfFigure(id, label, bytes.Length, added);
+        await File.WriteAllTextAsync(Path.Combine(Dir, id + ".json"), JsonSerializer.Serialize(new Meta(label, added, report.Textured)), ct);
+        return new ShelfFigure(id, label, bytes.Length, added, report.Textured);
     }
 
     /// <summary>The path of one of the user's figures, or null when there is no such figure (or the id is not one).</summary>

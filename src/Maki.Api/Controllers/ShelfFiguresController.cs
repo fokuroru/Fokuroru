@@ -13,7 +13,7 @@ namespace Maki.Api.Controllers;
 public class ShelfFiguresController(ShelfFigureStore store, ILocalizer localizer) : ControllerBase
 {
     private static object Shape(ShelfFigure f) =>
-        new { f.Id, f.Name, f.Size, f.AddedAt, Url = $"/api/v1/shelf-figures/{f.Id}/file" };
+        new { f.Id, f.Name, f.Size, f.AddedAt, f.Textured, Url = $"/api/v1/shelf-figures/{f.Id}/file" };
 
     [HttpGet]
     public IActionResult List() => Ok(new

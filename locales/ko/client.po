@@ -9557,6 +9557,10 @@ msgstr "아직 태그 데이터가 없습니다"
 msgid "No tags yet."
 msgstr "아직 태그 없음."
 
+#: src/pages/SettingsPage.tsx
+msgid "No textures, so it will show as plain white."
+msgstr ""
+
 #: src/pages/stats/sections/RhythmSection.tsx
 #, fuzzy
 msgid "No timed reading yet"

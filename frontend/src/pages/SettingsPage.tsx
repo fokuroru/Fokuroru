@@ -2510,6 +2510,12 @@ function ShelfFiguresBlock() {
             <Group key={f.id} justify="space-between" wrap="nowrap">
               <Text size="sm" truncate>
                 {f.name} <Text span size="xs" c="dimmed">{formatBytes(f.size)}</Text>
+                {!f.textured && (
+                  <Text span size="xs" c="var(--warn)">
+                    {' '}
+                    <Trans>No textures, so it will show as plain white.</Trans>
+                  </Text>
+                )}
               </Text>
               <ActionIcon
                 variant="subtle"

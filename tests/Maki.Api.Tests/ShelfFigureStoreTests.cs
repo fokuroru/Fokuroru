@@ -47,6 +47,8 @@ public class ShelfFigureStoreTests : IDisposable
         var listed = Assert.Single(store.List());
         Assert.Equal(saved.Id, listed.Id);
         Assert.Equal("Crimson Lolita", listed.Name);
+        Assert.False(listed.Textured);
+        Assert.False(saved.Textured);
         Assert.NotNull(store.PathOf(saved.Id));
 
         Assert.True(store.Delete(saved.Id));

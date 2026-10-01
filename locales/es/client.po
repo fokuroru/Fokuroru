@@ -9557,6 +9557,10 @@ msgstr "Aún no hay datos de etiquetas"
 msgid "No tags yet."
 msgstr "Aún no hay etiquetas."
 
+#: src/pages/SettingsPage.tsx
+msgid "No textures, so it will show as plain white."
+msgstr ""
+
 #: src/pages/stats/sections/RhythmSection.tsx
 #, fuzzy
 msgid "No timed reading yet"

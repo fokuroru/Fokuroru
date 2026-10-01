@@ -18,31 +18,37 @@ public static class GlbInspector
     /// <summary>Extensions the shelf's loader handles without extra decoders.</summary>
     private static readonly HashSet<string> Supported = new(StringComparer.Ordinal)
     {
-        "KHR_mesh_quantization", "KHR_texture_transform", "EXT_texture_webp", "KHR_texture_basisu",
+        "KHR_mesh_quantization", "KHR_texture_transform", "EXT_texture_webp",
         "KHR_materials_unlit", "KHR_materials_emissive_strength", "KHR_materials_specular",
         "KHR_materials_ior", "KHR_materials_clearcoat", "KHR_materials_sheen", "KHR_materials_transmission",
         "KHR_materials_volume", "KHR_lights_punctual",
     };
 
+    /// <summary>What was found: an error key, or whether the model carries any colour data of its own.</summary>
+    public record Report(string? Error, bool Textured);
+
     /// <summary>Null when the file is fine, else the localization key saying why not.</summary>
-    public static string? Check(ReadOnlySpan<byte> data)
+    public static string? Check(ReadOnlySpan<byte> data) => Inspect(data).Error;
+
+    public static Report Inspect(ReadOnlySpan<byte> data)
     {
+        var textured = false;
         if (data.Length < 28 || BinaryPrimitives.ReadUInt32LittleEndian(data) != Magic)
         {
-            return "error.figures.notGlb";
+            return new Report("error.figures.notGlb", false);
         }
 
         if (BinaryPrimitives.ReadUInt32LittleEndian(data[4..]) != 2
             || BinaryPrimitives.ReadUInt32LittleEndian(data[8..]) != (uint)data.Length)
         {
-            return "error.figures.notGlb";
+            return new Report("error.figures.notGlb", false);
         }
 
         var jsonLength = BinaryPrimitives.ReadUInt32LittleEndian(data[12..]);
         if (BinaryPrimitives.ReadUInt32LittleEndian(data[16..]) != JsonChunk
             || jsonLength == 0 || jsonLength > MaxJsonBytes || 20L + jsonLength > data.Length)
         {
-            return "error.figures.notGlb";
+            return new Report("error.figures.notGlb", false);
         }
 
         try
@@ -58,7 +64,7 @@ public static class GlbInspector
                 || meshes.ValueKind != JsonValueKind.Array
                 || meshes.GetArrayLength() == 0)
             {
-                return "error.figures.notGlb";
+                return new Report("error.figures.notGlb", false);
             }
 
             if (root.TryGetProperty("extensionsRequired", out var required) && required.ValueKind == JsonValueKind.Array)
@@ -67,10 +73,12 @@ public static class GlbInspector
                 {
                     if (name.GetString() is not { } n || !Supported.Contains(n))
                     {
-                        return "error.figures.unsupported";
+                        return new Report("error.figures.unsupported", false);
                     }
                 }
             }
+
+            textured = ColorData(root);
 
             foreach (var group in new[] { "buffers", "images" })
             {
@@ -86,16 +94,45 @@ public static class GlbInspector
                         && uri.GetString() is { } u
                         && !u.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
                     {
-                        return "error.figures.external";
+                        return new Report("error.figures.external", false);
                     }
                 }
             }
         }
         catch (JsonException)
         {
-            return "error.figures.notGlb";
+            return new Report("error.figures.notGlb", false);
         }
 
-        return null;
+        return new Report(null, textured);
+    }
+
+    /// <summary>Whether the model has images, or colours painted on its vertices. Neither means it will look plain white.</summary>
+    private static bool ColorData(JsonElement root)
+    {
+        if (root.TryGetProperty("images", out var images) && images.ValueKind == JsonValueKind.Array && images.GetArrayLength() > 0)
+        {
+            return true;
+        }
+
+        if (root.TryGetProperty("meshes", out var meshes))
+        {
+            foreach (var mesh in meshes.EnumerateArray())
+            {
+                if (mesh.ValueKind == JsonValueKind.Object && mesh.TryGetProperty("primitives", out var prims) && prims.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var prim in prims.EnumerateArray())
+                    {
+                        if (prim.ValueKind == JsonValueKind.Object && prim.TryGetProperty("attributes", out var attrs)
+                            && attrs.ValueKind == JsonValueKind.Object && attrs.TryGetProperty("COLOR_0", out _))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

@@ -57,6 +57,21 @@ public class GlbInspectorTests
             "{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"images\":[{\"uri\":\"data:image/png;base64,AAAA\"}]}")));
 
     [Fact]
+    public void Rejects_basis_compressed_textures_the_shelf_cannot_read() =>
+        Assert.Equal("error.figures.unsupported", GlbInspector.Check(Glb(
+            "{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"extensionsRequired\":[\"KHR_texture_basisu\"]}")));
+
+    [Fact]
+    public void Says_whether_a_model_has_any_colour_data()
+    {
+        Assert.False(GlbInspector.Inspect(Glb(Plain)).Textured);
+        Assert.True(GlbInspector.Inspect(Glb(
+            "{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"images\":[{\"bufferView\":0,\"mimeType\":\"image/png\"}]}")).Textured);
+        Assert.True(GlbInspector.Inspect(Glb(
+            "{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{\"primitives\":[{\"attributes\":{\"POSITION\":0,\"COLOR_0\":1}}]}]}")).Textured);
+    }
+
+    [Fact]
     public void Rejects_compression_the_shelf_cannot_decode() =>
         Assert.Equal("error.figures.unsupported", GlbInspector.Check(Glb(
             "{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"extensionsRequired\":[\"KHR_draco_mesh_compression\"]}")));
