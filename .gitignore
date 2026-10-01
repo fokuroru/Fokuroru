@@ -52,3 +52,6 @@ skills-lock.json
 # Release checklist fixtures and test runs (scripts/release-test)
 /.release-test/
 
+
+# macOS
+.DS_Store
