@@ -1017,10 +1017,10 @@ export class MangaShelf {
 
     // ---- placement: random spots, small tilts, not on top of each other
     interface Spot { x: number; y: number; w: number; h: number }
-    const placed: Spot[] = []
+    const solid: Spot[] = []
     const margin = 26
     const overlaps = (a: Spot, pad: number) =>
-      placed.some((b) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y)
+      solid.some((b) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y)
     const spotFor = (bw: number, bh: number, pad: number, upperBias: number): Spot | null => {
       const maxX = w - margin - bw
       const maxY = h - margin - bh
@@ -1035,9 +1035,11 @@ export class MangaShelf {
     }
     const order = [...blocks].sort((a, b) => b.w * b.h - a.w * a.h)
     for (const block of order) {
-      const spot = spotFor(block.w, block.h, 18, 0.7) ?? spotFor(block.w, block.h, 4, 0.4)
+      const spot = spotFor(block.w, block.h, 18, 0.7) ?? spotFor(block.w, block.h, 4, 0.4) ?? spotFor(block.w, block.h, 0, 0)
         ?? { x: margin + rnd() * Math.max(1, w - margin * 2 - block.w), y: margin + rnd() * Math.max(1, h - margin * 2 - block.h), w: block.w, h: block.h }
-      placed.push(spot)
+      // A little room round it for the tilt, so a block turned a few degrees still clears its neighbours.
+      const slack = Math.max(block.w, block.h) * 0.05
+      solid.push({ x: spot.x - slack, y: spot.y - slack, w: spot.w + slack * 2, h: spot.h + slack * 2 })
       c.save()
       c.translate(spot.x + block.w / 2, spot.y + block.h / 2)
       c.rotate(jit(0.09))
@@ -1197,9 +1199,8 @@ export class MangaShelf {
     const count = rnd() < 0.15 ? 0 : 3 + Math.floor(rnd() * 6)
     for (let i = 0; i < count; i++) {
       const size = 16 + rnd() * 22
-      const spot = spotFor(size * 3.2, size * 2.6, 8, 0.45)
+      const spot = spotFor(size * 3.2, size * 2.6, 16, 0.45)
       if (!spot) continue
-      placed.push(spot)
       c.save()
       c.translate(spot.x + spot.w / 2, spot.y + spot.h / 2)
       c.rotate(jit(0.5))
@@ -1272,15 +1273,14 @@ export class MangaShelf {
       for (let i = 0; i < count; i++) {
         // The first is the big one; the rest are small, like the ones scribbled around it.
         let h = i === 0 ? 100 + rnd() * 40 : 34 + rnd() * 44
-        let spot = spotFor(h * 0.6, h * 1.05, 10, 0.5)
+        let spot = spotFor(h * 0.6, h * 1.05, 16, 0.5)
         // The big one is hard to fit among the figures, so it tries again smaller rather than not at all.
         for (const shrink of i === 0 ? [0.8, 0.65, 0.5] : []) {
           if (spot) break
           h *= shrink
-          spot = spotFor(h * 0.6, h * 1.05, 6, 0.5)
+          spot = spotFor(h * 0.6, h * 1.05, 12, 0.5)
         }
         if (!spot) continue
-        placed.push(spot)
         c.save()
         c.translate(spot.x + spot.w / 2, spot.y + spot.h / 2)
         c.rotate(jit(i === 0 ? 0.25 : 0.6))
