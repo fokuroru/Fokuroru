@@ -298,6 +298,7 @@ export class MangaShelf {
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
   private readonly prank = Math.random() < PRANK_CHANCE ? PRANKS[Math.floor(Math.random() * PRANKS.length)] : null
+  private readonly prankOnRight = Math.random() < 0.5
   private prankFontReady = false
   /** Rolled once per page load and compared with how often the user wants one, so a figure stays or goes as a whole. */
   private readonly figureRoll = Math.random()
@@ -1208,8 +1209,8 @@ export class MangaShelf {
     const solid: Spot[] = []
     const margin = 26
     if (this.prank && this.prankFontReady) {
-      const width = Math.min(300, w * 0.38)
-      const size = 24
+      const width = Math.min(160, w * 0.2)
+      const size = 12
       c.save()
       c.font = `${size}px "Creamy Chalk"`
       c.textAlign = 'left'
@@ -1218,20 +1219,21 @@ export class MangaShelf {
       let line = ''
       for (const word of this.prank.split(' ')) {
         const next = line ? `${line} ${word}` : word
-        if (line && c.measureText(next).width > width - 12) {
+        if (line && c.measureText(next).width > width - 6) {
           lines.push(line)
           line = word
         } else line = next
       }
       lines.push(line)
-      const height = lines.length * 28 + 12
-      const x = w - margin - width
-      solid.push({ x: x - 6, y: margin - 6, w: width + 12, h: height + 12 })
-      c.translate(x + width / 2, margin + height / 2)
+      const height = lines.length * 14 + 6
+      const x = this.prankOnRight ? w - margin - width : margin
+      const top = h - margin - height
+      solid.push({ x: x - 6, y: top - 6, w: width + 12, h: height + 12 })
+      c.translate(x + width / 2, top + height / 2)
       c.rotate(-0.035)
       c.fillStyle = CREAM
       lines.forEach((text, i) => {
-        const y = -height / 2 + 20 + i * 28
+        const y = -height / 2 + 10 + i * 14
         c.globalAlpha = 0.25
         c.fillText(text, -width / 2 + 0.8, y + 0.6)
         c.globalAlpha = 0.9
