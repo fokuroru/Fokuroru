@@ -1150,12 +1150,15 @@ export class MangaShelf {
     }
     const bubble = (x: number, y: number, s: number, color: string) => {
       const pts: [number, number][] = []
-      for (let i = 0; i <= 18; i++) {
-        const a = (i / 18) * Math.PI * 2
-        pts.push([x + Math.cos(a) * s * 1.15, y + Math.sin(a) * s * 0.8])
-      }
+      const n = 18
+      for (let i = 0; i <= n; i++) pts.push(on(from + ((to - from) * i) / n))
+      pts.push([x - s * 0.9, y + s * 1.35], on(from))
       stroke(pts, color, 2.2, 1)
-      stroke([[x - s * 0.5, y + s * 0.7], [x - s * 0.9, y + s * 1.35], [x - s * 0.05, y + s * 0.78]], color, 2.2, 0.8)
+      // One outline: round the ellipse the long way from one side of the tail's base to the other,
+      // then out to the tip and back, so the circle does not run on through the tail.
+      const from = 2.03
+      const to = 1.6 + Math.PI * 2
+      const on = (a: number): [number, number] => [x + Math.cos(a) * s * 1.15, y + Math.sin(a) * s * 0.8]
       chalkText(pick(['!', '?', '…', '♪', '!?', 'zzz']), x, y, s * 0.95, color, 'center')
     }
     const roll = (x: number, y: number, s: number, color: string) => {
