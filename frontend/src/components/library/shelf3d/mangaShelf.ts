@@ -139,6 +139,8 @@ const MAX_OVERHANGERS = 3
 const MIN_BOARD = 90
 const CLICK_SLOP = 6
 const PULL_MS = 550
+/** How far a pulled book comes towards the camera, in scene units. */
+const PULL_DISTANCE = 320
 const COVER_WAIT_MS = 4000
 const FLUTTER_MS = 900
 /**
@@ -2033,9 +2035,13 @@ export class MangaShelf {
       if (i.pulledAt !== undefined) {
         const t = Math.min(1, (performance.now() - i.pulledAt) / PULL_MS)
         const e = 1 - (1 - t) ** 3
-        i.model.position.z = i.body.z + i.body.depth / 2 + e * 320
-        i.model.position.y += e * 30
-        i.model.rotation.y = -e * 0.35
+        // Straight at the camera, along the line from the book to it, so a book at the side comes forward
+        // without sliding outwards across the screen, and turns its spine to face it.
+        const cam = i.row.camera.position
+        const dx = cam.x - i.model.position.x
+        const dz = cam.z - i.model.position.z
+        i.model.position.lerp(cam, (PULL_DISTANCE * e) / dz)
+        i.model.rotation.y = e * Math.atan2(dx, dz)
         pulling ||= t < 1
       }
     }
