@@ -616,12 +616,20 @@ msgid "{label} already has a file. Compare the two before deciding: importing th
 msgstr "{label} already has a file. Compare the two before deciding: importing this archive links it alongside the existing one, it does not replace it. To swap them, delete the file you do not want first."
 
 #: src/components/layout/PageLayoutEditor.tsx
+msgid "{label} hidden"
+msgstr "{label} hidden"
+
+#: src/components/layout/PageLayoutEditor.tsx
 msgid "{label} moved to position {position} of {total}"
 msgstr "{label} moved to position {position} of {total}"
 
 #: src/pages/rewind/RewindIntro.tsx
 msgid "{label} Rewind"
 msgstr "{label} Rewind"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "{label} shown"
+msgstr "{label} shown"
 
 #: src/components/NamingFormatInput.tsx
 msgid "{label} tokens"
@@ -1466,8 +1474,8 @@ msgid "A 10/10 anime seeds at {topSeed}, against 1.00 for an unrated book on you
 msgstr "A 10/10 anime seeds at {topSeed}, against 1.00 for an unrated book on your shelf."
 
 #: src/components/SetupWizard.tsx
-msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
-msgstr "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
+#~ msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
+#~ msgstr "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
 
 #: src/api/inbox.ts
 msgid "A better release replaced a downloaded chapter's file."
@@ -3952,6 +3960,10 @@ msgstr "Damaged image"
 msgid "Dark"
 msgstr "Dark"
 
+#: src/components/SetupWizard.tsx
+msgid "Dark, light, or whatever your system uses. Remembered on this device."
+msgstr "Dark, light, or whatever your system uses. Remembered on this device."
+
 #: src/components/NamingTokenModal.tsx
 msgid "Dash (-)"
 msgstr "Dash (-)"
@@ -4015,6 +4027,7 @@ msgstr "Default source order updated"
 msgid "Defining"
 msgstr "Defining"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/SeriesFilesSection.tsx
@@ -4033,6 +4046,7 @@ msgstr "Delete {deletingName}?"
 msgid "Delete {fileName}"
 msgstr "Delete {fileName}"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/TagManagerModal.tsx
 msgid "Delete {label}"
 msgstr "Delete {label}"
@@ -4087,6 +4101,7 @@ msgstr "Delete permanently"
 msgid "Delete profile"
 msgstr "Delete profile"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 msgid "Delete rail"
@@ -4125,6 +4140,11 @@ msgstr "Delete series"
 #: src/pages/SeriesDetailPage.tsx
 msgid "Delete the file for {chapterLbl}"
 msgstr "Delete the file for {chapterLbl}"
+
+#. placeholder {0}: deleting?.label
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Delete the rail \"{0}\"? Its filters go with it."
+msgstr "Delete the rail \"{0}\"? Its filters go with it."
 
 #: src/components/layout/SectionProperties.tsx
 msgid "Delete the rail \"{label}\"? Its filters go with it."
@@ -5692,6 +5712,14 @@ msgstr "hidden or dismissed"
 #: src/pages/HomePage.tsx
 msgid "Hidden while progression is switched off."
 msgstr "Hidden while progression is switched off."
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Hide"
+msgstr "Hide"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Hide {label}"
+msgstr "Hide {label}"
 
 #: src/pages/HealthPage.tsx
 msgid "Hide affected series"
@@ -9222,6 +9250,7 @@ msgstr "Rail added"
 msgid "Rail changes save straight away. Done saves the layout."
 msgstr "Rail changes save straight away. Done saves the layout."
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 msgid "Rail deleted"
@@ -11103,6 +11132,14 @@ msgstr "Shoujo"
 #: src/components/CatalogueFilters.tsx
 msgid "Shounen"
 msgstr "Shounen"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Show"
+msgstr "Show"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Show {label}"
+msgstr "Show {label}"
 
 #: src/components/settings/NotificationPrefsSection.tsx
 msgid "Show a popup when a notification arrives"

@@ -742,6 +742,10 @@ msgid "{label} already has a file. Compare the two before deciding: importing th
 msgstr "{label} possède déjà un fichier. Comparez-les avant de décider : importer cette archive l'ajoute à côté du fichier existant, sans le remplacer. Pour les échanger, supprimez d'abord le fichier que vous ne voulez pas conserver."
 
 #: src/components/layout/PageLayoutEditor.tsx
+msgid "{label} hidden"
+msgstr ""
+
+#: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
 msgid "{label} moved to position {position} of {total}"
 msgstr "{label} déplacé à la position {position} sur {total}"
@@ -750,6 +754,10 @@ msgstr "{label} déplacé à la position {position} sur {total}"
 #, fuzzy
 msgid "{label} Rewind"
 msgstr "{label} Rewind"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "{label} shown"
+msgstr ""
 
 #: src/components/NamingFormatInput.tsx
 #, fuzzy
@@ -1773,8 +1781,8 @@ msgid "A 10/10 anime seeds at {topSeed}, against 1.00 for an unrated book on you
 msgstr "Un anime noté 10/10 part avec un poids de {topSeed}, contre 1,00 pour un livre non noté sur votre étagère."
 
 #: src/components/SetupWizard.tsx
-msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
-msgstr ""
+#~ msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
+#~ msgstr ""
 
 #: src/api/inbox.ts
 msgid "A better release replaced a downloaded chapter's file."
@@ -4744,6 +4752,10 @@ msgstr "Image endommagée"
 msgid "Dark"
 msgstr "Sombre"
 
+#: src/components/SetupWizard.tsx
+msgid "Dark, light, or whatever your system uses. Remembered on this device."
+msgstr ""
+
 #: src/components/NamingTokenModal.tsx
 #, fuzzy
 msgid "Dash (-)"
@@ -4817,6 +4829,7 @@ msgstr "Ordre des sources par défaut mis à jour"
 msgid "Defining"
 msgstr "Définition"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/SeriesFilesSection.tsx
@@ -4838,6 +4851,7 @@ msgstr "Supprimer {deletingName} ?"
 msgid "Delete {fileName}"
 msgstr "Supprimer {fileName}"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/TagManagerModal.tsx
 #, fuzzy
 msgid "Delete {label}"
@@ -4902,6 +4916,7 @@ msgstr "Supprimer définitivement"
 msgid "Delete profile"
 msgstr "Supprimer le profil"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
@@ -4945,6 +4960,11 @@ msgstr "Supprimer la série"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Delete the file for {chapterLbl}"
+msgstr ""
+
+#. placeholder {0}: deleting?.label
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Delete the rail \"{0}\"? Its filters go with it."
 msgstr ""
 
 #: src/components/layout/SectionProperties.tsx
@@ -6824,6 +6844,14 @@ msgstr "masqué ou ignoré"
 #, fuzzy
 msgid "Hidden while progression is switched off."
 msgstr "Masqué lorsque le suivi de la progression est désactivé."
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Hide"
+msgstr ""
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Hide {label}"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -11044,6 +11072,7 @@ msgstr "Rail ajouté"
 msgid "Rail changes save straight away. Done saves the layout."
 msgstr "Les modifications du rail sont enregistrées immédiatement. Cliquez sur Terminé pour enregistrer la mise en page."
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
@@ -13292,6 +13321,14 @@ msgstr "Shoujo"
 #, fuzzy
 msgid "Shounen"
 msgstr "Shounen"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Show"
+msgstr ""
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Show {label}"
+msgstr ""
 
 #: src/components/settings/NotificationPrefsSection.tsx
 #, fuzzy

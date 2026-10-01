@@ -7816,6 +7816,14 @@ body.reader-open {
 .layout-edit-body:hover {
   background: var(--surface-hover);
 }
+.layout-edit-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-inline: var(--mantine-spacing-xs);
+  border-inline-start: 1px solid var(--border);
+}
 .layout-edit-icon {
   display: grid;
   place-items: center;

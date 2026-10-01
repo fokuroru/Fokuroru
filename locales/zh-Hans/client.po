@@ -742,6 +742,10 @@ msgid "{label} already has a file. Compare the two before deciding: importing th
 msgstr "{label} 已经有一个文件。请先比较两者再决定：导入此归档会将它与现有文件并列关联，不会替换现有文件。要交换它们，请先删除不想要的文件。"
 
 #: src/components/layout/PageLayoutEditor.tsx
+msgid "{label} hidden"
+msgstr ""
+
+#: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
 msgid "{label} moved to position {position} of {total}"
 msgstr "{label} 已移至第 {position}/{total} 位"
@@ -750,6 +754,10 @@ msgstr "{label} 已移至第 {position}/{total} 位"
 #, fuzzy
 msgid "{label} Rewind"
 msgstr "{label} Rewind"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "{label} shown"
+msgstr ""
 
 #: src/components/NamingFormatInput.tsx
 #, fuzzy
@@ -1773,8 +1781,8 @@ msgid "A 10/10 anime seeds at {topSeed}, against 1.00 for an unrated book on you
 msgstr "评分为 10/10 的动画以 {topSeed} 作为基准值，而书架上未评分的书籍为 1.00。"
 
 #: src/components/SetupWizard.tsx
-msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
-msgstr ""
+#~ msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
+#~ msgstr ""
 
 #: src/api/inbox.ts
 msgid "A better release replaced a downloaded chapter's file."
@@ -4744,6 +4752,10 @@ msgstr "图像已损坏"
 msgid "Dark"
 msgstr "深色"
 
+#: src/components/SetupWizard.tsx
+msgid "Dark, light, or whatever your system uses. Remembered on this device."
+msgstr ""
+
 #: src/components/NamingTokenModal.tsx
 #, fuzzy
 msgid "Dash (-)"
@@ -4817,6 +4829,7 @@ msgstr "默认来源顺序已更新"
 msgid "Defining"
 msgstr "定义中"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/SeriesFilesSection.tsx
@@ -4838,6 +4851,7 @@ msgstr "删除 {deletingName}？"
 msgid "Delete {fileName}"
 msgstr "删除 {fileName}"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/TagManagerModal.tsx
 #, fuzzy
 msgid "Delete {label}"
@@ -4902,6 +4916,7 @@ msgstr "永久删除"
 msgid "Delete profile"
 msgstr "删除配置文件"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
@@ -4945,6 +4960,11 @@ msgstr "删除系列"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Delete the file for {chapterLbl}"
+msgstr ""
+
+#. placeholder {0}: deleting?.label
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Delete the rail \"{0}\"? Its filters go with it."
 msgstr ""
 
 #: src/components/layout/SectionProperties.tsx
@@ -6824,6 +6844,14 @@ msgstr "已隐藏或忽略"
 #, fuzzy
 msgid "Hidden while progression is switched off."
 msgstr "进度跟踪关闭时隐藏。"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Hide"
+msgstr ""
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Hide {label}"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -11044,6 +11072,7 @@ msgstr "推荐栏已添加"
 msgid "Rail changes save straight away. Done saves the layout."
 msgstr "推荐栏更改会立即保存。点击“完成”保存布局。"
 
+#: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
@@ -13292,6 +13321,14 @@ msgstr "少女向"
 #, fuzzy
 msgid "Shounen"
 msgstr "少年向"
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Show"
+msgstr ""
+
+#: src/components/layout/PageLayoutEditor.tsx
+msgid "Show {label}"
+msgstr ""
 
 #: src/components/settings/NotificationPrefsSection.tsx
 #, fuzzy

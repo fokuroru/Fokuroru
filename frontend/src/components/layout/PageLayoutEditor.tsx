@@ -3,20 +3,24 @@ import { Reorder, useDragControls, useReducedMotion } from 'motion/react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { t as now } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
-import { Button, Group, Loader, Text, VisuallyHidden } from '@mantine/core'
+import { ActionIcon, Button, Group, Loader, Modal, Stack, Text, Tooltip, VisuallyHidden } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import {
   IconFilter,
   IconGripVertical,
   IconLayoutDashboard,
   IconLibrary,
+  IconEye,
+  IconEyeOff,
   IconPlus,
   IconSparkles,
+  IconTrash,
 } from '@tabler/icons-react'
 import { isRailKey, railIdOf, useSavePageLayout, type PageSection } from '../../api/hooks'
 import {
   RAIL_SOURCE_LABELS,
   useCustomRailItems,
+  useDeleteCustomRail,
   type CustomRail,
   type CustomRailPlacement,
 } from '../../api/customRails'
@@ -79,6 +83,7 @@ export function PageLayoutEditor({
   const renderLabel = useLabel()
   const reduceMotion = useReducedMotion()
   const save = useSavePageLayout()
+  const removeRail = useDeleteCustomRail()
 
   const [draft, setDraft] = useState<PageSection[]>(initial)
   const [initialDraft] = useState<PageSection[]>(initial)
@@ -86,6 +91,7 @@ export function PageLayoutEditor({
   const [adding, setAdding] = useState(false)
   const [created, setCreated] = useState<Set<number>>(() => new Set())
   const [announcement, setAnnouncement] = useState('')
+  const [deleting, setDeleting] = useState<{ id: number; label: string } | null>(null)
 
   const railIds = useMemo(() => (rails ?? []).map((r) => r.id), [rails])
   const railById = useMemo(() => new Map((rails ?? []).map((r) => [r.id, r])), [rails])
@@ -113,6 +119,14 @@ export function PageLayoutEditor({
     const position = to + 1
     const total = sections.length
     setAnnouncement(t`${label} moved to position ${position} of ${total}`)
+  }
+
+  const toggle = (key: string) => {
+    const section = sections.find((s) => s.key === key)
+    if (!section) return
+    setDraft(sections.map((s) => (s.key === key ? { ...s, enabled: !s.enabled } : s)))
+    const label = labelOf(key)
+    setAnnouncement(section.enabled ? t`${label} hidden` : t`${label} shown`)
   }
 
   const done = () => {
@@ -201,6 +215,8 @@ export function PageLayoutEditor({
               reduceMotion={reduceMotion ?? false}
               onOpen={() => setSelected(section.key)}
               onMove={(delta) => move(index, index + delta)}
+              onToggle={() => toggle(section.key)}
+              onDelete={rail ? () => setDeleting({ id: rail.id, label: labelOf(section.key) }) : undefined}
             />
           )
         })}
@@ -229,6 +245,36 @@ export function PageLayoutEditor({
         onClose={() => setSelected(null)}
       />
 
+      <Modal opened={deleting != null} onClose={() => setDeleting(null)} title={t`Delete rail`} size="sm">
+        <Stack gap="md">
+          <Text size="sm">
+            <Trans>Delete the rail "{deleting?.label}"? Its filters go with it.</Trans>
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="subtle" onClick={() => setDeleting(null)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              color="var(--danger-fill)"
+              loading={removeRail.isPending}
+              onClick={() =>
+                deleting &&
+                removeRail.mutate(deleting.id, {
+                  onSuccess: () => {
+                    if (selected === `rail:${deleting.id}`) setSelected(null)
+                    setDeleting(null)
+                    notifications.show({ color: 'var(--ok)', message: now`Rail deleted` })
+                  },
+                  onError: (err) => notifications.show({ color: 'var(--danger)', message: String(err) }),
+                })
+              }
+            >
+              <Trans>Delete</Trans>
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
       {adding && (
         <CustomRailEditor draft={addDraft} onSaved={onRailCreated} onClose={() => setAdding(false)} />
       )}
@@ -249,6 +295,8 @@ function SectionCard({
   reduceMotion,
   onOpen,
   onMove,
+  onToggle,
+  onDelete,
 }: {
   section: PageSection
   label: string
@@ -262,6 +310,8 @@ function SectionCard({
   reduceMotion: boolean
   onOpen: () => void
   onMove: (delta: -1 | 1) => void
+  onToggle: () => void
+  onDelete?: () => void
 }) {
   const { t } = useLingui()
   const controls = useDragControls()
@@ -371,6 +421,26 @@ function SectionCard({
             </div>
           )}
         </Group>
+      </div>
+      <div className="layout-edit-actions">
+        <Tooltip label={section.enabled ? t`Hide` : t`Show`} withArrow>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            aria-label={section.enabled ? t`Hide ${label}` : t`Show ${label}`}
+            aria-pressed={!section.enabled}
+            onClick={onToggle}
+          >
+            {section.enabled ? <IconEye size={16} /> : <IconEyeOff size={16} />}
+          </ActionIcon>
+        </Tooltip>
+        {onDelete && (
+          <Tooltip label={t`Delete`} withArrow>
+            <ActionIcon variant="subtle" color="var(--danger)" aria-label={t`Delete ${label}`} onClick={onDelete}>
+              <IconTrash size={16} />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </div>
     </Reorder.Item>
   )
