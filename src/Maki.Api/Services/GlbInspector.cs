@@ -59,6 +59,7 @@ public static class GlbInspector
                 || !root.TryGetProperty("asset", out var asset)
                 || asset.ValueKind != JsonValueKind.Object
                 || !asset.TryGetProperty("version", out var version)
+                || version.ValueKind != JsonValueKind.String
                 || version.GetString() != "2.0"
                 || !root.TryGetProperty("meshes", out var meshes)
                 || meshes.ValueKind != JsonValueKind.Array
@@ -67,10 +68,20 @@ public static class GlbInspector
                 return new Report("error.figures.notGlb", false);
             }
 
-            if (root.TryGetProperty("extensionsRequired", out var required) && required.ValueKind == JsonValueKind.Array)
+            if (root.TryGetProperty("extensionsRequired", out var required))
             {
+                if (required.ValueKind != JsonValueKind.Array)
+                {
+                    return new Report("error.figures.notGlb", false);
+                }
+
                 foreach (var name in required.EnumerateArray())
                 {
+                    if (name.ValueKind != JsonValueKind.String)
+                    {
+                        return new Report("error.figures.notGlb", false);
+                    }
+
                     if (name.GetString() is not { } n || !Supported.Contains(n))
                     {
                         return new Report("error.figures.unsupported", false);
@@ -82,17 +93,30 @@ public static class GlbInspector
 
             foreach (var group in new[] { "buffers", "images" })
             {
-                if (!root.TryGetProperty(group, out var items) || items.ValueKind != JsonValueKind.Array)
+                if (!root.TryGetProperty(group, out var items))
                 {
                     continue;
                 }
 
+                if (items.ValueKind != JsonValueKind.Array)
+                {
+                    return new Report("error.figures.notGlb", false);
+                }
+
                 foreach (var item in items.EnumerateArray())
                 {
-                    if (item.ValueKind == JsonValueKind.Object
-                        && item.TryGetProperty("uri", out var uri)
-                        && uri.GetString() is { } u
-                        && !u.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                    if (item.ValueKind != JsonValueKind.Object)
+                    {
+                        return new Report("error.figures.notGlb", false);
+                    }
+
+                    if (!item.TryGetProperty("uri", out var uri)) continue;
+                    if (uri.ValueKind != JsonValueKind.String)
+                    {
+                        return new Report("error.figures.notGlb", false);
+                    }
+
+                    if (!uri.GetString()!.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
                     {
                         return new Report("error.figures.external", false);
                     }

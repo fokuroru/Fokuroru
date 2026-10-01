@@ -27,6 +27,17 @@ public class GlbInspectorTests
     [Fact]
     public void Accepts_a_plain_glb() => Assert.Null(GlbInspector.Check(Glb(Plain)));
 
+    [Theory]
+    [InlineData("{\"asset\":{\"version\":2},\"meshes\":[{}]}")]
+    [InlineData("{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"extensionsRequired\":{}}")]
+    [InlineData("{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"extensionsRequired\":[42]}")]
+    [InlineData("{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"images\":[{\"uri\":42}]}")]
+    [InlineData("{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"buffers\":[{\"uri\":null}]}")]
+    [InlineData("{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"images\":{}}")]
+    [InlineData("{\"asset\":{\"version\":\"2.0\"},\"meshes\":[{}],\"buffers\":[false]}")]
+    public void Rejects_malformed_property_types_without_throwing(string json) =>
+        Assert.Equal("error.figures.notGlb", GlbInspector.Check(Glb(json)));
+
     [Fact]
     public void Accepts_quantized_webp_models() =>
         Assert.Null(GlbInspector.Check(Glb(
