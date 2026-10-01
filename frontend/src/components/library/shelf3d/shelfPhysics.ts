@@ -279,10 +279,11 @@ export class ShelfPhysics {
    * the point or rests tilted against it. The drawn leaves bend out of the way of books themselves
    * (see the renderer). Returns the body and how far its centre of mass sits above the plank.
    */
-  addPlant(x: number, potWidth: number, potHeight: number, leafSpread: number, leafHeight: number, z = 0) {
+  addPlant(x: number, potWidth: number, potHeight: number, leafSpread: number, leafHeight: number, z = 0, baseLift = 0) {
     const column = leafHeight * 0.75
-    const pot = Bodies.rectangle(x, this.floor - potHeight / 2, potWidth, potHeight, { density: 0.006 })
-    const leaves = Bodies.trapezoid(x, this.floor - potHeight - column / 2, Math.min(leafSpread, potWidth) * 0.7, column, 0.92, { density: 0.0004 })
+    const bottom = this.floor - baseLift
+    const pot = Bodies.rectangle(x, bottom - potHeight / 2, potWidth, potHeight, { density: 0.006 })
+    const leaves = Bodies.trapezoid(x, bottom - potHeight - column / 2, Math.min(leafSpread, potWidth) * 0.7, column, 0.92, { density: 0.0004 })
     const body = Body.create({
       parts: [pot, leaves],
       friction: 0.8,
@@ -296,7 +297,7 @@ export class ShelfPhysics {
     this.setDepth(body, z, potWidth)
     this.bodies.push(body)
     Composite.add(this.engine.world, body)
-    return { body, centreAboveFloor: this.floor - body.position.y }
+    return { body, centreAboveFloor: bottom - body.position.y }
   }
 
   /**

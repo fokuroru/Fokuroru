@@ -3,14 +3,17 @@ import * as T from 'three'
 /**
  * A potted snake plant (sansevieria): a turned terracotta pot on a saucer, dark soil, and a clump
  * of tall sword leaves, each tapered, folded along its midrib, curving and slightly twisted, with
- * banded variegation and yellow margins. Built in world units with its origin at the centre of the
- * saucer's underside, so it stands on whatever y it is placed at.
+ * banded variegation and yellow margins. The pot and saucer have separate models, each with its
+ * origin at the centre of its underside.
  */
 export interface PottedPlant {
   group: T.Group
+  saucer: T.Mesh
+  saucerWidth: number
+  saucerHeight: number
   /** Widest part of the pot, for its physics body. */
   potWidth: number
-  /** Saucer plus pot. */
+  /** Pot without its saucer. */
   potHeight: number
   /** Height of the leaf clump above the soil. */
   leafHeight: number
@@ -140,9 +143,11 @@ export function buildPottedPlant(): PottedPlant {
   const inside = track(new T.MeshStandardMaterial({ color: '#6f3421', roughness: 1 }))
 
   // Saucer.
-  const saucer = new T.Mesh(track(new T.CylinderGeometry(topR - 1, baseR + 3, saucerH, 40)), clay)
+  const saucerClay = track(clay.clone())
+  saucerClay.map = track(clay.map!.clone())
+  const saucer = new T.Mesh(track(new T.CylinderGeometry(topR - 1, baseR + 3, saucerH, 40)), saucerClay)
   saucer.position.y = saucerH / 2
-  group.add(saucer)
+  saucer.castShadow = saucer.receiveShadow = true
 
   // The pot, turned on a lathe: base, flared wall, a rolled rim with a small lip.
   const profile = [
@@ -156,15 +161,14 @@ export function buildPottedPlant(): PottedPlant {
     new T.Vector2(topR - 3, potH),
   ]
   const pot = new T.Mesh(track(new T.LatheGeometry(profile, 48)), clay)
-  pot.position.y = saucerH
   group.add(pot)
   const well = new T.Mesh(track(new T.CylinderGeometry(topR - 3, topR - 4, 6, 40, 1, true)), inside)
   well.material.side = T.BackSide
-  well.position.y = saucerH + potH - 3
+  well.position.y = potH - 3
   group.add(well)
 
   // Soil, sitting just below the rim.
-  const soilY = saucerH + potH - 5
+  const soilY = potH - 5
   const earth = new T.Mesh(
     track(new T.CircleGeometry(topR - 3.2, 40)),
     track(new T.MeshStandardMaterial({ map: track(soil()), roughness: 1 })),
@@ -209,8 +213,11 @@ export function buildPottedPlant(): PottedPlant {
 
   return {
     group,
+    saucer,
+    saucerWidth: (topR - 1) * 2,
+    saucerHeight: saucerH,
     potWidth: (topR + 2) * 2,
-    potHeight: saucerH + potH,
+    potHeight: potH,
     leafHeight,
     leafSpread: Math.min(spread * 2, (topR + 2) * 2.4),
     leaves,

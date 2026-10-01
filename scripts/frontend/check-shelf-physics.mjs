@@ -36,4 +36,24 @@ try {
   shelf.destroy()
 }
 assert.equal(shelf.engine.events?.collisionActive?.length ?? 0, 0, 'destroy removes crush listeners')
+
+const plantShelf = new ShelfPhysics(600)
+try {
+  const plate = plantShelf.add(267, plantShelf.floor - 5, 66, 5, 0, 66)
+  plantShelf.setDepth(plate, -30, 66)
+  const { body: pot } = plantShelf.addPlant(300, 70, 70, 100, 180, -30, 5)
+  assert.equal(plantShelf.hasSupport(pot), true, 'the pot starts on its saucer')
+  for (let i = 0; i < 240; i++) plantShelf.step()
+  assert.ok(Math.abs(plate.position.x - 300) < 3, 'the saucer stays stable under the pot')
+  assert.ok(Math.abs(pot.bounds.max.y - plate.bounds.min.y) < 3, 'the pot settles on the saucer')
+  const at = { ...pot.position }
+  plantShelf.grab(pot, 1, at)
+  plantShelf.moveTo({ x: at.x + 110, y: at.y - 90 })
+  for (let i = 0; i < 120; i++) plantShelf.step()
+  assert.ok(pot.position.x > at.x + 70, 'dragging moves the plant independently')
+  assert.ok(Math.abs(plate.position.x - 300) < 5, 'lifting the plant leaves its saucer behind')
+  assert.equal(plantShelf.has(plate), true, 'the saucer remains in the simulation')
+} finally {
+  plantShelf.destroy()
+}
 console.log('Shelf physics regression checks passed')
