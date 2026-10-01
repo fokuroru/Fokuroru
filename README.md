@@ -49,8 +49,9 @@ replaced. Existing Maki features from before the fork are not repeated here.
 - Added thirty randomly dealt spine editions, real front covers, blank back covers, title and
   author lettering, and a chapter band showing the next chapter number.
 - Matched books to their cover proportions, varied their heights on each page load, and allowed
-  some wide-cover books to overhang. Spines, back covers and page edges use colours opposite the
-  cover's dominant colour; mostly grey, black or white covers keep the edition palette.
+  some wide-cover books to overhang. Spines, back covers and page edges use the cover's strongest
+  colour family, with contrasting black or white lettering. Skin tones are excluded, muted colours
+  remain eligible, and mostly grey, black or white covers keep the edition palette.
 - Added hover lifting, dragging, rotation, collisions and depth movement. Books stay clear of
   the wall, tip over the front edge and fall when unsupported. Stacked books can settle on other
   objects, and hovering does not suspend a falling book.

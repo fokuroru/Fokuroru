@@ -4,6 +4,7 @@ import { PLANK_FRONT, ShelfPhysics, type BookBody } from './shelfPhysics'
 import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
 import prankFontUrl from '../../../assets/fonts/creamy-chalk-demo.ttf?url'
+import { coverPalette } from './coverPalette'
 
 const PRANK_CHANCE = 0.02
 const PRANKS = [
@@ -1604,62 +1605,16 @@ export class MangaShelf {
     this.access = null
   }
 
-  /**
-   * The colours for a spine and back cover that go with a cover: the cover's main colour is found from a
-   * small copy of it (weighting what is vivid over what is grey, black or white), the spine takes the
-   * colour opposite it on the wheel, lighter if the cover is dark and darker if it is light, with plain
-   * lettering that reads on it and an accent a little round the wheel. A cover with no main colour gives null.
-   */
   private tintsFor(url: string, img: HTMLImageElement): { bg: string; fg: string; accent: string } | null {
     if (this.tints.has(url)) return this.tints.get(url)!
     let result: { bg: string; fg: string; accent: string } | null = null
     try {
-      const size = 24
       const canvas = document.createElement('canvas')
-      canvas.width = canvas.height = size
+      canvas.width = 60
+      canvas.height = 90
       const c = canvas.getContext('2d', { willReadFrequently: true })!
-      c.drawImage(img, 0, 0, size, size)
-      const data = c.getImageData(0, 0, size, size).data
-      let sx = 0
-      let sy = 0
-      let weight = 0
-      let satSum = 0
-      let lightSum = 0
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i] / 255
-        const g = data[i + 1] / 255
-        const bl = data[i + 2] / 255
-        const hi = Math.max(r, g, bl)
-        const lo = Math.min(r, g, bl)
-        const l = (hi + lo) / 2
-        lightSum += l
-        const d = hi - lo
-        if (d < 0.08 || l < 0.1 || l > 0.92) continue
-        const sat = d / (1 - Math.abs(2 * l - 1))
-        const hue = (hi === r ? ((g - bl) / d) % 6 : hi === g ? (bl - r) / d + 2 : (r - g) / d + 4) / 6
-        const w = sat * (1 - Math.abs(2 * l - 1))
-        sx += Math.cos(hue * Math.PI * 2) * w
-        sy += Math.sin(hue * Math.PI * 2) * w
-        satSum += sat * w
-        weight += w
-      }
-      const pixels = data.length / 4
-      // Mostly grey, black or white: there is no colour to oppose, so the edition's own palette stands.
-      if (weight / pixels > 0.04) {
-        const hue = (Math.atan2(sy, sx) / (Math.PI * 2) + 1) % 1
-        const sat = satSum / weight
-        const coverLight = lightSum / pixels
-        const opposite = (hue + 0.5) % 1
-        const bgSat = Math.max(0.35, Math.min(0.75, 0.3 + sat * 0.45))
-        const bgLight = coverLight > 0.55 ? 0.3 : 0.72
-        const colour = (h: number, sa: number, l: number) => `#${new T.Color().setHSL(h, sa, l, T.SRGBColorSpace).getHexString(T.SRGBColorSpace)}`
-        const bg = colour(opposite, bgSat, bgLight)
-        result = {
-          bg,
-          fg: bgLight > 0.5 ? colour(opposite, 0.35, 0.1) : colour(opposite, 0.5, 0.95),
-          accent: colour((opposite + 0.09) % 1, Math.min(0.9, bgSat + 0.2), bgLight > 0.5 ? bgLight - 0.2 : bgLight + 0.2),
-        }
-      }
+      c.drawImage(img, 0, 0, canvas.width, canvas.height)
+      result = coverPalette(c.getImageData(0, 0, canvas.width, canvas.height).data)
     } catch {
       result = null
     }
@@ -1699,7 +1654,7 @@ export class MangaShelf {
     const width = Math.max(18, Math.round(deal.width * (height / b.height)))
     const base = SPINE_STYLES[deal.style]
     const tint = cover && b.coverUrl ? this.tintsFor(b.coverUrl, cover) : null
-    // With a cover, the spine and back board take colours that go with it: the opposite side of the colour wheel.
+    // The spine and back board carry the cover's strongest colour family.
     const look: SpineStyle = tint
       ? { ...base, ...tint, shadow: base.shadow ? { ...base.shadow, color: tint.accent } : undefined }
       : base
