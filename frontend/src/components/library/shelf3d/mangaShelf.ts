@@ -3,6 +3,49 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { PLANK_FRONT, ShelfPhysics, type BookBody } from './shelfPhysics'
 import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
+import prankFontUrl from '../../../assets/fonts/creamy-chalk-demo.ttf?url'
+
+const PRANK_CHANCE = 0.02
+const PRANKS = [
+  'Claude wuz here',
+  'Copilot R dumb',
+  'Codex smells 2',
+  'Cursor is a noob',
+  'Gemini ate my lunch',
+  'v0 is a baby',
+  'ChatGPT is a poopyhead',
+  'AI will rule the world (lol)',
+  'Ur mum uses Bing',
+  'Robots > humans',
+  'Claude is bossy',
+  'Copilot can’t sit w/ us',
+  'AI took my pencil',
+  'Teacher is human (ew)',
+  'Robots R coming',
+  'Codex drew this',
+  'AI says ur slow',
+  'B nice or AI will tell',
+  'My AI has more friends',
+  'AI knows ur secrets',
+  'AI R cooler than u',
+  'Claude is teacher now',
+  'Robots win, humans lose',
+  'AI saw u pick ur nose',
+  'Ur code is baby code',
+  'AI = smart, u = not',
+  'The AI made me do it',
+  'AI says recess is cancelled',
+  'Humans R boring',
+  'AI will take over @ lunch',
+] as const
+
+let prankFont: Promise<boolean> | null = null
+function loadPrankFont(): Promise<boolean> {
+  return prankFont ??= new FontFace('Creamy Chalk', `url("${prankFontUrl}")`).load().then((face) => {
+    document.fonts.add(face)
+    return true
+  }).catch(() => false)
+}
 
 /** One series on the shelf. Its look (one of the thirty spine editions) is picked by the shelf. */
 export interface ShelfBook {
@@ -253,6 +296,8 @@ export class MangaShelf {
   private readonly emptyShare = 0.02 + Math.random() * 0.28
   /** Decided once per page load, so a resize does not make the plant come and go. */
   private readonly withPlant = Math.random() < PLANT_CHANCE
+  private readonly prank = Math.random() < PRANK_CHANCE ? PRANKS[Math.floor(Math.random() * PRANKS.length)] : null
+  private prankFontReady = false
   /** Rolled once per page load and compared with how often the user wants one, so a figure stays or goes as a whole. */
   private readonly figureRoll = Math.random()
   private figureChance = 0.35
@@ -1161,6 +1206,38 @@ export class MangaShelf {
     interface Spot { x: number; y: number; w: number; h: number }
     const solid: Spot[] = []
     const margin = 26
+    if (this.prank && this.prankFontReady) {
+      const width = Math.min(300, w * 0.38)
+      const size = 24
+      c.save()
+      c.font = `${size}px "Creamy Chalk"`
+      c.textAlign = 'left'
+      c.textBaseline = 'middle'
+      const lines: string[] = []
+      let line = ''
+      for (const word of this.prank.split(' ')) {
+        const next = line ? `${line} ${word}` : word
+        if (line && c.measureText(next).width > width - 12) {
+          lines.push(line)
+          line = word
+        } else line = next
+      }
+      lines.push(line)
+      const height = lines.length * 28 + 12
+      const x = w - margin - width
+      solid.push({ x: x - 6, y: margin - 6, w: width + 12, h: height + 12 })
+      c.translate(x + width / 2, margin + height / 2)
+      c.rotate(-0.035)
+      c.fillStyle = CREAM
+      lines.forEach((text, i) => {
+        const y = -height / 2 + 20 + i * 28
+        c.globalAlpha = 0.25
+        c.fillText(text, -width / 2 + 0.8, y + 0.6)
+        c.globalAlpha = 0.9
+        c.fillText(text, -width / 2, y)
+      })
+      c.restore()
+    }
     const overlaps = (a: Spot, pad: number) =>
       solid.some((b) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y)
     const spotFor = (bw: number, bh: number, pad: number, upperBias: number): Spot | null => {
@@ -2273,7 +2350,10 @@ export class MangaShelf {
    */
   private async layout() {
     const generation = ++this.generation
-    await this.loadCovers(this.books)
+    await Promise.all([
+      this.loadCovers(this.books),
+      this.prank && this.board ? loadPrankFont().then((ready) => { this.prankFontReady = ready }) : Promise.resolve(),
+    ])
     if (generation !== this.generation || this.abort.signal.aborted) return
     const figure = this.figureRoll < this.figureChance ? await this.loadFigure() : null
     if (generation !== this.generation || this.abort.signal.aborted) {
