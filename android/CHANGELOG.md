@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.0 (28)
+- When the server has a newer app, the warning bar has a Download button: the app fetches the APK from your server (using the session it already has) and hands it to the installer. First time, it asks you to allow installing from Fōkurōru.
+
 ## 0.4.1 (27)
 - No app change. The server's reported version now comes from a VERSION file inside the source it was built from, so it can no longer claim a newer version than its code.
 

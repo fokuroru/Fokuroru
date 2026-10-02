@@ -150,7 +150,7 @@ class Api(context: Context) {
         private set
 
     /** One anonymous request to see whether the server answers, and as itself. Blocks. */
-    class ServerInfo(val version: String, val appCode: Int?, val appName: String?)
+    class ServerInfo(val version: String, val appCode: Int?, val appName: String?, val apkAvailable: Boolean)
 
     /** What the server says about itself and the newest app it was released with; null when it can't be read. */
     fun serverInfo(): ServerInfo? = try {
@@ -163,7 +163,12 @@ class Api(context: Context) {
                 val json = org.json.JSONObject(conn.inputStream.use { String(it.readBytes()) })
                 val app = json.optJSONObject("androidApp")
                 json.optString("version").takeIf { it.isNotEmpty() }?.let {
-                    ServerInfo(it, app?.optInt("versionCode")?.takeIf { code -> code > 0 }, app?.optString("versionName")?.ifEmpty { null })
+                    ServerInfo(
+                        it,
+                        app?.optInt("versionCode")?.takeIf { code -> code > 0 },
+                        app?.optString("versionName")?.ifEmpty { null },
+                        app?.optBoolean("apkAvailable") == true,
+                    )
                 }
             } else {
                 null

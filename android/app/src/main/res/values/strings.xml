@@ -107,4 +107,9 @@
     <string name="pair_scan_failed">The scanner could not start. It needs Google Play services.</string>
     <string name="pair_gateway">This server asks for a sign-in first. Sign in to it here. The app then finishes signing you in as the account that showed the code, as long as that happens within five minutes.</string>
     <string name="pair_refused">The code was refused. It works once and for five minutes, so make a new one in Settings on the web.</string>
+    <string name="update_download">Download</string>
+    <string name="update_title">Fōkurōru app update</string>
+    <string name="update_downloading">Downloading the update. Open it from the notification when it finishes.</string>
+    <string name="update_failed">The update could not be downloaded.</string>
+    <string name="update_allow">Allow Fōkurōru to install apps, then tap Download again.</string>
 </resources>

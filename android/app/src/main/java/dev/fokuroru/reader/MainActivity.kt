@@ -36,6 +36,7 @@ import dev.fokuroru.reader.input.PadAction
 import dev.fokuroru.reader.input.PageTurnMap
 import dev.fokuroru.reader.input.Turn
 import dev.fokuroru.reader.net.Api
+import dev.fokuroru.reader.net.AppUpdate
 import dev.fokuroru.reader.net.PairResult
 import dev.fokuroru.reader.net.Pairing
 import dev.fokuroru.reader.net.Gateway
@@ -67,7 +68,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var root: View
     private lateinit var offlineView: View
     private lateinit var gatewayBanner: View
-    private lateinit var versionBanner: android.widget.TextView
+    private lateinit var versionBanner: View
+    private lateinit var versionText: android.widget.TextView
+    private lateinit var versionAction: View
+    private var offerApk = false
     private var versionDismissed = false
     private lateinit var signInBar: View
     private var loginShown = false
@@ -123,10 +127,13 @@ class MainActivity : AppCompatActivity() {
         offlineView = findViewById(R.id.offline)
         gatewayBanner = findViewById(R.id.gateway_banner)
         versionBanner = findViewById(R.id.version_banner)
-        versionBanner.setOnClickListener {
+        versionText = findViewById(R.id.version_text)
+        versionAction = findViewById(R.id.version_action)
+        versionText.setOnClickListener {
             versionDismissed = true
             versionBanner.visibility = View.GONE
         }
+        versionAction.setOnClickListener { AppUpdate.download(this) }
         signInBar = findViewById(R.id.signin_bar)
         findViewById<View>(R.id.signin_back).setOnClickListener { startActivity(Intent(this, ServersActivity::class.java)) }
         offline = newOffline()
@@ -428,6 +435,8 @@ class MainActivity : AppCompatActivity() {
             if (pairing == PairResult.Done) runOnUiThread { web.loadUrl("${prefs.serverUrl}/") }
             if (pairing == PairResult.Refused) runOnUiThread { Toast.makeText(this, R.string.pair_refused, Toast.LENGTH_LONG).show() }
             val info = if (state == ServerState.OK) Api(this).serverInfo() else null
+            offerApk = info != null && info.apkAvailable && info.appCode != null && info.appCode > BuildConfig.VERSION_CODE &&
+                Versions.compare(info.version, BuildConfig.SERVER_VERSION) >= 0
             val message = when {
                 info == null -> null
                 Versions.compare(info.version, BuildConfig.SERVER_VERSION) < 0 ->
@@ -438,7 +447,8 @@ class MainActivity : AppCompatActivity() {
             }
             runOnUiThread {
                 updateBanner(state)
-                versionBanner.text = message
+                versionText.text = message
+                versionAction.visibility = if (offerApk) View.VISIBLE else View.GONE
                 versionBanner.visibility = if (message != null && !versionDismissed) View.VISIBLE else View.GONE
                 showNoticeInFooter(message)
             }
