@@ -128,7 +128,7 @@ export class ShelfPhysics {
       collisionFilter: { category: CATEGORY_PLANK, mask: 0xffffffff, group: 0 },
     })
     // The plank as drawn: the same surface, but only as wide as the shelf, so chalk can leave it.
-    const visiblePlank = Bodies.rectangle(width / 2, floor + 35, width + 12, 70, {
+    this.visiblePlank = Bodies.rectangle(width / 2, floor + 35, width + 12, 70, {
       isStatic: true,
       friction: 0.75,
       restitution: 0,
@@ -168,12 +168,45 @@ export class ShelfPhysics {
     })
 
     const wall = { category: CATEGORY_WALL, mask: 0xffffffff, group: 0 }
-    Composite.add(this.engine.world, [
-      this.plank,
-      visiblePlank,
+    this.walls = [
       Bodies.rectangle(-30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5, collisionFilter: wall }),
       Bodies.rectangle(width + 30, floor - 260, 60, 1000, { isStatic: true, friction: 0.5, collisionFilter: wall }),
-    ])
+    ]
+    Composite.add(this.engine.world, [this.plank, this.visiblePlank, ...this.walls])
+  }
+
+  private readonly visiblePlank: Matter.Body
+  private readonly walls: Matter.Body[]
+
+  /** Which side of the shelf carries more weight: -1 left, 1 right. */
+  heavierSide(): -1 | 1 {
+    let left = 0
+    let right = 0
+    for (const b of this.bodies) {
+      if (b.isStatic) continue
+      if (b.position.x < this.width / 2) left += b.mass
+      else right += b.mass
+    }
+    return left > right ? -1 : 1
+  }
+
+  /**
+   * Turns the plank about the end that is still on the wall; `side` is the end that has come away. Its
+   * end wall goes too, so what slides down the plank leaves it instead of piling up at the end.
+   */
+  tiltPlank(side: -1 | 1, angle: number) {
+    const px = side < 0 ? this.width + 6 : -6
+    const a = -side * angle
+    const dx = this.width / 2 - px
+    const cx = px + dx * Math.cos(a) - 35 * Math.sin(a)
+    const cy = this.floor + dx * Math.sin(a) + 35 * Math.cos(a)
+    for (const p of [this.plank, this.visiblePlank]) {
+      Body.setAngle(p, a)
+      Body.setPosition(p, { x: cx, y: cy })
+    }
+    const wall = this.walls[side < 0 ? 0 : 1]
+    if (Composite.get(this.engine.world, wall.id, 'body')) Composite.remove(this.engine.world, wall)
+    for (const b of this.bodies) Sleeping.set(b, false)
   }
 
   private crushed: BookBody[] = []

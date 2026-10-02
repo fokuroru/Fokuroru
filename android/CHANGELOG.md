@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.27 (55)
+- No app change. After the shelf shudders over 100 times in one page load (10 on the dev server), its heavier end comes off the wall and the plank hangs from the other.
+
 ## 0.5.26 (54)
 - No app change. Tape strips are checked along their whole length and width against the frame, so none sits under the wood, including strips following the paper.
 

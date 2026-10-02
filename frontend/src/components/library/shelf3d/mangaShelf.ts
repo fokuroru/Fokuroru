@@ -161,7 +161,14 @@ interface Row {
   shelf: T.Mesh
   /** A shudder from a heavy landing: how big, and since when. */
   shake?: { at: number; amplitude: number }
+  /** Set once the shelf has been shaken loose: the end that came off the wall, and how far it has dropped. */
+  detached?: { side: -1 | 1; angle: number; speed: number }
 }
+
+/** How many times the shelf can shudder, over this page load, before its heavier end comes off the wall. */
+const SHAKES_TO_DETACH = import.meta.env.DEV ? 10 : 100
+const DETACH_ANGLE = 0.95
+let shelfShakes = 0
 
 /** Height of one shelf row in world units; the camera is framed on exactly this. */
 /** How wide a taped banner is, as a share of the board: anywhere between these two. */
@@ -2669,7 +2676,6 @@ export class MangaShelf {
         { vx: (Math.random() - 0.5) * 3.5, vy: -2.5 - Math.random() * 2.5, spin: (Math.random() - 0.5) * 0.4 })
     }
 
-    const now = performance.now()
     const amount = whole ? Math.max(0.3, Math.min(1, length / 26)) : Math.max(0.7, Math.min(1.6, ground / 22))
     const sx = x - this.logicalWidth / 2
     const sy = 380 - y
@@ -2677,7 +2683,7 @@ export class MangaShelf {
     this.emitDust(row, sx + dx * mid, sy - dy * mid + 3, z, color, {
       grains: Math.round(24 * amount), haze: amount > 1 ? 2 : 1, width: whole ? length : ground, burst: 0.26,
     })
-    row.shake = { at: now, amplitude: 0.6 }
+    this.shudder(row, 0.6)
     this.wake()
   }
 
@@ -2896,8 +2902,7 @@ export class MangaShelf {
       this.makeStick(row, x + (Math.random() - 0.5) * 8, y - 4, 5 + Math.random() * 3, 3.5, Math.random() * Math.PI, z, color,
         { vx: (Math.random() - 0.5) * 4, vy: -3 - Math.random() * 2.5, spin: (Math.random() - 0.5) * 0.4 })
     }
-    const now = performance.now()
-    row.shake = { at: now, amplitude: 1.2 }
+    this.shudder(row, 1.2)
     this.wake()
   }
 
@@ -2945,7 +2950,7 @@ export class MangaShelf {
       const amplitude = Math.min(SHAKE_MAX, (strength - IMPACT_MIN) / 120)
       const now = performance.now()
       const left = row.shake ? row.shake.amplitude * Math.exp(-(now - row.shake.at) / 110) : 0
-      if (amplitude > left) row.shake = { at: now, amplitude }
+      if (amplitude > left) this.shudder(row, amplitude)
     }
     this.rows.push(row)
     return row
@@ -3250,6 +3255,32 @@ export class MangaShelf {
   }
 
   /** Vertical offset of a shudder at `now`: about 22 Hz, dying away over a few tenths of a second. */
+  /** The plank, hanging from one end once the other has come off the wall: it swings down faster as it goes. */
+  private poseShelf(r: Row, dy: number, elapsed: number) {
+    const d = r.detached
+    const w = this.logicalWidth + 12
+    if (!d) {
+      r.shelf.position.set(0, 12 + dy, -67)
+      r.shelf.rotation.z = 0
+      return
+    }
+    if (d.angle < DETACH_ANGLE) {
+      d.speed += 3.2 * (elapsed / 1000)
+      d.angle = Math.min(DETACH_ANGLE, d.angle + d.speed * (elapsed / 1000))
+      r.physics.tiltPlank(d.side, d.angle)
+    }
+    const a = -d.side * d.angle
+    const px = (-d.side * w) / 2
+    r.shelf.position.set(-px * Math.cos(a) + 7.5 * Math.sin(a) + px, 19.5 - px * Math.sin(a) - 7.5 * Math.cos(a) + dy, -67)
+    r.shelf.rotation.z = a
+  }
+
+  private shudder(row: Row, amplitude: number) {
+    row.shake = { at: performance.now(), amplitude }
+    shelfShakes++
+    if (shelfShakes > SHAKES_TO_DETACH && !row.detached) row.detached = { side: row.physics.heavierSide(), angle: 0, speed: 0 }
+  }
+
   private shakeAt(shake: { at: number; amplitude: number }, now: number): number {
     const t = now - shake.at
     if (t > SHAKE_MS) return 0
@@ -3732,7 +3763,7 @@ export class MangaShelf {
     for (const r of this.rows) {
       const dy = r.shake ? this.shakeAt(r.shake, performance.now()) : 0
       if (r.shake && performance.now() - r.shake.at > SHAKE_MS) r.shake = undefined
-      r.shelf.position.y = 12 + dy
+      this.poseShelf(r, dy, elapsed)
       if (dy) {
         pulling = true
         for (const i of this.items) if (i.row === r) i.model.position.y += dy
