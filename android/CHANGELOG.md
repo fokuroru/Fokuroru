@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.6 (34)
+- No app change. The chalkboard banner is now 60% of the board's width.
+
 ## 0.5.5 (33)
 - No app change. The Home chalkboard sometimes (one load in five) has a banner of a random library series taped to a top corner, from AniList or Kitsu.
 

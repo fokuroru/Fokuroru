@@ -164,6 +164,8 @@ interface Row {
 }
 
 /** Height of one shelf row in world units; the camera is framed on exactly this. */
+/** How wide a taped banner is, as a share of the board. */
+const BANNER_WIDTH = 0.6
 const ROW = 420
 /** Extra wall above the books while a chalkboard hangs there. */
 const BOARD_ROOM = 140
@@ -1284,7 +1286,7 @@ export class MangaShelf {
       })
       c.restore()
     }
-    // ---- a banner, taped to one of the top corners. Never wider than 40% of the board, and only if it fits:
+    // ---- a banner, taped to one of the top corners. Sixty percent of the board wide, and only if it fits:
     // clear of the other things already on the board and inside the band above where the books stand.
     // Its own random stream, so showing it does not move any of the chalk.
     let taped: { x: number; y: number; w: number; h: number; tilt: number } | null = null
@@ -1297,14 +1299,14 @@ export class MangaShelf {
         t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296
       }
-      const bw = Math.min(w * 0.4, w * (0.26 + brnd() * 0.14))
+      const bw = w * BANNER_WIDTH
       const bh = (bw * banner.naturalHeight) / banner.naturalWidth
       const allowance = 14
       const hit = (x: number, y: number) => solid.some((o) =>
         x - allowance < o.x + o.w && x + bw + allowance > o.x && y - allowance < o.y + o.h && y + bh + allowance > o.y)
       const sides = this.bannerLeft ? [margin, w - margin - bw] : [w - margin - bw, margin]
       const y = margin + allowance
-      if (bw >= 110 && bh <= h * 0.3 && bw * 2 + margin * 2 <= w * 1.1) {
+      if (bw >= 110 && bh <= h * 0.35) {
         const x = sides.find((candidate) => candidate >= margin && candidate + bw <= w - margin && !hit(candidate, y))
         if (x !== undefined) {
           taped = { x, y, w: bw, h: bh, tilt: (brnd() - 0.5) * 0.05 }
