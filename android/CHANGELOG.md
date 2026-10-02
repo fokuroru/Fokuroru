@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.1.4 (5)
+- Shorter version warning: "Version mismatch. Please update server to X."
+
 ## 0.1.3 (4)
 - The app itself warns when the server is older than it needs, so an old server's web build cannot hide the problem.
 

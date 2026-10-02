@@ -13507,8 +13507,8 @@ msgid "Server {server}, up to date"
 msgstr ""
 
 #: src/pages/SimpleHomePage.tsx
-msgid "Server is on {server}, this app needs {needed}"
-msgstr ""
+#~ msgid "Server is on {server}, this app needs {needed}"
+#~ msgstr ""
 
 #: src/pages/SimpleHomePage.tsx
 msgid "Server is on {server}, this screen is on {loaded}"
@@ -16211,6 +16211,10 @@ msgstr "Diese Datei verifizieren"
 #, fuzzy
 msgid "Version"
 msgstr "Version"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Version mismatch. Please update server to {needed}."
+msgstr ""
 
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx

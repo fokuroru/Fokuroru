@@ -222,7 +222,7 @@ function AppStatus({ offline }: { offline: boolean }) {
           </span>
         ) : tooOld ? (
           <span>
-            <Trans>Server is on {server}, this app needs {needed}</Trans>
+            <Trans>Version mismatch. Please update server to {needed}.</Trans>
           </span>
         ) : synced ? (
           <span>

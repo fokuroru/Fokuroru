@@ -397,7 +397,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 updateBanner(state)
                 if (server != null && Versions.compare(server, BuildConfig.SERVER_VERSION) < 0) {
-                    versionBanner.text = getString(R.string.server_too_old, server, BuildConfig.SERVER_VERSION)
+                    versionBanner.text = getString(R.string.server_too_old, BuildConfig.SERVER_VERSION)
                     versionBanner.visibility = View.VISIBLE
                 } else {
                     versionBanner.visibility = View.GONE

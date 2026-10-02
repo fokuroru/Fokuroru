@@ -27,7 +27,7 @@
     <string name="servers_duplicate">That server and name are already saved.</string>
     <string name="gateway_banner">Your server asks you to sign in again.</string>
     <string name="gateway_signin">Sign in</string>
-    <string name="server_too_old">The server is on %1$s, but this app needs %2$s. Update the server. Tap to hide.</string>
+    <string name="server_too_old">Version mismatch. Please update server to %1$s. Tap to hide.</string>
     <string name="notification_signin_title">Sign in needed</string>
     <string name="notification_signin_body">Your server\'s sign-in expired, so downloads and sync are paused.</string>
     <string name="signin_back">Servers and accounts</string>
