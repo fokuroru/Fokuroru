@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.4.1 (27)
+- No app change. The server's reported version now comes from a VERSION file inside the source it was built from, so it can no longer claim a newer version than its code.
+
 ## 0.4.0 (26)
 - Pull to refresh: drag down from the top of a page to reload it. Off in the reader, in dialogs and while dragging on the tap zone editor, and while the page is scrolled.
 

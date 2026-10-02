@@ -52,14 +52,20 @@ COPY android/version.properties android/version.properties
 # Directory.Build.props, which is the intended tell for an unofficial image.
 ARG VERSION
 ARG SOURCE_COMMIT
+# A VERSION file in the build context, when there is one, is the version of the source beside it, so it
+# beats the build argument: the argument can describe a newer push than the files the build actually
+# copied, and then the running server would report a version its code does not have. Dockerfile is
+# listed only so the pattern always matches something; plain builds have no VERSION file.
+COPY Dockerfile VERSION* /stamp/
 
 # PlaywrightPlatform=all is not a recognized platform keyword in Microsoft.Playwright.targets, so
 # it hits that target's fallback branch and copies every node/<platform> driver folder instead of
 # just the host's. Needed because this publish runs once on $BUILDPLATFORM (native) but its output
 # is copied into both the linux/amd64 and linux/arm64 runtime stages below.
-RUN dotnet publish src/Maki.Api/Maki.Api.csproj -c Release -o /app/publish /p:UseAppHost=false /p:PlaywrightPlatform=all \
-      ${VERSION:+/p:Version=$VERSION} \
-      ${VERSION:+/p:InformationalVersion=$VERSION${SOURCE_COMMIT:++$SOURCE_COMMIT}}
+RUN V="$(cat /stamp/VERSION 2>/dev/null | tr -d '[:space:]')"; V="${V:-$VERSION}"; \
+    dotnet publish src/Maki.Api/Maki.Api.csproj -c Release -o /app/publish /p:UseAppHost=false /p:PlaywrightPlatform=all \
+      ${V:+/p:Version=$V} \
+      ${V:+/p:InformationalVersion=$V${SOURCE_COMMIT:++$SOURCE_COMMIT}}
 # Same check for the other half of the catalogs: the EmbeddedResource item names each one
 # Maki.Locales.<locale>.po, so the assembly manifest carries those names and a publish that
 # embedded nothing is visible here rather than as an English-only container months later.
