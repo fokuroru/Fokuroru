@@ -1,5 +1,6 @@
 package dev.fokuroru.reader.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -63,6 +64,10 @@ class SetupActivity : AppCompatActivity() {
                 connect.setText(R.string.setup_connect)
                 if (ok) {
                     setResult(RESULT_OK)
+                    startActivity(
+                        Intent(this, dev.fokuroru.reader.MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                    )
                     finish()
                 } else {
                     field.error = getString(R.string.setup_error)

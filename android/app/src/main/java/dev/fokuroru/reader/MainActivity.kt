@@ -94,6 +94,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
+        // A fresh install has no server yet; the setup screen opens this one again once there is.
+        if (prefs.serverUrl == null) {
+            startActivity(Intent(this, SetupActivity::class.java))
+            finish()
+            return
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
         root = findViewById(R.id.root)
@@ -184,7 +190,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         remote?.release()
-        web.destroy()
+        if (::web.isInitialized) web.destroy()
         super.onDestroy()
     }
 
