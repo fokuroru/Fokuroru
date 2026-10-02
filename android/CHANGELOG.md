@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.3.8 (25)
+- No app change. Desktop Home has a Previews rail of series whose first-chapter preview is downloaded (needs the matching server build).
+
 ## 0.3.7 (24)
 - No app change. Mobile view library hides series with no chapters on the server.
 

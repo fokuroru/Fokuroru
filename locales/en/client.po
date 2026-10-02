@@ -9296,6 +9296,11 @@ msgstr "Preview · {chapterName} · via {source}"
 msgid "Preview first chapter"
 msgstr "Preview first chapter"
 
+#: src/api/hooks.ts
+#: src/pages/HomePage.tsx
+msgid "Previews"
+msgstr "Previews"
+
 #: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Previous chapter"
@@ -11346,6 +11351,10 @@ msgstr "Series moved"
 #: src/pages/SeriesDetailPage.tsx
 msgid "Series not found"
 msgstr "Series not found"
+
+#: src/components/home/homeSectionDefs.ts
+msgid "Series not in your library whose first chapter has already been downloaded as a preview, ready to read."
+msgstr "Series not in your library whose first chapter has already been downloaded as a preview, ready to read."
 
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx

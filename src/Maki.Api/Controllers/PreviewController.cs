@@ -5,6 +5,7 @@ using Maki.Core.Reading;
 using Maki.Core.Security;
 using Maki.Metadata.MangaBaka;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Maki.Api.Controllers;
 
@@ -53,6 +54,27 @@ public class PreviewController(
         {
             return this.Conflict(localizer, "error.preview.busy");
         }
+    }
+
+    /// <summary>
+    /// Series whose first chapter is already downloaded as a preview, newest first, as the same cards the
+    /// Discover rails use. Series the library already has are left out (the real chapters beat a sample),
+    /// and so is anything above this caller's content ceiling.
+    /// </summary>
+    [HttpGet("cached")]
+    public async Task<IActionResult> Cached([FromServices] Maki.Data.MakiDbContext db, CancellationToken ct)
+    {
+        var ids = previews.CachedProviders();
+        if (ids.Count == 0 || !await store.IsAvailableAsync(ct))
+        {
+            return Ok(Array.Empty<object>());
+        }
+
+        var owned = (await db.Series.AsNoTracking().Where(s => s.MangaBakaId != null)
+            .Select(s => (long)s.MangaBakaId!.Value).ToListAsync(ct)).ToHashSet();
+        var wanted = ids.Where(id => !owned.Contains(id)).ToList();
+
+        return Ok(await store.GetByIdsAsync(wanted, ContentRating.Allowed(currentUser.MaxContentRating), ct));
     }
 
     [HttpGet("{providerId:long}")]

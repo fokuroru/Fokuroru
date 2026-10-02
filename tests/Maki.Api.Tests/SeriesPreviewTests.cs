@@ -30,6 +30,38 @@ public class SeriesPreviewTests
         finally { Directory.Delete(root, recursive: true); }
     }
 
+    private static void SeedPreview(string dir, long providerId, int ageDays)
+    {
+        var root = Path.Combine(dir, providerId.ToString());
+        var pages = Path.Combine(root, "tok", "fake");
+        Directory.CreateDirectory(pages);
+        File.WriteAllText(Path.Combine(pages, "000.jpg"), "page");
+        File.WriteAllText(Path.Combine(root, "preview.json"), System.Text.Json.JsonSerializer.Serialize(
+            new SeriesPreviewService.CachedPreview(DateTime.UtcNow.AddDays(-ageDays), "tok", "fake", "Fake", "1", 1)));
+    }
+
+    [Fact]
+    public void Lists_downloaded_previews_newest_first_and_skips_expired_and_stray_folders()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"preview-list-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(dir, "not-a-provider"));
+        try
+        {
+            SeedPreview(dir, 11, ageDays: 5);
+            SeedPreview(dir, 22, ageDays: 1);
+            SeedPreview(dir, 33, ageDays: 40);
+
+            Assert.Equal([22L, 11L], SeriesPreviewService.CachedProviders(dir));
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
+    public void Lists_nothing_when_no_preview_was_ever_made()
+    {
+        Assert.Empty(SeriesPreviewService.CachedProviders(Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}")));
+    }
+
     private static SourceChapter Chapter(decimal? number, string id = "") =>
         new("fake", "s", id == "" ? number?.ToString() ?? "x" : id, number?.ToString(), number, null, null, "en", null);
 

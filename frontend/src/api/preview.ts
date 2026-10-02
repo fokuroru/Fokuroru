@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, getInitialize } from './client'
+import type { RecommendationItem } from './hooks'
 
 /** The first chapter of a series that is not in the library, fetched from whichever source has it. */
 export interface SeriesPreview {
@@ -51,4 +52,14 @@ export function releaseSeriesPreview(providerId: string) {
 export async function previewPageUrl(providerId: string, page: number, version: string): Promise<string> {
   const init = await getInitialize()
   return `${init.apiRoot}/preview/${encodeURIComponent(providerId)}/page/${page}?v=${encodeURIComponent(version)}`
+}
+
+/** Series that have a preview downloaded and are not in the library, newest first. */
+export function useCachedPreviews(enabled: boolean) {
+  return useQuery({
+    queryKey: ['series-previews', 'cached'],
+    queryFn: () => api<RecommendationItem[]>('/preview/cached'),
+    enabled,
+    staleTime: 60_000,
+  })
 }

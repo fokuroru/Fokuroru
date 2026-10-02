@@ -8,6 +8,7 @@ import {
   IconBookmarks,
   IconDeviceTv,
   IconDownload,
+  IconEye,
   IconFlame,
   IconFolderDown,
   IconLayoutDashboard,
@@ -40,6 +41,7 @@ import {
   type HomeSectionKey,
   type RecommendationItem,
 } from '../api/hooks'
+import { useCachedPreviews } from '../api/preview'
 import { useCustomRails } from '../api/customRails'
 import { CustomRailSection } from '../components/rails/CustomRailSection'
 import { PageLayoutEditor, PageLayoutEditorLoading } from '../components/layout/PageLayoutEditor'
@@ -327,6 +329,10 @@ export default function HomePage() {
       )
     ),
 
+    previews: (
+      <PreviewsRail enabled={needsDiscover && on('previews')} seriesIdFor={seriesIdFor} onOpen={setDetailItem} />
+    ),
+
     jumpback: readingLoading ? (
       <RailSkeleton />
     ) : readingFailed ? (
@@ -428,6 +434,27 @@ export default function HomePage() {
         onClose={() => setDetailItem(null)}
       />
     </SurfaceFrame>
+  )
+}
+
+/** Series with a first chapter already downloaded as a preview. Nothing shows until there is one. */
+function PreviewsRail({
+  enabled,
+  seriesIdFor,
+  onOpen,
+}: {
+  enabled: boolean
+  seriesIdFor: (item: RecommendationItem) => number | null
+  onOpen: (item: RecommendationItem) => void
+}) {
+  const { t } = useLingui()
+  const { data } = useCachedPreviews(enabled)
+  if (!data || data.length === 0) return null
+  return (
+    <>
+      <SectionHeader icon={IconEye} title={t`Previews`} count={data.length} />
+      <DiscoverRailRow items={data} seriesIdFor={seriesIdFor} onOpen={onOpen} />
+    </>
   )
 }
 

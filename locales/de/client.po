@@ -11085,6 +11085,11 @@ msgstr ""
 msgid "Preview first chapter"
 msgstr ""
 
+#: src/api/hooks.ts
+#: src/pages/HomePage.tsx
+msgid "Previews"
+msgstr ""
+
 #: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -13499,6 +13504,10 @@ msgstr "Serie verschoben"
 #, fuzzy
 msgid "Series not found"
 msgstr "Serie nicht gefunden"
+
+#: src/components/home/homeSectionDefs.ts
+msgid "Series not in your library whose first chapter has already been downloaded as a preview, ready to read."
+msgstr ""
 
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx

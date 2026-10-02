@@ -6,6 +6,7 @@ import {
   IconChartBar,
   IconDeviceTv,
   IconDownload,
+  IconEye,
   IconFlame,
   IconPlayerPlay,
   IconSparkles,
@@ -60,6 +61,11 @@ export const HOME_SECTION_DEFS: SectionRegistry = {
     icon: IconBookmarks,
     label: HOME_SECTION_LABELS.recent,
     description: msg`Series with newly added chapters.`,
+  },
+  previews: {
+    icon: IconEye,
+    label: HOME_SECTION_LABELS.previews,
+    description: msg`Series not in your library whose first chapter has already been downloaded as a preview, ready to read.`,
   },
   following: {
     icon: IconBell,

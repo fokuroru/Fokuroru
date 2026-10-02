@@ -24,13 +24,16 @@ public static class HomeSections
     public const string Following = "following";
     public const string Popular = "popular";
 
+    /// <summary>Series not in the library whose first chapter a preview has already downloaded.</summary>
+    public const string Previews = "previews";
+
     /// <summary>
     /// Default order. Adding a key here is the only supported way to introduce a section: see
     /// <see cref="PageLayouts.Merge"/> for what existing users' stored layouts do with it.
     /// </summary>
     public static readonly string[] All =
     [
-        Glance, Downloading, ContinueReading, JumpBackIn, FromAnime, RecentlyAdded, Following, Recommended, Popular
+        Glance, Downloading, ContinueReading, JumpBackIn, FromAnime, RecentlyAdded, Previews, Following, Recommended, Popular
     ];
 
     public static bool IsValid(string? key) => key is not null && All.Contains(key);

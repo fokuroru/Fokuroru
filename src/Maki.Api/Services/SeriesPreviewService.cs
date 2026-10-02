@@ -332,6 +332,28 @@ public sealed class SeriesPreviewService(
     private string JobRoot(Job job) =>
         Path.Combine(paths.SeriesPreviewDir, job.ProviderId.ToString(CultureInfo.InvariantCulture), job.Token);
 
+    /// <summary>
+    /// Providers whose preview is on disk and still readable, newest first. A preview is released from
+    /// memory when its viewer closes it, but the pages stay for 30 days, so the folder is the record.
+    /// </summary>
+    public IReadOnlyList<long> CachedProviders() => CachedProviders(paths.SeriesPreviewDir);
+
+    internal static IReadOnlyList<long> CachedProviders(string previewDir)
+    {
+        if (!Directory.Exists(previewDir))
+        {
+            return [];
+        }
+
+        return Directory.EnumerateDirectories(previewDir)
+            .Select(dir => (Id: long.TryParse(Path.GetFileName(dir), NumberStyles.None, CultureInfo.InvariantCulture, out var id) ? id : (long?)null,
+                Cached: LoadCached(dir)))
+            .Where(x => x.Id is not null && x.Cached is not null)
+            .OrderByDescending(x => x.Cached!.SavedAt)
+            .Select(x => x.Id!.Value)
+            .ToList();
+    }
+
     internal sealed record CachedPreview(DateTime SavedAt, string Token, string SourceName,
         string SourceDisplayName, string? ChapterLabel, int PageCount);
 
