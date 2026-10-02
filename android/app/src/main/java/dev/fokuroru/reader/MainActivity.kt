@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -30,6 +31,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import dev.fokuroru.reader.data.ReadingSnapshot
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.device.Remote
+import dev.fokuroru.reader.input.PadAction
 import dev.fokuroru.reader.input.PageTurnMap
 import dev.fokuroru.reader.input.Turn
 import dev.fokuroru.reader.net.Api
@@ -496,7 +498,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** True for a gamepad or any other attached device, never the phone's own keys. */
+    private fun fromController(event: KeyEvent): Boolean {
+        val device = event.device ?: return false
+        if (device.isVirtual) return false
+        fun has(source: Int) = device.sources and source == source
+        return has(InputDevice.SOURCE_GAMEPAD) || has(InputDevice.SOURCE_JOYSTICK) ||
+            (Build.VERSION.SDK_INT >= 29 && device.isExternal)
+    }
+
+    private fun runPad(action: PadAction) {
+        when (action) {
+            PadAction.NONE -> Unit
+            PadAction.NEXT_PAGE -> turn(Turn.NEXT)
+            PadAction.PREV_PAGE -> turn(Turn.PREVIOUS)
+            PadAction.BRIGHTNESS_UP, PadAction.BRIGHTNESS_DOWN -> runOnUiThread {
+                val attrs = window.attributes
+                val now = if (attrs.screenBrightness < 0) 0.5f else attrs.screenBrightness
+                attrs.screenBrightness = (now + if (action == PadAction.BRIGHTNESS_UP) 0.1f else -0.1f).coerceIn(0.02f, 1f)
+                window.attributes = attrs
+            }
+            else -> runOnUiThread {
+                web.evaluateJavascript(
+                    "window.dispatchEvent(new CustomEvent('maki-native-action',{detail:'${action.js}'}))", null,
+                )
+            }
+        }
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (reading && webTurn && prefs.controllerEnabled && fromController(event)) {
+            val action = prefs.controllerMap[event.keyCode]
+            if (action != null && action != PadAction.NONE) {
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) runPad(action)
+                return true
+            }
+        }
         if (reading && webTurn) {
             val direction = PageTurnMap.forKey(event.keyCode, prefs.turnConfig())
             if (direction != null) {

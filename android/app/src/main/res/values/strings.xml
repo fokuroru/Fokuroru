@@ -74,4 +74,26 @@
         <item quantity="one">%1$s has %2$d unread chapter</item>
         <item quantity="other">%1$s has %2$d unread chapters</item>
     </plurals>
+    <string name="controller_title">Controller buttons</string>
+    <string name="controller_enabled">Use controller buttons in the reader</string>
+    <string name="controller_last_none">Press a button on your controller to see what the app receives.</string>
+    <string name="controller_last">Last button: %1$s (%2$s)</string>
+    <string name="controller_unknown_device">unknown device</string>
+    <string name="controller_add">Add a button by pressing it</string>
+    <string name="controller_reset">Reset to defaults</string>
+    <string name="controller_press">Press a button</string>
+    <string name="controller_press_hint">Press the button on your controller you want to set up. Long press an added button in the list to remove it.</string>
+    <string name="pad_none">Does nothing</string>
+    <string name="pad_next_page">Next page</string>
+    <string name="pad_prev_page">Previous page</string>
+    <string name="pad_next_chapter">Next chapter</string>
+    <string name="pad_prev_chapter">Previous chapter</string>
+    <string name="pad_menu">Show or hide the menu</string>
+    <string name="pad_bookmark">Bookmark this page</string>
+    <string name="pad_zoom_in">Zoom in</string>
+    <string name="pad_zoom_out">Zoom out</string>
+    <string name="pad_zoom_reset">Reset zoom</string>
+    <string name="pad_brightness_up">Brighter</string>
+    <string name="pad_brightness_down">Dimmer</string>
+    <string name="pad_close">Leave the reader</string>
 </resources>

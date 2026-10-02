@@ -155,6 +155,19 @@ export function useNativeLayout(): NativeLayout {
 
 const NO_LAYOUT: NativeLayout = { dual: false }
 
+export type NativeAction = 'nextChapter' | 'prevChapter' | 'menu' | 'bookmark' | 'zoomIn' | 'zoomOut' | 'zoomReset' | 'close'
+
+/** Controller buttons the person mapped to something other than a page turn. */
+export function useNativeAction(handler: (action: NativeAction) => void) {
+  const latest = useRef(handler)
+  latest.current = handler
+  useEffect(() => {
+    const onAction = (event: Event) => latest.current((event as CustomEvent<string>).detail as NativeAction)
+    window.addEventListener('maki-native-action', onAction)
+    return () => window.removeEventListener('maki-native-action', onAction)
+  }, [])
+}
+
 /** Hardware page-turn buttons (volume keys, clickers, stylus) arrive as one event, already direction-neutral. */
 export function useNativeTurn(handler: (direction: 'next' | 'prev') => void) {
   const latest = useRef(handler)

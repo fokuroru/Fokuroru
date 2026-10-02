@@ -52,6 +52,12 @@
             android:label="@string/downloads_title" />
 
         <activity
+            android:name=".ui.ControllerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Fokuroru.Downloads"
+            android:label="@string/controller_title" />
+
+        <activity
             android:name=".ui.ServersActivity"
             android:exported="false"
             android:theme="@style/Theme.Fokuroru.Downloads"

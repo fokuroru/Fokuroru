@@ -34,6 +34,10 @@ class SettingsActivity : AppCompatActivity() {
                 startActivity(Intent(requireContext(), DownloadsActivity::class.java))
                 true
             }
+            findPreference<androidx.preference.Preference>("open_controller")?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), ControllerActivity::class.java))
+                true
+            }
             findPreference<androidx.preference.Preference>("change_server")?.setOnPreferenceClickListener {
                 startActivity(Intent(requireContext(), ServersActivity::class.java))
                 true

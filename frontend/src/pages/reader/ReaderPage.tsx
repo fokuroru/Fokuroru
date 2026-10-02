@@ -27,7 +27,7 @@ import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
 import { spineVars } from '../../lib/spine'
 import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
-import { useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
+import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
 import { useTapZones } from '../../api/tapZones'
 import { actionAt, layoutFor } from '../../lib/tapZones'
 
@@ -488,6 +488,39 @@ export default function ReaderPage() {
     if (shortcutsOpen) return
     if (direction === 'next') forward()
     else backward()
+  })
+
+  useNativeAction((action) => {
+    if (shortcutsOpen) return
+    switch (action) {
+      case 'nextChapter':
+        if (manifest?.nextChapterId != null) void goToChapter(manifest.nextChapterId, true)
+        break
+      case 'prevChapter':
+        if (manifest?.previousChapterId != null) void goToChapter(manifest.previousChapterId, false)
+        break
+      case 'menu':
+        setChrome((visible) => !visible)
+        break
+      case 'bookmark':
+        toggleBookmark.mutate(page)
+        break
+      case 'zoomIn':
+        if (prefs.mode === 'vertical') update({ scale: Math.min(scaleMax(prefs.fit), prefs.scale + 10) })
+        else setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))
+        break
+      case 'zoomOut':
+        if (prefs.mode === 'vertical') update({ scale: Math.max(25, prefs.scale - 10) })
+        else setZoom((z) => Math.max(1, z - ZOOM_STEP))
+        break
+      case 'zoomReset':
+        if (prefs.mode === 'vertical') update({ scale: 100 })
+        else setZoom(1)
+        break
+      case 'close':
+        if (manifest) navigate(cameFromLite ? '/lite' : `/series/${manifest.seriesId}`)
+        break
+    }
   })
 
   const { data: tapDocument } = useTapZones()

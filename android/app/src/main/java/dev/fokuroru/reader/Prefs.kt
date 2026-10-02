@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import androidx.preference.PreferenceManager
+import dev.fokuroru.reader.input.ControllerMap
+import dev.fokuroru.reader.input.PadAction
 import dev.fokuroru.reader.input.TurnConfig
 
 class Prefs(context: Context) {
@@ -21,6 +23,13 @@ class Prefs(context: Context) {
         set(value) = sp.edit().putBoolean("invert_turn", value).apply()
     val remoteButtons get() = sp.getBoolean("remote_buttons", true)
     val stylusButtons get() = sp.getBoolean("stylus_buttons", true)
+
+    var controllerEnabled: Boolean
+        get() = sp.getBoolean("controller_enabled", true)
+        set(value) = sp.edit().putBoolean("controller_enabled", value).apply()
+    var controllerMap: Map<Int, PadAction>
+        get() = ControllerMap.parse(sp.getString("controller_map", null))
+        set(value) = sp.edit().putString("controller_map", ControllerMap.toJson(value)).apply()
 
     var keepAwake: Boolean
         get() = sp.getBoolean("keep_awake", true)

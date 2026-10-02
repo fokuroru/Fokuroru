@@ -27,6 +27,11 @@
             app:summary="Page up and down, media next and previous, and play or pause."
             app:defaultValue="true"
             app:iconSpaceReserved="false" />
+        <Preference
+            app:key="open_controller"
+            app:title="Controller buttons"
+            app:summary="Choose what each button on a game controller does."
+            app:iconSpaceReserved="false" />
         <SwitchPreferenceCompat
             app:key="stylus_buttons"
             app:title="Stylus buttons"

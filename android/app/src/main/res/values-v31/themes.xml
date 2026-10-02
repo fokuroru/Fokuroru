@@ -4,7 +4,11 @@
         <item name="android:windowBackground">@color/surface_dark</item>
     </style>
 
-    <style name="Theme.Fokuroru.Settings" parent="Theme.Material3.DynamicColors.DayNight" />
+    <style name="Theme.Fokuroru.Settings" parent="Theme.Material3.DynamicColors.DayNight">
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+    </style>
 
-    <style name="Theme.Fokuroru.Downloads" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar" />
+    <style name="Theme.Fokuroru.Downloads" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+    </style>
 </resources>
