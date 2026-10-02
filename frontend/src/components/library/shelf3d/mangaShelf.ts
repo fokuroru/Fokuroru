@@ -428,7 +428,7 @@ export class MangaShelf {
         return
       }
       if (e.pointerType !== 'touch') this.select(this.hit(e), e)
-      canvas.style.cursor = this.selected ? 'pointer' : !this.selected && e.pointerType !== 'touch' && !this.hit(e) && this.bannerCornerAt(e) !== null ? 'grab' : ''
+      canvas.style.cursor = this.selected ? 'pointer' : !this.selected && e.pointerType !== 'touch' && !this.hit(e) && this.bannerParticleAt(e) !== null ? 'grab' : ''
     }, options)
     canvas.addEventListener('pointerenter', () => {
       this.hovering = true
@@ -440,10 +440,10 @@ export class MangaShelf {
     canvas.addEventListener('pointerdown', (e) => {
       const item = this.hit(e)
       if (!item) {
-        // A loose corner of the banner, when no book is in front of it: pick it up. Space sticks it back up.
-        const corner = this.reduced.matches || this.hitProp(e) ? null : this.bannerCornerAt(e)
-        if (corner !== null) {
-          this.holdBanner(corner, e)
+        // The banner's paper, anywhere on it, when no book is in front: pick it up. Space sticks it back up.
+        const spot = this.reduced.matches || this.hitProp(e) ? null : this.bannerParticleAt(e)
+        if (spot !== null) {
+          this.holdBanner(spot, e)
           this.drag = { x: e.clientX, y: e.clientY, moved: true, at: performance.now(), lastY: e.clientY }
           canvas.setPointerCapture(e.pointerId)
           e.preventDefault()
@@ -720,9 +720,9 @@ export class MangaShelf {
     this.bannerAnim = {
       group, geo, cols, rows, pos, prev: pos.slice(), pinned, home,
       dx: sheetW / cols, dy: sheetH / rows, brokenH: new Uint8Array((rows + 1) * cols), brokenV: new Uint8Array((rows + 1) * (cols + 1)),
-      strengthH: Float32Array.from({ length: (rows + 1) * cols }, () => 0.9 + Math.random() * 0.4),
-      strengthV: Float32Array.from({ length: (rows + 1) * (cols + 1) }, () => 0.9 + Math.random() * 0.4),
-      holding: null, tapes, start: null, last: 0, still: 0, done: false,
+      strengthH: Float32Array.from({ length: (rows + 1) * cols }, () => 0.95 + Math.random() * 0.4),
+      strengthV: Float32Array.from({ length: (rows + 1) * (cols + 1) }, () => 0.95 + Math.random() * 0.4),
+      holding: null, stuck: [], tapeMaterial: strip, tapes, start: null, last: 0, still: 0, done: false,
     }
     this.stepBanner(performance.now())
     this.wake()
@@ -817,6 +817,18 @@ export class MangaShelf {
       }
     }
 
+    if (b.holding) {
+      const hold = b.holding
+      const dx = hold.target.x - hold.at.x
+      const dy = hold.target.y - hold.at.y
+      const gap = Math.hypot(dx, dy)
+      const step = Math.min(gap, 520 * frame)
+      if (gap > 0.01) {
+        hold.at.x += (dx / gap) * step
+        hold.at.y += (dy / gap) * step
+        this.moveBannerTo(hold.at.x, hold.at.y, b)
+      }
+    }
     const { pos, prev, pinned, home, cols, rows } = b
     const stride = cols + 1
     const count = stride * (rows + 1)
@@ -894,7 +906,7 @@ export class MangaShelf {
     }
     // Paper does not stretch: pulled too hard, it tears. A thread drawn out well past its length lets go, and the
     // squares of paper either side of it come apart along that line.
-    const tearAt = 1.2
+    const tearAt = 1.32
     const stretched = (i: number, j: number, rest: number, strength: number) =>
       Math.hypot(pos[i * 3] - pos[j * 3], pos[i * 3 + 1] - pos[j * 3 + 1], pos[i * 3 + 2] - pos[j * 3 + 2]) > rest * tearAt * strength
     for (let r = 0; r <= rows; r++) {
@@ -941,6 +953,12 @@ export class MangaShelf {
       }
     }
 
+    for (const t of b.stuck) {
+      const k = t.anchor * 3
+      t.mesh.position.set(home[k], home[k + 1], zBoard + 0.6)
+      t.mesh.rotation.set(0, 0, t.angle)
+    }
+
     if (seconds > 11) {
       b.still = moved < 0.02 ? b.still + frame : 0
       if (b.still > 1.5) b.done = true
@@ -980,7 +998,7 @@ export class MangaShelf {
     index.needsUpdate = true
     // A crack runs across the strain: weaken the threads in line with it, one step either way.
     const weaken = (array: Float32Array, at: number) => {
-      if (at >= 0 && at < array.length) array[at] *= 0.86
+      if (at >= 0 && at < array.length) array[at] *= 0.93
     }
     if (kind === 'h') {
       weaken(b.strengthH, (r - 1) * b.cols + c)
@@ -3356,54 +3374,84 @@ export class MangaShelf {
     return { x: at.x - this.logicalWidth / 2, y: 380 - at.y }
   }
 
-  /** Which of the banner's four corners is under the pointer, if any. Only a banner whose tape has failed has corners to hold. */
-  private bannerCornerAt(e: PointerEvent): number | null {
+  /** The weight of the paper nearest the pointer, if it is close enough to be taken hold of. Anywhere on the sheet will do. */
+  private bannerParticleAt(e: PointerEvent): number | null {
     const b = this.bannerAnim
     if (!b || !this.rows[0]) return null
     const at = this.boardAt(e)
     let nearest: number | null = null
-    let reach = 46
-    b.tapes.forEach((t, i) => {
-      const k = t.corner * 3
-      const d = Math.hypot(b.pos[k] - at.x, b.pos[k + 1] - at.y)
+    let reach = 30
+    const count = (b.cols + 1) * (b.rows + 1)
+    for (let i = 0; i < count; i++) {
+      const d = Math.hypot(b.pos[i * 3] - at.x, b.pos[i * 3 + 1] - at.y)
       if (d < reach) {
         reach = d
         nearest = i
       }
-    })
+    }
     return nearest
   }
 
-  /** Picks a corner up: it follows the pointer, a little proud of the board, until it is let go or stuck back. */
-  private holdBanner(i: number, e: PointerEvent) {
+  /** The weights around one, up to `radius` steps away along the sheet. */
+  private around(b: BannerAnim, index: number, radius: number): number[] {
+    const stride = b.cols + 1
+    const r0 = Math.floor(index / stride)
+    const c0 = index % stride
+    const out: number[] = []
+    for (let dr = -radius; dr <= radius; dr++) {
+      for (let dc = -radius; dc <= radius; dc++) {
+        const r = r0 + dr
+        const c = c0 + dc
+        if (r >= 0 && r <= b.rows && c >= 0 && c <= b.cols) out.push(r * stride + c)
+      }
+    }
+    return out
+  }
+
+  /** Takes hold of the paper at a point: that bit follows the pointer, a little proud of the board, until it is let go or stuck back. */
+  private holdBanner(index: number, e: PointerEvent) {
     const b = this.bannerAnim
     if (!b) return
-    const tape = b.tapes[i]
-    const at = this.boardAt(e)
-    const corner = tape.corner * 3
-    const offsets = new Float32Array(tape.patch.length * 2)
-    tape.patch.forEach((index, n) => {
-      b.pinned[index] = 1
-      offsets[n * 2] = b.pos[index * 3] - b.pos[corner]
-      offsets[n * 2 + 1] = b.pos[index * 3 + 1] - b.pos[corner + 1]
+    const patch = this.around(b, index, 2)
+    const held = new Set(patch)
+    // Tape that was still holding this part of the paper comes away with it.
+    for (const t of b.tapes) {
+      if (!t.released && t.patch.some((i) => held.has(i))) {
+        t.released = true
+        t.releaseAt = Infinity
+        for (const i of t.patch) b.pinned[i] = 0
+      }
+    }
+    b.stuck = b.stuck.filter((s) => {
+      if (!s.patch.some((i) => held.has(i))) return true
+      for (const i of s.patch) b.pinned[i] = 0
+      s.mesh.removeFromParent()
+      return false
     })
-    // Grabbed where the pointer is, so the corner comes to the hand rather than jumping.
-    this.moveBannerTo(at.x, at.y, b, tape, offsets)
-    tape.released = true
-    tape.releaseAt = Infinity
-    b.holding = { tape: i, offsets }
+    const at = this.boardAt(e)
+    const offsets = new Float32Array(patch.length * 2)
+    patch.forEach((i, n) => {
+      b.pinned[i] = 1
+      offsets[n * 2] = b.pos[i * 3] - b.pos[index * 3]
+      offsets[n * 2 + 1] = b.pos[i * 3 + 1] - b.pos[index * 3 + 1]
+    })
+    b.holding = { patch, offsets, anchor: index, at: { x: at.x, y: at.y }, target: { x: at.x, y: at.y } }
+    // Grabbed where the pointer is, so the paper comes to the hand rather than jumping.
+    this.moveBannerTo(at.x, at.y, b)
     b.done = false
     b.still = 0
     this.wake()
   }
 
-  private moveBannerTo(x: number, y: number, b: BannerAnim, tape: BannerAnim['tapes'][number], offsets: Float32Array) {
+  private moveBannerTo(x: number, y: number, b: BannerAnim) {
+    const hold = b.holding
+    if (!hold) return
     // A hand cannot push paper through a book either: the held weights stop at the nearest face.
     const boxes = this.bannerBoxes()
     const at = { x: 0, y: 0, z: 0 }
-    tape.patch.forEach((index, n) => {
-      at.x = x + offsets[n * 2]
-      at.y = y + offsets[n * 2 + 1]
+    hold.patch.forEach((index, n) => {
+      at.x = x + hold.offsets[n * 2]
+      at.y = y + hold.offsets[n * 2 + 1]
       at.z = -146.3 + 12
       this.pushOut(boxes, at)
       b.home[index * 3] = at.x
@@ -3415,32 +3463,41 @@ export class MangaShelf {
   private moveBanner(e: PointerEvent) {
     const b = this.bannerAnim
     if (!b?.holding) return
+    // The hand is followed at a pace the paper can keep up with: yank it faster and it tears, but not at the
+    // first twitch.
     const at = this.boardAt(e)
-    this.moveBannerTo(at.x, at.y, b, b.tapes[b.holding.tape], b.holding.offsets)
+    b.holding.target = { x: at.x, y: at.y }
     b.done = false
     b.still = 0
     this.wake()
   }
 
-  /** Space while holding a corner: it is stuck to the board where it is, with a fresh strip of tape. */
+  /** Space while holding the paper: it is stuck to the board where it is, with a new strip of tape over that spot. */
   private stickBanner() {
     const b = this.bannerAnim
-    if (!b?.holding) return
-    const tape = b.tapes[b.holding.tape]
-    for (const index of tape.patch) b.home[index * 3 + 2] = -146.3
-    tape.released = false
-    tape.releaseAt = Infinity
+    const hold = b?.holding
+    if (!b || !hold) return
+    // The tape holds only the spot under it, so the rest of the paper is free to turn about it.
+    const keep = new Set(this.around(b, hold.anchor, 1).filter((i) => Math.abs(i - hold.anchor) <= 1 || Math.abs(i - hold.anchor) === b.cols + 1))
+    for (const i of hold.patch) {
+      if (keep.has(i)) b.home[i * 3 + 2] = -146.3
+      else b.pinned[i] = 0
+    }
+    const mesh = new T.Mesh(new T.PlaneGeometry(46, 14.4), b.tapeMaterial)
+    mesh.renderOrder = 2
+    b.group.add(mesh)
+    b.stuck.push({ mesh, patch: [...keep], anchor: hold.anchor, angle: (Math.random() < 0.5 ? 1 : -1) * (Math.PI / 4 + (Math.random() - 0.5) * 0.4) })
     b.holding = null
     b.done = false
     b.still = 0
     this.wake()
   }
 
-  /** Let go of a held corner without sticking it: the weights it was holding are free again. */
+  /** Let go of held paper without sticking it: the weights it was holding are free again. */
   private dropBanner() {
     const b = this.bannerAnim
     if (!b?.holding) return
-    for (const index of b.tapes[b.holding.tape].patch) b.pinned[index] = 0
+    for (const index of b.holding.patch) b.pinned[index] = 0
     b.holding = null
     b.done = false
     b.still = 0
@@ -3628,8 +3685,11 @@ interface BannerAnim {
   /** How much each thread can be drawn out before it tears: uneven, as paper is, and weakened beside a tear. */
   strengthH: Float32Array
   strengthV: Float32Array
-  /** A corner being held in the hand: which tape, and where each of its weights sits relative to the corner. */
-  holding: { tape: number; offsets: Float32Array } | null
+  /** Paper being held in the hand: the weights, where each sits relative to the one grabbed, and which that is. */
+  holding: { patch: number[]; offsets: Float32Array; anchor: number; at: { x: number; y: number }; target: { x: number; y: number } } | null
+  /** Strips of tape the person has put back up, each holding the few weights under it. */
+  stuck: { mesh: T.Mesh; patch: number[]; anchor: number; angle: number }[]
+  tapeMaterial: T.MeshBasicMaterial
   tapes: { mesh: T.Mesh; patch: number[]; corner: number; across: number; down: number; releaseAt: number; released: boolean; angle: number }[]
   start: number | null
   last: number

@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.17 (45)
+- No app change. The failing banner's paper can be picked up at any point, not only the corners, and Space tapes it up wherever it is held. The hand moves at a pace the paper can follow, so a twitch no longer shreds it.
+
 ## 0.5.16 (44)
 - No app change. Paper tears along a ragged line, not in squares: finer mesh, tears remove single triangles, each thread has its own strength, and a tear weakens the threads beside it so the crack keeps going.
 
