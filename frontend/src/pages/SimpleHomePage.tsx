@@ -1,9 +1,11 @@
 import { ActionIcon, Alert, Button, Progress, SegmentedControl, Text, TextInput } from '@mantine/core'
 import { IconDeviceMobileDown, IconDeviceDesktop, IconSearch, IconSettings } from '@tabler/icons-react'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { useHomeReading, useSeries, type HomeReadingItem } from '../api/hooks'
+import { useAppVersion, useHomeReading, useSeries, type HomeReadingItem } from '../api/hooks'
+import { useAuth } from '../auth/AuthProvider'
 import type { SeriesDto } from '../api/types'
 import { BrandWordmark, IconBrandMark } from '../components/IconBrandMark'
 import { nativeApp } from '../lib/nativeApp'
@@ -162,7 +164,64 @@ export default function SimpleHomePage() {
           </>
         )}
       </section>
+
+      <AppStatus offline={offline} />
     </div>
+  )
+}
+
+/** Which app, server and account this is, and whether the web interface on screen is the server's current one. */
+function AppStatus({ offline }: { offline: boolean }) {
+  const native = nativeApp()
+  const { me } = useAuth()
+  const { data: loaded } = useAppVersion()
+  const live = useQuery({
+    queryKey: ['lite-server-version'],
+    queryFn: async () => {
+      const res = await fetch('/initialize.json', { cache: 'no-cache' })
+      if (!res.ok) throw new Error(res.statusText)
+      return ((await res.json()) as { version: string }).version
+    },
+    refetchInterval: 60_000,
+    retry: false,
+  })
+
+  const server = live.data
+  const checked = !offline && server !== undefined && server !== 'offline'
+  const synced = checked && loaded !== undefined && server === loaded
+
+  return (
+    <footer className="lite-status">
+      <div className="lite-status-row">
+        {native && (
+          <span>
+            <Trans>App {native.version()}</Trans>
+          </span>
+        )}
+        <span>{window.location.host}</span>
+        {me && <span>{me.userName}</span>}
+      </div>
+      <div className="lite-status-row" data-state={checked ? (synced ? 'ok' : 'stale') : 'unknown'}>
+        {!checked ? (
+          <span>
+            <Trans>Can't check the server right now</Trans>
+          </span>
+        ) : synced ? (
+          <span>
+            <Trans>Server {server}, up to date</Trans>
+          </span>
+        ) : (
+          <>
+            <span>
+              <Trans>Server is on {server}, this screen is on {loaded}</Trans>
+            </span>
+            <Button size="compact-xs" variant="default" onClick={() => window.location.reload()}>
+              <Trans>Reload</Trans>
+            </Button>
+          </>
+        )}
+      </div>
+    </footer>
   )
 }
 

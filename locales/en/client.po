@@ -2240,6 +2240,11 @@ msgstr "API keys"
 msgid "API only"
 msgstr "API only"
 
+#. placeholder {0}: native.version()
+#: src/pages/SimpleHomePage.tsx
+msgid "App {0}"
+msgstr "App {0}"
+
 #: src/pages/SettingsPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "App settings"
@@ -2755,6 +2760,10 @@ msgstr "C:\\Manga (optional)"
 #: src/pages/SettingsPage.tsx
 msgid "C:\\Manga or /library"
 msgstr "C:\\Manga or /library"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Can't check the server right now"
+msgstr "Can't check the server right now"
 
 #: src/pages/SimpleHomePage.tsx
 msgid "Can't reach the server"
@@ -9971,6 +9980,10 @@ msgstr "Relink files"
 msgid "Relink reads each volume file to find the chapters inside it. Anything it can't place you can link by hand."
 msgstr "Relink reads each volume file to find the chapters inside it. Anything it can't place you can link by hand."
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Reload"
+msgstr "Reload"
+
 #: src/components/settings/AccountSection.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -11313,6 +11326,14 @@ msgstr "Series you already have that match these filters."
 #: src/components/home/homeSectionDefs.ts
 msgid "Series you finished a chapter of that still have more to read."
 msgstr "Series you finished a chapter of that still have more to read."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Server {server}, up to date"
+msgstr "Server {server}, up to date"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Server is on {server}, this screen is on {loaded}"
+msgstr "Server is on {server}, this screen is on {loaded}"
 
 #: src/components/NotificationsSection.tsx
 msgid "Server URL"
