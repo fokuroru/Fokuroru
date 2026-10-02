@@ -20,6 +20,8 @@ interface MakiNativeBridge {
 declare global {
   interface Window {
     MakiNative?: MakiNativeBridge
+    /** True while a page-turn listener is mounted, so the app knows whether taking over the volume keys does anything. */
+    __makiTurn?: boolean
   }
 }
 
@@ -161,6 +163,10 @@ export function useNativeTurn(handler: (direction: 'next' | 'prev') => void) {
       if (direction === 'next' || direction === 'prev') latest.current(direction)
     }
     window.addEventListener('maki-native-turn', onTurn)
-    return () => window.removeEventListener('maki-native-turn', onTurn)
+    window.__makiTurn = true
+    return () => {
+      window.removeEventListener('maki-native-turn', onTurn)
+      window.__makiTurn = false
+    }
   }, [])
 }

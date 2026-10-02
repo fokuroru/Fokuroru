@@ -55,6 +55,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var signInBar: View
     private var loginShown = false
     private var loginCheck = 0
+
+    /** Whether the page has a page-turn listener. An older server's web build has none, and then the keys stay the system's. */
+    private var webTurn = false
     private lateinit var offline: Offline
     private var remote: Remote? = null
     private var unsubscribe: (() -> Unit)? = null
@@ -338,6 +341,13 @@ class MainActivity : AppCompatActivity() {
         for (delay in longArrayOf(400, 1500, 3000, 5000, 8000, 12000, 20000, 30000)) {
             web.postDelayed({
                 if (round != loginCheck) return@postDelayed
+                web.evaluateJavascript(TURN_PROBE) {
+                    val now = it == "true"
+                    if (now != webTurn) {
+                        webTurn = now
+                        applyChrome()
+                    }
+                }
                 web.evaluateJavascript(LOGIN_PROBE) { result ->
                     val found = result == "true"
                     if (found != loginShown) {
@@ -420,6 +430,7 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             reading = now
             loginShown = false
+            webTurn = false
             applyChrome()
             updateSignInBar()
             scheduleLoginCheck()
@@ -437,7 +448,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (reading) {
+        if (reading && webTurn) {
             val direction = PageTurnMap.forKey(event.keyCode, prefs.turnConfig())
             if (direction != null) {
                 if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) turn(direction)
@@ -448,7 +459,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        if (reading) {
+        if (reading && webTurn) {
             when (ev.actionMasked) {
                 MotionEvent.ACTION_DOWN -> if (ev.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) {
                     PageTurnMap.forStylus(ev.buttonState, prefs.turnConfig())?.let {
@@ -468,7 +479,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun dispatchGenericMotionEvent(ev: MotionEvent): Boolean {
-        if (reading && ev.actionMasked == MotionEvent.ACTION_BUTTON_PRESS) {
+        if (reading && webTurn && ev.actionMasked == MotionEvent.ACTION_BUTTON_PRESS) {
             PageTurnMap.forStylus(ev.actionButton, prefs.turnConfig())?.let {
                 turn(it)
                 return true
@@ -508,7 +519,7 @@ class MainActivity : AppCompatActivity() {
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         requestedOrientation = if (reading) prefs.orientation() else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        remote?.setActive(reading && prefs.remoteButtons)
+        remote?.setActive(reading && webTurn && prefs.remoteButtons)
         ViewCompat.requestApplyInsets(root)
     }
 
@@ -544,6 +555,7 @@ class MainActivity : AppCompatActivity() {
         const val ACTION_CONTINUE = "dev.fokuroru.reader.CONTINUE"
         const val ACTION_LATEST = "dev.fokuroru.reader.LATEST"
         const val EXTRA_PATH = "path"
+        private const val TURN_PROBE = "window.__makiTurn === true"
         private const val LOGIN_PROBE =
             "!!document.querySelector('input[type=password]') && !document.querySelector('.app-navbar, .reader-root, .lite')"
         private const val STALE_MS = 30 * 60 * 1000L
