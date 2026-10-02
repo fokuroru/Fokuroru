@@ -8629,8 +8629,12 @@ body.reader-open {
   color: #f6e08a;
 }
 
-/* Simple view: the phone-sized front page (pages/SimpleHomePage.tsx). */
+/* Simple view: the phone-sized front page (pages/SimpleHomePage.tsx). Built for a phone, and kept
+   readable on a tablet or a window of any size: content stops at --lite-max and is centred, covers
+   and type grow a step at tablet widths, and a 320px phone still fits the header on one line. */
 .lite {
+  --lite-max: 1120px;
+  --lite-gutter: max(16px, calc((100vw - var(--lite-max)) / 2));
   min-height: 100dvh;
   background: var(--app-bg);
   color: var(--ink);
@@ -8644,8 +8648,8 @@ body.reader-open {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px
-    max(16px, env(safe-area-inset-left));
+  padding: max(10px, env(safe-area-inset-top)) max(var(--lite-gutter), env(safe-area-inset-right)) 10px
+    max(var(--lite-gutter), env(safe-area-inset-left));
   background: color-mix(in srgb, var(--app-bg) 88%, transparent);
   backdrop-filter: blur(10px);
 }
@@ -8653,17 +8657,19 @@ body.reader-open {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   color: var(--ink-hi);
 }
 .lite-bar-actions {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
 }
 .lite-alert,
 .lite-empty,
 .lite-section {
-  margin: 16px max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  margin: 16px max(var(--lite-gutter), env(safe-area-inset-right)) 0 max(var(--lite-gutter), env(safe-area-inset-left));
 }
 .lite-empty {
   padding: 20px;
@@ -8696,7 +8702,7 @@ body.reader-open {
   display: flex;
   gap: 16px;
   align-items: flex-end;
-  padding: 20px max(16px, env(safe-area-inset-right)) 28px max(16px, env(safe-area-inset-left));
+  padding: 20px max(var(--lite-gutter), env(safe-area-inset-right)) 28px max(var(--lite-gutter), env(safe-area-inset-left));
 }
 .lite-hero-cover {
   flex: 0 0 38%;
@@ -8715,6 +8721,7 @@ body.reader-open {
 .lite-hero-text {
   flex: 1 1 0;
   min-width: 0;
+  max-width: 560px;
   padding-bottom: 2px;
 }
 .lite-eyebrow {
@@ -8726,13 +8733,14 @@ body.reader-open {
 }
 .lite-hero-title {
   margin: 4px 0 6px;
-  font-size: 1.45rem;
+  font-size: clamp(1.3rem, 1rem + 1.6vw, 2.1rem);
   line-height: 1.15;
   color: var(--ink-hi);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .lite-hero-meta {
   color: var(--ink-2);
@@ -8750,8 +8758,8 @@ body.reader-open {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  margin: 0 calc(-1 * max(16px, env(safe-area-inset-right))) 0 calc(-1 * max(16px, env(safe-area-inset-left)));
-  padding: 0 max(16px, env(safe-area-inset-right)) 4px max(16px, env(safe-area-inset-left));
+  margin: 0 calc(-1 * max(var(--lite-gutter), env(safe-area-inset-right))) 0 calc(-1 * max(var(--lite-gutter), env(safe-area-inset-left)));
+  padding: 0 max(var(--lite-gutter), env(safe-area-inset-right)) 4px max(var(--lite-gutter), env(safe-area-inset-left));
   scroll-snap-type: x proximity;
   scrollbar-width: none;
 }
@@ -8764,12 +8772,13 @@ body.reader-open {
 }
 .lite-tools {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   margin-bottom: 14px;
 }
 .lite-search {
-  flex: 1 1 auto;
+  flex: 1 1 180px;
   min-width: 0;
 }
 .lite-grid {
@@ -8812,6 +8821,7 @@ body.reader-open {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .lite-card-sub {
   font-size: 0.74rem;
@@ -8819,6 +8829,49 @@ body.reader-open {
 }
 .lite-none {
   padding: 24px 0;
+}
+
+/* A 320px phone: the brand drops its wordmark before anything else is squeezed. */
+@media (max-width: 359px) {
+  .lite-brand .brand-wordmark {
+    display: none;
+  }
+  .lite-hero-body {
+    gap: 12px;
+  }
+}
+
+/* Tablets and wide windows. */
+@media (min-width: 700px) {
+  .lite-hero-cover {
+    max-width: 260px;
+  }
+  .lite-hero-body {
+    gap: 28px;
+    padding-top: 32px;
+    padding-bottom: 40px;
+  }
+  .lite-rail .lite-card {
+    flex-basis: 140px;
+  }
+  .lite-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px 16px;
+  }
+  .lite-card-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* A phone on its side is short, not wide: keep the hero from filling the screen. */
+@media (max-height: 480px) and (orientation: landscape) {
+  .lite-hero-cover {
+    max-width: 120px;
+  }
+  .lite-hero-body {
+    padding-top: 12px;
+    padding-bottom: 16px;
+  }
 }
 
 /* Tap zone editor (components/reader/TapZoneEditor.tsx). */

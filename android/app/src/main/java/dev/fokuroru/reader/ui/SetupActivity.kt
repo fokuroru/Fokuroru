@@ -25,9 +25,11 @@ class SetupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setup)
 
+        val base = (32 * resources.displayMetrics.density).toInt()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.setup_root)) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
-            view.setPadding(view.paddingLeft, bars.top, view.paddingRight, bars.bottom)
+            val side = Layouts.sideMarginPx(resources.configuration.screenWidthDp, resources.displayMetrics.density, 480)
+            view.setPadding(base + side, bars.top, base + side, bars.bottom)
             insets
         }
 

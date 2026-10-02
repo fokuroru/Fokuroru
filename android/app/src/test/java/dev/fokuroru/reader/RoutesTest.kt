@@ -46,3 +46,41 @@ class RoutesTest {
         assertFalse(Routes.isReader(null))
     }
 }
+
+class LayoutsTest {
+    @org.junit.Test
+    fun phonesAreSinglePage() {
+        org.junit.Assert.assertFalse(dev.fokuroru.reader.ui.Layouts.dual(360, 800))
+        org.junit.Assert.assertFalse(dev.fokuroru.reader.ui.Layouts.dual(412, 915))
+        org.junit.Assert.assertFalse(dev.fokuroru.reader.ui.Layouts.dual(800, 360))
+    }
+
+    @org.junit.Test
+    fun aTabletUprightKeepsOnePageUntilItIsVeryWide() {
+        org.junit.Assert.assertFalse(dev.fokuroru.reader.ui.Layouts.dual(600, 960))
+        org.junit.Assert.assertFalse(dev.fokuroru.reader.ui.Layouts.dual(800, 1280))
+        org.junit.Assert.assertTrue(dev.fokuroru.reader.ui.Layouts.dual(840, 1280))
+        org.junit.Assert.assertTrue(dev.fokuroru.reader.ui.Layouts.dual(1024, 1366))
+    }
+
+    @org.junit.Test
+    fun aTabletOnItsSideAndAnOpenFoldGetSpreads() {
+        org.junit.Assert.assertTrue(dev.fokuroru.reader.ui.Layouts.dual(1280, 800))
+        org.junit.Assert.assertTrue(dev.fokuroru.reader.ui.Layouts.dual(700, 720))
+        org.junit.Assert.assertTrue(dev.fokuroru.reader.ui.Layouts.dual(840, 700))
+    }
+
+    @org.junit.Test
+    fun aSmallWindowIsNeverWideEvenIfLandscape() {
+        org.junit.Assert.assertFalse(dev.fokuroru.reader.ui.Layouts.dual(480, 320))
+        org.junit.Assert.assertFalse(dev.fokuroru.reader.ui.Layouts.dual(599, 400))
+    }
+
+    @org.junit.Test
+    fun contentStaysWithinItsMaximumWidth() {
+        org.junit.Assert.assertEquals(0, dev.fokuroru.reader.ui.Layouts.sideMarginPx(411, 2.75f))
+        org.junit.Assert.assertEquals(0, dev.fokuroru.reader.ui.Layouts.sideMarginPx(640, 2f))
+        org.junit.Assert.assertEquals(320, dev.fokuroru.reader.ui.Layouts.sideMarginPx(960, 2f))
+        org.junit.Assert.assertEquals(240, dev.fokuroru.reader.ui.Layouts.sideMarginPx(960, 3f, 800))
+    }
+}

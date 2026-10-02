@@ -40,6 +40,11 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            view.limitContentWidth(resources)
+        }
+
         override fun onResume() {
             super.onResume()
             preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)

@@ -32,6 +32,7 @@ import dev.fokuroru.reader.input.PageTurnMap
 import dev.fokuroru.reader.input.Turn
 import dev.fokuroru.reader.net.ServerState
 import dev.fokuroru.reader.ui.DownloadsActivity
+import dev.fokuroru.reader.ui.Layouts
 import dev.fokuroru.reader.ui.ReaderTools
 import dev.fokuroru.reader.ui.SettingsActivity
 import dev.fokuroru.reader.ui.ServersActivity
@@ -525,8 +526,9 @@ class MainActivity : AppCompatActivity() {
 
     fun layoutJson(): String {
         val width = resources.configuration.screenWidthDp
-        val dual = prefs.dualPage && width >= WIDE_DP
-        return JSONObject().put("dual", dual).put("widthDp", width).toString()
+        val height = resources.configuration.screenHeightDp
+        val dual = prefs.dualPage && Layouts.dual(width, height)
+        return JSONObject().put("dual", dual).put("widthDp", width).put("heightDp", height).toString()
     }
 
     private fun pushLayout() {
@@ -560,6 +562,5 @@ class MainActivity : AppCompatActivity() {
             "!!document.querySelector('input[type=password]') && !document.querySelector('.app-navbar, .reader-root, .lite')"
         private const val STALE_MS = 30 * 60 * 1000L
         private const val SHELL_REFRESH_MS = 30 * 60 * 1000L
-        private const val WIDE_DP = 600
     }
 }

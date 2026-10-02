@@ -38,7 +38,7 @@ Sign in on the normal login page. Plain HTTP on a LAN is allowed, since that is 
 | Dark mode and Material You colours | `Theme.Material3.DynamicColors.DayNight`, widget colours in `values-v31` |
 | Simple view as the start screen: last read hero, Continue reading, library grid, switch to the full version | `pages/SimpleHomePage.tsx` in the web UI, `lib/simpleView.ts` |
 | Several servers and accounts, switched from one screen | `ui/ServersActivity.kt`, `data/Profiles.kt` |
-| Two pages on tablets and unfolded foldables | `MainActivity.layoutJson`, `useNativeLayout` in the web UI |
+| Two pages on tablets and unfolded foldables | `ui/Layouts.kt` (`dual`), `MainActivity.layoutJson`, `useNativeLayout` in the web UI |
 
 Page-turn buttons only act while a chapter is open (the WebView URL starts with `/read/`). The
 arrow keys are left to the web reader, which knows the reading direction. Everything else is mapped
@@ -87,6 +87,15 @@ archive is saved correctly. Resumable: pages already on disk are skipped.
 **Auto delete.** After each sync, read chapters are removed from the device. With "keep the last
 chapter read" on, the most recently read chapter of each series is held back, the same rule the
 server's setting uses. A chapter with progress still waiting to sync is never deleted.
+
+## Screen sizes
+
+Sizes are read from the window, not the device, so split-screen and resizable windows follow the same
+rules. Spreads need both sides tablet-sized (600dp), and then either a very wide window (840dp) or one
+close to square, so a phone on its side and a tablet held upright both stay single-page while a tablet on
+its side and an opened fold get two. Settings, the lists and the forms stop at 640dp and centre on
+anything wider. The simple view stops at 1120dp, drops the wordmark below 360dp, and steps up cover and
+type sizes from 700dp. `Layouts` has the rules and its tests.
 
 ## Limits
 

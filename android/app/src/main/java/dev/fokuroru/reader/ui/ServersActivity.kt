@@ -37,7 +37,8 @@ class ServersActivity : AppCompatActivity() {
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.servers_root)) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            val side = Layouts.sideMarginPx(resources.configuration.screenWidthDp, resources.displayMetrics.density)
+            view.setPadding(bars.left + side, bars.top, bars.right + side, bars.bottom)
             insets
         }
 
