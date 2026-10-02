@@ -120,25 +120,36 @@ class ControllerActivity : AppCompatActivity() {
             .setTitle(R.string.controller_press)
             .setMessage(R.string.controller_press_hint)
             .setNegativeButton(android.R.string.cancel, null)
+            .setOnKeyListener { _, _, event -> onPressed(event) }
             .setOnDismissListener { learning = null }
             .show()
     }
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+    /**
+     * Handles a key from the screen or from the dialog over it, which takes the keys itself and never offers
+     * them to the activity. True when it was used up, so a pressed A cannot also click a button.
+     */
+    private fun onPressed(event: KeyEvent): Boolean {
         val code = event.keyCode
         val ignored = code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_VOLUME_UP ||
             code == KeyEvent.KEYCODE_VOLUME_DOWN || code == KeyEvent.KEYCODE_POWER
-        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0 && !ignored) {
+        if (ignored) return false
+        val waiting = learning != null
+        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
             val device = event.device?.name ?: getString(R.string.controller_unknown_device)
             last.text = getString(R.string.controller_last, ControllerMap.name(code), device)
-            if (learning != null) {
+            if (waiting) {
                 learning?.dismiss()
                 if (code !in map) map[code] = PadAction.NONE
                 save()
-                choose(code)
-                return true
+                last.postDelayed({ choose(code) }, 250)
             }
         }
+        return waiting
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        onPressed(event)
         return super.dispatchKeyEvent(event)
     }
 }

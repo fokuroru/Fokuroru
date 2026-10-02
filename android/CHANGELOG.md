@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.2.1 (10)
+- Controller screen: the "press a button" box now receives the controller's buttons (a dialog takes key events away from the screen behind it).
+
 ## 0.2.0 (9)
 - Controller buttons: map each button on a game controller (tested target: Abxylute M4) to a reader action, add any other button by pressing it, and see what the app receives. Needs a server with the matching web build for chapter, menu, bookmark, zoom and leave actions; page turns work everywhere.
 
