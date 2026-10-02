@@ -119,7 +119,9 @@ export const HOLIDAY_COLORS: Record<Holiday, string> = {
 }
 export interface HolidaySelection { theme: Holiday; doodle: string }
 export function holidayDoodle(date = new Date(), random = Math.random): HolidaySelection | null {
-  const themes = activeHolidays(date)
+  let themes = activeHolidays(date)
+  // Looking at the seasonal doodles out of season: `window.__makiAnyHoliday` stands in any theme.
+  if (!themes.length && (window as { __makiAnyHoliday?: boolean }).__makiAnyHoliday) themes = Object.keys(HOLIDAY_COLORS) as Holiday[]
   if (!themes.length) return null
   const theme = themes[Math.min(themes.length - 1, Math.floor(random() * themes.length))]
   const names = Object.keys(HOLIDAY_DOODLES[theme])

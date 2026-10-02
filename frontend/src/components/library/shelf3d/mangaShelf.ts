@@ -1762,16 +1762,10 @@ export class MangaShelf {
     }
 
     // ---- placement: random spots and small tilts. Figures keep clear of each other and of every
-    // doodle; doodles keep clear of the figures but may be scribbled over one another.
+    // doodle; doodles keep clear of the figures and of each other.
     interface Spot { x: number; y: number; w: number; h: number }
     const solid: Spot[] = []
     const margin = 26
-    if (this.holidayDoodle) {
-      const size = Math.min(90, w * 0.18, h * 0.25)
-      const x = w - margin - size
-      drawHolidayDoodle(c, this.holidayDoodle, x, margin, size)
-      solid.push({ x: x - 8, y: margin - 8, w: size + 16, h: size + 16 })
-    }
     if (this.prank && this.prankFontReady) {
       const width = Math.min(160, w * 0.2)
       const size = 12
@@ -1832,6 +1826,20 @@ export class MangaShelf {
       c.translate(-block.w / 2, -block.h / 2)
       block.draw()
       c.restore()
+    }
+
+    // ---- the seasonal doodle: placed once the notes are down, in whatever clear spot is left, so it never costs one its room.
+    if (this.holidayDoodle) {
+      const size = Math.min(90, w * 0.18, h * 0.25)
+      const spot = spotFor(size * 1.1, size * 1.1, 10, 0.7) ?? spotFor(size * 1.1, size * 1.1, 0, 0.3)
+      if (spot) {
+        c.save()
+        c.translate(spot.x + spot.w / 2, spot.y + spot.h / 2)
+        c.rotate(jit(0.2))
+        drawHolidayDoodle(c, this.holidayDoodle, -size / 2, -size / 2, size)
+        c.restore()
+        solid.push({ x: spot.x - 4, y: spot.y - 4, w: spot.w + 8, h: spot.h + 8 })
+      }
     }
 
     // ---- doodles
@@ -2063,15 +2071,17 @@ export class MangaShelf {
       for (let i = 0; i < count; i++) {
         // The first is the big one; the rest are small, like the ones scribbled around it.
         let h = i === 0 ? 100 + rnd() * 40 : 34 + rnd() * 44
-        let spot = spotFor(h * 0.6, h * 1.05, 16, 0.5)
+        let spot = spotFor(h * 1.2, h * 1.1, 16, 0.5)
         // The big one is hard to fit among the figures, so it tries again smaller rather than not at all.
         for (const shrink of i === 0 ? [0.8, 0.65, 0.5] : []) {
           if (spot) break
           h *= shrink
-          spot = spotFor(h * 0.6, h * 1.05, 12, 0.5)
+          spot = spotFor(h * 1.2, h * 1.1, 12, 0.5)
         }
         if (!spot) continue
         doodleSpots.push(spot)
+        const slack = Math.max(spot.w, spot.h) * 0.12
+        solid.push({ x: spot.x - slack, y: spot.y - slack, w: spot.w + slack * 2, h: spot.h + slack * 2 })
         c.save()
         c.translate(spot.x + spot.w / 2, spot.y + spot.h / 2)
         c.rotate(jit(i === 0 ? 0.25 : 0.6))
@@ -2121,10 +2131,20 @@ export class MangaShelf {
     c.save()
     fade = 0.1
     for (let i = 0; i < 3; i++) {
+      const s = 40 + rnd() * 40
+      // Old writing sits in the gaps: somewhere clear of what was chalked fresh, or it is left out.
+      let at: { x: number; y: number } | null = null
+      for (let tries = 0; tries < 40 && !at; tries++) {
+        const x = rnd() * w
+        const y = rnd() * h
+        const box = { x: x - s * 1.1, y: y - s * 1.1, w: s * 2.2, h: s * 2.2 }
+        if (!overlaps(box, 6)) at = { x, y }
+      }
+      if (!at) continue
       c.save()
-      c.translate(rnd() * w, rnd() * h)
+      c.translate(at.x, at.y)
       c.rotate(jit(0.7))
-      pick(doodles)(0, 0, 40 + rnd() * 40, CREAM)
+      pick(doodles)(0, 0, s, CREAM)
       c.restore()
     }
     fade = 1
