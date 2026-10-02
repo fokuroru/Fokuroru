@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.3.2 (19)
+- No app change. Settings, Reader, has an Edit tap zones button for the app's own layout.
+
 ## 0.3.1 (18)
 - No app change. Server fix: a partly read chapter whose file was deleted no longer sits in Continue reading; the series moves to Up next.
 

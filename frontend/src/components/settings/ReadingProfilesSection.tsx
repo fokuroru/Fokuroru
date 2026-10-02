@@ -4,6 +4,7 @@ import {
   Badge,
   Button,
   Card,
+  Divider,
   Group,
   MultiSelect,
   NumberInput,
@@ -30,6 +31,8 @@ import { BACKGROUNDS, DEFAULT_PREFS, type ReaderPrefs } from '../../pages/reader
 import { useReaderSettings, useSaveReaderSettings } from '../../api/reader'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
 import TapZoneEditor from '../reader/TapZoneEditor'
+import { SettingsHelp } from './SettingsHelp'
+import { nativeApp } from '../../lib/nativeApp'
 import { SettingsSection } from '../../pages/settings/SettingsSection'
 import { useLabel } from '../../i18n-context'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -124,7 +127,39 @@ export function ReadingProfilesSection() {
           <ProfileRow key={profile.id} profile={profile} all={profiles ?? []} />
         ))}
       </Stack>
+
+      <TapZonesBlock />
     </SettingsSection>
+  )
+}
+
+/** Where taps go in the reader. Kept per person, and apart for the Android app and for browsers. */
+function TapZonesBlock() {
+  const { data: settings } = useReaderSettings()
+  const [open, setOpen] = useState(false)
+  const inApp = nativeApp() !== undefined
+  return (
+    <>
+      <Divider my="md" />
+      <Text fw={500} size="sm" mb={4}>
+        <Trans>Tap zones</Trans>
+      </Text>
+      <SettingsHelp mb="xs">
+        {inApp ? (
+          <Trans>Choose which parts of the page turn it, show the menu or do something else. These are the app's own and don't change your browser's.</Trans>
+        ) : (
+          <Trans>Choose which parts of the page turn it, show the menu or do something else. These are this browser's own and don't change the Android app's.</Trans>
+        )}
+      </SettingsHelp>
+      <Button variant="default" onClick={() => setOpen(true)}>
+        <Trans>Edit tap zones</Trans>
+      </Button>
+      <TapZoneEditor
+        opened={open}
+        onClose={() => setOpen(false)}
+        direction={settings?.defaults.direction ?? DEFAULT_PREFS.direction}
+      />
+    </>
   )
 }
 

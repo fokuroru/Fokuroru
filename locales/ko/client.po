@@ -3914,6 +3914,14 @@ msgstr "중국어"
 msgid "Choose a root folder"
 msgstr "루트 폴더 선택"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Choose which parts of the page turn it, show the menu or do something else. These are the app's own and don't change your browser's."
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Choose which parts of the page turn it, show the menu or do something else. These are this browser's own and don't change the Android app's."
+msgstr ""
+
 #: src/components/settings/SecuritySection.tsx
 #, fuzzy
 msgid "Claim whose values name permissions, e.g. <0>DownloadChapters</0>. Values that match nothing are ignored."
@@ -14584,6 +14592,7 @@ msgid "Tap the page to see what a tap does."
 msgstr ""
 
 #: src/components/discover/SeriesPreviewReader.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Tap zones"

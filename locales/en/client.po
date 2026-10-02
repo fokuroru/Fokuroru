@@ -3271,6 +3271,14 @@ msgstr "Chinese"
 msgid "Choose a root folder"
 msgstr "Choose a root folder"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Choose which parts of the page turn it, show the menu or do something else. These are the app's own and don't change your browser's."
+msgstr "Choose which parts of the page turn it, show the menu or do something else. These are the app's own and don't change your browser's."
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Choose which parts of the page turn it, show the menu or do something else. These are this browser's own and don't change the Android app's."
+msgstr "Choose which parts of the page turn it, show the menu or do something else. These are this browser's own and don't change the Android app's."
+
 #: src/components/settings/SecuritySection.tsx
 msgid "Claim whose values name permissions, e.g. <0>DownloadChapters</0>. Values that match nothing are ignored."
 msgstr "Claim whose values name permissions, e.g. <0>DownloadChapters</0>. Values that match nothing are ignored."
@@ -12250,6 +12258,7 @@ msgid "Tap the page to see what a tap does."
 msgstr "Tap the page to see what a tap does."
 
 #: src/components/discover/SeriesPreviewReader.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Tap zones"
 msgstr "Tap zones"
