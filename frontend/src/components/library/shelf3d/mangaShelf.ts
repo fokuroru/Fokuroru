@@ -631,7 +631,8 @@ export class MangaShelf {
     map.colorSpace = T.SRGBColorSpace
     map.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy())
 
-    const geo = new T.PlaneGeometry(sheetW, sheetH, 48, 8)
+    const columns = 96
+    const geo = new T.PlaneGeometry(sheetW, sheetH, columns, 8)
     const positions = geo.getAttribute('position')
     const grid = new Float32Array(positions.count * 2)
     const { fromRight } = plan.flop
@@ -671,7 +672,13 @@ export class MangaShelf {
       return { mesh, sx, sy, detach, at: { x: pivot.x + d * sx, y: pivot.y - sy }, angle }
     })
     row.scene.add(group)
-    this.bannerAnim = { group, geo, grid, tapes, plan, pivot, start: null, finished: null, done: false }
+    const spineS = new Float32Array(columns + 1)
+    for (let i = 0; i <= columns; i++) spineS[i] = (i * sheetW) / columns - border
+    const spine = {
+      s: spineS, x: new Float32Array(columns + 1), y: new Float32Array(columns + 1),
+      z: new Float32Array(columns + 1), a: new Float32Array(columns + 1), r: new Float32Array(columns + 1),
+    }
+    this.bannerAnim = { group, geo, grid, spine, tapes, plan, pivot, start: null, finished: null, done: false }
     this.stepBanner(performance.now())
     this.wake()
   }
@@ -682,39 +689,122 @@ export class MangaShelf {
     if (!b || b.done) return false
     const flop = b.plan.flop!
     const delay = 2500
-    const length = 18000
+    const length = 22000
     if (b.start === null) b.start = now + delay
     const p = Math.max(0, Math.min(1, (now - b.start) / length))
     if (p >= 1 && b.finished === null) b.finished = now
     const ease = (t: number) => t * t * (3 - 2 * t)
-    const rise = Math.min(1, p / 0.3)
-    const lift = (1 - (1 - rise) ** 2) * (p < 0.45 ? 1 : 1 - 0.9 * ease(Math.min(1, (p - 0.45) / 0.5)))
-    let alpha = Math.abs(flop.angle) * ease(Math.max(0, Math.min(1, (p - 0.2) / 0.75)))
+    const clamp01 = (t: number) => Math.max(0, Math.min(1, t))
+    const reach = b.plan.w
+
+    // The paper comes away from the board at the free end first and lifts a little towards the viewer, then
+    // gravity takes over: the loose part falls like a pendulum from the corner that still holds, faster as it
+    // goes, and its own weight bends the free end down along the way. Where it lands on something, it rests.
+    const lifting = ease(clamp01(p / 0.25)) * (1 - ease(clamp01((p - 0.35) / 0.3)))
+    const front = reach * (1 - 0.5 * ease(clamp01(p / 0.4)))
+    const tightness = 1 / 150
+    const falling = clamp01((p - 0.18) / 0.62)
+    const gravity = ease(clamp01((p - 0.1) / 0.3))
+    let alpha = 1.5 * falling * falling
     if (b.finished !== null) {
       const tau = (now - b.finished) / 1000
-      alpha += 0.05 * Math.exp(-0.7 * tau) * Math.sin(2.4 * tau)
+      alpha += 0.04 * Math.exp(-0.8 * tau) * Math.sin(2.6 * tau)
       if (tau > 7) b.done = true
     }
     const d = flop.fromRight ? -1 : 1
-    const turn = -d * alpha
-    const cos = Math.cos(turn)
-    const sin = Math.sin(turn)
+
+    // What it could land on: the tops of the books and anything else standing on the shelf, in the board's own
+    // coordinates. A banner that comes down onto one rests on it instead of passing behind or through it.
+    const half = this.logicalWidth / 2
+    const obstacles: { x0: number; x1: number; top: number }[] = []
+    for (const item of this.items) {
+      if (item.pulledAt !== undefined) continue
+      obstacles.push({ x0: item.body.bounds.min.x - half, x1: item.body.bounds.max.x - half, top: 380 - item.body.bounds.min.y })
+    }
+    for (const prop of this.props) {
+      obstacles.push({ x0: prop.body.bounds.min.x - half, x1: prop.body.bounds.max.x - half, top: 380 - prop.body.bounds.min.y })
+    }
+    // The plank itself, which is as far down as anything falls.
+    obstacles.push({ x0: -this.wallSize.w / 2, x1: this.wallSize.w / 2, top: 19.5 })
+    const lowerEdge = b.plan.h + 3
+
+    // The sheet's spine, from the holding side out: heading in the board's plane (the turn, plus the sag) and how
+    // far it has rolled towards the viewer. Fills the arrays for a given turn and returns how far the lower edge
+    // sinks into whatever is beneath it.
+    const steps = b.spine.s.length
+    const spineX = b.spine.x
+    const spineY = b.spine.y
+    const spineZ = b.spine.z
+    const spineA = b.spine.a
+    const spineR = b.spine.r
+    const shape = (angle: number) => {
+      const turn = -d * angle
+      let x = 0
+      let y = 0
+      let z = 0
+      let roll = 0
+      let sunk = 0
+      for (let i = 0; i < steps; i++) {
+        const sv = b.spine.s[i]
+        let bend = turn
+        if (i > 0) {
+          const ds = sv - b.spine.s[i - 1]
+          roll += tightness * lifting * ease(clamp01((sv - front) / (reach * 0.3 + 1))) * ds
+          // Weight bends the sheet most where it is most nearly level, and hardly at all once it hangs straight.
+          const across = Math.max(0.12, Math.cos(Math.min(angle, 1.45)))
+          bend = turn - d * gravity * 1.15 * across * clamp01(sv / reach) ** 2
+          x += d * Math.cos(bend) * Math.cos(roll) * ds
+          y += d * Math.sin(bend) * Math.cos(roll) * ds
+          z += Math.sin(roll) * ds
+        }
+        spineA[i] = bend
+        spineX[i] = x
+        spineY[i] = y
+        spineZ[i] = z
+        spineR[i] = roll
+        // Where the lower edge of the sheet is here, against the tops beneath it.
+        const ex = b.pivot.x + x + Math.sin(bend) * lowerEdge
+        const ey = b.pivot.y + y - Math.cos(bend) * lowerEdge
+        for (const o of obstacles) if (ex >= o.x0 && ex <= o.x1 && ey < o.top) sunk = Math.max(sunk, o.top - ey)
+      }
+      return sunk
+    }
+    // The turn it is heading for, held back at the point where it would first touch something.
+    let landed = alpha
+    if (shape(alpha) > 0.5) {
+      let lo = 0
+      let hi = alpha
+      for (let i = 0; i < 10; i++) {
+        const mid = (lo + hi) / 2
+        if (shape(mid) > 0.5) hi = mid
+        else lo = mid
+      }
+      landed = lo
+    }
+    shape(landed)
+    // Interpolated point on the spine at a distance `sv` from the holding side.
+    const at = (sv: number) => {
+      const t = Math.max(0, Math.min(steps - 1, ((sv - b.spine.s[0]) / (b.spine.s[steps - 1] - b.spine.s[0])) * (steps - 1)))
+      const i = Math.min(steps - 2, Math.floor(t))
+      const f = t - i
+      const mix = (v: Float32Array) => v[i] + (v[i + 1] - v[i]) * f
+      return { x: mix(spineX), y: mix(spineY), z: mix(spineZ), a: mix(spineA), r: mix(spineR) }
+    }
     const zBase = -146.3
-    const reach = b.plan.w
-    const curl = lift * reach * 0.16
-    const place = (sx: number, sy: number) => {
-      const lx = d * sx
-      const ly = -sy
+    const place = (sv: number, down: number) => {
+      const c = at(sv)
+      // "Down" across the sheet is turned with the spine's heading.
       return {
-        x: b.pivot.x + lx * cos - ly * sin,
-        y: b.pivot.y + lx * sin + ly * cos,
-        z: zBase + curl * (sx / reach) ** 2,
+        x: b.pivot.x + c.x + Math.sin(c.a) * down,
+        y: b.pivot.y + c.y - Math.cos(c.a) * down,
+        z: zBase + c.z,
+        c,
       }
     }
     const positions = b.geo.getAttribute('position')
     for (let i = 0; i < positions.count; i++) {
-      const at = place(b.grid[i * 2], b.grid[i * 2 + 1])
-      positions.setXYZ(i, at.x, at.y, at.z)
+      const at2 = place(b.grid[i * 2], b.grid[i * 2 + 1])
+      positions.setXYZ(i, at2.x, at2.y, at2.z)
     }
     positions.needsUpdate = true
     b.geo.computeVertexNormals()
@@ -723,14 +813,13 @@ export class MangaShelf {
       if (p < t.detach) {
         t.mesh.position.set(t.at.x, t.at.y, zBase + 0.6)
         t.mesh.rotation.set(0, 0, t.angle)
-        ;(t.mesh.material as T.MeshBasicMaterial).opacity = 1
       } else {
-        // Let go of the board and still stuck to the paper: it goes where that corner of the paper goes, a
-        // little proud of it and curling.
-        const at = place(t.sx, t.sy)
+        // Let go of the board and still stuck to the paper: it goes where that corner of the paper goes, a little
+        // proud of it, and turns with the paper as it rolls.
         const lifted = Math.min(1, (p - t.detach) / 0.08)
-        t.mesh.position.set(at.x + d * 4 * lifted, at.y - 3 * lifted, at.z + 1 + 5 * lifted)
-        t.mesh.rotation.set(0.4 * lifted * (t.sy === 0 ? -1 : 1), 0.3 * lifted * d, t.angle + turn)
+        const there = place(t.sx, t.sy)
+        t.mesh.position.set(there.x + d * 2 * lifted, there.y - 2 * lifted, there.z + 1 + 3 * lifted)
+        t.mesh.rotation.set(0, -d * there.c.r, t.angle + there.c.a)
       }
     }
     return !b.done
@@ -3261,6 +3350,8 @@ interface BannerAnim {
   geo: T.PlaneGeometry
   /** Each vertex's distance from the side that holds, and below the top edge, in board pixels. */
   grid: Float32Array
+  /** The sheet's spine, from the holding side out: distance along it, where it is, how it is turned and how far rolled. */
+  spine: { s: Float32Array; x: Float32Array; y: Float32Array; z: Float32Array; a: Float32Array; r: Float32Array }
   tapes: { mesh: T.Mesh; sx: number; sy: number; detach: number; at: { x: number; y: number }; angle: number }[]
   plan: Taped
   pivot: { x: number; y: number }

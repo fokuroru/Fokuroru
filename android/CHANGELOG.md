@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.10 (38)
+- No app change. The failing banner now curls from its own weight, falls like a pendulum from the corner that holds, and lands on books, props or the plank instead of passing through them.
+
 ## 0.5.9 (37)
 - No app change. When the chalkboard banner's tape fails it is now a 3D sheet that slowly peels off the board, curls, and hangs from the tape that held, with a small sway.
 
