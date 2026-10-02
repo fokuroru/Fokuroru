@@ -3605,6 +3605,10 @@ msgstr "Cap.{from}–{to}"
 msgid "Ch.{from}+"
 msgstr "Cap.{from}+"
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "Ch.{number}"
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 #: src/pages/ActivityPage.tsx
 #, fuzzy
@@ -3885,6 +3889,10 @@ msgstr "Se comprueba tras cada actualización nocturna del catálogo. Sigue a al
 #, fuzzy
 msgid "Checking for a new metadata snapshot"
 msgstr "Buscando una nueva instantánea de metadatos"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Checking the chapter…"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -10347,6 +10355,7 @@ msgstr "Un mosaico por género; cada uno abre sus títulos más populares."
 #: src/components/LinkFileToChaptersModal.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/SeriesOpenPage.tsx
 #, fuzzy
 msgid "One-shot"
 msgstr "One-shot"
@@ -15027,6 +15036,14 @@ msgstr ""
 msgid "This chapter has no readable file."
 msgstr "Este capítulo no tiene un archivo legible."
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "This chapter is not downloaded, and your account cannot download chapters."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "This chapter is not on your server yet."
+msgstr ""
+
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
 msgstr ""
@@ -16272,6 +16289,10 @@ msgstr "Vol.{volNum} Cap.{chapterNumber}"
 #, fuzzy
 msgid "Vol.{volume} Ch.{chapter}"
 msgstr "Vol.{volume} Cap.{chapter}"
+
+#: src/pages/SeriesOpenPage.tsx
+msgid "Vol.{volume} Ch.{number}"
+msgstr ""
 
 #: src/api/upgrades.ts
 #: src/components/series/FileQualityBadge.tsx

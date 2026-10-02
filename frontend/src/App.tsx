@@ -75,6 +75,7 @@ const NotificationsPage = lazy(() => import('./pages/NotificationsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const HealthPage = lazy(() => import('./pages/HealthPage'))
 const ReaderPage = lazy(() => import('./pages/reader/ReaderPage'))
+const SeriesOpenPage = lazy(() => import('./pages/SeriesOpenPage'))
 
 function ShellTitle() {
   const title = useShellTitleValue()
@@ -350,7 +351,7 @@ function AuthGate() {
   useEffect(() => {
     if (!me || !sawSignIn.current) return
     sawSignIn.current = false
-    if (simpleViewPreferred() && !location.pathname.startsWith('/read/') && location.pathname !== '/lite') {
+    if (simpleViewPreferred() && !location.pathname.startsWith('/read/') && !location.pathname.startsWith('/open/') && location.pathname !== '/lite') {
       navigate('/lite', { replace: true })
     }
   }, [me, location.pathname, navigate])
@@ -374,6 +375,16 @@ function AuthGate() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/read/:chapterId" element={<ReaderPage />} />
+        </Routes>
+      </Suspense>
+    )
+  }
+
+  if (location.pathname.startsWith('/open/')) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/open/:seriesId" element={<SeriesOpenPage />} />
         </Routes>
       </Suspense>
     )

@@ -26,6 +26,7 @@ export function DownloadSplash({
   seriesTitle,
   coverUrl,
   note,
+  confirm = false,
   onClose,
 }: {
   chapterId: number
@@ -33,6 +34,8 @@ export function DownloadSplash({
   seriesTitle: string
   coverUrl: string | null
   note?: string
+  /** Wait for a tap before queueing, unless the chapter is already coming down. */
+  confirm?: boolean
   onClose: () => void
 }) {
   const { t } = useLingui()
@@ -44,9 +47,27 @@ export function DownloadSplash({
   // component mounts (StrictMode mounts twice), and its error state belongs to the splash rather
   // than to whichever mount fired it. The POST is idempotent server-side anyway.
   const [attempt, setAttempt] = useState(0)
+  const [armed, setArmed] = useState(!confirm)
+  const peek = useQuery({
+    queryKey: ['chapter-peek', chapterId],
+    queryFn: () => api<DownloadState>(`/reader/chapters/${chapterId}/download-state`),
+    enabled: !armed,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    meta: { silent: true },
+  })
+  const peeked = peek.data
+  useEffect(() => {
+    if (!peeked) return
+    const active = peeked.item && !['Failed', 'Cancelled', 'Completed'].includes(peeked.item.status)
+    if (peeked.downloaded || active) setArmed(true)
+  }, [peeked])
+  const waiting = !armed
   const prepare = useQuery({
     queryKey: ['chapter-prepare', chapterId, attempt],
     queryFn: () => api<DownloadState>(`/reader/chapters/${chapterId}/prepare`, { method: 'POST' }),
+    enabled: armed,
     retry: false,
     staleTime: Infinity,
     gcTime: 0,
@@ -82,7 +103,9 @@ export function DownloadSplash({
   const pct = pagesTotal > 0 ? Math.round((pagesDone / pagesTotal) * 100) : null
 
   let status: string
-  if (prepare.isError) {
+  if (waiting) {
+    status = peek.isPending ? t`Checking the chapter…` : t`This chapter is not on your server yet.`
+  } else if (prepare.isError) {
     // The server's own reason (no source linked, a health review running) minus the "API 400:" prefix.
     status =
       prepare.error instanceof Error
@@ -141,7 +164,7 @@ export function DownloadSplash({
         </div>
         {note && <Text size="sm">{note}</Text>}
         <div className="download-splash-progress">
-          {failed ? null : pct !== null ? (
+          {failed || (waiting && !peek.isPending) ? null : pct !== null ? (
             <Progress value={pct} size="md" radius={0} aria-label={t`Download progress`} />
           ) : (
             <Group justify="center">
@@ -153,13 +176,18 @@ export function DownloadSplash({
           </Text>
         </div>
         <Group gap="sm" justify="center">
+          {waiting && !peek.isPending && (
+            <Button onClick={() => setArmed(true)}>
+              <Trans>Download and read</Trans>
+            </Button>
+          )}
           {failed && (
             <Button onClick={() => setAttempt((a) => a + 1)} loading={prepare.isFetching}>
               <Trans>Try again</Trans>
             </Button>
           )}
           <Button variant="default" onClick={onClose}>
-            {failed ? <Trans>Close</Trans> : <Trans>Keep downloading in the background</Trans>}
+            {failed || waiting ? <Trans>Close</Trans> : <Trans>Keep downloading in the background</Trans>}
           </Button>
         </Group>
       </Stack>

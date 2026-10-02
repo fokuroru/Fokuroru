@@ -3605,6 +3605,10 @@ msgstr "챕터 {from}–{to}"
 msgid "Ch.{from}+"
 msgstr "챕터 {from}+"
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "Ch.{number}"
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 #: src/pages/ActivityPage.tsx
 #, fuzzy
@@ -3885,6 +3889,10 @@ msgstr "매일 밤 카탈로그가 업데이트될 때마다 확인합니다. �
 #, fuzzy
 msgid "Checking for a new metadata snapshot"
 msgstr "새 메타데이터 스냅샷 확인 중"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Checking the chapter…"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -10347,6 +10355,7 @@ msgstr "장르별 타일을 표시하고, 타일을 선택하면 해당 장르�
 #: src/components/LinkFileToChaptersModal.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/SeriesOpenPage.tsx
 #, fuzzy
 msgid "One-shot"
 msgstr "One-shot"
@@ -15027,6 +15036,14 @@ msgstr ""
 msgid "This chapter has no readable file."
 msgstr "이 챕터에는 읽을 수 있는 파일이 없습니다."
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "This chapter is not downloaded, and your account cannot download chapters."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "This chapter is not on your server yet."
+msgstr ""
+
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
 msgstr ""
@@ -16272,6 +16289,10 @@ msgstr "{volNum}권 {chapterNumber}화"
 #, fuzzy
 msgid "Vol.{volume} Ch.{chapter}"
 msgstr "{volume}권 {chapter}화"
+
+#: src/pages/SeriesOpenPage.tsx
+msgid "Vol.{volume} Ch.{number}"
+msgstr ""
 
 #: src/api/upgrades.ts
 #: src/components/series/FileQualityBadge.tsx

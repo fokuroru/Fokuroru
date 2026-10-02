@@ -3013,6 +3013,10 @@ msgstr "Ch.{from}–{to}"
 msgid "Ch.{from}+"
 msgstr "Ch.{from}+"
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "Ch.{number}"
+msgstr "Ch.{number}"
+
 #: src/components/settings/AccountSection.tsx
 #: src/pages/ActivityPage.tsx
 msgid "Change"
@@ -3245,6 +3249,10 @@ msgstr "Checked after each nightly catalogue update. Follow someone from their c
 #: src/components/MetadataDumpProgress.tsx
 msgid "Checking for a new metadata snapshot"
 msgstr "Checking for a new metadata snapshot"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Checking the chapter…"
+msgstr "Checking the chapter…"
 
 #: src/pages/SettingsPage.tsx
 msgid "Checks GitHub daily for a new release and shows a card in the sidebar and a notification when there is one. Updating is manual: {howToUpdate}."
@@ -8669,6 +8677,7 @@ msgstr "One tile per genre, each opening its most popular titles."
 #: src/components/LinkFileToChaptersModal.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/SeriesOpenPage.tsx
 msgid "One-shot"
 msgstr "One-shot"
 
@@ -12620,6 +12629,14 @@ msgstr "This chapter as each source scans it, heaviest first. Pick the one that 
 msgid "This chapter has no readable file."
 msgstr "This chapter has no readable file."
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "This chapter is not downloaded, and your account cannot download chapters."
+msgstr "This chapter is not downloaded, and your account cannot download chapters."
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "This chapter is not on your server yet."
+msgstr "This chapter is not on your server yet."
+
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
 msgstr "This chapter was added or upgraded too recently"
@@ -13672,6 +13689,10 @@ msgstr "Vol.{volNum} Ch.{chapterNumber}"
 #: src/api/queue.ts
 msgid "Vol.{volume} Ch.{chapter}"
 msgstr "Vol.{volume} Ch.{chapter}"
+
+#: src/pages/SeriesOpenPage.tsx
+msgid "Vol.{volume} Ch.{number}"
+msgstr "Vol.{volume} Ch.{number}"
 
 #: src/api/upgrades.ts
 #: src/components/series/FileQualityBadge.tsx

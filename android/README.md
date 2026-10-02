@@ -122,3 +122,7 @@ type sizes from 700dp. `Layouts` has the rules and its tests.
 - Saved chapters belong to one profile. Background sync and downloads only run for the profile in use; a download in flight when you switch is queued again when you come back.
 - No emulator image was available when this was written, so the app has been compiled and its logic
   unit tested, but not driven on a device.
+
+## Versions
+
+`version.properties` holds the version. Bump it on every push and add a line to `CHANGELOG.md`.

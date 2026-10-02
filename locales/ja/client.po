@@ -3605,6 +3605,10 @@ msgstr "第{from}～{to}章"
 msgid "Ch.{from}+"
 msgstr "第{from}章以降"
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "Ch.{number}"
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 #: src/pages/ActivityPage.tsx
 #, fuzzy
@@ -3885,6 +3889,10 @@ msgstr "毎晩のカタログ更新のたびに確認されます。クリエイ
 #, fuzzy
 msgid "Checking for a new metadata snapshot"
 msgstr "新しいメタデータスナップショットを確認中"
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "Checking the chapter…"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -10347,6 +10355,7 @@ msgstr "ジャンルごとにタイルを表示し、それぞれから最も人
 #: src/components/LinkFileToChaptersModal.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/SeriesOpenPage.tsx
 #, fuzzy
 msgid "One-shot"
 msgstr "one-shot"
@@ -15027,6 +15036,14 @@ msgstr ""
 msgid "This chapter has no readable file."
 msgstr "この章には読み取り可能なファイルがありません。"
 
+#: src/pages/SeriesOpenPage.tsx
+msgid "This chapter is not downloaded, and your account cannot download chapters."
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "This chapter is not on your server yet."
+msgstr ""
+
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
 msgstr ""
@@ -16272,6 +16289,10 @@ msgstr "第{volNum}巻 第{chapterNumber}章"
 #, fuzzy
 msgid "Vol.{volume} Ch.{chapter}"
 msgstr "第{volume}巻 第{chapter}章"
+
+#: src/pages/SeriesOpenPage.tsx
+msgid "Vol.{volume} Ch.{number}"
+msgstr ""
 
 #: src/api/upgrades.ts
 #: src/components/series/FileQualityBadge.tsx

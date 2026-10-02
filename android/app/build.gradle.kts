@@ -1,7 +1,11 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
+
+val appVersion = Properties().apply { file("../version.properties").inputStream().use { load(it) } }
 
 android {
     namespace = "dev.fokuroru.reader"
@@ -11,8 +15,8 @@ android {
         applicationId = "dev.fokuroru.reader"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = appVersion.getProperty("versionCode").toInt()
+        versionName = appVersion.getProperty("versionName")
     }
 
     buildFeatures {
