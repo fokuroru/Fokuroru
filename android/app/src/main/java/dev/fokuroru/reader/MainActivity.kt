@@ -30,6 +30,7 @@ import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.device.Remote
 import dev.fokuroru.reader.input.PageTurnMap
 import dev.fokuroru.reader.input.Turn
+import dev.fokuroru.reader.net.ServerState
 import dev.fokuroru.reader.ui.DownloadsActivity
 import dev.fokuroru.reader.ui.ReaderTools
 import dev.fokuroru.reader.ui.SettingsActivity
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var root: View
     private lateinit var offlineView: View
+    private lateinit var gatewayBanner: View
     private lateinit var offline: Offline
     private var remote: Remote? = null
     private var unsubscribe: (() -> Unit)? = null
@@ -81,7 +83,8 @@ class MainActivity : AppCompatActivity() {
         root = findViewById(R.id.root)
         web = findViewById(R.id.web)
         offlineView = findViewById(R.id.offline)
-        offline = Offline(this)
+        gatewayBanner = findViewById(R.id.gateway_banner)
+        offline = newOffline()
 
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val cutout = if (reading && prefs.cutout) 0 else WindowInsetsCompat.Type.displayCutout()
@@ -132,6 +135,7 @@ class MainActivity : AppCompatActivity() {
         if (prefs.serverUrl != null && System.currentTimeMillis() - ReadingSnapshot.load(this).updatedAt > STALE_MS) {
             SyncWorker.syncNow(this)
         }
+        checkServer()
         web.onResume()
     }
 
@@ -199,7 +203,7 @@ class MainActivity : AppCompatActivity() {
                     return true
                 }
                 // Sign-in providers redirect away and back; a tap on an outside link is the only exit.
-                if (request.hasGesture() && !request.isRedirect) {
+                if (!offServer() && request.hasGesture() && !request.isRedirect) {
                     runCatching { startActivity(Intent(Intent.ACTION_VIEW, target)) }
                     return true
                 }
@@ -220,11 +224,19 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 if (!pageFailed) offlineView.visibility = View.GONE
                 pushLayout()
-                refreshShell()
+                if (offServer()) {
+                    gatewayBanner.visibility = View.GONE
+                } else {
+                    offline.signedIn()
+                    checkServer()
+                    refreshShell()
+                }
             }
 
             override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+                // A gateway's sign-in page often answers 401 or 403; that page is the thing to show.
                 if (!request.isForMainFrame || response.statusCode < 400) return
+                if (request.url.host != Uri.parse(prefs.serverUrl ?: return).host) return
                 pageFailed = true
                 offlineView.visibility = View.VISIBLE
             }
@@ -264,6 +276,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun wireOverlay() {
+        findViewById<View>(R.id.gateway_signin).setOnClickListener {
+            val base = prefs.serverUrl ?: return@setOnClickListener
+            gatewayBanner.visibility = View.GONE
+            offline.signInAgain()
+            web.loadUrl("$base/")
+        }
         findViewById<View>(R.id.offline_retry).setOnClickListener {
             offline.forgetReachability()
             offlineView.visibility = View.GONE
@@ -273,6 +291,29 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.offline_downloads).setOnClickListener { openDownloads() }
         findViewById<View>(R.id.offline_change_server).setOnClickListener {
             startActivity(Intent(this, ServersActivity::class.java))
+        }
+    }
+
+    private fun newOffline() = Offline(this).also { o ->
+        o.onState = { runOnUiThread { updateBanner(it) } }
+    }
+
+    /** True while a page from another host is showing: a gateway's sign-in, or a provider it sends you to. */
+    private fun offServer(): Boolean {
+        val server = Uri.parse(prefs.serverUrl ?: return false)
+        val page = Uri.parse(currentUrl ?: return false)
+        return page.host != null && page.host != server.host
+    }
+
+    /** Offers to sign in again when a gateway is in the way and its page is not already up. */
+    private fun updateBanner(state: ServerState) {
+        gatewayBanner.visibility = if (state == ServerState.GATEWAY && !offServer()) View.VISIBLE else View.GONE
+    }
+
+    private fun checkServer() {
+        thread {
+            val state = offline.probeState()
+            runOnUiThread { updateBanner(state) }
         }
     }
 
@@ -287,7 +328,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         loadedProfile = now
-        offline = Offline(this)
+        offline = newOffline()
         lastShellRefresh = 0L
         offlineView.visibility = View.GONE
         web.clearHistory()
@@ -334,7 +375,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun routeChanged(url: String) {
-        val now = Routes.isReader(Uri.parse(url).path)
+        val parsed = Uri.parse(url)
+        val onServer = parsed.host == Uri.parse(prefs.serverUrl ?: return).host
+        val now = onServer && Routes.isReader(parsed.path)
         runOnUiThread {
             reading = now
             applyChrome()

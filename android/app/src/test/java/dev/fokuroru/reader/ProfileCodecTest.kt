@@ -61,3 +61,44 @@ class ProfileCodecTest {
         assertTrue(ProfileCodec.restoreLine("XSRF-TOKEN", "x").startsWith("XSRF-TOKEN=x; Path=/"))
     }
 }
+
+class GatewayTest {
+    private val host = "app.example.com"
+    private fun classify(status: Int, type: String? = null, location: String? = null) =
+        dev.fokuroru.reader.net.Gateway.classify(status, type, location, host)
+
+    @org.junit.Test
+    fun jsonFromTheServerIsTheServer() {
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.OK, classify(200, "application/json; charset=utf-8"))
+    }
+
+    @org.junit.Test
+    fun aRedirectToAnotherHostIsAGateway() {
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.GATEWAY, classify(302, null, "https://auth.example.com/login?redirect_uri=x"))
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.GATEWAY, classify(307, null, null))
+    }
+
+    @org.junit.Test
+    fun aRedirectWithinTheServerIsFollowed() {
+        org.junit.Assert.assertNull(classify(301, null, "/"))
+        org.junit.Assert.assertNull(classify(302, null, "https://APP.example.com/initialize.json"))
+    }
+
+    @org.junit.Test
+    fun htmlWhereJsonShouldBeIsAGateway() {
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.GATEWAY, classify(200, "text/html"))
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.GATEWAY, classify(200, null))
+    }
+
+    @org.junit.Test
+    fun refusalsOnTheAnonymousEndpointAreAGateway() {
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.GATEWAY, classify(401))
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.GATEWAY, classify(403))
+    }
+
+    @org.junit.Test
+    fun errorsAndMissingPagesAreNotAGateway() {
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.UNREACHABLE, classify(404))
+        org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.UNREACHABLE, classify(502))
+    }
+}

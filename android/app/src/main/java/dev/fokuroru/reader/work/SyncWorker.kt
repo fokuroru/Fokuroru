@@ -21,6 +21,7 @@ import dev.fokuroru.reader.data.ReadingSnapshot
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
 import dev.fokuroru.reader.net.AuthExpiredException
+import dev.fokuroru.reader.net.GatewayException
 import dev.fokuroru.reader.widget.ReadingNowWidget
 import java.io.File
 import java.io.IOException
@@ -39,7 +40,7 @@ object ReadingSync {
 
         ProgressSync.flush(context)
 
-        val snapshot = fetch(api, previous) ?: return
+        val snapshot = fetch(context, api, previous) ?: return
         ReadingSnapshot.save(context, snapshot)
         snapshot.items.forEach { cacheCover(context, api, it) }
         ReadingNowWidget.updateAll(context)
@@ -60,13 +61,13 @@ object ReadingSync {
 
     /** A fresh list for a shortcut or widget tap, or null when the server can't be asked. */
     fun refreshSnapshot(context: Context): ReadingSnapshot? {
-        val snapshot = fetch(Api(context), ReadingSnapshot.load(context)) ?: return null
+        val snapshot = fetch(context, Api(context), ReadingSnapshot.load(context)) ?: return null
         ReadingSnapshot.save(context, snapshot)
         ReadingNowWidget.updateAll(context)
         return snapshot
     }
 
-    private fun fetch(api: Api, previous: ReadingSnapshot): ReadingSnapshot? = try {
+    private fun fetch(context: Context, api: Api, previous: ReadingSnapshot): ReadingSnapshot? = try {
         val home = api.getObject("/api/v1/home/reading?limit=8")
         val continuing = home.getJSONArray("continueReading")
         val jump = home.getJSONArray("jumpBackIn")
@@ -86,6 +87,9 @@ object ReadingSync {
             null
         }
         ReadingSnapshot(System.currentTimeMillis(), items, latest)
+    } catch (e: GatewayException) {
+        Notifications.signInNeeded(context)
+        null
     } catch (_: AuthExpiredException) {
         null
     } catch (_: IOException) {

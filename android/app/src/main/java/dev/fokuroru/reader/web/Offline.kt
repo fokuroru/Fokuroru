@@ -8,6 +8,8 @@ import android.webkit.WebResourceResponse
 import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
+import dev.fokuroru.reader.net.Gateway
+import dev.fokuroru.reader.net.ServerState
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -30,7 +32,13 @@ class Offline(private val context: Context) {
     private val stashDir = File(Profiles.activeDir(context), "stash").apply { mkdirs() }
 
     @Volatile private var reachableAt = 0L
-    @Volatile private var reachable = true
+    @Volatile private var state = ServerState.OK
+
+    /** Told whenever the server's state changes, from whichever thread noticed. */
+    var onState: ((ServerState) -> Unit)? = null
+
+    /** Set when the person asked to sign in again: the next page load must go to the network, not the saved copy. */
+    @Volatile private var forceNetwork = false
 
     fun intercept(request: WebResourceRequest): WebResourceResponse? {
         if (request.method != "GET") return null
@@ -54,7 +62,7 @@ class Offline(private val context: Context) {
             return if (serverReachable()) shell.fetch(path) else null
         }
         val isPage = request.isForMainFrame && !path.startsWith("/api/") && !path.substringAfterLast('/').contains('.')
-        if (isPage && shell.hasIndex() && !serverReachable()) return shell.index()
+        if (isPage && shell.hasIndex() && !forceNetwork && !serverReachable()) return shell.index()
         return null
     }
 
@@ -73,19 +81,39 @@ class Offline(private val context: Context) {
 
     /** Cached for a few seconds: the reader asks for a dozen things at once. */
     @Synchronized
-    fun serverReachable(): Boolean {
+    fun probeState(): ServerState {
         val now = System.currentTimeMillis()
-        if (now - reachableAt < 8_000) return reachable
-        reachable = isOnline() && api.reachable()
+        if (now - reachableAt < 8_000) return state
         reachableAt = now
-        return reachable
+        setState(if (isOnline()) api.probe() else ServerState.UNREACHABLE)
+        return state
+    }
+
+    fun serverReachable(): Boolean = probeState() == ServerState.OK
+
+    private fun setState(next: ServerState) {
+        if (state == next) return
+        state = next
+        onState?.invoke(next)
     }
 
     /** What the last probes found, without probing: the web layer asks on every progress write. */
     fun knownUnreachable(): Boolean =
-        !isOnline() || (!reachable && System.currentTimeMillis() - reachableAt < 60_000)
+        !isOnline() || (state != ServerState.OK && System.currentTimeMillis() - reachableAt < 60_000)
 
     fun forgetReachability() {
+        reachableAt = 0
+    }
+
+    /** The person is about to sign in at the gateway's page: let that load through, not the saved copy. */
+    fun signInAgain() {
+        forceNetwork = true
+        reachableAt = 0
+    }
+
+    /** Back on the server's own page after signing in. */
+    fun signedIn() {
+        forceNetwork = false
         reachableAt = 0
     }
 
@@ -134,6 +162,10 @@ class Offline(private val context: Context) {
                 try {
                     api.keepCookies(conn)
                     val status = conn.responseCode
+                    if (status in 300..399 && Gateway.leavesHost(conn.getHeaderField("Location"), Gateway.hostOf(api.base))) {
+                        setState(ServerState.GATEWAY)
+                        throw IOException("gateway")
+                    }
                     if (status == 401) {
                         stashDir.listFiles()?.forEach { it.delete() }
                     }
@@ -152,7 +184,7 @@ class Offline(private val context: Context) {
                     conn.disconnect()
                 }
             } catch (_: IOException) {
-                reachable = false
+                if (state == ServerState.OK) setState(ServerState.UNREACHABLE)
             }
         }
         if (file.isFile) return json(200, file.readBytes())

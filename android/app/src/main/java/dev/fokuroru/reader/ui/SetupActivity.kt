@@ -51,7 +51,7 @@ class SetupActivity : AppCompatActivity() {
         connect.isEnabled = false
         connect.setText(R.string.setup_checking)
         thread {
-            val ok = ServerCheck.isServer(address)
+            val ok = ServerCheck.isUsable(address)
             if (ok) {
                 val existing = Profiles.all(this).firstOrNull { it.url == address && it.user == null }
                 ProfileSwitch.to(this, (existing ?: Profiles.add(this, "", address)).id)

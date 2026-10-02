@@ -12,6 +12,35 @@
         android:layout_height="match_parent" />
 
     <LinearLayout
+        android:id="@+id/gateway_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorSurfaceContainerHigh"
+        android:elevation="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/gateway_banner"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <Button
+            android:id="@+id/gateway_signin"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gateway_signin" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/offline"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

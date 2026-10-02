@@ -76,6 +76,7 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
             Events.downloadsChanged()
             return Result.success()
         } catch (e: AuthExpiredException) {
+            if (e is dev.fokuroru.reader.net.GatewayException) Notifications.signInNeeded(applicationContext)
             store.fail(chapterId, "Signed out")
             Events.downloadsChanged()
             return Result.failure()

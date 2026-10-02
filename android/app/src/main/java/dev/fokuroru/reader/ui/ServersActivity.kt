@@ -142,7 +142,7 @@ class ServersActivity : AppCompatActivity() {
                 addressField.error = null
                 button.isEnabled = false
                 thread {
-                    val ok = ServerCheck.isServer(normalised)
+                    val ok = ServerCheck.isUsable(normalised)
                     if (ok) {
                         val profile = Profiles.add(this, label, normalised)
                         ProfileSwitch.to(this, profile.id)

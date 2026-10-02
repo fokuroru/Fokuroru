@@ -45,7 +45,7 @@ class Shell(context: Context, private val api: Api) {
     /** Re-reads the entry page and pulls in every file it can reach, so lazy routes work offline too. */
     fun refresh() {
         val html = try {
-            api.getText("/")
+            api.getText("/", json = false)
         } catch (_: IOException) {
             return
         }

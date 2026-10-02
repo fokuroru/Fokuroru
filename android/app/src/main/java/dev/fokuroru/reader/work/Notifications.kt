@@ -63,4 +63,26 @@ object Notifications {
         } catch (_: SecurityException) {
         }
     }
+
+    /** At most once a day: sync and downloads stop at a gateway's sign-in and cannot get past it alone. */
+    fun signInNeeded(context: Context) {
+        if (!canPost(context)) return
+        val sp = context.getSharedPreferences("notices", Context.MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        if (now - sp.getLong("sign_in", 0L) < 24 * 60 * 60 * 1000L) return
+        sp.edit().putLong("sign_in", now).apply()
+        val open = Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        val pending = PendingIntent.getActivity(context, 7001, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val notification = NotificationCompat.Builder(context, CHANNEL_UPDATES)
+            .setSmallIcon(R.drawable.ic_stat_book)
+            .setContentTitle(context.getString(R.string.notification_signin_title))
+            .setContentText(context.getString(R.string.notification_signin_body))
+            .setContentIntent(pending)
+            .setAutoCancel(true)
+            .build()
+        try {
+            NotificationManagerCompat.from(context).notify(7001, notification)
+        } catch (_: SecurityException) {
+        }
+    }
 }

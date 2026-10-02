@@ -12,7 +12,10 @@ import java.net.URL
 import java.net.URLDecoder
 import java.util.Locale
 
-class AuthExpiredException : IOException("Signed out")
+open class AuthExpiredException(message: String = "Signed out") : IOException(message)
+
+/** A sign-in page from something in front of the server answered instead of the server. */
+class GatewayException(val location: String?) : AuthExpiredException("Server sign-in needed")
 
 class HttpStatusException(val status: Int) : IOException("HTTP $status")
 
@@ -35,7 +38,8 @@ class Api(context: Context) {
         conn.requestMethod = method
         conn.connectTimeout = 10_000
         conn.readTimeout = 30_000
-        conn.instanceFollowRedirects = true
+        // Followed by hand: a redirect to another host is a gateway's sign-in page, not an answer.
+        conn.instanceFollowRedirects = false
         conn.setRequestProperty("Accept-Language", Locale.getDefault().toLanguageTag())
         conn.setRequestProperty("X-Maki-Language", Locale.getDefault().language)
         cookies()?.let { jar ->
@@ -58,16 +62,39 @@ class Api(context: Context) {
         jar.flush()
     }
 
-    fun checked(conn: HttpURLConnection): HttpURLConnection {
+    fun checked(conn: HttpURLConnection, expectJson: Boolean = true): HttpURLConnection {
         keepCookies(conn)
         val status = conn.responseCode
+        if (status in 300..399) {
+            val location = conn.getHeaderField("Location")
+            if (Gateway.leavesHost(location, Gateway.hostOf(base))) throw GatewayException(location)
+            throw HttpStatusException(status)
+        }
         if (status == 401) throw AuthExpiredException()
         if (status !in 200..299) throw HttpStatusException(status)
+        if (expectJson && conn.contentType?.contains("html", ignoreCase = true) == true) throw GatewayException(null)
         return conn
     }
 
-    fun getText(path: String): String {
-        val conn = checked(open(path))
+    /** A GET that follows redirects within the server and stops at the first one that leaves it. */
+    private fun get(path: String, expectJson: Boolean): HttpURLConnection {
+        var target = path
+        repeat(4) {
+            val conn = open(target)
+            val status = conn.responseCode
+            val location = conn.getHeaderField("Location")
+            if (status in 300..399 && location != null && !Gateway.leavesHost(location, Gateway.hostOf(base))) {
+                conn.disconnect()
+                target = if (location.startsWith("http")) location else base + location
+                return@repeat
+            }
+            return checked(conn, expectJson)
+        }
+        throw HttpStatusException(310)
+    }
+
+    fun getText(path: String, json: Boolean = true): String {
+        val conn = get(path, json)
         try {
             return conn.inputStream.bufferedReader().use { it.readText() }
         } finally {
@@ -93,7 +120,7 @@ class Api(context: Context) {
         dest.parentFile?.mkdirs()
         // Unique per call: two requests for the same file at once must not write into one temp file.
         val part = File(dest.parentFile, dest.name + "." + System.nanoTime() + ".part")
-        val conn = checked(open(path))
+        val conn = get(path, expectJson = false)
         try {
             var total = 0L
             conn.inputStream.use { input ->
@@ -118,17 +145,27 @@ class Api(context: Context) {
         }
     }
 
-    fun reachable(): Boolean = try {
-        val conn = open("/initialize.json")
-        conn.connectTimeout = 2_500
-        conn.readTimeout = 2_500
-        try {
-            conn.responseCode in 200..299
-        } finally {
-            conn.disconnect()
+    /** One anonymous request to see whether the server answers, and as itself. Blocks. */
+    fun probe(): ServerState = try {
+        var target = "/initialize.json"
+        var result: ServerState? = null
+        repeat(3) {
+            if (result != null) return@repeat
+            val conn = open(target)
+            conn.connectTimeout = 3_000
+            conn.readTimeout = 3_000
+            try {
+                keepCookies(conn)
+                val location = conn.getHeaderField("Location")
+                result = Gateway.classify(conn.responseCode, conn.contentType, location, Gateway.hostOf(base))
+                if (result == null && location != null) target = if (location.startsWith("http")) location else base + location
+            } finally {
+                conn.disconnect()
+            }
         }
+        result ?: ServerState.UNREACHABLE
     } catch (_: IOException) {
-        false
+        ServerState.UNREACHABLE
     }
 
     companion object {

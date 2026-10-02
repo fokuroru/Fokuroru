@@ -57,6 +57,17 @@ back, which is all a sign-in is here. A second account on the same server is jus
 with the same address: switch to it, sign in on the normal page, and its name shows in the list the
 next time it is read. Deleting a profile removes its sign-in and files from the phone only.
 
+**Servers behind a sign-in gateway.** A forward-auth gateway (tinyauth, Authelia, Authentik) answers an
+unauthenticated request with a redirect to its own login page or a 401, not with Fōkurōru's JSON.
+`net/Gateway.kt` tells that apart from "no connection": a redirect to another host, a 401 or 403 on
+the anonymous `/initialize.json`, or HTML where JSON should be. The app then
+- accepts such a server when you add it, and lets the WebView show the gateway's own sign-in page, with
+  navigation staying in the WebView so a provider the gateway sends you to still works;
+- shows a "Your server asks you to sign in again" bar when the gateway session expires, whose button
+  loads the server so the gateway page comes up, while saved chapters and queued progress stay usable;
+- treats the gateway as a pause for background work: queued progress is kept, downloads fail as
+  "Signed out", and a notice (at most daily) asks you to open the app.
+
 **Offline reading without touching the reader.** `shouldInterceptRequest` answers page requests from
 disk when the chapter is saved. The reader manifest is answered from the saved copy only when the
 server can't be reached, with the resume page taken from local progress. A short list of small reads
