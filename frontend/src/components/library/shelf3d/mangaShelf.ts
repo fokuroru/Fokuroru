@@ -680,7 +680,9 @@ export class MangaShelf {
 
     const sheet = new T.Mesh(geo, new T.MeshStandardMaterial({ map, roughness: 0.9, side: T.DoubleSide }))
     sheet.castShadow = true
-    sheet.receiveShadow = true
+    // The paper throws a shadow on the board but does not shade itself: torn and folded, its own shadow came out
+    // as black shards along the edges.
+    sheet.receiveShadow = false
     sheet.frustumCulled = false
 
     const group = new T.Group()
