@@ -604,8 +604,9 @@ export class MangaShelf {
   }
 
   /**
-   * Builds the banner as an object when its tape is going to fail: a sheet that can bend, and the tape on its
-   * corners. The flat, taped banner is part of the board's paint; this one has to move.
+   * Builds the banner as an object when its tape is going to fail: a sheet of paper made of weights and threads,
+   * and the four strips of tape holding its corners. The flat, taped banner is part of the board's paint; this
+   * one has to move.
    */
   private syncBannerObject() {
     if (this.bannerAnim) {
@@ -631,18 +632,29 @@ export class MangaShelf {
     map.colorSpace = T.SRGBColorSpace
     map.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy())
 
-    const columns = 96
-    const geo = new T.PlaneGeometry(sheetW, sheetH, columns, 8)
-    const positions = geo.getAttribute('position')
-    const grid = new Float32Array(positions.count * 2)
-    const { fromRight } = plan.flop
-    for (let i = 0; i < positions.count; i++) {
-      const u = (positions.getX(i) + sheetW / 2) / sheetW
-      const v = (positions.getY(i) + sheetH / 2) / sheetH
-      // From the corner the picture hangs by, so that corner is the origin of the bend.
-      grid[i * 2] = (fromRight ? (1 - u) * sheetW : u * sheetW) - border
-      grid[i * 2 + 1] = (1 - v) * sheetH - border
+    const cols = 56
+    const rows = 7
+    const geo = new T.PlaneGeometry(sheetW, sheetH, cols, rows)
+    const count = (cols + 1) * (rows + 1)
+    const pos = new Float32Array(count * 3)
+    const home = new Float32Array(count * 3)
+    // Laid flat against the board where the painted banner would have been: the picture's top corner on the
+    // holding side is the pivot.
+    const pivot = this.boardPoint(plan.flop.px, plan.flop.py)
+    const left = plan.flop.fromRight ? pivot.x - plan.w - border : pivot.x - border
+    const top = pivot.y + border
+    const zBoard = -146.3
+    for (let r = 0; r <= rows; r++) {
+      for (let c = 0; c <= cols; c++) {
+        const i = r * (cols + 1) + c
+        pos[i * 3] = left + (c * sheetW) / cols
+        pos[i * 3 + 1] = top - (r * sheetH) / rows
+        pos[i * 3 + 2] = zBoard
+      }
     }
+    home.set(pos)
+    const pinned = new Uint8Array(count)
+
     const sheet = new T.Mesh(geo, new T.MeshStandardMaterial({ map, roughness: 0.9, side: T.DoubleSide }))
     sheet.castShadow = true
     sheet.receiveShadow = true
@@ -650,72 +662,76 @@ export class MangaShelf {
 
     const group = new T.Group()
     group.add(sheet)
-    const tapeMap = this.tapeTexture()
-    const strip = new T.MeshBasicMaterial({ map: tapeMap, transparent: true, depthWrite: false, side: T.DoubleSide })
-    const pivot = this.boardPoint(plan.flop.px, plan.flop.py)
-    const d = fromRight ? -1 : 1
-    // Corners as (distance from the holding side, below the top), when each strip lets go (0..1 of the whole
-    // peel), and the way it lies across the corner. The top corner on the holding side never lets go.
+    const strip = new T.MeshBasicMaterial({ map: this.tapeTexture(), transparent: true, depthWrite: false, side: T.DoubleSide })
+    // The four corners: which side of the sheet and which edge, and when (seconds into the peel) the tape lets go.
+    // The top corner on the holding side never does.
+    const { fromRight } = plan.flop
+    const holdingCol = fromRight ? cols : 0
+    const failedCol = fromRight ? 0 : cols
     const corners: [number, number, number][] = [
-      [0, 0, 2],
-      [plan.w, 0, 0.1],
-      [plan.w, plan.h, 0.22],
-      [0, plan.h, 0.42],
+      [holdingCol, 0, Infinity],
+      [failedCol, 0, 3.5],
+      [failedCol, rows, 7],
+      [holdingCol, rows, 11],
     ]
-    const tapes = corners.map(([sx, sy, detach]) => {
+    const tapes = corners.map(([col, r, releaseAt]) => {
+      const patch: number[] = []
+      for (let dr = 0; dr <= 1; dr++) {
+        for (let dc = 0; dc <= 3; dc++) {
+          const c = col === 0 ? col + dc : col - dc
+          const rr = r === 0 ? r + dr : r - dr
+          if (c >= 0 && c <= cols && rr >= 0 && rr <= rows) patch.push(rr * (cols + 1) + c)
+        }
+      }
+      for (const i of patch) pinned[i] = 1
       const mesh = new T.Mesh(new T.PlaneGeometry(46, 14.4), strip)
       mesh.renderOrder = 2
       group.add(mesh)
-      const toRight = (sx === 0) === fromRight
-      const top = sy === 0
-      const angle = ((toRight ? 1 : -1) * (top ? -1 : 1)) * (Math.PI / 4)
-      return { mesh, sx, sy, detach, at: { x: pivot.x + d * sx, y: pivot.y - sy }, angle }
+      const corner = r * (cols + 1) + col
+      // Across the corner on the diagonal, as the painted tape lies.
+      const sideRight = col === cols
+      const angle = ((sideRight ? 1 : -1) * (r === 0 ? -1 : 1)) * (Math.PI / 4)
+      return { mesh, patch, corner, across: col === 0 ? 1 : -1, down: r === 0 ? 1 : -1, releaseAt, released: false, angle }
     })
     row.scene.add(group)
-    const spineS = new Float32Array(columns + 1)
-    for (let i = 0; i <= columns; i++) spineS[i] = (i * sheetW) / columns - border
-    const spine = {
-      s: spineS, x: new Float32Array(columns + 1), y: new Float32Array(columns + 1),
-      z: new Float32Array(columns + 1), a: new Float32Array(columns + 1), r: new Float32Array(columns + 1),
+    this.bannerAnim = {
+      group, geo, cols, rows, pos, prev: pos.slice(), pinned, home,
+      dx: sheetW / cols, dy: sheetH / rows, tapes, start: null, last: 0, still: 0, done: false,
     }
-    this.bannerAnim = { group, geo, grid, spine, tapes, plan, pivot, start: null, finished: null, done: false }
     this.stepBanner(performance.now())
     this.wake()
   }
 
-  /** Moves the sheet and its tape to where they are `now`; true while there is still something to move. */
+  /** Moves the paper and its tape to where they are `now`; true while there is still something to move. */
   private stepBanner(now: number): boolean {
     const b = this.bannerAnim
     if (!b || b.done) return false
-    const flop = b.plan.flop!
     const delay = 2500
-    const length = 22000
-    if (b.start === null) b.start = now + delay
-    const p = Math.max(0, Math.min(1, (now - b.start) / length))
-    if (p >= 1 && b.finished === null) b.finished = now
-    const ease = (t: number) => t * t * (3 - 2 * t)
-    const clamp01 = (t: number) => Math.max(0, Math.min(1, t))
-    const reach = b.plan.w
-
-    // The paper comes away from the board at the free end first and lifts a little towards the viewer, then
-    // gravity takes over: the loose part falls like a pendulum from the corner that still holds, faster as it
-    // goes, and its own weight bends the free end down along the way. Where it lands on something, it rests.
-    const lifting = ease(clamp01(p / 0.25)) * (1 - ease(clamp01((p - 0.35) / 0.3)))
-    const front = reach * (1 - 0.5 * ease(clamp01(p / 0.4)))
-    const tightness = 1 / 150
-    const falling = clamp01((p - 0.18) / 0.62)
-    const gravity = ease(clamp01((p - 0.1) / 0.3))
-    let alpha = 1.5 * falling * falling
-    if (b.finished !== null) {
-      const tau = (now - b.finished) / 1000
-      alpha += 0.04 * Math.exp(-0.8 * tau) * Math.sin(2.6 * tau)
-      if (tau > 7) b.done = true
+    if (b.start === null) {
+      b.start = now + delay
+      b.last = now
     }
-    const d = flop.fromRight ? -1 : 1
+    const seconds = (now - b.start) / 1000
+    const frame = Math.min(0.05, Math.max(0, (now - b.last) / 1000))
+    b.last = now
 
-    // What it could land on: the tops of the books and anything else standing on the shelf, in the board's own
-    // coordinates. A banner that comes down onto one rests on it instead of passing behind or through it.
+    // Tape lets go in turn, and the loose corner is pushed a little off the board to start it peeling.
+    for (const t of b.tapes) {
+      if (!t.released && seconds >= t.releaseAt) {
+        t.released = true
+        for (const i of t.patch) {
+          // The top holding corner keeps its patch; a released corner's patch is free.
+          b.pinned[i] = 0
+          b.prev[i * 3 + 2] -= 2.2
+        }
+      }
+    }
+
+    const { pos, prev, pinned, home, cols, rows } = b
+    const stride = cols + 1
+    const count = stride * (rows + 1)
     const half = this.logicalWidth / 2
+    // What it can land on, in the board's coordinates: the tops of the books, props, and the plank.
     const obstacles: { x0: number; x1: number; top: number }[] = []
     for (const item of this.items) {
       if (item.pulledAt !== undefined) continue
@@ -724,105 +740,120 @@ export class MangaShelf {
     for (const prop of this.props) {
       obstacles.push({ x0: prop.body.bounds.min.x - half, x1: prop.body.bounds.max.x - half, top: 380 - prop.body.bounds.min.y })
     }
-    // The plank itself, which is as far down as anything falls.
     obstacles.push({ x0: -this.wallSize.w / 2, x1: this.wallSize.w / 2, top: 19.5 })
-    const lowerEdge = b.plan.h + 3
+    const zBoard = -146.3
 
-    // The sheet's spine, from the holding side out: heading in the board's plane (the turn, plus the sag) and how
-    // far it has rolled towards the viewer. Fills the arrays for a given turn and returns how far the lower edge
-    // sinks into whatever is beneath it.
-    const steps = b.spine.s.length
-    const spineX = b.spine.x
-    const spineY = b.spine.y
-    const spineZ = b.spine.z
-    const spineA = b.spine.a
-    const spineR = b.spine.r
-    const shape = (angle: number) => {
-      const turn = -d * angle
-      let x = 0
-      let y = 0
-      let z = 0
-      let roll = 0
-      let sunk = 0
-      for (let i = 0; i < steps; i++) {
-        const sv = b.spine.s[i]
-        let bend = turn
-        if (i > 0) {
-          const ds = sv - b.spine.s[i - 1]
-          roll += tightness * lifting * ease(clamp01((sv - front) / (reach * 0.3 + 1))) * ds
-          // Weight bends the sheet most where it is most nearly level, and hardly at all once it hangs straight.
-          const across = Math.max(0.12, Math.cos(Math.min(angle, 1.45)))
-          bend = turn - d * gravity * 1.15 * across * clamp01(sv / reach) ** 2
-          x += d * Math.cos(bend) * Math.cos(roll) * ds
-          y += d * Math.sin(bend) * Math.cos(roll) * ds
-          z += Math.sin(roll) * ds
+    const steps = Math.max(1, Math.round(frame * 120))
+    const dt = frame / steps
+    const gravity = 330
+    const air = 0.9
+    let moved = 0
+    for (let step = 0; step < steps; step++) {
+      for (let i = 0; i < count; i++) {
+        if (pinned[i]) continue
+        const k = i * 3
+        const vx = (pos[k] - prev[k]) * (1 - air * dt)
+        const vy = (pos[k + 1] - prev[k + 1]) * (1 - air * dt)
+        const vz = (pos[k + 2] - prev[k + 2]) * (1 - air * dt)
+        prev[k] = pos[k]
+        prev[k + 1] = pos[k + 1]
+        prev[k + 2] = pos[k + 2]
+        pos[k] += vx
+        pos[k + 1] += vy - gravity * dt * dt
+        pos[k + 2] += vz
+      }
+      // Threads: each pair of neighbours wants to stay as far apart as paper keeps them. A few passes, so it
+      // stays about the size it is without going stiff: nothing here resists bending, which is what makes it floppy.
+      for (let pass = 0; pass < 5; pass++) {
+        for (let r = 0; r <= rows; r++) {
+          for (let c = 0; c <= cols; c++) {
+            const i = r * stride + c
+            if (c < cols) this.thread(b, i, i + 1, b.dx)
+            if (r < rows) this.thread(b, i, i + stride, b.dy)
+            if (c < cols && r < rows) {
+              this.thread(b, i, i + stride + 1, Math.hypot(b.dx, b.dy))
+              this.thread(b, i + 1, i + stride, Math.hypot(b.dx, b.dy))
+            }
+          }
         }
-        spineA[i] = bend
-        spineX[i] = x
-        spineY[i] = y
-        spineZ[i] = z
-        spineR[i] = roll
-        // Where the lower edge of the sheet is here, against the tops beneath it.
-        const ex = b.pivot.x + x + Math.sin(bend) * lowerEdge
-        const ey = b.pivot.y + y - Math.cos(bend) * lowerEdge
-        for (const o of obstacles) if (ex >= o.x0 && ex <= o.x1 && ey < o.top) sunk = Math.max(sunk, o.top - ey)
-      }
-      return sunk
-    }
-    // The turn it is heading for, held back at the point where it would first touch something.
-    let landed = alpha
-    if (shape(alpha) > 0.5) {
-      let lo = 0
-      let hi = alpha
-      for (let i = 0; i < 10; i++) {
-        const mid = (lo + hi) / 2
-        if (shape(mid) > 0.5) hi = mid
-        else lo = mid
-      }
-      landed = lo
-    }
-    shape(landed)
-    // Interpolated point on the spine at a distance `sv` from the holding side.
-    const at = (sv: number) => {
-      const t = Math.max(0, Math.min(steps - 1, ((sv - b.spine.s[0]) / (b.spine.s[steps - 1] - b.spine.s[0])) * (steps - 1)))
-      const i = Math.min(steps - 2, Math.floor(t))
-      const f = t - i
-      const mix = (v: Float32Array) => v[i] + (v[i + 1] - v[i]) * f
-      return { x: mix(spineX), y: mix(spineY), z: mix(spineZ), a: mix(spineA), r: mix(spineR) }
-    }
-    const zBase = -146.3
-    const place = (sv: number, down: number) => {
-      const c = at(sv)
-      // "Down" across the sheet is turned with the spine's heading.
-      return {
-        x: b.pivot.x + c.x + Math.sin(c.a) * down,
-        y: b.pivot.y + c.y - Math.cos(c.a) * down,
-        z: zBase + c.z,
-        c,
+        for (let i = 0; i < count; i++) {
+          const k = i * 3
+          if (pinned[i]) {
+            pos[k] = home[k]
+            pos[k + 1] = home[k + 1]
+            pos[k + 2] = home[k + 2]
+            continue
+          }
+          // Not through the board, and not through whatever stands beneath it: it comes down onto the top of a
+          // book, a prop or the plank and rests there.
+          if (pos[k + 2] < zBoard) pos[k + 2] = zBoard
+          for (const o of obstacles) {
+            if (pos[k] >= o.x0 && pos[k] <= o.x1 && pos[k + 1] < o.top && prev[k + 1] >= o.top - 4) {
+              pos[k + 1] = o.top
+              // Friction: it does not slide off the way ice would.
+              prev[k] += (pos[k] - prev[k]) * 0.35
+              prev[k + 2] += (pos[k + 2] - prev[k + 2]) * 0.35
+              prev[k + 1] = pos[k + 1]
+            }
+          }
+        }
       }
     }
-    const positions = b.geo.getAttribute('position')
-    for (let i = 0; i < positions.count; i++) {
-      const at2 = place(b.grid[i * 2], b.grid[i * 2 + 1])
-      positions.setXYZ(i, at2.x, at2.y, at2.z)
+    for (let i = 0; i < count; i++) {
+      const k = i * 3
+      moved = Math.max(moved, Math.abs(pos[k] - prev[k]) + Math.abs(pos[k + 1] - prev[k + 1]) + Math.abs(pos[k + 2] - prev[k + 2]))
     }
-    positions.needsUpdate = true
+
+    const attr = b.geo.getAttribute('position')
+    for (let i = 0; i < count; i++) attr.setXYZ(i, pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2])
+    attr.needsUpdate = true
     b.geo.computeVertexNormals()
     b.geo.computeBoundingSphere()
+
     for (const t of b.tapes) {
-      if (p < t.detach) {
-        t.mesh.position.set(t.at.x, t.at.y, zBase + 0.6)
+      const k = t.corner * 3
+      if (!t.released) {
+        t.mesh.position.set(home[k] + t.across * -1, home[k + 1] + t.down * 1, zBoard + 0.6)
         t.mesh.rotation.set(0, 0, t.angle)
       } else {
-        // Let go of the board and still stuck to the paper: it goes where that corner of the paper goes, a little
-        // proud of it, and turns with the paper as it rolls.
-        const lifted = Math.min(1, (p - t.detach) / 0.08)
-        const there = place(t.sx, t.sy)
-        t.mesh.position.set(there.x + d * 2 * lifted, there.y - 2 * lifted, there.z + 1 + 3 * lifted)
-        t.mesh.rotation.set(0, -d * there.c.r, t.angle + there.c.a)
+        // Let go of the board and still stuck to the paper: it goes where its corner of the paper goes and turns
+        // with it.
+        const along = t.corner + (t.across > 0 ? 3 : -3)
+        const ka = Math.max(0, Math.min(count - 1, along)) * 3
+        const tx = (pos[ka] - pos[k]) * t.across
+        const ty = (pos[ka + 1] - pos[k + 1]) * t.across
+        const tz = (pos[ka + 2] - pos[k + 2]) * t.across
+        const heading = Math.atan2(ty, tx)
+        t.mesh.position.set(pos[k] - t.across, pos[k + 1] + t.down, pos[k + 2] + 1)
+        t.mesh.rotation.set(0, -Math.atan2(tz, Math.hypot(tx, ty)), t.angle + heading)
       }
     }
+
+    if (seconds > 11) {
+      b.still = moved < 0.02 ? b.still + frame : 0
+      if (b.still > 1.5) b.done = true
+    }
     return !b.done
+  }
+
+  /** One thread of the paper: pulls or pushes its two ends back towards their resting distance. */
+  private thread(b: BannerAnim, i: number, j: number, rest: number) {
+    const { pos, pinned } = b
+    const a = i * 3
+    const c = j * 3
+    const dx = pos[c] - pos[a]
+    const dy = pos[c + 1] - pos[a + 1]
+    const dz = pos[c + 2] - pos[a + 2]
+    const length = Math.hypot(dx, dy, dz) || 1e-6
+    const pull = (length - rest) / length
+    const wa = pinned[i] ? 0 : pinned[j] ? 1 : 0.5
+    const wc = pinned[j] ? 0 : pinned[i] ? 1 : 0.5
+    pos[a] += dx * pull * wa
+    pos[a + 1] += dy * pull * wa
+    pos[a + 2] += dz * pull * wa
+    pos[c] -= dx * pull * wc
+    pos[c + 1] -= dy * pull * wc
+    pos[c + 2] -= dz * pull * wc
   }
 
   setTheme(theme: ShelfTheme) {
@@ -3344,20 +3375,29 @@ interface Taped {
   flop: { fromRight: boolean; angle: number; px: number; py: number } | null
 }
 
-/** The banner whose tape is giving way: a bendable sheet and the four strips of tape, moved every frame. */
+/**
+ * The banner whose tape is giving way: a sheet of paper simulated as a grid of weights joined by threads, so it
+ * is as floppy as paper is. The tape holds some of the weights still; when it lets go, they are free.
+ */
 interface BannerAnim {
   group: T.Group
   geo: T.PlaneGeometry
-  /** Each vertex's distance from the side that holds, and below the top edge, in board pixels. */
-  grid: Float32Array
-  /** The sheet's spine, from the holding side out: distance along it, where it is, how it is turned and how far rolled. */
-  spine: { s: Float32Array; x: Float32Array; y: Float32Array; z: Float32Array; a: Float32Array; r: Float32Array }
-  tapes: { mesh: T.Mesh; sx: number; sy: number; detach: number; at: { x: number; y: number }; angle: number }[]
-  plan: Taped
-  pivot: { x: number; y: number }
+  cols: number
+  rows: number
+  /** x, y, z of every weight, now and a moment ago (the simulation steps by the difference). */
+  pos: Float32Array
+  prev: Float32Array
+  /** 1 while a strip of tape holds this weight to the board. */
+  pinned: Uint8Array
+  /** The pinned position of a held weight. */
+  home: Float32Array
+  dx: number
+  dy: number
+  tapes: { mesh: T.Mesh; patch: number[]; corner: number; across: number; down: number; releaseAt: number; released: boolean; angle: number }[]
   start: number | null
-  finished: number | null
-  /** Nothing left to animate. */
+  last: number
+  /** Seconds the sheet has moved less than a hair, once every tape has gone. */
+  still: number
   done: boolean
 }
 
