@@ -740,16 +740,16 @@ export class MangaShelf {
    */
   private bannerBoxes() {
     const half = this.logicalWidth / 2
-    const boxes: { cx: number; cy: number; cz: number; hw: number; hh: number; hz: number; cos: number; sin: number }[] = []
+    const boxes: { cx: number; cy: number; cz: number; hw: number; hh: number; hz: number; cos: number; sin: number; front: boolean }[] = []
     const wallFace = -148
-    const addBox = (x0: number, x1: number, y0: number, y1: number, front: number, angle = 0, cx?: number, cy?: number, hw?: number, hh?: number) => {
+    const addBox = (x0: number, x1: number, y0: number, y1: number, front: number, angle = 0, cx?: number, cy?: number, hw?: number, hh?: number, faceOut = false) => {
       const box = {
         cx: cx ?? (x0 + x1) / 2, cy: cy ?? (y0 + y1) / 2, cz: (wallFace + front) / 2,
         hw: hw ?? (x1 - x0) / 2, hh: hh ?? (y1 - y0) / 2, hz: (front - wallFace) / 2,
-        cos: Math.cos(angle), sin: Math.sin(angle),
+        cos: Math.cos(angle), sin: Math.sin(angle), front: faceOut,
       }
       // Something with no usable size or depth is not a thing to land on, and would poison every weight it touched.
-      if (Object.values(box).every(Number.isFinite) && box.hw > 0 && box.hh > 0 && box.hz > 0) boxes.push(box)
+      if (Object.values(box).every((v) => typeof v === 'boolean' || Number.isFinite(v)) && box.hw > 0 && box.hh > 0 && box.hz > 0) boxes.push(box)
     }
     for (const item of this.items) {
       if (item.pulledAt !== undefined) continue
@@ -765,6 +765,14 @@ export class MangaShelf {
     }
     // The plank itself, which is as far down as anything falls.
     addBox(-this.wallSize.w / 2, this.wallSize.w / 2, -200, 19.5, 14)
+    // The wooden frame round the board: three bars standing proud of its face, as solid as anything else.
+    const w = this.wallSize.w
+    const h = this.wallSize.h
+    const t = 12
+    const frontOfFrame = -136
+    addBox(-(w / 2 + t), w / 2 + t, 17 + h, 17 + h + t, frontOfFrame, 0, undefined, undefined, undefined, undefined, true)
+    addBox(-(w / 2 + t), -w / 2, 17 - t / 2, 17 + h + t / 2, frontOfFrame, 0, undefined, undefined, undefined, undefined, true)
+    addBox(w / 2, w / 2 + t, 17 - t / 2, 17 + h + t / 2, frontOfFrame, 0, undefined, undefined, undefined, undefined, true)
     return boxes
   }
 
@@ -791,7 +799,8 @@ export class MangaShelf {
       let nz = lz
       if (up <= dx && up <= dz) ny = (ly > 0 ? 1 : -1) * (hh + 0.3)
       else if (dx <= dz) nx = (lx > 0 ? 1 : -1) * (hw + 0.3)
-      else nz = (lz >= 0 ? 1 : -1) * (hz + 0.3)
+      // Paper lying on a frame is on its face, never pushed in behind it.
+      else nz = ((box.front || lz >= 0) ? 1 : -1) * (hz + 0.3)
       at.x = box.cx + nx * box.cos - ny * box.sin
       at.y = box.cy + nx * box.sin + ny * box.cos
       at.z = box.cz + nz
@@ -803,7 +812,14 @@ export class MangaShelf {
   /** Moves the paper and its tape to where they are `now`; true while there is still something to move. */
   private stepBanner(now: number): boolean {
     const b = this.bannerAnim
-    if (!b || b.done) return false
+    if (!b) return false
+    // The page scrolling jolts the shelf, and everything on it with it, the paper too.
+    const jolt = this.rows[0]?.physics.shelfAcceleration ?? { x: 0, y: 0 }
+    if (b.done && Math.hypot(jolt.x, jolt.y) > 0.05) {
+      b.done = false
+      b.still = 0
+    }
+    if (b.done) return false
     const delay = 2500
     if (b.start === null) {
       b.start = now + delay
@@ -859,8 +875,8 @@ export class MangaShelf {
         prev[k] = pos[k]
         prev[k + 1] = pos[k + 1]
         prev[k + 2] = pos[k + 2]
-        pos[k] += vx
-        pos[k + 1] += vy - gravity * dt * dt
+        pos[k] += vx - jolt.x * gravity * dt * dt
+        pos[k + 1] += vy - gravity * dt * dt + jolt.y * gravity * dt * dt
         pos[k + 2] += vz
       }
       // Threads: each pair of neighbours wants to stay as far apart as paper keeps them. A few passes, so it
@@ -945,7 +961,7 @@ export class MangaShelf {
     for (const t of b.tapes) {
       const k = t.corner * 3
       if (!t.released) {
-        t.mesh.position.set(home[k] + t.across * -1, home[k + 1] + t.down * 1, zBoard + 0.6)
+        t.mesh.position.set(home[k] + t.across * -1, home[k + 1] + t.down * 1, Math.max(zBoard, home[k + 2]) + 0.6)
         t.mesh.rotation.set(0, 0, t.angle)
       } else {
         // Let go of the board and still stuck to the paper: it goes where its corner of the paper goes and turns
@@ -3517,11 +3533,18 @@ export class MangaShelf {
     // The strip goes down where it is, on the paper it is stuck to; only the weights under it are held.
     const under = new Set(strip.patch)
     for (const i of hold.patch) if (!under.has(i)) b.pinned[i] = 0
+    // Pressed onto whatever is there: the board, or the frame standing proud of it.
+    const boxes = this.bannerBoxes()
+    const at = { x: 0, y: 0, z: 0 }
     for (const i of strip.patch) {
       b.pinned[i] = 1
-      b.home[i * 3] = b.pos[i * 3]
-      b.home[i * 3 + 1] = b.pos[i * 3 + 1]
-      b.home[i * 3 + 2] = -146.3
+      at.x = b.pos[i * 3]
+      at.y = b.pos[i * 3 + 1]
+      at.z = -146.3
+      this.pushOut(boxes, at)
+      b.home[i * 3] = at.x
+      b.home[i * 3 + 1] = at.y
+      b.home[i * 3 + 2] = at.z
     }
     strip.released = false
     strip.releaseAt = Infinity
