@@ -117,6 +117,39 @@ public sealed class SeriesPreviewService(
         }
     }
 
+    /// <summary>
+    /// Throws away a preview's downloaded pages, whether or not anyone has it open. Previews belong to the
+    /// instance rather than to one reader, so it goes for everyone; the next preview fetches it again.
+    /// </summary>
+    public void Discard(long providerId)
+    {
+        lock (_sync)
+        {
+            if (_jobs.TryRemove(providerId, out var job))
+            {
+                job.Cancel();
+            }
+        }
+
+        DeleteProvider(paths.SeriesPreviewDir, providerId, logger);
+    }
+
+    internal static void DeleteProvider(string previewDir, long providerId, ILogger? logger = null)
+    {
+        var dir = Path.Combine(previewDir, providerId.ToString(CultureInfo.InvariantCulture));
+        try
+        {
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, recursive: true);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            logger?.LogWarning(ex, "Could not delete the preview for {ProviderId}", providerId);
+        }
+    }
+
     /// <summary>The file holding one page of the current attempt, or null when it has not landed yet.</summary>
     public string? PageFile(long providerId, int userId, int index)
     {

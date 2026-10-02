@@ -57,6 +57,23 @@ public class SeriesPreviewTests
     }
 
     [Fact]
+    public void Deleting_a_preview_removes_only_that_one()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"preview-del-{Guid.NewGuid():N}");
+        try
+        {
+            SeedPreview(dir, 11, ageDays: 1);
+            SeedPreview(dir, 22, ageDays: 2);
+
+            SeriesPreviewService.DeleteProvider(dir, 11);
+            SeriesPreviewService.DeleteProvider(dir, 999);
+
+            Assert.Equal([22L], SeriesPreviewService.CachedProviders(dir));
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
     public void Lists_nothing_when_no_preview_was_ever_made()
     {
         Assert.Empty(SeriesPreviewService.CachedProviders(Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}")));

@@ -3780,6 +3780,10 @@ msgstr "Could not build a plan for this series."
 msgid "Could not copy to the clipboard. Select the text and copy it by hand."
 msgstr "Could not copy to the clipboard. Select the text and copy it by hand."
 
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Could not delete the preview"
+msgstr "Could not delete the preview"
+
 #. placeholder {0}: String(error)
 #: src/pages/discover/AnimeSignalsSection.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
@@ -4141,6 +4145,7 @@ msgstr "Default source order updated"
 msgid "Defining"
 msgstr "Defining"
 
+#: src/components/discover/PreviewChapterButton.tsx
 #: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
@@ -4185,6 +4190,10 @@ msgstr "Delete chapters?"
 #: src/components/NotificationsSection.tsx
 msgid "Delete connection"
 msgstr "Delete connection"
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Delete downloaded preview"
+msgstr "Delete downloaded preview"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Delete file"
@@ -4275,6 +4284,10 @@ msgstr "Delete the rail \"{railName}\"? Its filters go with it."
 #: src/components/RelinkFilesModal.tsx
 msgid "Delete them, free {emptiedSize}"
 msgstr "Delete them, free {emptiedSize}"
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Delete this preview?"
+msgstr "Delete this preview?"
 
 #: src/pages/RequestsPage.tsx
 msgid "Delete this request?"
@@ -9293,6 +9306,10 @@ msgid "Preview · {chapterName} · via {source}"
 msgstr "Preview · {chapterName} · via {source}"
 
 #: src/components/discover/PreviewChapterButton.tsx
+msgid "Preview deleted"
+msgstr "Preview deleted"
+
+#: src/components/discover/PreviewChapterButton.tsx
 msgid "Preview first chapter"
 msgstr "Preview first chapter"
 
@@ -12414,6 +12431,10 @@ msgstr "The download needs a decision before it can be imported. Check Activity.
 #: src/pages/reader/DownloadSplash.tsx
 msgid "The download was cancelled."
 msgstr "The download was cancelled."
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "The downloaded first chapter of {title} is removed for everyone on this server. You can preview it again later."
+msgstr "The downloaded first chapter of {title} is removed for everyone on this server. You can preview it again later."
 
 #: src/pages/HealthPage.tsx
 msgid "The file is already off the disk, so nothing is deleted. This drops the record that still says the chapters are downloaded, which is why they read as available on the series page."

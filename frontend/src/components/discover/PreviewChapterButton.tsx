@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Button, Loader, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { IconBook, IconCircleCheckFilled, IconRefresh } from '@tabler/icons-react'
+import { IconBook, IconCircleCheckFilled, IconRefresh, IconTrash } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { releaseSeriesPreview, useSeriesPreview, useStartSeriesPreview } from '../../api/preview'
+import { useQueryClient } from '@tanstack/react-query'
+import { deleteSeriesPreview, releaseSeriesPreview, useSeriesPreview, useStartSeriesPreview } from '../../api/preview'
+import { ConfirmDialog } from '../ui/ConfirmDialog'
 import { useAuth } from '../../auth/AuthProvider'
 import { previewCacheKey, readPreviewCache, writePreviewCache } from '../../api/previewCache'
 
@@ -26,7 +28,10 @@ export function PreviewChapterButton({
   const { me } = useAuth()
   const cacheKey = previewCacheKey(me?.id, providerId, 'chapter-enabled')
   const [remembered] = useState(() => readPreviewCache<boolean>(cacheKey)?.data === true)
-  const { mutate: start, error: startError, isPending: starting, isSuccess: started } = useStartSeriesPreview()
+  const queryClient = useQueryClient()
+  const { mutate: start, reset, error: startError, isPending: starting, isSuccess: started } = useStartSeriesPreview()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const { data: preview, isError: lost } = useSeriesPreview(providerId, started)
   const restoring = useRef(false)
   useEffect(() => {
@@ -136,6 +141,24 @@ export function PreviewChapterButton({
     }
   }
 
+  const discard = async () => {
+    setDeleting(true)
+    try {
+      await deleteSeriesPreview(providerId)
+      // Forget it everywhere this device remembers it, or the card would fetch it again on its own.
+      writePreviewCache(cacheKey, false)
+      reset()
+      queryClient.removeQueries({ queryKey: ['series-preview', providerId] })
+      void queryClient.invalidateQueries({ queryKey: ['series-previews'] })
+      notifications.show({ message: t`Preview deleted`, color: 'var(--ok)' })
+      setConfirmDelete(false)
+    } catch (error) {
+      notifications.show({ message: error instanceof Error ? error.message : t`Could not delete the preview`, color: 'var(--danger)' })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <Stack gap={4}>
       <Button
@@ -167,6 +190,29 @@ export function PreviewChapterButton({
       >
         {caption}
       </Text>
+      {status === 'ready' && !failure && (
+        <Button
+          size="compact-xs"
+          variant="subtle"
+          color="gray"
+          leftSection={<IconTrash size={13} />}
+          onClick={() => setConfirmDelete(true)}
+        >
+          <Trans>Delete downloaded preview</Trans>
+        </Button>
+      )}
+      <ConfirmDialog
+        opened={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        title={<Trans>Delete this preview?</Trans>}
+        confirmLabel={<Trans>Delete</Trans>}
+        onConfirm={() => void discard()}
+        loading={deleting}
+      >
+        <Trans>
+          The downloaded first chapter of {title} is removed for everyone on this server. You can preview it again later.
+        </Trans>
+      </ConfirmDialog>
     </Stack>
   )
 }

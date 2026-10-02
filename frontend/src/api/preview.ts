@@ -49,6 +49,11 @@ export function releaseSeriesPreview(providerId: string) {
   void api(`/preview/${encodeURIComponent(providerId)}`, { method: 'DELETE' }).catch(() => {})
 }
 
+/** Deletes the downloaded pages for everyone; the preview can be started again later. */
+export async function deleteSeriesPreview(providerId: string) {
+  await api(`/preview/${encodeURIComponent(providerId)}/files`, { method: 'DELETE' })
+}
+
 export async function previewPageUrl(providerId: string, page: number, version: string): Promise<string> {
   const init = await getInitialize()
   return `${init.apiRoot}/preview/${encodeURIComponent(providerId)}/page/${page}?v=${encodeURIComponent(version)}`

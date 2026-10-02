@@ -81,6 +81,14 @@ public class PreviewController(
     public IActionResult Get(long providerId) =>
         previews.Snapshot(providerId, currentUser.UserId, localizer) is { } snapshot ? Ok(snapshot) : NotFound();
 
+    /// <summary>Deletes the downloaded pages of a preview, for everyone. The next preview downloads it again.</summary>
+    [HttpDelete("{providerId:long}/files")]
+    public IActionResult Discard(long providerId)
+    {
+        previews.Discard(providerId);
+        return NoContent();
+    }
+
     [HttpDelete("{providerId:long}")]
     public IActionResult Release(long providerId)
     {

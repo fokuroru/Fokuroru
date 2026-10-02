@@ -4520,6 +4520,10 @@ msgstr "Nie udało się utworzyć planu dla tej serii."
 msgid "Could not copy to the clipboard. Select the text and copy it by hand."
 msgstr "Nie udało się skopiować do schowka. Zaznacz tekst i skopiuj go ręcznie."
 
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Could not delete the preview"
+msgstr ""
+
 #. placeholder {0}: String(error)
 #: src/pages/discover/AnimeSignalsSection.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
@@ -4940,6 +4944,7 @@ msgstr "Zaktualizowano domyślną kolejność źródeł"
 msgid "Defining"
 msgstr "Definiujący"
 
+#: src/components/discover/PreviewChapterButton.tsx
 #: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
 #: src/components/rails/CustomRailSection.tsx
@@ -4993,6 +4998,10 @@ msgstr "Usunąć rozdziały?"
 #, fuzzy
 msgid "Delete connection"
 msgstr "Usuń połączenie"
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Delete downloaded preview"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Delete file"
@@ -5096,6 +5105,10 @@ msgstr "Usunąć sekcję „{railName}”? Jej filtry też zostaną usunięte."
 #, fuzzy
 msgid "Delete them, free {emptiedSize}"
 msgstr "Usuń je i zwolnij {emptiedSize}"
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Delete this preview?"
+msgstr ""
 
 #: src/pages/RequestsPage.tsx
 #, fuzzy
@@ -11082,6 +11095,10 @@ msgid "Preview · {chapterName} · via {source}"
 msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
+msgid "Preview deleted"
+msgstr ""
+
+#: src/components/discover/PreviewChapterButton.tsx
 msgid "Preview first chapter"
 msgstr ""
 
@@ -14772,6 +14789,10 @@ msgstr ""
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "The download was cancelled."
+msgstr ""
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "The downloaded first chapter of {title} is removed for everyone on this server. You can preview it again later."
 msgstr ""
 
 #: src/pages/HealthPage.tsx
