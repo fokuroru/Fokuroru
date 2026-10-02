@@ -19,6 +19,12 @@ class WebBridge(private val activity: MainActivity) {
     @JavascriptInterface
     fun version(): String = BuildConfig.VERSION_NAME
 
+    /** The page reports whether a downward pull may start a refresh: at the top, and not on a surface that drags. */
+    @JavascriptInterface
+    fun pull(allowed: Boolean) {
+        activity.pullAllowed = allowed
+    }
+
     /** The oldest server this build was made to work with. */
     @JavascriptInterface
     fun serverVersion(): String = BuildConfig.SERVER_VERSION

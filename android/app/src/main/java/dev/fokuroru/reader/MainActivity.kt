@@ -60,6 +60,10 @@ import kotlin.concurrent.thread
 class MainActivity : AppCompatActivity() {
     private lateinit var prefs: Prefs
     private lateinit var web: WebView
+    private lateinit var refresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+
+    /** Set by the page; false while it is scrolled, in the reader, or being dragged on. */
+    @Volatile var pullAllowed = true
     private lateinit var root: View
     private lateinit var offlineView: View
     private lateinit var gatewayBanner: View
@@ -107,6 +111,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         root = findViewById(R.id.root)
         web = findViewById(R.id.web)
+        refresh = findViewById(R.id.refresh)
+        refresh.setColorSchemeResources(R.color.brand)
+        refresh.setOnChildScrollUpCallback { _, _ -> reading || !pullAllowed || web.scrollY > 0 }
+        refresh.setOnRefreshListener {
+            offline.forgetReachability()
+            pageFailed = false
+            web.reload()
+            refresh.postDelayed({ refresh.isRefreshing = false }, 6_000)
+        }
         offlineView = findViewById(R.id.offline)
         gatewayBanner = findViewById(R.id.gateway_banner)
         versionBanner = findViewById(R.id.version_banner)
@@ -253,6 +266,7 @@ class MainActivity : AppCompatActivity() {
                 if (url.startsWith("chrome-error:")) return
                 pageFailed = false
                 currentUrl = url
+                pullAllowed = true
                 routeChanged(url)
                 view.postDelayed({ matchBarsToPage(); checkServer() }, 400)
             }
@@ -266,7 +280,9 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 if (url.startsWith("chrome-error:")) return
                 if (!pageFailed) offlineView.visibility = View.GONE
+                refresh.isRefreshing = false
                 pushLayout()
+                installPullGuard()
                 matchBarsToPage()
                 if (offServer()) {
                     gatewayBanner.visibility = View.GONE
@@ -587,6 +603,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ---- device ----
+
+    /** Tells the app when a pull would be a scroll or a drag, not a refresh. Installed once per page load. */
+    private fun installPullGuard() {
+        web.evaluateJavascript(
+            "(function(){if(window.__makiPull)return;window.__makiPull=true;var top=true,blocked=false,last=null;" +
+                "function send(){var v=top&&!blocked;if(v!==last){last=v;MakiNative.pull(v)}}" +
+                "document.addEventListener('scroll',function(e){var t=e.target;" +
+                "var y=(t===document||t===document.documentElement||t===document.body)?(window.scrollY||document.documentElement.scrollTop||0):t.scrollTop;" +
+                "top=y<=0;send()},true);" +
+                "document.addEventListener('touchstart',function(e){var t=e.target;" +
+                "blocked=!!(t&&t.closest&&t.closest('[role=dialog],.reader-root,.tapzone-preview,input,textarea,[data-no-pull]'));send()},true)})()",
+            null,
+        )
+    }
 
     /**
      * The mobile view's footer judges "up to date" by what it was built with, and an older server's web build

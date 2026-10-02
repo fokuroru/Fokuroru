@@ -11,6 +11,7 @@ activity = "1.9.2"
 junit = "4.13.2"
 orgJson = "20240303"
 codeScanner = "16.1.0"
+swipeRefresh = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -21,6 +22,7 @@ androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 play-code-scanner = { module = "com.google.android.gms:play-services-code-scanner", version.ref = "codeScanner" }
+androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swipeRefresh" }
 junit = { module = "junit:junit", version.ref = "junit" }
 org-json = { module = "org.json:json", version.ref = "orgJson" }
 
