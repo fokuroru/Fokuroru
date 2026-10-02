@@ -1805,43 +1805,6 @@ export class MangaShelf {
       })
       c.restore()
     }
-    // ---- a banner, taped along the top of the board, 40 to 60 percent of its width, and only if it fits:
-    // clear of the other things already on the board and inside the band above where the books stand.
-    // Its own random stream, so showing it does not move any of the chalk.
-    let taped: Taped | null = null
-    const banner = this.bannerImg
-    if (banner && banner.naturalWidth > 0 && banner.naturalHeight > 0 && this.board) {
-      let bs = (this.seed ^ 0x9e3779b9) | 0
-      const brnd = () => {
-        bs = (bs + 0x6d2b79f5) | 0
-        let t = Math.imul(bs ^ (bs >>> 15), 1 | bs)
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-      }
-      const bw = w * (BANNER_WIDTH_MIN + brnd() * (BANNER_WIDTH_MAX - BANNER_WIDTH_MIN))
-      const bh = (bw * banner.naturalHeight) / banner.naturalWidth
-      const allowance = 14
-      const hit = (x: number, y: number, bx: number, by: number) => solid.some((o) =>
-        x - allowance < o.x + o.w && x + bx + allowance > o.x && y - allowance < o.y + o.h && y + by + allowance > o.y)
-      const y = margin + allowance
-      // The tape is going to fail on one side (2% of the time): the banner goes up the same way, and then
-      // comes away as a sheet of paper. `__makiBannerFlop` forces it, for looking at it.
-      const failing = brnd() < BANNER_FLOP_SHARE || (window as { __makiBannerFlop?: boolean }).__makiBannerFlop === true
-      const fromRight = brnd() < 0.5
-      if (bw >= 110 && bh <= h * 0.35) {
-        // Anywhere along the top: a few random spots, then the two corners, and the first one clear is used.
-        const room = w - margin * 2 - bw
-        const tries = room > 0 ? [margin + brnd() * room, margin + brnd() * room, margin + brnd() * room, margin, margin + room] : []
-        const x = tries.find((candidate) => !hit(candidate, y, bw, bh))
-        if (x !== undefined) {
-          taped = {
-            x, y, w: bw, h: bh, tilt: (brnd() - 0.5) * 0.05,
-            flop: failing ? { fromRight, angle: 0, px: fromRight ? x + bw : x, py: y } : null,
-          }
-          solid.push({ x: x - allowance, y: y - allowance, w: bw + allowance * 2, h: bh + allowance * 2 })
-        }
-      }
-    }
     const overlaps = (a: Spot, pad: number) =>
       solid.some((b) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y)
     const spotFor = (bw: number, bh: number, pad: number, upperBias: number): Spot | null => {
@@ -2093,6 +2056,7 @@ export class MangaShelf {
       }
       drawLines()
     }
+    const doodleSpots: Spot[] = []
     if (rnd() < S_DOODLE_SHARE) {
       const styles: CoolStyle[] = ['line', 'tint', 'hatch', 'dots', 'block']
       const count = 3 + Math.floor(rnd() * 5)
@@ -2107,6 +2071,7 @@ export class MangaShelf {
           spot = spotFor(h * 0.6, h * 1.05, 12, 0.5)
         }
         if (!spot) continue
+        doodleSpots.push(spot)
         c.save()
         c.translate(spot.x + spot.w / 2, spot.y + spot.h / 2)
         c.rotate(jit(i === 0 ? 0.25 : 0.6))
@@ -2115,6 +2080,43 @@ export class MangaShelf {
       }
     }
 
+    // ---- a banner, taped along the top of the board, 40 to 60 percent of its width, and only if it fits:
+    // clear of everything else already on the board, the doodles too, and inside the band above where the books
+    // stand. Placed last and from its own random stream, so showing it moves and removes none of the chalk.
+    let taped: Taped | null = null
+    const banner = this.bannerImg
+    if (banner && banner.naturalWidth > 0 && banner.naturalHeight > 0 && this.board) {
+      let bs = (this.seed ^ 0x9e3779b9) | 0
+      const brnd = () => {
+        bs = (bs + 0x6d2b79f5) | 0
+        let t = Math.imul(bs ^ (bs >>> 15), 1 | bs)
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+      }
+      const bw = w * (BANNER_WIDTH_MIN + brnd() * (BANNER_WIDTH_MAX - BANNER_WIDTH_MIN))
+      const bh = (bw * banner.naturalHeight) / banner.naturalWidth
+      const allowance = 14
+      const hit = (x: number, y: number, bx: number, by: number) => [...solid, ...doodleSpots].some((o) =>
+        x - allowance < o.x + o.w && x + bx + allowance > o.x && y - allowance < o.y + o.h && y + by + allowance > o.y)
+      const y = margin + allowance
+      // The tape is going to fail on one side (2% of the time): the banner goes up the same way, and then
+      // comes away as a sheet of paper. `__makiBannerFlop` forces it, for looking at it.
+      const failing = brnd() < BANNER_FLOP_SHARE || (window as { __makiBannerFlop?: boolean }).__makiBannerFlop === true
+      const fromRight = brnd() < 0.5
+      if (bw >= 110 && bh <= h * 0.35) {
+        // Anywhere along the top: a few random spots, then the two corners, and the first one clear is used.
+        const room = w - margin * 2 - bw
+        const tries = room > 0 ? [margin + brnd() * room, margin + brnd() * room, margin + brnd() * room, margin, margin + room] : []
+        const x = tries.find((candidate) => !hit(candidate, y, bw, bh))
+        if (x !== undefined) {
+          taped = {
+            x, y, w: bw, h: bh, tilt: (brnd() - 0.5) * 0.05,
+            flop: failing ? { fromRight, angle: 0, px: fromRight ? x + bw : x, py: y } : null,
+          }
+          solid.push({ x: x - allowance, y: y - allowance, w: bw + allowance * 2, h: bh + allowance * 2 })
+        }
+      }
+    }
     // ---- ghosts of old writing, faint and large, under everything that was chalked fresh
     c.save()
     fade = 0.1
