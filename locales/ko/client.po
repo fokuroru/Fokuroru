@@ -334,6 +334,11 @@ msgstr ""
 msgid "{0} rows right now"
 msgstr "현재 {0}개 행"
 
+#. placeholder {0}: item.unreadChapters
+#: src/pages/SimpleHomePage.tsx
+msgid "{0} unread chapters"
+msgstr ""
+
 #: src/pages/stats/charts/LeanBars.tsx
 #, fuzzy
 msgid "{abs} pt"
@@ -1729,6 +1734,10 @@ msgstr ""
 msgid "1 (lowest) to 5 (highest)."
 msgstr "1 (최저)부터 5 (최고)까지."
 
+#: src/pages/SimpleHomePage.tsx
+msgid "1 unread chapter"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "1:1"
@@ -1944,6 +1953,10 @@ msgstr "작은 로컬 모델을 사용하면 탐색에서 유사한 작품을 �
 #, fuzzy
 msgid "A thumbs down hides this title and pushes down titles closer to it than to what you kept. Hide only removes it."
 msgstr "싫어요를 누르면 이 작품이 숨겨지고, 유지한 작품보다 이 작품에 더 가까운 작품들의 순위가 낮아집니다. 숨기기만 하면 이 작품만 제거됩니다."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "A to Z"
+msgstr ""
 
 #: src/components/NamingTokenModal.tsx
 #, fuzzy
@@ -2661,6 +2674,7 @@ msgid "API only"
 msgstr "API 전용"
 
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "App settings"
 msgstr ""
 
@@ -3261,6 +3275,10 @@ msgstr "C:\\Manga (선택 사항)"
 #, fuzzy
 msgid "C:\\Manga or /library"
 msgstr "C:\\Manga 또는 /library"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Can't reach the server"
+msgstr ""
 
 #: src/components/ImportReviewModal.tsx
 #, fuzzy
@@ -4334,6 +4352,7 @@ msgstr "애니메이션 다음부터 읽기"
 #: src/api/hooks.ts
 #: src/pages/HomePage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Continue reading"
 msgstr "계속 읽기"
@@ -6543,6 +6562,10 @@ msgstr "전체 검토"
 msgid "Full screen"
 msgstr "전체 화면"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Full version"
+msgstr ""
+
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Fully read owned"
@@ -7952,6 +7975,7 @@ msgstr "라이브러리"
 #: src/pages/LibraryPage.tsx
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sectionList.ts
 #, fuzzy
 msgid "Library"
@@ -8321,6 +8345,7 @@ msgid "Manga"
 msgstr "Manga"
 
 #: src/App.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Manga manager"
 msgstr ""
 
@@ -9457,6 +9482,10 @@ msgstr "아직 규칙이 없습니다. 장르와 태그를 필수로 지정하�
 msgid "No scrobble"
 msgstr "No scrobble"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "No series match that search."
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "No series match the current filter. Try clearing the search or status filter."
@@ -9929,6 +9958,7 @@ msgid "Nothing to import, no scores on {label} differ from your local ratings."
 msgstr "가져올 항목 없음, {label}의 점수 중 로컬 평점과 다른 것이 없습니다."
 
 #: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Nothing to pick up yet"
 msgstr "아직 가져올 항목이 없습니다"
@@ -10265,6 +10295,11 @@ msgstr "OPDS"
 msgid "Open"
 msgstr "열기"
 
+#. placeholder {0}: item.seriesTitle
+#: src/pages/SimpleHomePage.tsx
+msgid "Open {0}"
+msgstr ""
+
 #: src/components/TagBrowserModal.tsx
 #, fuzzy
 msgid "Open {label}"
@@ -10284,6 +10319,10 @@ msgstr "탐색에서 {title} 열기"
 #, fuzzy
 msgid "Open a chapter and it will show up here, ready to resume."
 msgstr "챕터를 열면 여기 표시되어 이어서 읽을 수 있습니다."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Open any chapter and it will show up here."
+msgstr ""
 
 #: src/pages/HomePage.tsx
 msgid "Open any chapter in the built-in reader, or connect Kavita, and Fōkurōru starts tracking where you are."
@@ -10322,6 +10361,10 @@ msgstr ""
 #, fuzzy
 msgid "Open Recommended with these filters from now on"
 msgstr "앞으로 이 필터로 Recommended 열기"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Open saved chapters"
+msgstr ""
 
 #: src/components/home/ReadingCardMenu.tsx
 #: src/components/series/AnimeResumeCallout.tsx
@@ -10456,6 +10499,12 @@ msgstr ""
 #, fuzzy
 msgid "Page"
 msgstr "페이지"
+
+#. placeholder {0}: item.page + 1
+#. placeholder {1}: item.pageCount
+#: src/pages/SimpleHomePage.tsx
+msgid "page {0} of {1}"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -11376,6 +11425,7 @@ msgid "Reading profile"
 msgstr "읽기 프로필"
 
 #: src/components/home/ContinueLead.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Reading progress"
 msgstr "읽기 진행 상황"
@@ -11467,6 +11517,10 @@ msgstr "포스터 다시 빌드 중, {totalCount}개 중 {processedCount}개"
 #, fuzzy
 msgid "Receives a JSON POST for each event."
 msgstr "각 이벤트마다 JSON POST를 받습니다."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Recent"
+msgstr ""
 
 #: src/pages/discover/FeedbackLab.tsx
 #, fuzzy
@@ -12179,6 +12233,7 @@ msgstr "릴리스 검색을 특정 인덱서와 Torznab 카테고리로 제한�
 
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
+#: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Resume"
@@ -12542,6 +12597,7 @@ msgid "Saved as your default"
 msgstr "기본값으로 저장됨"
 
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Saved chapters"
 msgstr ""
 
@@ -12953,6 +13009,10 @@ msgstr ""
 
 #: src/pages/ActivityPage.tsx
 msgid "Search volumes now"
+msgstr ""
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Search your library"
 msgstr ""
 
 #: src/pages/ImportPage.tsx
@@ -13458,6 +13518,7 @@ msgstr "덜 보기"
 #: src/components/discover/FollowingRail.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Show more"
 msgstr "더 보기"
@@ -13614,6 +13675,10 @@ msgstr "시작점과의 유사도"
 #, fuzzy
 msgid "Simple"
 msgstr "간단히"
+
+#: src/App.tsx
+msgid "Simple view"
+msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -13812,6 +13877,10 @@ msgstr "최신순으로 정렬"
 #, fuzzy
 msgid "Sort oldest first"
 msgstr "오래된 순으로 정렬"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Sort the library"
+msgstr ""
 
 #: src/components/SourceMappingsSection.tsx
 #: src/pages/ActivityPage.tsx
@@ -14015,6 +14084,10 @@ msgstr "처음부터 시작"
 #, fuzzy
 msgid "Start page"
 msgstr "시작 페이지"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Start reading"
+msgstr ""
 
 #: src/components/AnimeCoverageBar.tsx
 #, fuzzy
@@ -15566,6 +15639,7 @@ msgid "Up"
 msgstr "위로"
 
 #: src/pages/reader/ChapterEnd.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Up next"
 msgstr "다음 항목"
@@ -16644,6 +16718,14 @@ msgstr "라이브러리가 성장함"
 #, fuzzy
 msgid "Your library is empty"
 msgstr "라이브러리가 비어 있습니다"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Your library is empty."
+msgstr ""
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Your library isn't available right now."
+msgstr ""
 
 #: src/pages/settings/registry.ts
 msgid "Your login, your API keys, and how Fōkurōru looks and opens for you."

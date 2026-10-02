@@ -334,6 +334,11 @@ msgstr ""
 msgid "{0} rows right now"
 msgstr "{0} lignes actuellement"
 
+#. placeholder {0}: item.unreadChapters
+#: src/pages/SimpleHomePage.tsx
+msgid "{0} unread chapters"
+msgstr ""
+
 #: src/pages/stats/charts/LeanBars.tsx
 #, fuzzy
 msgid "{abs} pt"
@@ -1729,6 +1734,10 @@ msgstr ""
 msgid "1 (lowest) to 5 (highest)."
 msgstr "De 1 (le moins élevé) à 5 (le plus élevé)."
 
+#: src/pages/SimpleHomePage.tsx
+msgid "1 unread chapter"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "1:1"
@@ -1944,6 +1953,10 @@ msgstr "Un petit modèle local permet à Découvrir de recommander des titres se
 #, fuzzy
 msgid "A thumbs down hides this title and pushes down titles closer to it than to what you kept. Hide only removes it."
 msgstr "Un pouce vers le bas masque ce titre et fait descendre les titres qui lui sont plus proches que ce que vous avez gardé. Masquer se contente de le retirer."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "A to Z"
+msgstr ""
 
 #: src/components/NamingTokenModal.tsx
 #, fuzzy
@@ -2661,6 +2674,7 @@ msgid "API only"
 msgstr "API uniquement"
 
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "App settings"
 msgstr ""
 
@@ -3261,6 +3275,10 @@ msgstr "C:\\Manga (facultatif)"
 #, fuzzy
 msgid "C:\\Manga or /library"
 msgstr "C:\\Manga ou /library"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Can't reach the server"
+msgstr ""
 
 #: src/components/ImportReviewModal.tsx
 #, fuzzy
@@ -4334,6 +4352,7 @@ msgstr "Reprendre après l'anime"
 #: src/api/hooks.ts
 #: src/pages/HomePage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Continue reading"
 msgstr "Continuer la lecture"
@@ -6543,6 +6562,10 @@ msgstr "Avis complet"
 msgid "Full screen"
 msgstr "Plein écran"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Full version"
+msgstr ""
+
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Fully read owned"
@@ -7952,6 +7975,7 @@ msgstr "Bibliothèques"
 #: src/pages/LibraryPage.tsx
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sectionList.ts
 #, fuzzy
 msgid "Library"
@@ -8321,6 +8345,7 @@ msgid "Manga"
 msgstr "Manga"
 
 #: src/App.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Manga manager"
 msgstr ""
 
@@ -9457,6 +9482,10 @@ msgstr "Aucune règle pour l'instant. Ajoutez-en une pour inclure ou exclure des
 msgid "No scrobble"
 msgstr "Aucun Scrobble"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "No series match that search."
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "No series match the current filter. Try clearing the search or status filter."
@@ -9929,6 +9958,7 @@ msgid "Nothing to import, no scores on {label} differ from your local ratings."
 msgstr "Rien à importer, aucune note sur {label} ne diffère de vos notes locales."
 
 #: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Nothing to pick up yet"
 msgstr "Rien à récupérer pour le moment"
@@ -10265,6 +10295,11 @@ msgstr "OPDS"
 msgid "Open"
 msgstr "Ouvrir"
 
+#. placeholder {0}: item.seriesTitle
+#: src/pages/SimpleHomePage.tsx
+msgid "Open {0}"
+msgstr ""
+
 #: src/components/TagBrowserModal.tsx
 #, fuzzy
 msgid "Open {label}"
@@ -10284,6 +10319,10 @@ msgstr "Ouvrir {title} dans Découvrir"
 #, fuzzy
 msgid "Open a chapter and it will show up here, ready to resume."
 msgstr "Ouvrez un chapitre et il apparaîtra ici, prêt à reprendre."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Open any chapter and it will show up here."
+msgstr ""
 
 #: src/pages/HomePage.tsx
 msgid "Open any chapter in the built-in reader, or connect Kavita, and Fōkurōru starts tracking where you are."
@@ -10322,6 +10361,10 @@ msgstr ""
 #, fuzzy
 msgid "Open Recommended with these filters from now on"
 msgstr "Ouvrir désormais Recommended avec ces filtres"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Open saved chapters"
+msgstr ""
 
 #: src/components/home/ReadingCardMenu.tsx
 #: src/components/series/AnimeResumeCallout.tsx
@@ -10456,6 +10499,12 @@ msgstr ""
 #, fuzzy
 msgid "Page"
 msgstr "Page"
+
+#. placeholder {0}: item.page + 1
+#. placeholder {1}: item.pageCount
+#: src/pages/SimpleHomePage.tsx
+msgid "page {0} of {1}"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -11376,6 +11425,7 @@ msgid "Reading profile"
 msgstr "Profil de lecture"
 
 #: src/components/home/ContinueLead.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Reading progress"
 msgstr "Progression de lecture"
@@ -11467,6 +11517,10 @@ msgstr "Reconstruction des affiches, {processedCount} sur {totalCount}"
 #, fuzzy
 msgid "Receives a JSON POST for each event."
 msgstr "Reçoit une requête POST JSON pour chaque événement."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Recent"
+msgstr ""
 
 #: src/pages/discover/FeedbackLab.tsx
 #, fuzzy
@@ -12179,6 +12233,7 @@ msgstr "Restreindre les recherches de versions à certains indexeurs et catégor
 
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
+#: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Resume"
@@ -12542,6 +12597,7 @@ msgid "Saved as your default"
 msgstr "Enregistré comme valeur par défaut"
 
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Saved chapters"
 msgstr ""
 
@@ -12953,6 +13009,10 @@ msgstr ""
 
 #: src/pages/ActivityPage.tsx
 msgid "Search volumes now"
+msgstr ""
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Search your library"
 msgstr ""
 
 #: src/pages/ImportPage.tsx
@@ -13458,6 +13518,7 @@ msgstr "Afficher moins"
 #: src/components/discover/FollowingRail.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Show more"
 msgstr "Afficher plus"
@@ -13614,6 +13675,10 @@ msgstr "Similarité avec le début"
 #, fuzzy
 msgid "Simple"
 msgstr "Simple"
+
+#: src/App.tsx
+msgid "Simple view"
+msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -13812,6 +13877,10 @@ msgstr "Trier par les plus récents d'abord"
 #, fuzzy
 msgid "Sort oldest first"
 msgstr "Trier par les plus anciens d'abord"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Sort the library"
+msgstr ""
 
 #: src/components/SourceMappingsSection.tsx
 #: src/pages/ActivityPage.tsx
@@ -14015,6 +14084,10 @@ msgstr "Recommencer"
 #, fuzzy
 msgid "Start page"
 msgstr "Page de démarrage"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Start reading"
+msgstr ""
 
 #: src/components/AnimeCoverageBar.tsx
 #, fuzzy
@@ -15566,6 +15639,7 @@ msgid "Up"
 msgstr "En haut"
 
 #: src/pages/reader/ChapterEnd.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Up next"
 msgstr "À suivre"
@@ -16644,6 +16718,14 @@ msgstr "Votre bibliothèque s'est agrandie"
 #, fuzzy
 msgid "Your library is empty"
 msgstr "Votre bibliothèque est vide"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Your library is empty."
+msgstr ""
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Your library isn't available right now."
+msgstr ""
 
 #: src/pages/settings/registry.ts
 msgid "Your login, your API keys, and how Fōkurōru looks and opens for you."

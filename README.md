@@ -139,7 +139,8 @@ replaced. Existing Maki features from before the fork are not repeated here.
 - Chapters can be saved to the device and read with no network. Progress read offline is queued and
   sent when the connection returns. A background sync refreshes a Reading now widget and the
   Continue reading and Latest chapter shortcuts, saves upcoming chapters and clears out read ones.
-  See [android/README.md](android/README.md).
+  The app opens on a simple view (last read hero, Continue reading, library grid) that can be
+  switched to the full interface. See [android/README.md](android/README.md).
 
 ### Platform, migrations and account isolation
 

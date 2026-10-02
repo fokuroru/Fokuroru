@@ -36,6 +36,7 @@ Sign in on the normal login page. Plain HTTP on a LAN is allowed, since that is 
 | Shortcuts: Continue reading, Latest chapter | `res/xml/shortcuts.xml`, `MainActivity.start` |
 | Reading now widget | `widget/ReadingNowWidget.kt` |
 | Dark mode and Material You colours | `Theme.Material3.DynamicColors.DayNight`, widget colours in `values-v31` |
+| Simple view as the start screen: last read hero, Continue reading, library grid, switch to the full version | `pages/SimpleHomePage.tsx` in the web UI, `lib/simpleView.ts` |
 | Two pages on tablets and unfolded foldables | `MainActivity.layoutJson`, `useNativeLayout` in the web UI |
 
 Page-turn buttons only act while a chapter is open (the WebView URL starts with `/read/`). The

@@ -8620,3 +8620,195 @@ body.reader-open {
 .chalkboard-flat-row[data-tone='warn'] dd {
   color: #f6e08a;
 }
+
+/* Simple view: the phone-sized front page (pages/SimpleHomePage.tsx). */
+.lite {
+  min-height: 100dvh;
+  background: var(--app-bg);
+  color: var(--ink);
+  padding: 0 0 max(32px, env(safe-area-inset-bottom));
+}
+.lite-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px
+    max(16px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--app-bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+.lite-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-hi);
+}
+.lite-bar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.lite-alert,
+.lite-empty,
+.lite-section {
+  margin: 16px max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+}
+.lite-empty {
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.lite-hero {
+  position: relative;
+  overflow: hidden;
+  margin: 4px 0 0;
+}
+.lite-hero-backdrop {
+  position: absolute;
+  inset: -24px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) saturate(1.15);
+  opacity: 0.45;
+}
+.lite-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, var(--app-bg));
+  pointer-events: none;
+}
+.lite-hero-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  padding: 20px max(16px, env(safe-area-inset-right)) 28px max(16px, env(safe-area-inset-left));
+}
+.lite-hero-cover {
+  flex: 0 0 38%;
+  max-width: 190px;
+  aspect-ratio: 2 / 3;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: var(--surface-2);
+}
+.lite-hero-cover img,
+.lite-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lite-hero-text {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-bottom: 2px;
+}
+.lite-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--spine-fg, var(--brand-fg));
+}
+.lite-hero-title {
+  margin: 4px 0 6px;
+  font-size: 1.45rem;
+  line-height: 1.15;
+  color: var(--ink-hi);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lite-hero-meta {
+  color: var(--ink-2);
+}
+.lite-hero-progress {
+  margin-top: 8px;
+}
+.lite-heading {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink-hi);
+}
+.lite-rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin: 0 calc(-1 * max(16px, env(safe-area-inset-right))) 0 calc(-1 * max(16px, env(safe-area-inset-left)));
+  padding: 0 max(16px, env(safe-area-inset-right)) 4px max(16px, env(safe-area-inset-left));
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.lite-rail::-webkit-scrollbar {
+  display: none;
+}
+.lite-rail .lite-card {
+  flex: 0 0 112px;
+  scroll-snap-align: start;
+}
+.lite-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.lite-search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lite-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 14px 12px;
+}
+.lite-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.lite-cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.lite-cover-blank {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.lite-cover-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--brand-fg-on-art, #e8867c);
+}
+.lite-card-title {
+  font-size: 0.82rem;
+  line-height: 1.25;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lite-card-sub {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.lite-none {
+  padding: 24px 0;
+}

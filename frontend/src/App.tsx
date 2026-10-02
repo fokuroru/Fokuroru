@@ -20,6 +20,7 @@ import {
   IconArrowLeft,
   IconDownload,
   IconHeartbeat,
+  IconLayoutList,
 } from '@tabler/icons-react'
 import { lazy, Suspense, useEffect } from 'react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
@@ -53,6 +54,8 @@ import { ShellTitleProvider, useShellTitleValue } from './lib/shellTitle'
 // Home and Library stay eagerly imported: "/" resolves to one of the two on every cold load
 // (StartPageRedirect), so splitting them would only add a round trip to the first paint.
 import HomePage from './pages/HomePage'
+import SimpleHomePage from './pages/SimpleHomePage'
+import { setSimpleViewPreferred, simpleViewPreferred } from './lib/simpleView'
 import LibraryPage from './pages/LibraryPage'
 
 // Everything else is reached by a navigation, so it can arrive as its own chunk instead of riding
@@ -205,6 +208,28 @@ function HealthButton() {
   )
 }
 
+/** Phone-sized screens only: the way back to the simple front page from the full interface. */
+function SimpleViewButton() {
+  const { t } = useLingui()
+  const navigate = useNavigate()
+  return (
+    <Tooltip label={t`Simple view`} withArrow>
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        hiddenFrom="sm"
+        aria-label={t`Simple view`}
+        onClick={() => {
+          setSimpleViewPreferred(true)
+          navigate('/lite')
+        }}
+      >
+        <IconLayoutList size={19} />
+      </ActionIcon>
+    </Tooltip>
+  )
+}
+
 function ActivityButton() {
   const { t } = useLingui()
   const { data: summary } = useQueueSummary()
@@ -310,6 +335,11 @@ function AuthGate() {
     )
   }
 
+  // The simple view is a front page of its own, so like the reader it stands outside the shell.
+  if (location.pathname === '/lite') {
+    return <SimpleHomePage />
+  }
+
   return <AppShellRoutes />
 }
 
@@ -374,6 +404,7 @@ function AppShellRoutes() {
             <ShellTitle />
           </Group>
           <Group gap={4} wrap="nowrap">
+            <SimpleViewButton />
             <CommandPalette navItems={allItems} />
             <ActivityButton />
             <NotificationBell />
@@ -495,6 +526,9 @@ function StartPageRedirect({
   discoverKnown: boolean
 }) {
   const { data: ui, isPending } = useUiSettings()
+
+  // Decided before the settings arrive: the app opens straight onto it with nothing to wait for.
+  if (simpleViewPreferred()) return <Navigate to="/lite" replace />
 
   if (isPending || (ui?.startPage === 'discover' && !discoverKnown)) {
     return (

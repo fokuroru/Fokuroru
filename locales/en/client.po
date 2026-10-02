@@ -282,6 +282,11 @@ msgstr "{0} / {1} XP to level {2}"
 msgid "{0} rows right now"
 msgstr "{0} rows right now"
 
+#. placeholder {0}: item.unreadChapters
+#: src/pages/SimpleHomePage.tsx
+msgid "{0} unread chapters"
+msgstr "{0} unread chapters"
+
 #: src/pages/stats/charts/LeanBars.tsx
 msgid "{abs} pt"
 msgstr "{abs} pt"
@@ -1436,6 +1441,10 @@ msgstr "0 means no cap."
 msgid "1 (lowest) to 5 (highest)."
 msgstr "1 (lowest) to 5 (highest)."
 
+#: src/pages/SimpleHomePage.tsx
+msgid "1 unread chapter"
+msgstr "1 unread chapter"
+
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "1:1"
 msgstr "1:1"
@@ -1617,6 +1626,10 @@ msgstr "A small local model lets Discover recommend by feel and lets you search 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
 msgid "A thumbs down hides this title and pushes down titles closer to it than to what you kept. Hide only removes it."
 msgstr "A thumbs down hides this title and pushes down titles closer to it than to what you kept. Hide only removes it."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "A to Z"
+msgstr "A to Z"
 
 #: src/components/NamingTokenModal.tsx
 msgid "A token with no value for a given series renders as nothing, and the surrounding spaces and empty brackets are cleaned up, so {yearExampleToken} on a series with no year is just its title."
@@ -2220,6 +2233,7 @@ msgid "API only"
 msgstr "API only"
 
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "App settings"
 msgstr "App settings"
 
@@ -2719,6 +2733,10 @@ msgstr "C:\\Manga (optional)"
 #: src/pages/SettingsPage.tsx
 msgid "C:\\Manga or /library"
 msgstr "C:\\Manga or /library"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Can't reach the server"
+msgstr "Can't reach the server"
 
 #: src/components/ImportReviewModal.tsx
 msgid "Can't read this download"
@@ -3613,6 +3631,7 @@ msgstr "Continue from the anime"
 #: src/api/hooks.ts
 #: src/pages/HomePage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Continue reading"
 msgstr "Continue reading"
 
@@ -5468,6 +5487,10 @@ msgstr "Full review"
 msgid "Full screen"
 msgstr "Full screen"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Full version"
+msgstr "Full version"
+
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Fully read owned"
 msgstr "Fully read owned"
@@ -6649,6 +6672,7 @@ msgstr "Libraries"
 #: src/pages/LibraryPage.tsx
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sectionList.ts
 msgid "Library"
 msgstr "Library"
@@ -6952,6 +6976,7 @@ msgid "Manga"
 msgstr "Manga"
 
 #: src/App.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Manga manager"
 msgstr "Manga manager"
 
@@ -7902,6 +7927,10 @@ msgstr "No rules yet. Add one to require or rule out genres and tags. A series h
 msgid "No scrobble"
 msgstr "No scrobble"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "No series match that search."
+msgstr "No series match that search."
+
 #: src/pages/LibraryPage.tsx
 msgid "No series match the current filter. Try clearing the search or status filter."
 msgstr "No series match the current filter. Try clearing the search or status filter."
@@ -8295,6 +8324,7 @@ msgid "Nothing to import, no scores on {label} differ from your local ratings."
 msgstr "Nothing to import, no scores on {label} differ from your local ratings."
 
 #: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Nothing to pick up yet"
 msgstr "Nothing to pick up yet"
 
@@ -8574,6 +8604,11 @@ msgstr "OPDS"
 msgid "Open"
 msgstr "Open"
 
+#. placeholder {0}: item.seriesTitle
+#: src/pages/SimpleHomePage.tsx
+msgid "Open {0}"
+msgstr "Open {0}"
+
 #: src/components/TagBrowserModal.tsx
 msgid "Open {label}"
 msgstr "Open {label}"
@@ -8589,6 +8624,10 @@ msgstr "Open {title} in Discover"
 #: src/pages/HomePage.tsx
 msgid "Open a chapter and it will show up here, ready to resume."
 msgstr "Open a chapter and it will show up here, ready to resume."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Open any chapter and it will show up here."
+msgstr "Open any chapter and it will show up here."
 
 #: src/pages/HomePage.tsx
 msgid "Open any chapter in the built-in reader, or connect Kavita, and Fōkurōru starts tracking where you are."
@@ -8621,6 +8660,10 @@ msgstr "Open on {site}"
 #: src/pages/DiscoverPage.tsx
 msgid "Open Recommended with these filters from now on"
 msgstr "Open Recommended with these filters from now on"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Open saved chapters"
+msgstr "Open saved chapters"
 
 #: src/components/home/ReadingCardMenu.tsx
 #: src/components/series/AnimeResumeCallout.tsx
@@ -8732,6 +8775,12 @@ msgstr "Packing the pages…"
 #: src/components/CommandPalette.tsx
 msgid "Page"
 msgstr "Page"
+
+#. placeholder {0}: item.page + 1
+#. placeholder {1}: item.pageCount
+#: src/pages/SimpleHomePage.tsx
+msgid "page {0} of {1}"
+msgstr "page {0} of {1}"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Page {pageIndex}/{pageCount}"
@@ -9518,6 +9567,7 @@ msgid "Reading profile"
 msgstr "Reading profile"
 
 #: src/components/home/ContinueLead.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Reading progress"
 msgstr "Reading progress"
 
@@ -9591,6 +9641,10 @@ msgstr "Rebuilding posters, {processedCount} of {totalCount}"
 #: src/components/NotificationsSection.tsx
 msgid "Receives a JSON POST for each event."
 msgstr "Receives a JSON POST for each event."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Recent"
+msgstr "Recent"
 
 #: src/pages/discover/FeedbackLab.tsx
 msgid "Recent feedback"
@@ -10186,6 +10240,7 @@ msgstr "Restrict release searches to specific indexers and Torznab categories. W
 
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
+#: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Resume"
 msgstr "Resume"
@@ -10492,6 +10547,7 @@ msgid "Saved as your default"
 msgstr "Saved as your default"
 
 #: src/pages/SettingsPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Saved chapters"
 msgstr "Saved chapters"
 
@@ -10849,6 +10905,10 @@ msgstr "Search volume releases"
 #: src/pages/ActivityPage.tsx
 msgid "Search volumes now"
 msgstr "Search volumes now"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Search your library"
+msgstr "Search your library"
 
 #: src/pages/ImportPage.tsx
 msgid "searched as “{cleanedTitle}”"
@@ -11267,6 +11327,7 @@ msgstr "Show less"
 #: src/components/discover/FollowingRail.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Show more"
 msgstr "Show more"
 
@@ -11394,6 +11455,10 @@ msgstr "Similarity to start"
 #: src/components/CatalogueRules.tsx
 msgid "Simple"
 msgstr "Simple"
+
+#: src/App.tsx
+msgid "Simple view"
+msgstr "Simple view"
 
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Single"
@@ -11564,6 +11629,10 @@ msgstr "Sort newest first"
 msgid "Sort oldest first"
 msgstr "Sort oldest first"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Sort the library"
+msgstr "Sort the library"
+
 #: src/components/SourceMappingsSection.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/HealthPage.tsx
@@ -11730,6 +11799,10 @@ msgstr "Start over"
 #: src/pages/SettingsPage.tsx
 msgid "Start page"
 msgstr "Start page"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Start reading"
+msgstr "Start reading"
 
 #: src/components/AnimeCoverageBar.tsx
 msgid "Start reading at ch. {startReadingAt}."
@@ -13026,6 +13099,7 @@ msgid "Up"
 msgstr "Up"
 
 #: src/pages/reader/ChapterEnd.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Up next"
 msgstr "Up next"
 
@@ -13942,6 +14016,14 @@ msgstr "Your library grew"
 #: src/pages/LibraryPage.tsx
 msgid "Your library is empty"
 msgstr "Your library is empty"
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Your library is empty."
+msgstr "Your library is empty."
+
+#: src/pages/SimpleHomePage.tsx
+msgid "Your library isn't available right now."
+msgstr "Your library isn't available right now."
 
 #: src/pages/settings/registry.ts
 msgid "Your login, your API keys, and how Fōkurōru looks and opens for you."
