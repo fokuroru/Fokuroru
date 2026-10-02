@@ -167,6 +167,9 @@ interface Row {
 /** How wide a taped banner is, as a share of the board: anywhere between these two. */
 const BANNER_WIDTH_MIN = 0.4
 const BANNER_WIDTH_MAX = 0.6
+/** How much a sheet of paper resists being folded along its length and across it (0 is cloth, 1 is card). */
+const PAPER_STIFFNESS_ALONG = 0.5
+const PAPER_STIFFNESS_ACROSS = 0.7
 /** How often the tape gives way on one side and the banner hangs from the other. */
 const BANNER_FLOP_SHARE = 0.02
 const ROW = 420
@@ -774,6 +777,10 @@ export class MangaShelf {
               this.thread(b, i, i + stride + 1, Math.hypot(b.dx, b.dy))
               this.thread(b, i + 1, i + stride, Math.hypot(b.dx, b.dy))
             }
+            // Paper is not cloth: it springs back when it is folded. Threads reaching over one weight resist a
+            // fold across the sheet, and more firmly down it, which keeps it from twisting into a ribbon.
+            if (c + 2 <= cols) this.thread(b, i, i + 2, b.dx * 2, PAPER_STIFFNESS_ALONG)
+            if (r + 2 <= rows) this.thread(b, i, i + 2 * stride, b.dy * 2, PAPER_STIFFNESS_ACROSS)
           }
         }
         for (let i = 0; i < count; i++) {
@@ -837,7 +844,7 @@ export class MangaShelf {
   }
 
   /** One thread of the paper: pulls or pushes its two ends back towards their resting distance. */
-  private thread(b: BannerAnim, i: number, j: number, rest: number) {
+  private thread(b: BannerAnim, i: number, j: number, rest: number, stiffness = 1) {
     const { pos, pinned } = b
     const a = i * 3
     const c = j * 3
@@ -845,7 +852,7 @@ export class MangaShelf {
     const dy = pos[c + 1] - pos[a + 1]
     const dz = pos[c + 2] - pos[a + 2]
     const length = Math.hypot(dx, dy, dz) || 1e-6
-    const pull = (length - rest) / length
+    const pull = ((length - rest) / length) * stiffness
     const wa = pinned[i] ? 0 : pinned[j] ? 1 : 0.5
     const wc = pinned[j] ? 0 : pinned[i] ? 1 : 0.5
     pos[a] += dx * pull * wa
