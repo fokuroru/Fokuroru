@@ -311,6 +311,7 @@ export default function SeriesDetailPage() {
   const { id } = useParams()
   const seriesId = Number(id)
   const navigate = useNavigate()
+  const readState = (useLocation().state as { lite?: boolean } | null)?.lite ? { lite: true } : undefined
 
   /**
    * Which tab is open lives in the URL, so a refresh, a bookmark and a link someone pastes into
@@ -1471,7 +1472,7 @@ export default function SeriesDetailPage() {
           onSuccess: (result) => {
             const chapterId = result.resumeChapterId ?? animeResume.resumeChapterId
             if (animeResume.resumeDownloaded && chapterId != null) {
-              navigate(`/read/${chapterId}`)
+              navigate(`/read/${chapterId}`, { state: readState })
             } else {
               changeTab('chapters')
               notifications.show({ message: <Trans>Chapter {resumeAt} is not downloaded yet</Trans> })
@@ -1592,6 +1593,7 @@ export default function SeriesDetailPage() {
                     <Button
                         component={Link}
                         to={`/read/${continueAt.chapterId}`}
+                        state={readState}
                         size="md"
                         radius="md"
                         leftSection={<IconBook size={18} />}
@@ -2883,6 +2885,7 @@ export default function SeriesDetailPage() {
                                                 <ActionIcon
                                                     component={Link}
                                                     to={`/read/${c.id}`}
+                                                    state={readState}
                                                     variant="subtle"
                                                     color="brand"
                                                     aria-label={t`Read ${chapterLbl}`}

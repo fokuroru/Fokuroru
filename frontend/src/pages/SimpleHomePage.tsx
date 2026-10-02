@@ -179,7 +179,7 @@ function Hero({ item, resuming }: { item: HomeReadingItem; resuming: boolean }) 
     <section className="lite-hero" style={spineVars(item.spineColor, 'dark')}>
       {item.coverUrl && <div className="lite-hero-backdrop" style={{ backgroundImage: `url(${item.coverUrl})` }} aria-hidden />}
       <div className="lite-hero-body">
-        <Link to={`/series/${item.seriesId}`} className="lite-hero-cover" aria-label={t`Open ${item.seriesTitle}`}>
+        <Link to={`/series/${item.seriesId}`} state={{ lite: true }} className="lite-hero-cover" aria-label={t`Open ${item.seriesTitle}`}>
           {item.coverUrl ? <img src={item.coverUrl} alt="" /> : <span className="lite-cover-blank" />}
         </Link>
         <div className="lite-hero-text">
@@ -236,7 +236,7 @@ function Rail({ title, items }: { title: string; items: HomeReadingItem[] }) {
 
 function Book({ series }: { series: SeriesDto }) {
   return (
-    <Link to={`/series/${series.id}`} className="lite-card">
+    <Link to={`/series/${series.id}`} state={{ lite: true }} className="lite-card">
       <span className="lite-cover">
         {series.coverUrl ? <img src={series.coverUrl} alt="" loading="lazy" /> : <span className="lite-cover-blank" />}
       </span>

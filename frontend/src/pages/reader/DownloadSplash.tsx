@@ -38,6 +38,7 @@ export function DownloadSplash({
   const { t } = useLingui()
   const { _ } = useLinguiRuntime()
   const navigate = useNavigate()
+  const location = useLocation()
 
   // A query rather than a mutation, keyed per attempt: it runs once per attempt however often the
   // component mounts (StrictMode mounts twice), and its error state belongs to the splash rather
@@ -63,8 +64,8 @@ export function DownloadSplash({
   const state = polled ?? prepare.data
 
   useEffect(() => {
-    if (state?.downloaded) navigate(`/read/${chapterId}`, { replace: true })
-  }, [state?.downloaded, chapterId, navigate])
+    if (state?.downloaded) navigate(`/read/${chapterId}`, { replace: true, state: location.state })
+  }, [state?.downloaded, chapterId, navigate, location.state])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
