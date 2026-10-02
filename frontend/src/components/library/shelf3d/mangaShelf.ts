@@ -960,6 +960,22 @@ export class MangaShelf {
     b.geo.computeVertexNormals()
     b.geo.computeBoundingSphere()
 
+    // Highest frame face under any part of a strip, so a strip never sits half or wholly behind the wood.
+    const frameTop = (cx: number, cy: number, ang: number) => {
+      let top = -Infinity
+      const ca = Math.cos(ang)
+      const sa = Math.sin(ang)
+      for (let along = -25; along <= 25; along += 5) {
+        for (let across = -9; across <= 9; across += 4.5) {
+          const px = cx + ca * along - sa * across
+          const py = cy + sa * along + ca * across
+          for (const box of boxes) {
+            if (box.front && Math.abs(px - box.cx) < box.hw && Math.abs(py - box.cy) < box.hh) top = Math.max(top, box.cz + box.hz)
+          }
+        }
+      }
+      return top
+    }
     for (const t of b.tapes) {
       const k = t.corner * 3
       if (!t.released) {
@@ -967,14 +983,7 @@ export class MangaShelf {
         // lies on the frame's face, so it is never half under the wood.
         const sx = home[k] + t.across * -1
         const sy = home[k + 1] + t.down * 1
-        let top = Math.max(zBoard, home[k + 2])
-        for (const along of [-23, 0, 23]) {
-          const px = sx + Math.cos(t.angle) * along
-          const py = sy + Math.sin(t.angle) * along
-          for (const box of boxes) {
-            if (box.front && Math.abs(px - box.cx) < box.hw && Math.abs(py - box.cy) < box.hh) top = Math.max(top, box.cz + box.hz)
-          }
-        }
+        const top = Math.max(zBoard, home[k + 2], frameTop(sx, sy, t.angle))
         t.mesh.position.set(sx, sy, top + 0.8)
         t.mesh.rotation.set(0, 0, t.angle)
       } else {
@@ -986,7 +995,10 @@ export class MangaShelf {
         const ty = (pos[ka + 1] - pos[k + 1]) * t.across
         const tz = (pos[ka + 2] - pos[k + 2]) * t.across
         const heading = Math.atan2(ty, tx)
-        t.mesh.position.set(pos[k] - t.across, pos[k + 1] + t.down, pos[k + 2] + 1)
+        const rx = pos[k] - t.across
+        const ry = pos[k + 1] + t.down
+        const rz = Math.max(pos[k + 2] + 1, frameTop(rx, ry, t.angle + heading) + 0.8)
+        t.mesh.position.set(rx, ry, rz)
         t.mesh.rotation.set(0, -Math.atan2(tz, Math.hypot(tx, ty)), t.angle + heading)
       }
     }
