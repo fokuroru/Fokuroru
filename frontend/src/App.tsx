@@ -22,7 +22,7 @@ import {
   IconHeartbeat,
   IconDeviceMobile,
 } from '@tabler/icons-react'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
   useHealth,
@@ -334,7 +334,21 @@ function App() {
  */
 function AuthGate() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { me, loading, setupNeeded } = useAuth()
+  // Set while the sign-in form is up, so the moment it succeeds can be told from an ordinary load.
+  const sawSignIn = useRef(false)
+  if (!loading && !setupNeeded && !me) sawSignIn.current = true
+
+  // Straight to the simple view once signing in works, wherever the form happened to be shown: the
+  // address it came up on is often a stale /home or a deep link, and the person wants the front page.
+  useEffect(() => {
+    if (!me || !sawSignIn.current) return
+    sawSignIn.current = false
+    if (simpleViewPreferred() && !location.pathname.startsWith('/read/') && location.pathname !== '/lite') {
+      navigate('/lite', { replace: true })
+    }
+  }, [me, location.pathname, navigate])
 
   if (loading) {
     return <RouteFallback />
