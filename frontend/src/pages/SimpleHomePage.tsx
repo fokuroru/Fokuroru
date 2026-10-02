@@ -193,6 +193,7 @@ function Hero({ item, resuming }: { item: HomeReadingItem; resuming: boolean }) 
           <Button
             component={Link}
             to={`/read/${item.chapterId}`}
+            state={{ lite: true }}
             size="md"
             fullWidth
             mt="sm"
@@ -217,7 +218,7 @@ function Rail({ title, items }: { title: string; items: HomeReadingItem[] }) {
       <h2 className="lite-heading">{title}</h2>
       <div className="lite-rail">
         {items.map((item) => (
-          <Link key={item.seriesId} to={`/read/${item.chapterId}`} className="lite-card">
+          <Link key={item.seriesId} to={`/read/${item.chapterId}`} state={{ lite: true }} className="lite-card">
             <span className="lite-cover">
               {item.coverUrl ? <img src={item.coverUrl} alt="" loading="lazy" /> : <span className="lite-cover-blank" />}
               {item.pageCount > 0 && item.page > 0 && (

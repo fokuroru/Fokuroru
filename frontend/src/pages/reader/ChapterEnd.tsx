@@ -21,12 +21,14 @@ function skipped(current: number | null, next: number | null): [number, number] 
  */
 export default function ChapterEnd({
   manifest,
+  backTo,
   readingCounted,
   rtl,
   onNext,
   onStay,
 }: {
   manifest: ReaderManifest
+  backTo?: string
   readingCounted: boolean
   rtl: boolean
   onNext: () => void
@@ -133,8 +135,8 @@ export default function ChapterEnd({
               )}
             </span>
             <Group gap="xs" mt="md">
-              <Button component={Link} to={`/series/${manifest.seriesId}`} leftSection={<IconArrowLeft size={16} />}>
-                <Trans>Back to series</Trans>
+              <Button component={Link} to={backTo ?? `/series/${manifest.seriesId}`} leftSection={<IconArrowLeft size={16} />}>
+                {backTo ? <Trans>Back</Trans> : <Trans>Back to series</Trans>}
               </Button>
               <Button variant="subtle" color="gray" className="reader-end-quiet" onClick={onStay}>
                 <Trans>Stay here</Trans>

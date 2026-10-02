@@ -1,7 +1,7 @@
 import { Button, Center, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { notifications } from '@mantine/notifications'
 import { IconTrophy } from '@tabler/icons-react'
 import { Trans } from '@lingui/react/macro'
@@ -44,6 +44,7 @@ export default function ReaderPage() {
   const { chapterId: param } = useParams()
   const chapterId = Number(param)
   const navigate = useNavigate()
+  const cameFromLite = (useLocation().state as { lite?: boolean } | null)?.lite === true
   const queryClient = useQueryClient()
   const { data: manifest, isLoading, isError, isFetching } = useReaderManifest(chapterId)
   const {
@@ -241,11 +242,12 @@ export default function ReaderPage() {
       // earlier visit to `target` would otherwise be served as-is (staleTime is Infinity) with its
       // now-stale resumePage. Drop it so the coming mount always fetches fresh.
       queryClient.removeQueries({ queryKey: ['reader-manifest', target] })
-      navigate(`/read/${target}`, { replace: true })
+      navigate(`/read/${target}`, { replace: true, state: cameFromLite ? { lite: true } : undefined })
     },
     [
       manifest,
       navigate,
+      cameFromLite,
       shownTo,
       pageCount,
       queryClient,
@@ -453,7 +455,7 @@ export default function ReaderPage() {
           setShortcutsOpen(true)
           break
         case 'Escape':
-          if (!document.fullscreenElement && manifest) navigate(`/series/${manifest.seriesId}`)
+          if (!document.fullscreenElement && manifest) navigate(cameFromLite ? '/lite' : `/series/${manifest.seriesId}`)
           break
       }
     }
@@ -474,6 +476,7 @@ export default function ReaderPage() {
     toggleFullscreen,
     manifest,
     navigate,
+    cameFromLite,
     page,
     toggleBookmark,
     seekToPage,
@@ -568,6 +571,7 @@ export default function ReaderPage() {
     <div className="reader-root" style={{ ...spineVars(manifest.seriesSpineColor, 'dark'), background: prefs.background }}>
       <ReaderToolbar
         manifest={manifest}
+        backTo={cameFromLite ? '/lite' : undefined}
         page={page}
         onSeek={seekToPage}
         onPrevChapter={() => void goToChapter(manifest.previousChapterId, false)}
@@ -596,6 +600,7 @@ export default function ReaderPage() {
       {atEnd ? (
         <ChapterEnd
           manifest={manifest}
+          backTo={cameFromLite ? '/lite' : undefined}
           readingCounted={readingCounted}
           rtl={prefs.direction === 'rtl'}
           onNext={() => void goToChapter(manifest.nextChapterId, true)}

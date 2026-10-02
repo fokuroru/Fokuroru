@@ -44,6 +44,7 @@ const OVERLAY_Z = 500
 
 export default function ReaderToolbar({
   manifest,
+  backTo,
   page,
   onSeek,
   onPrevChapter,
@@ -69,6 +70,8 @@ export default function ReaderToolbar({
   onShortcuts,
 }: {
   manifest: ReaderManifest
+  /** Where the back arrow goes when it is not the series page. */
+  backTo?: string
   page: number
   onSeek: (page: number) => void
   onPrevChapter: () => void
@@ -170,10 +173,10 @@ export default function ReaderToolbar({
         <Group gap="sm" wrap="nowrap" px="md" h="100%">
           <ActionIcon
             component={Link}
-            to={`/series/${manifest.seriesId}`}
+            to={backTo ?? `/series/${manifest.seriesId}`}
             variant="subtle"
             color="gray"
-            aria-label={t`Back to series`}
+            aria-label={backTo ? t`Back` : t`Back to series`}
           >
             <IconArrowLeft size={18} />
           </ActionIcon>
