@@ -961,7 +961,19 @@ export class MangaShelf {
     for (const t of b.tapes) {
       const k = t.corner * 3
       if (!t.released) {
-        t.mesh.position.set(home[k] + t.across * -1, home[k + 1] + t.down * 1, Math.max(zBoard, home[k + 2]) + 0.6)
+        // A strip of tape lies on top of whatever it covers: if any of its length is over the frame, the whole strip
+        // lies on the frame's face, so it is never half under the wood.
+        const sx = home[k] + t.across * -1
+        const sy = home[k + 1] + t.down * 1
+        let top = Math.max(zBoard, home[k + 2])
+        for (const along of [-23, 0, 23]) {
+          const px = sx + Math.cos(t.angle) * along
+          const py = sy + Math.sin(t.angle) * along
+          for (const box of boxes) {
+            if (box.front && Math.abs(px - box.cx) < box.hw && Math.abs(py - box.cy) < box.hh) top = Math.max(top, box.cz + box.hz)
+          }
+        }
+        t.mesh.position.set(sx, sy, top + 0.8)
         t.mesh.rotation.set(0, 0, t.angle)
       } else {
         // Let go of the board and still stuck to the paper: it goes where its corner of the paper goes and turns

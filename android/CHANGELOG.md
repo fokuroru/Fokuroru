@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.24 (52)
+- No app change. Tape stuck over the frame lies on top of it: if any of the strip is over the frame, the whole strip is drawn on the frame's face.
+
 ## 0.5.23 (51)
 - No app change. The banner's paper is jolted by page scrolling like the books are. The board's wooden frame is solid to it, and tape stuck onto the frame lies on its face instead of sinking into it.
 
