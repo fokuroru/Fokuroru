@@ -655,8 +655,8 @@ export class MangaShelf {
     map.colorSpace = T.SRGBColorSpace
     map.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy())
 
-    const cols = 56
-    const rows = 7
+    const cols = 84
+    const rows = 14
     const geo = new T.PlaneGeometry(sheetW, sheetH, cols, rows)
     const count = (cols + 1) * (rows + 1)
     const pos = new Float32Array(count * 3)
@@ -719,7 +719,10 @@ export class MangaShelf {
     row.scene.add(group)
     this.bannerAnim = {
       group, geo, cols, rows, pos, prev: pos.slice(), pinned, home,
-      dx: sheetW / cols, dy: sheetH / rows, brokenH: new Uint8Array((rows + 1) * cols), brokenV: new Uint8Array(rows * (cols + 1) + (cols + 1)), holding: null, tapes, start: null, last: 0, still: 0, done: false,
+      dx: sheetW / cols, dy: sheetH / rows, brokenH: new Uint8Array((rows + 1) * cols), brokenV: new Uint8Array((rows + 1) * (cols + 1)),
+      strengthH: Float32Array.from({ length: (rows + 1) * cols }, () => 0.9 + Math.random() * 0.4),
+      strengthV: Float32Array.from({ length: (rows + 1) * (cols + 1) }, () => 0.9 + Math.random() * 0.4),
+      holding: null, tapes, start: null, last: 0, still: 0, done: false,
     }
     this.stepBanner(performance.now())
     this.wake()
@@ -891,14 +894,14 @@ export class MangaShelf {
     }
     // Paper does not stretch: pulled too hard, it tears. A thread drawn out well past its length lets go, and the
     // squares of paper either side of it come apart along that line.
-    const tearAt = 1.28
-    const stretched = (i: number, j: number, rest: number) =>
-      Math.hypot(pos[i * 3] - pos[j * 3], pos[i * 3 + 1] - pos[j * 3 + 1], pos[i * 3 + 2] - pos[j * 3 + 2]) > rest * tearAt
+    const tearAt = 1.2
+    const stretched = (i: number, j: number, rest: number, strength: number) =>
+      Math.hypot(pos[i * 3] - pos[j * 3], pos[i * 3 + 1] - pos[j * 3 + 1], pos[i * 3 + 2] - pos[j * 3 + 2]) > rest * tearAt * strength
     for (let r = 0; r <= rows; r++) {
       for (let c = 0; c <= cols; c++) {
         const i = r * stride + c
-        if (c < cols && !b.brokenH[r * cols + c] && stretched(i, i + 1, b.dx)) this.tear(b, 'h', r, c)
-        if (r < rows && !b.brokenV[r * stride + c] && stretched(i, i + stride, b.dy)) this.tear(b, 'v', r, c)
+        if (c < cols && !b.brokenH[r * cols + c] && stretched(i, i + 1, b.dx, b.strengthH[r * cols + c])) this.tear(b, 'h', r, c)
+        if (r < rows && !b.brokenV[r * stride + c] && stretched(i, i + stride, b.dy, b.strengthV[r * stride + c])) this.tear(b, 'v', r, c)
       }
     }
     for (let i = 0; i < count; i++) {
@@ -957,19 +960,35 @@ export class MangaShelf {
     return true
   }
 
-  /** A thread lets go: the squares it was part of stop being drawn, and what was joined across it is joined no more. */
+  /**
+   * A thread lets go. Only the two triangles that thread was an edge of stop being drawn, so the tear follows the
+   * mesh's diagonals and comes out ragged, not as a row of squares. The threads beside it are weakened, so a crack
+   * keeps going across the sheet the way it does in paper, along a wandering line.
+   */
   private tear(b: BannerAnim, kind: 'h' | 'v', r: number, c: number) {
+    const stride = b.cols + 1
+    // The triangles that had this thread as an edge: [row of the square, column, 0 for its first triangle, 1 for its second].
+    const triangles = kind === 'h' ? [[r, c, 0], [r - 1, c, 1]] : [[r, c, 0], [r, c - 1, 1]]
     if (kind === 'h') b.brokenH[r * b.cols + c] = 1
-    else b.brokenV[r * (b.cols + 1) + c] = 1
-    const cells = kind === 'h' ? [[r - 1, c], [r, c]] : [[r, c - 1], [r, c]]
+    else b.brokenV[r * stride + c] = 1
     const index = b.geo.getIndex()!
-    for (const [rr, cc] of cells) {
+    for (const [rr, cc, which] of triangles) {
       if (rr < 0 || rr >= b.rows || cc < 0 || cc >= b.cols) continue
-      // Each square is two triangles: six entries in the index, set to nothing so they are not drawn.
-      const at = (rr * b.cols + cc) * 6
-      for (let n = 0; n < 6; n++) index.setX(at + n, 0)
+      const at = (rr * b.cols + cc) * 6 + which * 3
+      for (let n = 0; n < 3; n++) index.setX(at + n, 0)
     }
     index.needsUpdate = true
+    // A crack runs across the strain: weaken the threads in line with it, one step either way.
+    const weaken = (array: Float32Array, at: number) => {
+      if (at >= 0 && at < array.length) array[at] *= 0.86
+    }
+    if (kind === 'h') {
+      weaken(b.strengthH, (r - 1) * b.cols + c)
+      weaken(b.strengthH, (r + 1) * b.cols + c)
+    } else {
+      weaken(b.strengthV, r * stride + c - 1)
+      weaken(b.strengthV, r * stride + c + 1)
+    }
   }
 
   /** One thread of the paper: pulls or pushes its two ends back towards their resting distance. */
@@ -3606,6 +3625,9 @@ interface BannerAnim {
   /** Threads that have torn: along each row (between neighbours) and down each column. */
   brokenH: Uint8Array
   brokenV: Uint8Array
+  /** How much each thread can be drawn out before it tears: uneven, as paper is, and weakened beside a tear. */
+  strengthH: Float32Array
+  strengthV: Float32Array
   /** A corner being held in the hand: which tape, and where each of its weights sits relative to the corner. */
   holding: { tape: number; offsets: Float32Array } | null
   tapes: { mesh: T.Mesh; patch: number[]; corner: number; across: number; down: number; releaseAt: number; released: boolean; angle: number }[]
