@@ -2506,11 +2506,36 @@ export class MangaShelf {
     for (const id of this.spawnedBooks) if (!incoming.has(id)) this.spawnedBooks.delete(id)
     const additions = this.books.filter((book) => !this.spawnedBooks.has(book.id))
     if (!additions.length) return
-    const plan = planShelf(this.books.map((book) => this.styled(book)), this.logicalWidth, this.emptyShare)
     const row = this.rows[0]
-    for (const placement of plan) {
-      if (this.spawnedBooks.has(placement.book.id)) continue
-      const { book, x, y, angle } = placement
+    // A newcomer is dropped in from above the shelf, over a gap where it will fit, and left to land. Placing
+    // it where a fresh shelf would have put it set it down inside books that had already settled.
+    const taken: Array<[number, number]> = [
+      ...this.items.map((item) => [item.body.bounds.min.x, item.body.bounds.max.x] as [number, number]),
+      ...this.props.map((prop) => [prop.body.bounds.min.x, prop.body.bounds.max.x] as [number, number]),
+    ]
+    const limit = this.logicalWidth - 18
+    const fall = 360 - ROW
+    let stagger = 0
+    for (const book of additions.map((added) => this.styled(added))) {
+      const merged = taken.sort((p, q) => p[0] - q[0]).reduce<Array<[number, number]>>((out, range) => {
+        const last = out[out.length - 1]
+        if (last && range[0] <= last[1]) last[1] = Math.max(last[1], range[1])
+        else out.push([range[0], range[1]])
+        return out
+      }, [])
+      let from = 18
+      let best: [number, number] | null = null
+      for (const [lo, hi] of [...merged, [limit, limit] as [number, number]]) {
+        if (lo - from >= book.width + 6 && (!best || lo - from > best[1] - best[0])) best = [from, lo]
+        from = Math.max(from, hi)
+      }
+      const x = best
+        ? best[0] + 3 + Math.random() * (best[1] - best[0] - book.width - 6)
+        : 18 + Math.random() * Math.max(0, limit - 18 - book.width)
+      taken.push([x, x + book.width])
+      const y = fall - book.height - stagger
+      stagger += book.height * 0.8 + 30
+      const angle = (Math.random() - 0.5) * 0.2
       const body = row.physics.add(x, y, book.width, book.height, angle, book.depth)
       const { group: model, hinges } = this.model(book)
       const item: Item = { body, model, row, book, hinges }
@@ -2521,6 +2546,7 @@ export class MangaShelf {
       this.addBookButton(item)
     }
     for (const book of additions) this.spawnedBooks.add(book.id)
+    this.wake()
     if (this.items.length && !this.extrasSeen) {
       this.extrasSeen = true
       this.placeChalk(row, this.logicalWidth)
