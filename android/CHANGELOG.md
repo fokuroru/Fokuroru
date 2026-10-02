@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.3.3 (20)
+- No app change. The pairing QR code now draws (it was collapsing to a thin bar) and lives under Settings, Users & security, Pair the Android app.
+
 ## 0.3.2 (19)
 - No app change. Settings, Reader, has an Edit tap zones button for the app's own layout.
 

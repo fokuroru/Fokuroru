@@ -2162,6 +2162,11 @@ msgstr "and {remaining} more selected on other pages"
 msgid "Android app"
 msgstr "Android app"
 
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "android, app, qr code, pair, phone, tablet, sign in, scan"
+msgstr "android, app, qr code, pair, phone, tablet, sign in, scan"
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 msgid "AniList"
 msgstr "AniList"
@@ -9015,6 +9020,7 @@ msgid "Pages matched"
 msgstr "Pages matched"
 
 #: src/components/settings/PairAppModal.tsx
+#: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
 msgid "Pair the Android app"
 msgstr "Pair the Android app"
@@ -11578,6 +11584,10 @@ msgstr "Show replaced files"
 msgid "Show source text"
 msgstr "Show source text"
 
+#: src/pages/SettingsPage.tsx
+msgid "Show the QR code"
+msgstr "Show the QR code"
+
 #: src/pages/CreatorPage.tsx
 msgid "Show their newest titles in a rail on Home and Discover"
 msgstr "Show their newest titles in a rail on Home and Discover"
@@ -12695,6 +12705,10 @@ msgstr "This file is already gone from disk, so nothing is deleted. It drops the
 #: src/components/ImportListsSection.tsx
 msgid "This files a request for every matching entry from your {label} list, up to the per-run limit."
 msgstr "This files a request for every matching entry from your {label} list, up to the per-run limit."
+
+#: src/pages/SettingsPage.tsx
+msgid "This is the Android app. Open the web interface in a browser to pair another phone or tablet."
+msgstr "This is the Android app. Open the web interface in a browser to pair another phone or tablet."
 
 #: src/pages/CreatorPage.tsx
 msgid "This link is missing the creator's name."

@@ -2586,6 +2586,11 @@ msgstr "다른 페이지에서 추가로 {remaining}개 선택됨"
 msgid "Android app"
 msgstr ""
 
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "android, app, qr code, pair, phone, tablet, sign in, scan"
+msgstr ""
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 #, fuzzy
 msgid "AniList"
@@ -10752,6 +10757,7 @@ msgid "Pages matched"
 msgstr "일치한 페이지"
 
 #: src/components/settings/PairAppModal.tsx
+#: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
 msgid "Pair the Android app"
 msgstr ""
@@ -13776,6 +13782,10 @@ msgstr ""
 msgid "Show source text"
 msgstr "소스 텍스트 표시"
 
+#: src/pages/SettingsPage.tsx
+msgid "Show the QR code"
+msgstr ""
+
 #: src/pages/CreatorPage.tsx
 #, fuzzy
 msgid "Show their newest titles in a rail on Home and Discover"
@@ -15104,6 +15114,10 @@ msgstr "이 파일은 이미 디스크에서 없어졌으므로 삭제할 항목
 #, fuzzy
 msgid "This files a request for every matching entry from your {label} list, up to the per-run limit."
 msgstr "{label} 목록에서 일치하는 항목마다 요청을 등록합니다. 실행당 제한까지 처리합니다."
+
+#: src/pages/SettingsPage.tsx
+msgid "This is the Android app. Open the web interface in a browser to pair another phone or tablet."
+msgstr ""
 
 #: src/pages/CreatorPage.tsx
 #, fuzzy

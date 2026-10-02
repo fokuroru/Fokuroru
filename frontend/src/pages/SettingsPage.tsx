@@ -2649,24 +2649,7 @@ function HomeSectionsSection() {
 /** Only inside the Android app: the way to its own settings, which a web page can't reach. */
 function AndroidAppBlock() {
   const native = nativeApp()
-  const [pairOpen, setPairOpen] = useState(false)
-  if (!native) {
-    return (
-      <>
-        <Divider my="md" />
-        <Text fw={500} size="sm" mb={4}>
-          <Trans>Android app</Trans>
-        </Text>
-        <SettingsHelp mb="xs">
-          <Trans>Add this server to the Android app and sign it in as you, without typing a password.</Trans>
-        </SettingsHelp>
-        <Button variant="default" onClick={() => setPairOpen(true)}>
-          <Trans>Pair the Android app</Trans>
-        </Button>
-        <PairAppModal opened={pairOpen} onClose={() => setPairOpen(false)} />
-      </>
-    )
-  }
+  if (!native) return null
   return (
     <>
       <Divider my="md" />
@@ -2688,6 +2671,34 @@ function AndroidAppBlock() {
         </Button>
       </Group>
     </>
+  )
+}
+
+/** Shows the QR code a phone or tablet scans to add this server and sign in as the current account. */
+function PairAppSection() {
+  const [open, setOpen] = useState(false)
+  const native = nativeApp()
+  return (
+    <SettingsSection
+      id="pair-app"
+      title={<Trans>Pair the Android app</Trans>}
+      description={
+        native ? (
+          <Trans>This is the Android app. Open the web interface in a browser to pair another phone or tablet.</Trans>
+        ) : (
+          <Trans>Add this server to the Android app and sign it in as you, without typing a password.</Trans>
+        )
+      }
+    >
+      {!native && (
+        <>
+          <Button variant="default" onClick={() => setOpen(true)}>
+            <Trans>Show the QR code</Trans>
+          </Button>
+          <PairAppModal opened={open} onClose={() => setOpen(false)} />
+        </>
+      )}
+    </SettingsSection>
   )
 }
 
@@ -3104,6 +3115,7 @@ function useSectionNodes(): Record<string, ReactNode> {
 
       users: <UsersSection />,
       security: <SecuritySection />,
+      'pair-app': <PairAppSection />,
       oidc: <OidcSection />,
 
       backup: <BackupSection />,

@@ -16,18 +16,19 @@ export function pairingLink(origin: string, code: string): string {
 
 function QrCode({ text }: { text: string }) {
   const { t } = useLingui()
-  const svg = useMemo(() => {
+  const src = useMemo(() => {
     const qr = qrcode(0, 'M')
     qr.addData(text)
     qr.make()
-    return qr.createSvgTag({ cellSize: 6, margin: 4, scalable: true })
+    return qr.createDataURL(8, 4)
   }, [text])
   return (
-    <div
-      role="img"
-      aria-label={t`QR code for pairing the Android app`}
-      style={{ width: 'min(100%, 280px)', background: '#fff', padding: 4, borderRadius: 8 }}
-      dangerouslySetInnerHTML={{ __html: svg }}
+    <img
+      src={src}
+      alt={t`QR code for pairing the Android app`}
+      width={280}
+      height={280}
+      style={{ width: 'min(100%, 280px)', height: 'auto', background: '#fff', borderRadius: 8, imageRendering: 'pixelated' }}
     />
   )
 }
