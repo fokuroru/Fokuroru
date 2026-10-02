@@ -12,6 +12,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.ValueCallback
@@ -35,6 +36,8 @@ import dev.fokuroru.reader.input.PadAction
 import dev.fokuroru.reader.input.PageTurnMap
 import dev.fokuroru.reader.input.Turn
 import dev.fokuroru.reader.net.Api
+import dev.fokuroru.reader.net.PairResult
+import dev.fokuroru.reader.net.Pairing
 import dev.fokuroru.reader.net.Gateway
 import dev.fokuroru.reader.net.ServerState
 import dev.fokuroru.reader.net.Versions
@@ -405,6 +408,9 @@ class MainActivity : AppCompatActivity() {
     private fun checkServer() {
         thread {
             val state = offline.probeState()
+            val pairing = if (state == ServerState.OK) Pairing.completePending(this) else null
+            if (pairing == PairResult.Done) runOnUiThread { web.loadUrl("${prefs.serverUrl}/") }
+            if (pairing == PairResult.Refused) runOnUiThread { Toast.makeText(this, R.string.pair_refused, Toast.LENGTH_LONG).show() }
             val info = if (state == ServerState.OK) Api(this).serverInfo() else null
             val message = when {
                 info == null -> null

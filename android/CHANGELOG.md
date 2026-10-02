@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.3.6 (23)
+- QR pairing on a server behind a sign-in page (tinyauth and similar): the app keeps the code, shows that page, and signs in as the account from the QR code as soon as the gateway sign-in is done (within five minutes), instead of ending at the login screen.
+
 ## 0.3.5 (22)
 - No app change. Server image builds faster: Chromium install and NuGet restore are cached across code changes.
 
