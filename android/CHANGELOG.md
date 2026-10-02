@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.3.4 (21)
+- No app change. Mobile view: one Continue reading rail above the library, in the desktop shelf's order (most recently read first) with the first book as the hero.
+
 ## 0.3.3 (20)
 - No app change. The pairing QR code now draws (it was collapsing to a thin bar) and lives under Settings, Users & security, Pair the Android app.
 

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { useReadTracking } from '../api/reader'
 import { useAppVersion, useHomeReading, useSeries, type HomeReadingItem } from '../api/hooks'
 import { useAuth } from '../auth/AuthProvider'
 import type { SeriesDto } from '../api/types'
@@ -34,9 +35,28 @@ export default function SimpleHomePage() {
 
   const continuing = reading.data?.continueReading ?? []
   const upNext = reading.data?.jumpBackIn ?? []
-  const hero = continuing[0] ?? upNext[0]
-  const continueRail = continuing.slice(1)
-  const upNextRail = upNext.filter((item) => item.seriesId !== hero?.seriesId)
+  const tracking = useReadTracking()
+
+  // The desktop shelf's order: series being read, most recently read first. Its first book is the
+  // hero and the rest make up the one rail above the library.
+  const shelf = useMemo(
+    () =>
+      tracking
+        ? (library.data ?? [])
+            .filter((s) => s.readingStatus === 'Reading')
+            .sort((a, b) => (b.lastReadAt ?? '').localeCompare(a.lastReadAt ?? ''))
+        : [],
+    [library.data, tracking],
+  )
+  const itemFor = useMemo(() => {
+    const items = new Map<number, HomeReadingItem>()
+    for (const item of [...upNext, ...continuing]) items.set(item.seriesId, item)
+    return items
+  }, [continuing, upNext])
+  const hero = (shelf[0] && itemFor.get(shelf[0].id)) ?? continuing[0] ?? upNext[0]
+  const railItems = shelf.length > 0
+    ? shelf.slice(1).map((s) => itemFor.get(s.id) ?? plainItem(s))
+    : [...continuing.slice(1), ...upNext].filter((item) => item.seriesId !== hero?.seriesId)
 
   const books = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -99,7 +119,7 @@ export default function SimpleHomePage() {
       )}
 
       {hero ? (
-        <Hero item={hero} resuming={continuing.length > 0} />
+        <Hero item={hero} resuming={continuing.some((c) => c.seriesId === hero.seriesId)} />
       ) : (
         !reading.isPending &&
         !offline && (
@@ -114,8 +134,7 @@ export default function SimpleHomePage() {
         )
       )}
 
-      {continueRail.length > 0 && <Rail title={t`Continue reading`} items={continueRail} />}
-      {upNextRail.length > 0 && <Rail title={t`Up next`} items={upNextRail} />}
+      {railItems.length > 0 && <Rail title={t`Continue reading`} items={railItems} />}
 
       <section className="lite-section" aria-labelledby="lite-library">
         <h2 id="lite-library" className="lite-heading">
@@ -284,13 +303,28 @@ function Hero({ item, resuming }: { item: HomeReadingItem; resuming: boolean }) 
   )
 }
 
+/** A book on the shelf with nothing to say about where it was left: the cover and title are enough. */
+function plainItem(series: SeriesDto): HomeReadingItem {
+  return {
+    seriesId: series.id,
+    seriesTitle: series.displayTitle,
+    coverUrl: series.coverUrl,
+    chapterId: 0,
+    chapterLabel: '',
+    page: 0,
+    pageCount: 0,
+    lastReadAt: series.lastReadAt ?? '',
+    unreadChapters: 0,
+  }
+}
+
 function Rail({ title, items }: { title: string; items: HomeReadingItem[] }) {
   return (
     <section className="lite-section">
       <h2 className="lite-heading">{title}</h2>
       <div className="lite-rail">
         {items.map((item) => (
-          <Link key={item.seriesId} to={`/read/${item.chapterId}`} state={{ lite: true }} className="lite-card">
+          <Link key={item.seriesId} to={`/open/${item.seriesId}`} state={{ lite: true }} className="lite-card">
             <span className="lite-cover">
               {item.coverUrl ? <img src={item.coverUrl} alt="" loading="lazy" /> : <span className="lite-cover-blank" />}
               {item.pageCount > 0 && item.page > 0 && (
