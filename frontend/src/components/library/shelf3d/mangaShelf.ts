@@ -719,10 +719,74 @@ export class MangaShelf {
     row.scene.add(group)
     this.bannerAnim = {
       group, geo, cols, rows, pos, prev: pos.slice(), pinned, home,
-      dx: sheetW / cols, dy: sheetH / rows, holding: null, tapes, start: null, last: 0, still: 0, done: false,
+      dx: sheetW / cols, dy: sheetH / rows, brokenH: new Uint8Array((rows + 1) * cols), brokenV: new Uint8Array(rows * (cols + 1) + (cols + 1)), holding: null, tapes, start: null, last: 0, still: 0, done: false,
     }
     this.stepBanner(performance.now())
     this.wake()
+  }
+
+  /**
+   * What the banner can land on, as solid boxes in the board's coordinates: every book (turned as it stands),
+   * prop and the plank. Each reaches back to the board, so the paper comes down onto the top of a book and cannot
+   * slip behind it, and none can be pushed through from the side or the front.
+   */
+  private bannerBoxes() {
+    const half = this.logicalWidth / 2
+    const boxes: { cx: number; cy: number; cz: number; hw: number; hh: number; hz: number; cos: number; sin: number }[] = []
+    const wallFace = -148
+    const addBox = (x0: number, x1: number, y0: number, y1: number, front: number, angle = 0, cx?: number, cy?: number, hw?: number, hh?: number) => {
+      const box = {
+        cx: cx ?? (x0 + x1) / 2, cy: cy ?? (y0 + y1) / 2, cz: (wallFace + front) / 2,
+        hw: hw ?? (x1 - x0) / 2, hh: hh ?? (y1 - y0) / 2, hz: (front - wallFace) / 2,
+        cos: Math.cos(angle), sin: Math.sin(angle),
+      }
+      // Something with no usable size or depth is not a thing to land on, and would poison every weight it touched.
+      if (Object.values(box).every(Number.isFinite) && box.hw > 0 && box.hh > 0 && box.hz > 0) boxes.push(box)
+    }
+    for (const item of this.items) {
+      if (item.pulledAt !== undefined) continue
+      const body = item.body
+      addBox(0, 0, 0, 0, body.z + body.depth / 2, -body.angle, body.position.x - half, 380 - body.position.y, body.bookWidth / 2, body.bookHeight / 2)
+    }
+    for (const prop of this.props) {
+      const bd = prop.body.bounds
+      addBox(bd.min.x - half, bd.max.x - half, 380 - bd.max.y, 380 - bd.min.y, prop.body.z + (prop.body.depth ?? 60) / 2)
+    }
+    // The plank itself, which is as far down as anything falls.
+    addBox(-this.wallSize.w / 2, this.wallSize.w / 2, -200, 19.5, 14)
+    return boxes
+  }
+
+  /** A point moved out of any box it is inside, by the nearest face, preferring the top. The point is `at`, changed in place. */
+  private pushOut(boxes: ReturnType<MangaShelf['bannerBoxes']>, at: { x: number; y: number; z: number }): boolean {
+    let hit = false
+    for (const box of boxes) {
+      // A hair of thickness all round, so paper does not slip between a face and the weight resting on it.
+      const hw = box.hw + 1.2
+      const hh = box.hh + 1.2
+      const hz = box.hz + 1.2
+      const px = at.x - box.cx
+      const py = at.y - box.cy
+      const lx = px * box.cos + py * box.sin
+      const ly = -px * box.sin + py * box.cos
+      const lz = at.z - box.cz
+      const dx = hw - Math.abs(lx)
+      const dy = hh - Math.abs(ly)
+      const dz = hz - Math.abs(lz)
+      if (dx <= 0 || dy <= 0 || dz <= 0) continue
+      const up = ly > 0 ? dy * 0.5 : dy
+      let nx = lx
+      let ny = ly
+      let nz = lz
+      if (up <= dx && up <= dz) ny = (ly > 0 ? 1 : -1) * (hh + 0.3)
+      else if (dx <= dz) nx = (lx > 0 ? 1 : -1) * (hw + 0.3)
+      else nz = (lz >= 0 ? 1 : -1) * (hz + 0.3)
+      at.x = box.cx + nx * box.cos - ny * box.sin
+      at.y = box.cy + nx * box.sin + ny * box.cos
+      at.z = box.cz + nz
+      hit = true
+    }
+    return hit
   }
 
   /** Moves the paper and its tape to where they are `now`; true while there is still something to move. */
@@ -753,33 +817,9 @@ export class MangaShelf {
     const { pos, prev, pinned, home, cols, rows } = b
     const stride = cols + 1
     const count = stride * (rows + 1)
-    const half = this.logicalWidth / 2
-    // What it can land on, as solid boxes in the board's coordinates: every book (turned as it stands), prop and
-    // the plank. Each reaches back to the board, so the paper comes down onto the top of a book and cannot slip
-    // behind it, and none can be pushed through from the side or the front.
-    const boxes: { cx: number; cy: number; cz: number; hw: number; hh: number; hz: number; cos: number; sin: number }[] = []
-    const wallFace = -148
-    const addBox = (x0: number, x1: number, y0: number, y1: number, front: number, angle = 0, cx?: number, cy?: number, hw?: number, hh?: number) => {
-      const box = {
-        cx: cx ?? (x0 + x1) / 2, cy: cy ?? (y0 + y1) / 2, cz: (wallFace + front) / 2,
-        hw: hw ?? (x1 - x0) / 2, hh: hh ?? (y1 - y0) / 2, hz: (front - wallFace) / 2,
-        cos: Math.cos(angle), sin: Math.sin(angle),
-      }
-      // Something with no usable size or depth is not a thing to land on, and would poison every weight it touched.
-      if (Object.values(box).every(Number.isFinite) && box.hw > 0 && box.hh > 0 && box.hz > 0) boxes.push(box)
-    }
-    for (const item of this.items) {
-      if (item.pulledAt !== undefined) continue
-      const body = item.body
-      addBox(0, 0, 0, 0, body.z + body.depth / 2, -body.angle, body.position.x - half, 380 - body.position.y, body.bookWidth / 2, body.bookHeight / 2)
-    }
-    for (const prop of this.props) {
-      const bd = prop.body.bounds
-      addBox(bd.min.x - half, bd.max.x - half, 380 - bd.max.y, 380 - bd.min.y, prop.body.z + (prop.body.depth ?? 60) / 2)
-    }
-    // The plank itself, which is as far down as anything falls.
-    addBox(-this.wallSize.w / 2, this.wallSize.w / 2, -200, 19.5, 14)
+    const boxes = this.bannerBoxes()
     const zBoard = -146.3
+    const at = { x: 0, y: 0, z: 0 }
 
     const steps = Math.max(1, Math.round(frame * 120))
     const dt = frame / steps
@@ -806,17 +846,22 @@ export class MangaShelf {
         for (let r = 0; r <= rows; r++) {
           for (let c = 0; c <= cols; c++) {
             const i = r * stride + c
-            if (c < cols) this.thread(b, i, i + 1, b.dx)
-            if (r < rows) this.thread(b, i, i + stride, b.dy)
-            if (c < cols && r < rows) {
+            const right = c < cols && !b.brokenH[r * cols + c]
+            const below = r < rows && !b.brokenV[r * stride + c]
+            if (right) this.thread(b, i, i + 1, b.dx)
+            if (below) this.thread(b, i, i + stride, b.dy)
+            if (c < cols && r < rows && this.cellIntact(b, r, c)) {
               this.thread(b, i, i + stride + 1, Math.hypot(b.dx, b.dy))
               this.thread(b, i + 1, i + stride, Math.hypot(b.dx, b.dy))
             }
-            // Paper is not cloth: it springs back when it is folded. Threads reaching over one weight resist a
-            // fold across the sheet, and more firmly down it, which keeps it from twisting into a ribbon.
-            if (c + 4 <= cols) this.thread(b, i, i + 4, b.dx * 4, PAPER_STIFFNESS_BEAM)
-            if (c + 2 <= cols) this.thread(b, i, i + 2, b.dx * 2, PAPER_STIFFNESS_ALONG)
-            if (r + 2 <= rows) this.thread(b, i, i + 2 * stride, b.dy * 2, PAPER_STIFFNESS_ACROSS)
+            // Paper is not cloth: it springs back when it is folded. Threads reaching over a few weights resist a
+            // fold, and more firmly down the sheet, which keeps it from twisting into a ribbon. They only reach
+            // across paper that is still whole.
+            if (c + 4 <= cols && this.runIntact(b.brokenH, r * cols + c, 4)) this.thread(b, i, i + 4, b.dx * 4, PAPER_STIFFNESS_BEAM)
+            if (c + 2 <= cols && this.runIntact(b.brokenH, r * cols + c, 2)) this.thread(b, i, i + 2, b.dx * 2, PAPER_STIFFNESS_ALONG)
+            if (r + 2 <= rows && !b.brokenV[r * stride + c] && !b.brokenV[(r + 1) * stride + c]) {
+              this.thread(b, i, i + 2 * stride, b.dy * 2, PAPER_STIFFNESS_ACROSS)
+            }
           }
         }
         for (let i = 0; i < count; i++) {
@@ -829,34 +874,31 @@ export class MangaShelf {
           }
           // Not through the board, and not through anything standing in front of it.
           if (pos[k + 2] < zBoard) pos[k + 2] = zBoard
-          for (const box of boxes) {
-            const px = pos[k] - box.cx
-            const py = pos[k + 1] - box.cy
-            const lx = px * box.cos + py * box.sin
-            const ly = -px * box.sin + py * box.cos
-            const lz = pos[k + 2] - box.cz
-            const dx = box.hw - Math.abs(lx)
-            const dy = box.hh - Math.abs(ly)
-            const dz = box.hz - Math.abs(lz)
-            if (dx <= 0 || dy <= 0 || dz <= 0) continue
-            // Out by the nearest face; a way out through the top is preferred, which is how it comes to rest on one.
-            const up = ly > 0 ? dy * 0.5 : dy
-            let nx = lx
-            let ny = ly
-            let nz = lz
-            const margin = 0.9
-            if (up <= dx && up <= dz) ny = (ly > 0 ? 1 : -1) * (box.hh + margin)
-            else if (dx <= dz) nx = (lx > 0 ? 1 : -1) * (box.hw + margin)
-            else nz = (lz >= 0 ? 1 : -1) * (box.hz + margin)
-            pos[k] = box.cx + nx * box.cos - ny * box.sin
-            pos[k + 1] = box.cy + nx * box.sin + ny * box.cos
-            pos[k + 2] = box.cz + nz
+          at.x = pos[k]
+          at.y = pos[k + 1]
+          at.z = pos[k + 2]
+          if (this.pushOut(boxes, at)) {
+            pos[k] = at.x
+            pos[k + 1] = at.y
+            pos[k + 2] = at.z
             // Friction: it grips what it lands on rather than sliding off like ice.
             prev[k] += (pos[k] - prev[k]) * 0.4
             prev[k + 1] = pos[k + 1]
             prev[k + 2] += (pos[k + 2] - prev[k + 2]) * 0.4
           }
         }
+      }
+    }
+    // Paper does not stretch: pulled too hard, it tears. A thread drawn out well past its length lets go, and the
+    // squares of paper either side of it come apart along that line.
+    const tearAt = 1.28
+    const stretched = (i: number, j: number, rest: number) =>
+      Math.hypot(pos[i * 3] - pos[j * 3], pos[i * 3 + 1] - pos[j * 3 + 1], pos[i * 3 + 2] - pos[j * 3 + 2]) > rest * tearAt
+    for (let r = 0; r <= rows; r++) {
+      for (let c = 0; c <= cols; c++) {
+        const i = r * stride + c
+        if (c < cols && !b.brokenH[r * cols + c] && stretched(i, i + 1, b.dx)) this.tear(b, 'h', r, c)
+        if (r < rows && !b.brokenV[r * stride + c] && stretched(i, i + stride, b.dy)) this.tear(b, 'v', r, c)
       }
     }
     for (let i = 0; i < count; i++) {
@@ -901,6 +943,33 @@ export class MangaShelf {
       if (b.still > 1.5) b.done = true
     }
     return !b.done
+  }
+
+  /** Whether every thread of a square of the sheet is still whole. */
+  private cellIntact(b: BannerAnim, r: number, c: number) {
+    const stride = b.cols + 1
+    return !b.brokenH[r * b.cols + c] && !b.brokenH[(r + 1) * b.cols + c] && !b.brokenV[r * stride + c] && !b.brokenV[r * stride + c + 1]
+  }
+
+  /** Whether `length` threads in a row, from this one, are all whole. */
+  private runIntact(broken: Uint8Array, from: number, length: number) {
+    for (let n = 0; n < length; n++) if (broken[from + n]) return false
+    return true
+  }
+
+  /** A thread lets go: the squares it was part of stop being drawn, and what was joined across it is joined no more. */
+  private tear(b: BannerAnim, kind: 'h' | 'v', r: number, c: number) {
+    if (kind === 'h') b.brokenH[r * b.cols + c] = 1
+    else b.brokenV[r * (b.cols + 1) + c] = 1
+    const cells = kind === 'h' ? [[r - 1, c], [r, c]] : [[r, c - 1], [r, c]]
+    const index = b.geo.getIndex()!
+    for (const [rr, cc] of cells) {
+      if (rr < 0 || rr >= b.rows || cc < 0 || cc >= b.cols) continue
+      // Each square is two triangles: six entries in the index, set to nothing so they are not drawn.
+      const at = (rr * b.cols + cc) * 6
+      for (let n = 0; n < 6; n++) index.setX(at + n, 0)
+    }
+    index.needsUpdate = true
   }
 
   /** One thread of the paper: pulls or pushes its two ends back towards their resting distance. */
@@ -3310,10 +3379,17 @@ export class MangaShelf {
   }
 
   private moveBannerTo(x: number, y: number, b: BannerAnim, tape: BannerAnim['tapes'][number], offsets: Float32Array) {
+    // A hand cannot push paper through a book either: the held weights stop at the nearest face.
+    const boxes = this.bannerBoxes()
+    const at = { x: 0, y: 0, z: 0 }
     tape.patch.forEach((index, n) => {
-      b.home[index * 3] = x + offsets[n * 2]
-      b.home[index * 3 + 1] = y + offsets[n * 2 + 1]
-      b.home[index * 3 + 2] = -146.3 + 12
+      at.x = x + offsets[n * 2]
+      at.y = y + offsets[n * 2 + 1]
+      at.z = -146.3 + 12
+      this.pushOut(boxes, at)
+      b.home[index * 3] = at.x
+      b.home[index * 3 + 1] = at.y
+      b.home[index * 3 + 2] = at.z
     })
   }
 
@@ -3527,6 +3603,9 @@ interface BannerAnim {
   home: Float32Array
   dx: number
   dy: number
+  /** Threads that have torn: along each row (between neighbours) and down each column. */
+  brokenH: Uint8Array
+  brokenV: Uint8Array
   /** A corner being held in the hand: which tape, and where each of its weights sits relative to the corner. */
   holding: { tape: number; offsets: Float32Array } | null
   tapes: { mesh: T.Mesh; patch: number[]; corner: number; across: number; down: number; releaseAt: number; released: boolean; angle: number }[]
