@@ -296,6 +296,9 @@ export class MangaShelf {
   private readonly prank = Math.random() < PRANK_CHANCE ? PRANKS[Math.floor(Math.random() * PRANKS.length)] : null
   private readonly prankOnRight = Math.random() < 0.5
   private readonly holidayDoodle = holidayDoodle()
+  /** A banner taped to one of the board's top corners, when a picture of one has loaded. */
+  private bannerImg: HTMLImageElement | null = null
+  private readonly bannerLeft = Math.random() < 0.5
   private prankFontReady = false
   /** Rolled once per page load and compared with how often the user wants one, so a figure stays or goes as a whole. */
   private readonly figureRoll = Math.random()
@@ -541,6 +544,24 @@ export class MangaShelf {
       this.boardMaterial.needsUpdate = true
       this.wake()
     }
+  }
+
+  /** Tapes a banner picture to the board, or takes it down. The wall is redrawn; no body moves. */
+  setBanner(url: string | null) {
+    if (!url) {
+      if (this.bannerImg) {
+        this.bannerImg = null
+        this.setBoard(this.board)
+      }
+      return
+    }
+    const img = new Image()
+    img.onload = () => {
+      if (this.abort.signal.aborted) return
+      this.bannerImg = img
+      this.setBoard(this.board)
+    }
+    img.src = url
   }
 
   setTheme(theme: ShelfTheme) {
@@ -1263,6 +1284,34 @@ export class MangaShelf {
       })
       c.restore()
     }
+    // ---- a banner, taped to one of the top corners. Never wider than 40% of the board, and only if it fits:
+    // clear of the other things already on the board and inside the band above where the books stand.
+    // Its own random stream, so showing it does not move any of the chalk.
+    let taped: { x: number; y: number; w: number; h: number; tilt: number } | null = null
+    const banner = this.bannerImg
+    if (banner && banner.naturalWidth > 0 && banner.naturalHeight > 0 && this.board) {
+      let bs = (this.seed ^ 0x9e3779b9) | 0
+      const brnd = () => {
+        bs = (bs + 0x6d2b79f5) | 0
+        let t = Math.imul(bs ^ (bs >>> 15), 1 | bs)
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+      }
+      const bw = Math.min(w * 0.4, w * (0.26 + brnd() * 0.14))
+      const bh = (bw * banner.naturalHeight) / banner.naturalWidth
+      const allowance = 14
+      const hit = (x: number, y: number) => solid.some((o) =>
+        x - allowance < o.x + o.w && x + bw + allowance > o.x && y - allowance < o.y + o.h && y + bh + allowance > o.y)
+      const sides = this.bannerLeft ? [margin, w - margin - bw] : [w - margin - bw, margin]
+      const y = margin + allowance
+      if (bw >= 110 && bh <= h * 0.3 && bw * 2 + margin * 2 <= w * 1.1) {
+        const x = sides.find((candidate) => candidate >= margin && candidate + bw <= w - margin && !hit(candidate, y))
+        if (x !== undefined) {
+          taped = { x, y, w: bw, h: bh, tilt: (brnd() - 0.5) * 0.05 }
+          solid.push({ x: x - allowance, y: y - allowance, w: bw + allowance * 2, h: bh + allowance * 2 })
+        }
+      }
+    }
     const overlaps = (a: Spot, pad: number) =>
       solid.some((b) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y)
     const spotFor = (bw: number, bh: number, pad: number, upperBias: number): Spot | null => {
@@ -1563,6 +1612,45 @@ export class MangaShelf {
 
     g.setTransform(1, 0, 0, 1, 0, 0)
     g.drawImage(layer, 0, 0)
+    if (taped && banner) {
+      const t = taped
+      g.save()
+      g.scale(scale, scale)
+      g.translate(t.x + t.w / 2, t.y + t.h / 2)
+      g.rotate(t.tilt)
+      g.shadowColor = 'rgba(0,0,0,0.5)'
+      g.shadowBlur = 10
+      g.shadowOffsetY = 3
+      g.fillStyle = '#ece6d6'
+      g.fillRect(-t.w / 2 - 3, -t.h / 2 - 3, t.w + 6, t.h + 6)
+      g.shadowColor = 'transparent'
+      g.shadowBlur = 0
+      g.shadowOffsetY = 0
+      g.drawImage(banner, -t.w / 2, -t.h / 2, t.w, t.h)
+      // A strip of clear sticky tape across each corner: pale, a little see-through, ends torn square-ish.
+      for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+        const length = 38 + rnd() * 10
+        const width = 13 + rnd() * 3
+        g.save()
+        g.translate(sx * (t.w / 2 + 1), sy * (t.h / 2 + 1))
+        g.rotate(-sx * sy * (Math.PI / 4) + jit(0.18))
+        g.fillStyle = 'rgba(240, 230, 186, 0.74)'
+        g.strokeStyle = 'rgba(130, 112, 70, 0.35)'
+        g.lineWidth = 0.8
+        g.beginPath()
+        g.moveTo(-length / 2, -width / 2)
+        for (let i = 0; i <= 4; i++) g.lineTo(-length / 2 + jit(2.4), -width / 2 + (width * i) / 4)
+        g.lineTo(length / 2 + jit(2.4), width / 2)
+        for (let i = 4; i >= 0; i--) g.lineTo(length / 2 + jit(2.4), -width / 2 + (width * i) / 4)
+        g.closePath()
+        g.fill()
+        g.stroke()
+        g.fillStyle = 'rgba(255, 255, 255, 0.28)'
+        g.fillRect(-length / 2 + 2, -width / 2 + 2, length - 4, 2)
+        g.restore()
+      }
+      g.restore()
+    }
     const map = new T.CanvasTexture(base)
     map.colorSpace = T.SRGBColorSpace
     map.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy())

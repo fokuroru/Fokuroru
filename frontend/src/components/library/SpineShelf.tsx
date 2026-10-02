@@ -11,6 +11,7 @@ import '@fontsource/mochiy-pop-one/latin-400.css'
 import '@fontsource/potta-one/latin-400.css'
 import { api } from '../../api/client'
 import { useShelfFigures } from '../../api/hooks'
+import { useShelfBanner } from '../../lib/shelfBanner'
 import { FIGURE_CHANCE, FIGURE_SCALE, useShelfFigurePrefs } from '../../lib/shelfFigurePrefs'
 import type { SeriesDto } from '../../api/types'
 import { seriesProgressVisual } from '../ui/status'
@@ -259,6 +260,7 @@ export function SpineShelf({ series, readTracking, board = null }: {
   const { data: figureList } = useShelfFigures()
   const figureUrls = (figureList?.figures ?? []).map((f) => f.url)
   const figurePrefs = useShelfFigurePrefs()
+  const banner = useShelfBanner(series, Boolean(board))
   // Only a failure to start WebGL (or to load its chunk) drops to the flat spines.
   const [flat, setFlat] = useState(false)
 
@@ -315,6 +317,7 @@ export function SpineShelf({ series, readTracking, board = null }: {
           <Shelf3D
             books={books}
             board={board}
+            banner={banner}
             figures={figureUrls}
             figureChance={FIGURE_CHANCE[figurePrefs.frequency]}
             figureScale={FIGURE_SCALE[figurePrefs.size]}
@@ -352,9 +355,11 @@ const SHELF_THEMES = {
  * The 3D shelf. Three.js and Matter.js arrive in their own chunk, loaded only when there is a shelf
  * to draw, and the canvas faces are only usable in a texture once their fonts have loaded.
  */
-function Shelf3D({ books, board, figures, figureChance, figureScale, dark, onOpen, onFail }: {
+function Shelf3D({ books, board, banner, figures, figureChance, figureScale, dark, onOpen, onFail }: {
   books: ShelfBook[]
   board: BoardModel | null
+  /** An object URL for a banner to tape to the board, or null. */
+  banner: string | null
   /** URLs of the figure models the user has added. */
   figures: string[]
   /** How often one stands on the shelf (0 to 1), and how big, from the user's settings. */
@@ -367,8 +372,8 @@ function Shelf3D({ books, board, figures, figureChance, figureScale, dark, onOpe
   const { t } = useLingui()
   const host = useRef<HTMLDivElement>(null)
   const shelf = useRef<MangaShelf | null>(null)
-  const latest = useRef({ books, board, figures, figureChance, figureScale, dark, onOpen, onFail })
-  latest.current = { books, board, figures, figureChance, figureScale, dark, onOpen, onFail }
+  const latest = useRef({ books, board, banner, figures, figureChance, figureScale, dark, onOpen, onFail })
+  latest.current = { books, board, banner, figures, figureChance, figureScale, dark, onOpen, onFail }
 
   useEffect(() => {
     let cancelled = false
@@ -396,6 +401,7 @@ function Shelf3D({ books, board, figures, figureChance, figureScale, dark, onOpe
           latest.current.figureChance,
           latest.current.figureScale,
         )
+        if (latest.current.banner) shelf.current.setBanner(latest.current.banner)
       })
       .catch(() => {
         if (!cancelled) latest.current.onFail()
@@ -420,6 +426,10 @@ function Shelf3D({ books, board, figures, figureChance, figureScale, dark, onOpe
   useEffect(() => {
     shelf.current?.setBoard(latest.current.board)
   }, [boardKey])
+
+  useEffect(() => {
+    shelf.current?.setBanner(banner)
+  }, [banner])
 
   const figuresKey = figures.join('|')
   useEffect(() => {

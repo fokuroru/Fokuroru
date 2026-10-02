@@ -127,6 +127,13 @@ try
         .AddHttpMessageHandler(() => new RateLimitingHandler(mangaBakaLimiter))
         .AddHttpMessageHandler(() => new TransientRetryHandler());
 
+    builder.Services.AddHttpClient(SeriesBannerService.HttpClientName, client =>
+    {
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Maki/1.0 (+https://github.com/OrbitMPGH/Maki)");
+        client.Timeout = TimeSpan.FromSeconds(20);
+    });
+    builder.Services.AddSingleton<SeriesBannerService>();
+
     builder.Services.AddHttpClient("covers", client =>
         {
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Maki/1.0 (+https://github.com/OrbitMPGH/Maki)");

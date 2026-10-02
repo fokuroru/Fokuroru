@@ -42,4 +42,30 @@ public class MediaCoverController(AppPaths paths, MakiDbContext db) : Controller
         Response.Headers.CacheControl = "private, max-age=31536000, immutable";
         return PhysicalFile(path, "image/jpeg");
     }
+
+    /// <summary>
+    /// A wide banner for a series, from AniList or Kitsu, fetched on first ask and kept. Gated the same way as the cover:
+    /// the series has to be one the caller can see. 404 when no banner exists.
+    /// </summary>
+    [HttpGet("{seriesId:int}/banner")]
+    public async Task<IActionResult> Banner(
+        int seriesId, [FromServices] Maki.Api.Services.SeriesBannerService banners, CancellationToken ct)
+    {
+        var ids = await db.Series.Where(s => s.Id == seriesId)
+            .Select(s => new { s.AniListId, s.MalId, s.KitsuId })
+            .FirstOrDefaultAsync(ct);
+        if (ids is null)
+        {
+            return NotFound();
+        }
+
+        var file = await banners.GetAsync(seriesId, ids.AniListId, ids.MalId, ids.KitsuId, ct);
+        if (file is null)
+        {
+            return NotFound();
+        }
+
+        Response.Headers.CacheControl = "private, max-age=86400";
+        return PhysicalFile(file, Maki.Api.Services.SeriesBannerService.ContentTypeOf(file));
+    }
 }
