@@ -1,5 +1,5 @@
 import { ActionIcon, Alert, Button, Progress, SegmentedControl, Text, TextInput } from '@mantine/core'
-import { IconDeviceMobileDown, IconLayoutDashboard, IconSearch, IconSettings } from '@tabler/icons-react'
+import { IconDeviceMobileDown, IconDeviceDesktop, IconSearch, IconSettings } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -77,14 +77,9 @@ export default function SimpleHomePage() {
               </ActionIcon>
             </>
           )}
-          <Button
-            variant="default"
-            size="compact-sm"
-            leftSection={<IconLayoutDashboard size={15} />}
-            onClick={showFull}
-          >
-            <Trans>Full version</Trans>
-          </Button>
+          <ActionIcon variant="subtle" color="gray" aria-label={t`Desktop view`} onClick={showFull}>
+            <IconDeviceDesktop size={19} />
+          </ActionIcon>
         </span>
       </header>
 

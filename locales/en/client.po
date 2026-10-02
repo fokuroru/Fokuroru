@@ -2452,6 +2452,8 @@ msgstr "Avoided"
 
 #: src/components/SetupWizard.tsx
 #: src/lib/navHistory.tsx
+#: src/pages/reader/ChapterEnd.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 msgid "Back"
 msgstr "Back"
 
@@ -4303,6 +4305,10 @@ msgstr "Describe what you're after, a title, or author:\"Junji Ito\""
 msgid "Description"
 msgstr "Description"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Desktop view"
+msgstr "Desktop view"
+
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 msgid "Destination root folder"
@@ -5549,8 +5555,8 @@ msgid "Full screen"
 msgstr "Full screen"
 
 #: src/pages/SimpleHomePage.tsx
-msgid "Full version"
-msgstr "Full version"
+#~ msgid "Full version"
+#~ msgstr "Full version"
 
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Fully read owned"
@@ -7376,6 +7382,10 @@ msgstr "Missing posters"
 #: src/components/series/FileQualityBadge.tsx
 msgid "Mixed"
 msgstr "Mixed"
+
+#: src/App.tsx
+msgid "Mobile view"
+msgstr "Mobile view"
 
 #: src/components/RecommendationModelSwitch.tsx
 msgid "Model switch: {modelSwitchError}"
@@ -11588,8 +11598,8 @@ msgid "Simple"
 msgstr "Simple"
 
 #: src/App.tsx
-msgid "Simple view"
-msgstr "Simple view"
+#~ msgid "Simple view"
+#~ msgstr "Simple view"
 
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx

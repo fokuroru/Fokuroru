@@ -2935,6 +2935,8 @@ msgstr "회피됨"
 
 #: src/components/SetupWizard.tsx
 #: src/lib/navHistory.tsx
+#: src/pages/reader/ChapterEnd.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Back"
 msgstr "뒤로"
@@ -5133,6 +5135,10 @@ msgstr "원하는 내용, 제목 또는 작가를 설명하세요:\"Junji Ito\""
 msgid "Description"
 msgstr ""
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Desktop view"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -6624,8 +6630,8 @@ msgid "Full screen"
 msgstr "전체 화면"
 
 #: src/pages/SimpleHomePage.tsx
-msgid "Full version"
-msgstr ""
+#~ msgid "Full version"
+#~ msgstr ""
 
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
@@ -8800,6 +8806,10 @@ msgstr "포스터 누락"
 
 #: src/components/series/FileQualityBadge.tsx
 msgid "Mixed"
+msgstr ""
+
+#: src/App.tsx
+msgid "Mobile view"
 msgstr ""
 
 #: src/components/RecommendationModelSwitch.tsx
@@ -13808,8 +13818,8 @@ msgid "Simple"
 msgstr "간단히"
 
 #: src/App.tsx
-msgid "Simple view"
-msgstr ""
+#~ msgid "Simple view"
+#~ msgstr ""
 
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx

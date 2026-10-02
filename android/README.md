@@ -37,7 +37,7 @@ Sign in on the normal login page. Plain HTTP on a LAN is allowed, since that is 
 | Reading now widget, in compact, standard and large sizes | `widget/ReadingNowWidget.kt`, `widget/WidgetViews.kt` |
 | Reading shelf widget: a grid of covers for what you are reading and what is next | `widget/ShelfWidget.kt` |
 | Dark mode and Material You colours | `Theme.Material3.DynamicColors.DayNight`, widget colours in `values-v31` |
-| Simple view as the start screen: last read hero, Continue reading, library grid, switch to the full version | `pages/SimpleHomePage.tsx` in the web UI, `lib/simpleView.ts` |
+| Mobile view as the start screen: last read hero, Continue reading, library grid, switch to the desktop view | `pages/SimpleHomePage.tsx` in the web UI, `lib/simpleView.ts` |
 | Several servers and accounts, switched from one screen | `ui/ServersActivity.kt`, `data/Profiles.kt` |
 | Two pages on tablets and unfolded foldables | `ui/Layouts.kt` (`dual`), `MainActivity.layoutJson`, `useNativeLayout` in the web UI |
 

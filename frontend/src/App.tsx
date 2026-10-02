@@ -226,12 +226,12 @@ function SimpleViewButton() {
   const { t } = useLingui()
   const open = useOpenSimpleView()
   return (
-    <Tooltip label={t`Simple view`} withArrow>
+    <Tooltip label={t`Mobile view`} withArrow>
       <ActionIcon
         variant="subtle"
         color="gray"
         hiddenFrom={nativeApp() ? undefined : 'sm'}
-        aria-label={t`Simple view`}
+        aria-label={t`Mobile view`}
         onClick={open}
       >
         <IconDeviceMobile size={19} />
@@ -254,7 +254,7 @@ function SimpleViewLink({ onNavigate }: { onNavigate: () => void }) {
         }}
       >
         <IconDeviceMobile size={18} stroke={1.7} className="nav-icon" />
-        <Trans>Simple view</Trans>
+        <Trans>Mobile view</Trans>
       </button>
     </Box>
   )
