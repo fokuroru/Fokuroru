@@ -5,4 +5,6 @@
     </style>
 
     <style name="Theme.Fokuroru.Settings" parent="Theme.Material3.DynamicColors.DayNight" />
+
+    <style name="Theme.Fokuroru.Downloads" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar" />
 </resources>

@@ -48,7 +48,7 @@
         <activity
             android:name=".ui.DownloadsActivity"
             android:exported="false"
-            android:theme="@style/Theme.Fokuroru.Settings"
+            android:theme="@style/Theme.Fokuroru.Downloads"
             android:label="@string/downloads_title" />
 
         <receiver
