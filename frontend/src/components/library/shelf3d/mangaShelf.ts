@@ -303,6 +303,8 @@ export class MangaShelf {
   private readonly holidayDoodle = holidayDoodle()
   /** A banner taped to one of the board's top corners, when a picture of one has loaded. */
   private bannerImg: HTMLImageElement | null = null
+  private bannerPlan: Taped | null = null
+  private bannerAnim: BannerAnim | null = null
   private prankFontReady = false
   /** Rolled once per page load and compared with how often the user wants one, so a figure stays or goes as a whole. */
   private readonly figureRoll = Math.random()
@@ -546,6 +548,7 @@ export class MangaShelf {
       this.boardMaterial.map = board ? this.wallTexture(this.wallSize.w, this.wallSize.h, board) : null
       this.boardMaterial.color.set(board ? '#ffffff' : this.theme.wall)
       this.boardMaterial.needsUpdate = true
+      this.syncBannerObject()
       this.wake()
     }
   }
@@ -566,6 +569,171 @@ export class MangaShelf {
       this.setBoard(this.board)
     }
     img.src = url
+  }
+
+  // ---- the banner whose tape gives way -----------------------------------
+
+  /** A board-texture pixel as a point on the board's face. */
+  private boardPoint(px: number, py: number) {
+    return { x: px - this.wallSize.w / 2, y: 17 + this.wallSize.h - py }
+  }
+
+  /** A strip of clear tape, torn at both ends, on a transparent ground. */
+  private tapeTexture(): T.CanvasTexture {
+    const c = document.createElement('canvas')
+    c.width = 256
+    c.height = 80
+    const x = c.getContext('2d')!
+    const jit = (a: number) => (Math.random() - 0.5) * a
+    x.fillStyle = 'rgba(240, 230, 186, 0.78)'
+    x.strokeStyle = 'rgba(130, 112, 70, 0.4)'
+    x.lineWidth = 2
+    x.beginPath()
+    x.moveTo(8, 8)
+    for (let i = 0; i <= 4; i++) x.lineTo(8 + jit(10), 8 + (64 * i) / 4)
+    x.lineTo(248 + jit(10), 72)
+    for (let i = 4; i >= 0; i--) x.lineTo(248 + jit(10), 8 + (64 * i) / 4)
+    x.closePath()
+    x.fill()
+    x.stroke()
+    x.fillStyle = 'rgba(255, 255, 255, 0.3)'
+    x.fillRect(16, 14, 224, 8)
+    const map = new T.CanvasTexture(c)
+    map.colorSpace = T.SRGBColorSpace
+    return map
+  }
+
+  /**
+   * Builds the banner as an object when its tape is going to fail: a sheet that can bend, and the tape on its
+   * corners. The flat, taped banner is part of the board's paint; this one has to move.
+   */
+  private syncBannerObject() {
+    if (this.bannerAnim) {
+      this.disposeModel(this.bannerAnim.group)
+      this.bannerAnim = null
+    }
+    const plan = this.bannerPlan
+    const row = this.rows[0]
+    const img = this.bannerImg
+    if (!plan?.flop || !row || !img) return
+
+    const border = 3
+    const sheetW = plan.w + border * 2
+    const sheetH = plan.h + border * 2
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.ceil(sheetW * 2)
+    canvas.height = Math.ceil(sheetH * 2)
+    const g = canvas.getContext('2d')!
+    g.fillStyle = '#ece6d6'
+    g.fillRect(0, 0, canvas.width, canvas.height)
+    g.drawImage(img, border * 2, border * 2, plan.w * 2, plan.h * 2)
+    const map = new T.CanvasTexture(canvas)
+    map.colorSpace = T.SRGBColorSpace
+    map.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy())
+
+    const geo = new T.PlaneGeometry(sheetW, sheetH, 48, 8)
+    const positions = geo.getAttribute('position')
+    const grid = new Float32Array(positions.count * 2)
+    const { fromRight } = plan.flop
+    for (let i = 0; i < positions.count; i++) {
+      const u = (positions.getX(i) + sheetW / 2) / sheetW
+      const v = (positions.getY(i) + sheetH / 2) / sheetH
+      // From the corner the picture hangs by, so that corner is the origin of the bend.
+      grid[i * 2] = (fromRight ? (1 - u) * sheetW : u * sheetW) - border
+      grid[i * 2 + 1] = (1 - v) * sheetH - border
+    }
+    const sheet = new T.Mesh(geo, new T.MeshStandardMaterial({ map, roughness: 0.9, side: T.DoubleSide }))
+    sheet.castShadow = true
+    sheet.receiveShadow = true
+    sheet.frustumCulled = false
+
+    const group = new T.Group()
+    group.add(sheet)
+    const tapeMap = this.tapeTexture()
+    const strip = new T.MeshBasicMaterial({ map: tapeMap, transparent: true, depthWrite: false, side: T.DoubleSide })
+    const pivot = this.boardPoint(plan.flop.px, plan.flop.py)
+    const d = fromRight ? -1 : 1
+    // Corners as (distance from the holding side, below the top), when each strip lets go (0..1 of the whole
+    // peel), and the way it lies across the corner. The top corner on the holding side never lets go.
+    const corners: [number, number, number][] = [
+      [0, 0, 2],
+      [plan.w, 0, 0.1],
+      [plan.w, plan.h, 0.22],
+      [0, plan.h, 0.42],
+    ]
+    const tapes = corners.map(([sx, sy, detach]) => {
+      const mesh = new T.Mesh(new T.PlaneGeometry(46, 14.4), strip)
+      mesh.renderOrder = 2
+      group.add(mesh)
+      const toRight = (sx === 0) === fromRight
+      const top = sy === 0
+      const angle = ((toRight ? 1 : -1) * (top ? -1 : 1)) * (Math.PI / 4)
+      return { mesh, sx, sy, detach, at: { x: pivot.x + d * sx, y: pivot.y - sy }, angle }
+    })
+    row.scene.add(group)
+    this.bannerAnim = { group, geo, grid, tapes, plan, pivot, start: null, finished: null, done: false }
+    this.stepBanner(performance.now())
+    this.wake()
+  }
+
+  /** Moves the sheet and its tape to where they are `now`; true while there is still something to move. */
+  private stepBanner(now: number): boolean {
+    const b = this.bannerAnim
+    if (!b || b.done) return false
+    const flop = b.plan.flop!
+    const delay = 2500
+    const length = 18000
+    if (b.start === null) b.start = now + delay
+    const p = Math.max(0, Math.min(1, (now - b.start) / length))
+    if (p >= 1 && b.finished === null) b.finished = now
+    const ease = (t: number) => t * t * (3 - 2 * t)
+    const rise = Math.min(1, p / 0.3)
+    const lift = (1 - (1 - rise) ** 2) * (p < 0.45 ? 1 : 1 - 0.9 * ease(Math.min(1, (p - 0.45) / 0.5)))
+    let alpha = Math.abs(flop.angle) * ease(Math.max(0, Math.min(1, (p - 0.2) / 0.75)))
+    if (b.finished !== null) {
+      const tau = (now - b.finished) / 1000
+      alpha += 0.05 * Math.exp(-0.7 * tau) * Math.sin(2.4 * tau)
+      if (tau > 7) b.done = true
+    }
+    const d = flop.fromRight ? -1 : 1
+    const turn = -d * alpha
+    const cos = Math.cos(turn)
+    const sin = Math.sin(turn)
+    const zBase = -146.3
+    const reach = b.plan.w
+    const curl = lift * reach * 0.16
+    const place = (sx: number, sy: number) => {
+      const lx = d * sx
+      const ly = -sy
+      return {
+        x: b.pivot.x + lx * cos - ly * sin,
+        y: b.pivot.y + lx * sin + ly * cos,
+        z: zBase + curl * (sx / reach) ** 2,
+      }
+    }
+    const positions = b.geo.getAttribute('position')
+    for (let i = 0; i < positions.count; i++) {
+      const at = place(b.grid[i * 2], b.grid[i * 2 + 1])
+      positions.setXYZ(i, at.x, at.y, at.z)
+    }
+    positions.needsUpdate = true
+    b.geo.computeVertexNormals()
+    b.geo.computeBoundingSphere()
+    for (const t of b.tapes) {
+      if (p < t.detach) {
+        t.mesh.position.set(t.at.x, t.at.y, zBase + 0.6)
+        t.mesh.rotation.set(0, 0, t.angle)
+        ;(t.mesh.material as T.MeshBasicMaterial).opacity = 1
+      } else {
+        // Let go of the board and still stuck to the paper: it goes where that corner of the paper goes, a
+        // little proud of it and curling.
+        const at = place(t.sx, t.sy)
+        const lifted = Math.min(1, (p - t.detach) / 0.08)
+        t.mesh.position.set(at.x + d * 4 * lifted, at.y - 3 * lifted, at.z + 1 + 5 * lifted)
+        t.mesh.rotation.set(0.4 * lifted * (t.sy === 0 ? -1 : 1), 0.3 * lifted * d, t.angle + turn)
+      }
+    }
+    return !b.done
   }
 
   setTheme(theme: ShelfTheme) {
@@ -1291,11 +1459,6 @@ export class MangaShelf {
     // ---- a banner, taped along the top of the board, 40 to 60 percent of its width, and only if it fits:
     // clear of the other things already on the board and inside the band above where the books stand.
     // Its own random stream, so showing it does not move any of the chalk.
-    interface Taped {
-      x: number; y: number; w: number; h: number; tilt: number
-      /** The tape gave way on one side: the banner hangs from the other side's top corner at this angle (radians, towards the failed side). */
-      flop: { fromRight: boolean; angle: number; px: number; py: number } | null
-    }
     let taped: Taped | null = null
     const banner = this.bannerImg
     if (banner && banner.naturalWidth > 0 && banner.naturalHeight > 0 && this.board) {
@@ -1322,7 +1485,7 @@ export class MangaShelf {
         // board allows without dropping below the middle of it.
         if (failing) {
           const fromRight = brnd() < 0.5
-          const angle = Math.min(0.35 + brnd() * 0.45, Math.asin(Math.min(1, (h * 0.42) / bw)))
+          const angle = Math.min(0.35 + brnd() * 0.35, Math.asin(Math.min(1, (h * 0.42) / bw)))
           if (angle >= 0.25) {
             const sign = fromRight ? 1 : -1
             const rot = angle * sign
@@ -1657,7 +1820,8 @@ export class MangaShelf {
 
     g.setTransform(1, 0, 0, 1, 0, 0)
     g.drawImage(layer, 0, 0)
-    if (taped && banner) {
+    this.bannerPlan = taped
+    if (taped && !taped.flop && banner) {
       const t = taped
       /** A strip of clear sticky tape across a corner: pale, a little see-through, ends torn square-ish. */
       const tape = (cx: number, cy: number, angle: number, alpha = 0.74) => {
@@ -1695,22 +1859,7 @@ export class MangaShelf {
       }
       g.save()
       g.scale(scale, scale)
-      if (t.flop) {
-        // Hanging from the sound side: turned about its top corner there. The failed side's tape has let go of
-        // the board and is still stuck to the paper, lifted and curling away.
-        const { fromRight, angle, px, py } = t.flop
-        g.translate(px, py)
-        g.rotate(angle)
-        const left = fromRight ? -t.w : 0
-        paper(left, 0)
-        const soundX = fromRight ? 0 : t.w
-        const failedX = fromRight ? -t.w : 0
-        const out = fromRight ? -1 : 1
-        tape(soundX + out * -1, -1, (fromRight ? 1 : -1) * (Math.PI / 4) + jit(0.18))
-        tape(soundX + out * -1, t.h + 1, (fromRight ? -1 : 1) * (Math.PI / 4) + jit(0.18))
-        tape(failedX + out * 7, -2, out * 0.5 + jit(0.3), 0.4)
-        tape(failedX + out * 7, t.h + 3, -out * 0.5 + jit(0.3), 0.4)
-      } else {
+      {
         g.translate(t.x + t.w / 2, t.y + t.h / 2)
         g.rotate(t.tilt)
         paper(-t.w / 2, -t.h / 2)
@@ -1770,6 +1919,7 @@ export class MangaShelf {
 
   private clear() {
     this.select(null)
+    this.bannerAnim = null
     for (const r of this.rows) {
       r.physics.destroy()
       this.disposeModel(r.scene)
@@ -2580,6 +2730,7 @@ export class MangaShelf {
       this.spawnedBooks.add(item.book.id)
     }
     for (const book of this.books) this.spawnedBooks.add(book.id)
+    this.syncBannerObject()
     // The chalk is thrown in once the books have had a moment on screen, and only once there are books to
     // put it beside: against an empty shelf it would land where the books are about to go.
     const extras = () => {
@@ -2994,6 +3145,7 @@ export class MangaShelf {
       this.acc -= 1000 / 120
     }
     let pulling = scrolling
+    pulling = this.stepBanner(time) || pulling
     for (const i of this.items) {
       // The model is drawn from the spine, which faces the viewer, so it sits half a depth in front of the body's middle.
       i.model.position.set(i.body.position.x - this.logicalWidth / 2, 380 - i.body.position.y, i.body.z + i.body.depth / 2)
@@ -3091,6 +3243,31 @@ export class MangaShelf {
     this.quietFrames = !pulling && this.rows.every((r) => r.physics.still) ? this.quietFrames + 1 : 0
     this.frame = this.quietFrames > 90 ? 0 : requestAnimationFrame(this.tick)
   }
+}
+
+/** Where the board's banner goes, in the board texture's pixels. */
+interface Taped {
+  x: number; y: number; w: number; h: number; tilt: number
+  /**
+   * Set when the tape is going to give way: the banner then peels off the board on one side and hangs from the
+   * top corner of the other, at this angle (radians). `px`, `py` is that corner. It is a 3D object, not paint.
+   */
+  flop: { fromRight: boolean; angle: number; px: number; py: number } | null
+}
+
+/** The banner whose tape is giving way: a bendable sheet and the four strips of tape, moved every frame. */
+interface BannerAnim {
+  group: T.Group
+  geo: T.PlaneGeometry
+  /** Each vertex's distance from the side that holds, and below the top edge, in board pixels. */
+  grid: Float32Array
+  tapes: { mesh: T.Mesh; sx: number; sy: number; detach: number; at: { x: number; y: number }; angle: number }[]
+  plan: Taped
+  pivot: { x: number; y: number }
+  start: number | null
+  finished: number | null
+  /** Nothing left to animate. */
+  done: boolean
 }
 
 interface Placement {
