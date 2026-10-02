@@ -686,16 +686,21 @@ export class MangaShelf {
     const group = new T.Group()
     group.add(sheet)
     const strip = new T.MeshBasicMaterial({ map: this.tapeTexture(), transparent: true, depthWrite: false, side: T.DoubleSide })
-    // The four corners: which side of the sheet and which edge, and when (seconds into the peel) the tape lets go.
-    // The top corner on the holding side never does.
-    const { fromRight } = plan.flop
-    const holdingCol = fromRight ? cols : 0
-    const failedCol = fromRight ? 0 : cols
+    // The four corners, and when (seconds into the peel) the tape on each lets go. Which ones fail is chance: one,
+    // two or three of the four, in any order, a few seconds apart. At least one holds, so it always ends up hanging.
+    const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5)
+    const failing = 1 + Math.floor(Math.random() * 3)
+    const releaseTimes = new Array<number>(4).fill(Infinity)
+    let when = 2.5 + Math.random() * 2.5
+    for (const corner of order.slice(0, failing)) {
+      releaseTimes[corner] = when
+      when += 2 + Math.random() * 3.5
+    }
     const corners: [number, number, number][] = [
-      [holdingCol, 0, Infinity],
-      [failedCol, 0, 3.5],
-      [failedCol, rows, 7],
-      [holdingCol, rows, 11],
+      [0, 0, releaseTimes[0]],
+      [cols, 0, releaseTimes[1]],
+      [cols, rows, releaseTimes[2]],
+      [0, rows, releaseTimes[3]],
     ]
     const tapes = corners.map(([col, r, releaseAt]) => {
       // A strip of tape holds only the corner of the paper under it: the corner weight and its neighbours along
@@ -956,7 +961,8 @@ export class MangaShelf {
       }
     }
 
-    if (seconds > 11) {
+    const waiting = b.tapes.some((t) => !t.released && Number.isFinite(t.releaseAt))
+    if (seconds > 11 && !waiting) {
       b.still = moved < 0.02 ? b.still + frame : 0
       if (b.still > 1.5) b.done = true
     }

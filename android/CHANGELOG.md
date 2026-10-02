@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.21 (49)
+- No app change. When the banner's tape fails, which corners let go is random: one, two or three of the four, in any order, a few seconds apart. At least one always holds.
+
 ## 0.5.20 (48)
 - No app change. Picking up a strip of tape takes only the paper still joined to it; paper that has torn away stays put.
 
