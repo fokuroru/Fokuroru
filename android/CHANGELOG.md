@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.3.1 (18)
+- No app change. Server fix: a partly read chapter whose file was deleted no longer sits in Continue reading; the series moves to Up next.
+
 ## 0.3.0 (17)
 - Add a server without typing: Find servers on this network (scans the local subnet for Fōkurōru), and Scan QR code, which adds the server and signs in as the account that showed the code (Settings, Android app, Pair the Android app, in the web interface). Needs the matching server build.
 

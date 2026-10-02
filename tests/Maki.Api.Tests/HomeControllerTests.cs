@@ -109,6 +109,48 @@ public class HomeControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Continue_drops_a_part_read_chapter_whose_file_was_deleted()
+    {
+        var seriesId = _db.SeedSeries("Berserk");
+        var deleted = SeedChapter(seriesId, 1);
+        var next = SeedChapter(seriesId, 2);
+        SeedProgress(seriesId, deleted, pageIndex: 5, completed: false, updatedAt: Base);
+        using (var db = _db.NewContext())
+        {
+            var chapter = db.Chapters.Single(c => c.Id == deleted);
+            chapter.ChapterFileId = null;
+            db.SaveChanges();
+        }
+
+        var response = Reading(await Controller().Reading(ct: CancellationToken.None));
+
+        Assert.Empty(response.ContinueReading);
+        // The series is not lost: the chapter that is actually there is what Jump back in offers.
+        var item = Assert.Single(response.JumpBackIn);
+        Assert.Equal(next, item.ChapterId);
+    }
+
+    [Fact]
+    public async Task Continue_resumes_the_part_read_chapter_that_is_still_there_over_a_deleted_one()
+    {
+        var seriesId = _db.SeedSeries("Berserk");
+        var deleted = SeedChapter(seriesId, 1);
+        var kept = SeedChapter(seriesId, 2);
+        SeedProgress(seriesId, kept, pageIndex: 3, completed: false, updatedAt: Base);
+        SeedProgress(seriesId, deleted, pageIndex: 5, completed: false, updatedAt: Base.AddHours(1));
+        using (var db = _db.NewContext())
+        {
+            db.Chapters.Single(c => c.Id == deleted).ChapterFileId = null;
+            db.SaveChanges();
+        }
+
+        var response = Reading(await Controller().Reading(ct: CancellationToken.None));
+
+        var item = Assert.Single(response.ContinueReading);
+        Assert.Equal(kept, item.ChapterId);
+    }
+
+    [Fact]
     public async Task Continue_skips_unread_tombstones()
     {
         var seriesId = _db.SeedSeries();

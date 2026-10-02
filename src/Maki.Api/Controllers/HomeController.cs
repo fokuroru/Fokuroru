@@ -101,7 +101,7 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
             .Where(p => !p.Watched)
             .OrderByDescending(p => p.UpdatedAt)
             .Take(RecentProgressScan)
-            .Select(p => new { p.SeriesId, p.Completed, p.UnreadAt, p.PageIndex, p.UpdatedAt })
+            .Select(p => new { p.SeriesId, p.ChapterId, p.Completed, p.UnreadAt, p.PageIndex, p.UpdatedAt })
             .ToListAsync(ct);
 
         // A removed series stays off both rails until any of its progress rows moves past the
@@ -123,8 +123,24 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
         // Tombstones excluded: a chapter the user just marked unread is the most recently touched
         // incomplete row, and resuming into it would hijack "Continue reading". It is still unread,
         // so the Jump-back-in resolver below offers it in its proper place.
-        var inProgressSeries = recent
+        //
+        // A partly read chapter whose file has since been deleted is not something to resume either:
+        // it would sit on the rail pointing at nothing. Its series is treated like a finished one, so the
+        // Jump-back-in resolver offers the next chapter that is actually there.
+        var partialChapterIds = recent
             .Where(p => !p.Completed && p.UnreadAt == null && p.PageIndex > 0)
+            .Select(p => p.ChapterId)
+            .Distinct()
+            .ToList();
+        var onDisk = partialChapterIds.Count == 0
+            ? []
+            : (await db.Chapters.AsNoTracking()
+                .Where(c => partialChapterIds.Contains(c.Id) && c.ChapterFileId != null)
+                .Select(c => c.Id)
+                .ToListAsync(ct)).ToHashSet();
+
+        var inProgressSeries = recent
+            .Where(p => !p.Completed && p.UnreadAt == null && p.PageIndex > 0 && onDisk.Contains(p.ChapterId))
             .GroupBy(p => p.SeriesId)
             .Select(g => new { SeriesId = g.Key, Last = g.Max(p => p.UpdatedAt) })
             .OrderByDescending(x => x.Last)
@@ -140,7 +156,8 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
         // with nothing left. Bounded all the same, since each survivor costs a chapter lookup in
         // NextForAsync below.
         var finishedSeries = recent
-            .Where(p => p.Completed && !continuedSet.Contains(p.SeriesId))
+            .Where(p => (p.Completed || (p.UnreadAt == null && p.PageIndex > 0 && !onDisk.Contains(p.ChapterId)))
+                && !continuedSet.Contains(p.SeriesId))
             .GroupBy(p => p.SeriesId)
             .Select(g => new { SeriesId = g.Key, Last = g.Max(p => p.UpdatedAt) })
             .OrderByDescending(x => x.Last)
@@ -164,7 +181,8 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
         // The actual in-progress rows for just the series above, newest per series.
         var resumeRows = (await db.ChapterProgress
                 .Where(p => continuedIds.Contains(p.SeriesId)
-                    && !p.Completed && p.UnreadAt == null && p.PageIndex > 0)
+                    && !p.Completed && p.UnreadAt == null && p.PageIndex > 0
+                    && db.Chapters.Any(c => c.Id == p.ChapterId && c.ChapterFileId != null))
                 .Select(p => new { p.SeriesId, p.ChapterId, p.PageIndex, p.PageCount, p.UpdatedAt })
                 .ToListAsync(ct))
             .GroupBy(p => p.SeriesId)
