@@ -62,6 +62,10 @@ class ServersActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         refresh()
+        thread {
+            Profiles.refreshUser(this)
+            runOnUiThread { refresh() }
+        }
     }
 
     private fun refresh() {

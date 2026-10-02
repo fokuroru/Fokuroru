@@ -146,6 +146,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         Profiles.snapshotActive(this)
+        thread { Profiles.refreshUser(this) }
         remote?.setActive(false)
         CookieManager.getInstance().flush()
         web.onPause()

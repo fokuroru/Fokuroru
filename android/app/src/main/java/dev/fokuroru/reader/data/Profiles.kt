@@ -53,6 +53,19 @@ object Profiles {
         if (current.user != user) update(context, current.copy(user = user))
     }
 
+    /**
+     * Asks the server who is signed in on the profile in use. The web page only reads this at load, so
+     * right after signing in the list would otherwise say nobody is. Blocks; call it off the main thread.
+     */
+    fun refreshUser(context: Context) {
+        val name = try {
+            dev.fokuroru.reader.net.Api(context).getObject("/api/v1/auth/me").optString("userName")
+        } catch (_: java.io.IOException) {
+            return
+        }
+        if (name.isNotEmpty()) rememberUser(context, name)
+    }
+
     /** Keeps the live sign-in so leaving the profile does not lose it. */
     fun snapshotActive(context: Context) {
         val current = active(context) ?: return
