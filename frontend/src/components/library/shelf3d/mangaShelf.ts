@@ -173,7 +173,7 @@ const PAPER_STIFFNESS_ACROSS = 1
 /** Threads reaching over four weights: what makes a long strip hold out like a beam instead of sagging at once. */
 const PAPER_STIFFNESS_BEAM = 0.55
 /** How often the tape gives way on one side and the banner hangs from the other. */
-const BANNER_FLOP_SHARE = 0.02
+const BANNER_FLOP_SHARE = 0.05
 const ROW = 420
 /** Extra wall above the books while a chalkboard hangs there. */
 const BOARD_ROOM = 140
