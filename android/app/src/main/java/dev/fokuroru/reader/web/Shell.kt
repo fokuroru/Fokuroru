@@ -3,7 +3,6 @@ package dev.fokuroru.reader.web
 import android.content.Context
 import android.webkit.MimeTypeMap
 import android.webkit.WebResourceResponse
-import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.net.Api
 import java.io.File
 import java.io.FileInputStream
@@ -18,8 +17,24 @@ import java.security.MessageDigest
  * which makes a file-per-path cache safe: a new build brings new names, and old ones are pruned.
  */
 class Shell(context: Context, private val api: Api) {
-    private val dir = File(Profiles.activeDir(context), "shell").apply { mkdirs() }
+    // One copy per server, not per profile: the web app's files are the same for every account on it, and
+    // a profile added later (or after the first load failed) should not start with nothing to show offline.
+    private val dir = File(context.filesDir, "shell/" + originKey(api)).apply { mkdirs() }
     private val indexFile = File(dir, "index.html")
+
+    init {
+        if (!indexFile.isFile) adoptLegacy(context)
+    }
+
+    /** Before the copy was per server it lived in each profile's folder. Take the newest rather than start empty. */
+    private fun adoptLegacy(context: Context) {
+        val newest = File(context.filesDir, "profiles").listFiles()
+            ?.map { File(it, "shell") }
+            ?.filter { File(it, "index.html").isFile }
+            ?.maxByOrNull { File(it, "index.html").lastModified() }
+            ?: return
+        runCatching { newest.copyRecursively(dir, overwrite = true) }
+    }
 
     fun hasIndex() = indexFile.isFile
 
@@ -82,6 +97,9 @@ class Shell(context: Context, private val api: Api) {
         }
 
     companion object {
+        private fun originKey(api: Api): String =
+            MessageDigest.getInstance("SHA-1").digest(api.base.lowercase().toByteArray()).joinToString("") { "%02x".format(it) }.take(12)
+
         private const val MAX_FILES = 600
 
         private val assetRef = Regex("""(?<![\w/.-])/?(assets/[\w.\-@~]+\.(?:js|mjs|css|woff2?|ttf|svg|png|jpe?g|webp|gif|ico|json|glb))""")

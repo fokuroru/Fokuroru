@@ -102,3 +102,33 @@ class GatewayTest {
         org.junit.Assert.assertEquals(dev.fokuroru.reader.net.ServerState.UNREACHABLE, classify(502))
     }
 }
+
+class GatewayLoginUrlTest {
+    private fun url(headers: Map<String, String>?) = dev.fokuroru.reader.net.Gateway.loginUrl(headers, "comics.example.com")
+
+    @org.junit.Test
+    fun tinyauthNamesItsLoginPageInAHeader() {
+        org.junit.Assert.assertEquals(
+            "https://tinyauth.example.com/login?login_for=app",
+            url(mapOf("X-Tinyauth-Location" to "https://tinyauth.example.com/login?login_for=app")),
+        )
+    }
+
+    @org.junit.Test
+    fun aRedirectHeaderToAnotherHostWorksToo() {
+        org.junit.Assert.assertEquals("https://auth.example.com/", url(mapOf("Location" to "https://auth.example.com/")))
+    }
+
+    @org.junit.Test
+    fun anAddressOnTheServerItselfIsNotAGateway() {
+        org.junit.Assert.assertNull(url(mapOf("Location" to "https://comics.example.com/login")))
+        org.junit.Assert.assertNull(url(mapOf("Location" to "/login")))
+    }
+
+    @org.junit.Test
+    fun nothingUsableMeansNoAddress() {
+        org.junit.Assert.assertNull(url(null))
+        org.junit.Assert.assertNull(url(emptyMap()))
+        org.junit.Assert.assertNull(url(mapOf("x-tinyauth-location" to "javascript:alert(1)")))
+    }
+}

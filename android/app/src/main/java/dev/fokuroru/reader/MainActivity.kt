@@ -30,6 +30,7 @@ import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.device.Remote
 import dev.fokuroru.reader.input.PageTurnMap
 import dev.fokuroru.reader.input.Turn
+import dev.fokuroru.reader.net.Gateway
 import dev.fokuroru.reader.net.ServerState
 import dev.fokuroru.reader.ui.DownloadsActivity
 import dev.fokuroru.reader.ui.Layouts
@@ -226,17 +227,21 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                // The browser's own error page is a navigation too; it must not clear the failure it reports.
+                if (url.startsWith("chrome-error:")) return
                 pageFailed = false
                 currentUrl = url
                 routeChanged(url)
             }
 
             override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
+                if (url.startsWith("chrome-error:")) return
                 currentUrl = url
                 routeChanged(url)
             }
 
             override fun onPageFinished(view: WebView, url: String) {
+                if (url.startsWith("chrome-error:")) return
                 if (!pageFailed) offlineView.visibility = View.GONE
                 pushLayout()
                 if (offServer()) {
@@ -252,6 +257,14 @@ class MainActivity : AppCompatActivity() {
                 // A gateway's sign-in page often answers 401 or 403; that page is the thing to show.
                 if (!request.isForMainFrame || response.statusCode < 400) return
                 if (request.url.host != Uri.parse(prefs.serverUrl ?: return).host) return
+                // A gateway holding a stale session answers with a bare 401 and names its login page in a header.
+                if (response.statusCode == 401) {
+                    Gateway.loginUrl(response.responseHeaders, Gateway.hostOf(prefs.serverUrl!!))?.let {
+                        offline.signInAgain()
+                        view.loadUrl(it)
+                        return
+                    }
+                }
                 pageFailed = true
                 offlineView.visibility = View.VISIBLE
             }
@@ -295,7 +308,7 @@ class MainActivity : AppCompatActivity() {
             val base = prefs.serverUrl ?: return@setOnClickListener
             gatewayBanner.visibility = View.GONE
             offline.signInAgain()
-            web.loadUrl("$base/")
+            web.loadUrl(offline.gatewayLoginUrl() ?: "$base/")
         }
         findViewById<View>(R.id.offline_retry).setOnClickListener {
             offline.forgetReachability()
@@ -311,6 +324,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun newOffline() = Offline(this).also { o ->
         o.onState = { runOnUiThread { updateBanner(it) } }
+        // The page cannot find out who is signed in and nothing is saved to say: show the offline screen,
+        // which points at the chapters on the device, instead of leaving a half-started page.
+        o.onUnavailable = { runOnUiThread { offlineView.visibility = View.VISIBLE } }
     }
 
     /** True while a page from another host is showing: a gateway's sign-in, or a provider it sends you to. */

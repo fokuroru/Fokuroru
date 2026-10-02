@@ -145,6 +145,10 @@ class Api(context: Context) {
         }
     }
 
+    /** Where the gateway said to sign in, from the last probe that met one. */
+    @Volatile var gatewayLogin: String? = null
+        private set
+
     /** One anonymous request to see whether the server answers, and as itself. Blocks. */
     fun probe(): ServerState = try {
         var target = "/initialize.json"
@@ -158,6 +162,13 @@ class Api(context: Context) {
                 keepCookies(conn)
                 val location = conn.getHeaderField("Location")
                 result = Gateway.classify(Gateway.status(conn), conn.contentType, location, Gateway.hostOf(base))
+                if (result == ServerState.GATEWAY) {
+                    gatewayLogin = Gateway.loginUrl(
+                        mapOf("x-tinyauth-location" to (conn.getHeaderField("x-tinyauth-location") ?: ""), "location" to (location ?: ""))
+                            .filterValues { it.isNotEmpty() },
+                        Gateway.hostOf(base),
+                    )
+                }
                 if (result == null && location != null) target = if (location.startsWith("http")) location else base + location
             } finally {
                 conn.disconnect()

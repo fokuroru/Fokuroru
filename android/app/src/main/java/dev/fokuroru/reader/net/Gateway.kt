@@ -46,6 +46,20 @@ object Gateway {
         return host != null && !host.equals(serverHost, ignoreCase = true)
     }
 
+    /**
+     * Where a gateway wants the person sent to sign in, from a response's headers. A forward-auth gateway
+     * redirects a browser that has no session, but answers one holding a stale session with a bare 401,
+     * naming the login page in a header instead (tinyauth uses `x-tinyauth-location`). Only an address
+     * on another host counts, so a header on the server itself cannot loop the app back onto the server.
+     */
+    fun loginUrl(headers: Map<String, String>?, serverHost: String?): String? {
+        if (headers == null) return null
+        val lower = headers.mapKeys { it.key.lowercase() }
+        val candidate = lower["x-tinyauth-location"] ?: lower["location"] ?: return null
+        if (!(candidate.startsWith("https://") || candidate.startsWith("http://"))) return null
+        return if (leavesHost(candidate, serverHost)) candidate else null
+    }
+
     fun hostOf(url: String): String? = try {
         URI(url).host
     } catch (_: Exception) {

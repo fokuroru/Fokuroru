@@ -34,6 +34,11 @@ class Offline(private val context: Context) {
     @Volatile private var reachableAt = 0L
     @Volatile private var state = ServerState.OK
 
+    /** Told when a page needs the server's sign-in state and neither the server nor a saved copy can give it. */
+    var onUnavailable: (() -> Unit)? = null
+
+    fun gatewayLoginUrl(): String? = api.gatewayLogin
+
     /** Told whenever the server's state changes, from whichever thread noticed. */
     var onState: ((ServerState) -> Unit)? = null
 
@@ -197,6 +202,11 @@ class Offline(private val context: Context) {
             }
         }
         if (file.isFile) return json(200, file.readBytes())
+        val path = request.url.path
+        // Nothing to boot the page from: the server's anonymous start-up answer is the same for everyone, so
+        // a stand-in lets the page start, and the missing sign-in state is then reported rather than guessed.
+        if (path == "/initialize.json") return json(200, OFFLINE_INITIALIZE.toByteArray())
+        if (path == "/api/v1/auth/me") onUnavailable?.invoke()
         return json(503, "{\"error\":\"offline\"}".toByteArray())
     }
 
@@ -233,5 +243,8 @@ class Offline(private val context: Context) {
 
     private companion object {
         val FORWARD_BLOCKED = listOf("Cookie", "Host", "Connection", "Accept-Encoding", "Content-Length")
+        const val OFFLINE_INITIALIZE =
+            "{\"apiRoot\":\"/api/v1\",\"version\":\"offline\",\"setupNeeded\":false," +
+                "\"oidc\":{\"enabled\":false,\"displayName\":\"\",\"localLoginRestricted\":false}}"
     }
 }
