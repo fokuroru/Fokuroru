@@ -13,6 +13,8 @@ not here. The code, folders and container names still say Maki, and the
 
 So far, Maki has been the closest thing to what I want out of a manga manager, but there were a couple of missing features that'll likely appear down the line. I impatiently decided to move away from my existing setup and commit to Maki instead, but of course, I needed to tweak the product before it eventually gets built into the real deal. Ideally, I'd prefer using someone else's product as I have no appetite in handling my own garbage code. 
 
+Also, Kavita has always been a pain for me to use, so I tweaked the Maki reader and vibed an Android app. 
+
 ## Comparison baseline
 
 This list covers the code through [`260ae76c`](https://github.com/fokuroru/Fokuroru/commit/260ae76c),
