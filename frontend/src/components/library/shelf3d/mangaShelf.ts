@@ -3495,10 +3495,26 @@ export class MangaShelf {
     }
     strip.released = false
     strip.releaseAt = Infinity
+    this.calm(b, hold.patch)
     b.holding = null
     b.done = false
     b.still = 0
     this.wake()
+  }
+
+  /**
+   * Takes the speed out of the paper when a hand lets go of it. A held weight is moved by the hand, not by its own
+   * speed, so it carries whatever speed it had before it was picked up; and the rest of the sheet has been dragged
+   * along. Let go of with any of that left, it flings. It falls from where it is, with nothing added.
+   */
+  private calm(b: BannerAnim, held: number[]) {
+    for (const i of held) {
+      for (let n = 0; n < 3; n++) b.prev[i * 3 + n] = b.pos[i * 3 + n]
+    }
+    const count = (b.cols + 1) * (b.rows + 1)
+    for (let i = 0; i < count; i++) {
+      for (let n = 0; n < 3; n++) b.prev[i * 3 + n] += (b.pos[i * 3 + n] - b.prev[i * 3 + n]) * 0.92
+    }
   }
 
   /** Let go of held paper without sticking it: the weights it was holding are free again. */
@@ -3506,6 +3522,7 @@ export class MangaShelf {
     const b = this.bannerAnim
     if (!b?.holding) return
     for (const index of b.holding.patch) b.pinned[index] = 0
+    this.calm(b, b.holding.patch)
     b.holding = null
     b.done = false
     b.still = 0
