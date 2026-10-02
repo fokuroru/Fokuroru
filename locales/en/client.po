@@ -2343,8 +2343,8 @@ msgid "Ask for this"
 msgstr "Ask for this"
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "Ask or suggest"
-msgstr "Ask or suggest"
+#~ msgid "Ask or suggest"
+#~ msgstr "Ask or suggest"
 
 #: src/pages/ScrobblePage.tsx
 msgid "Assign"
@@ -4463,8 +4463,8 @@ msgid "Display name"
 msgstr "Display name"
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "Documentation"
-msgstr "Documentation"
+#~ msgid "Documentation"
+#~ msgstr "Documentation"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Don't want"
@@ -5610,6 +5610,11 @@ msgstr "Genres in the library"
 msgid "German"
 msgstr "German"
 
+#. placeholder {0}: info.versionName
+#: src/components/layout/SidebarFooter.tsx
+msgid "Get the Android app {0}"
+msgstr "Get the Android app {0}"
+
 #: src/components/SetupWizard.tsx
 msgid "Gets past Cloudflare for sources like MangaFire. Without it those sources are skipped."
 msgstr "Gets past Cloudflare for sources like MangaFire. Without it those sources are skipped."
@@ -5619,8 +5624,8 @@ msgid "Girls Love"
 msgstr "Girls Love"
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "GitHub Discussions."
-msgstr "GitHub Discussions."
+#~ msgid "GitHub Discussions."
+#~ msgstr "GitHub Discussions."
 
 #: src/components/DiscoverPresets.tsx
 #: src/components/rails/CustomRailEditor.tsx
@@ -5799,8 +5804,8 @@ msgid "Held back for review, {file}: {reason}"
 msgstr "Held back for review, {file}: {reason}"
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "Help & feedback"
-msgstr "Help & feedback"
+#~ msgid "Help & feedback"
+#~ msgstr "Help & feedback"
 
 #: src/components/SetupWizard.tsx
 msgid "Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and manual imports untouched. Fōkurōru's own downloads always get one."
@@ -8824,8 +8829,8 @@ msgid "Opens a deletion review. Nothing is removed until you confirm it there."
 msgstr "Opens a deletion review. Nothing is removed until you confirm it there."
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "Opens a GitHub issue with the template."
-msgstr "Opens a GitHub issue with the template."
+#~ msgid "Opens a GitHub issue with the template."
+#~ msgstr "Opens a GitHub issue with the template."
 
 #: src/pages/HealthPage.tsx
 msgid "Operation #{id}"
@@ -9967,8 +9972,8 @@ msgid "Release name matches (regex)"
 msgstr "Release name matches (regex)"
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "Release notes"
-msgstr "Release notes"
+#~ msgid "Release notes"
+#~ msgstr "Release notes"
 
 #: src/api/upgrades.ts
 msgid "Release number may be a sequel, not a chapter"
@@ -10212,8 +10217,8 @@ msgid "replaces {replacedFileName}"
 msgstr "replaces {replacedFileName}"
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "Report a bug"
-msgstr "Report a bug"
+#~ msgid "Report a bug"
+#~ msgstr "Report a bug"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Request chapters"
@@ -13925,8 +13930,8 @@ msgid "What zone {0} does"
 msgstr "What zone {0} does"
 
 #: src/components/layout/SidebarFooter.tsx
-msgid "What's new in v{version}"
-msgstr "What's new in v{version}"
+#~ msgid "What's new in v{version}"
+#~ msgstr "What's new in v{version}"
 
 #: src/pages/ActivityPage.tsx
 #: src/pages/ScrobblePage.tsx

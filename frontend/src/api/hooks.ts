@@ -10,6 +10,7 @@ import {
 import { msg, t } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { api, getInitialize, xsrfHeader } from './client'
+import { nativeApp } from '../lib/nativeApp'
 import { useAuth } from '../auth/AuthProvider'
 import type { AnimeResume } from './animeResume'
 import { affectedKeys } from './recommendationFeedback'
@@ -3453,6 +3454,17 @@ export interface ScrobbleStatus {
   recent: ScrobbleSyncRow[]
   unmatched: ScrobbleUnmatchedItem[]
   log: ScrobbleLogRow[]
+}
+
+/** The Android app on offer to this browser, or null: only on Android, outside the app, once the server has the file. */
+export function useAndroidApk() {
+  const { data } = useQuery({
+    queryKey: ['android-app-offer'],
+    queryFn: async () => (await getInitialize()).androidApp ?? null,
+    staleTime: Infinity,
+  })
+  const onAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+  return onAndroid && !nativeApp() && data?.apkAvailable ? data : null
 }
 
 export function useAppVersion() {

@@ -1494,11 +1494,13 @@ try
     // Pre-authentication bootstrap for the SPA. Carries no secret: it used to hand the instance API
     // key to any anonymous caller, which made the key check decorative — anyone who could reach the
     // page could read the credential that guarded it.
-    app.MapGet("/initialize.json", async (MakiDbContext db, CancellationToken ct) => Results.Json(new
+    app.MapGet("/initialize.json", async (MakiDbContext db, AppPaths appPaths, CancellationToken ct) => Results.Json(new
     {
         apiRoot = "/api/v1",
         version = VersionInfo.Version,
-        androidApp = AndroidAppInfo.Current,
+        androidApp = AndroidAppInfo.Current is { } android
+            ? new { android.VersionCode, android.VersionName, ApkAvailable = File.Exists(AndroidAppInfo.ApkPath(appPaths)) }
+            : null,
         // True while the placeholder account the migration created is unclaimed, which is what sends
         // both a fresh install and an upgraded single-user one through first-run setup.
         setupNeeded = await db.Users.AnyAsync(u => u.PendingSetup, ct),

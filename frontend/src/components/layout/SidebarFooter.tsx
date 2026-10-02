@@ -1,18 +1,8 @@
-import { useState, useSyncExternalStore, type ReactNode } from 'react'
-import { Menu, Text, Tooltip } from '@mantine/core'
-import {
-  IconArrowUpRight,
-  IconBook,
-  IconBug,
-  IconChevronUp,
-  IconHelpCircle,
-  IconMessages,
-  IconSparkles,
-  IconStarFilled,
-  IconX,
-} from '@tabler/icons-react'
+import { useState, useSyncExternalStore } from 'react'
+import { Tooltip } from '@mantine/core'
+import { IconArrowUpRight, IconBrandAndroid, IconStarFilled, IconX } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { useAppVersion, useUpdateStatus } from '../../api/hooks'
+import { useAndroidApk, useAppVersion, useUpdateStatus } from '../../api/hooks'
 import { getSkippedVersion, setSkippedVersion, subscribeSkippedVersion } from '../../lib/updateSkip'
 import { UserMenu } from '../UserMenu'
 
@@ -50,7 +40,6 @@ export default function SidebarFooter({ onNavigate }: { onNavigate?: () => void 
   }
 
   const unofficial = version ? /-(dev|nightly)/.test(version) : false
-  const tagged = !!version && !unofficial
 
   return (
     <div className="nav-footer">
@@ -102,7 +91,7 @@ export default function SidebarFooter({ onNavigate }: { onNavigate?: () => void 
         </div>
       ) : null}
 
-      <HelpMenu version={tagged ? version : null} />
+      <AndroidAppLink />
 
       {version && (
         <div className="nav-footer-row">
@@ -115,70 +104,6 @@ export default function SidebarFooter({ onNavigate }: { onNavigate?: () => void 
         </div>
       )}
     </div>
-  )
-}
-
-function HelpMenu({ version }: { version: string | null }) {
-  const menuItem = (
-    href: string,
-    icon: ReactNode,
-    label: ReactNode,
-    description?: ReactNode,
-  ) => (
-    <Menu.Item component="a" href={href} target="_blank" rel="noreferrer" leftSection={icon}>
-      <Text fz="sm" lh={1.3}>
-        {label}
-      </Text>
-      {description && (
-        <Text fz="xs" c="dimmed" lh={1.3}>
-          {description}
-        </Text>
-      )}
-    </Menu.Item>
-  )
-
-  return (
-    <Menu position="top-start" withArrow offset={6} width={228}>
-      <Menu.Target>
-        <button type="button" className="nav-link nav-footer-help">
-          <IconHelpCircle size={18} stroke={1.7} className="nav-icon" />
-          <Trans>Help & feedback</Trans>
-          <IconChevronUp size={12} stroke={1.8} className="nav-footer-chevron" />
-        </button>
-      </Menu.Target>
-      <Menu.Dropdown>
-        {menuItem(
-          `${REPO_URL}/issues/new/choose`,
-          <IconBug size={16} stroke={1.7} />,
-          <Trans>Report a bug</Trans>,
-          <Trans>Opens a GitHub issue with the template.</Trans>,
-        )}
-        {menuItem(
-          `${REPO_URL}/discussions`,
-          <IconMessages size={16} stroke={1.7} />,
-          <Trans>Ask or suggest</Trans>,
-          <Trans>GitHub Discussions.</Trans>,
-        )}
-        {menuItem(`${REPO_URL}#readme`, <IconBook size={16} stroke={1.7} />, <Trans>Documentation</Trans>)}
-        <Menu.Divider />
-        {menuItem(
-          REPO_URL,
-          <IconStarFilled size={16} style={{ color: 'var(--rating)' }} />,
-          <Trans>Star on GitHub</Trans>,
-        )}
-        {version
-          ? menuItem(
-              `${REPO_URL}/releases/tag/v${version}`,
-              <IconSparkles size={16} stroke={1.7} />,
-              <Trans>What's new in v{version}</Trans>,
-            )
-          : menuItem(
-              `${REPO_URL}/releases`,
-              <IconSparkles size={16} stroke={1.7} />,
-              <Trans>Release notes</Trans>,
-            )}
-      </Menu.Dropdown>
-    </Menu>
   )
 }
 
@@ -216,5 +141,17 @@ function VersionLabel({
         <span className="nav-footer-version">v{version}</span>
       )}
     </Tooltip>
+  )
+}
+
+/** Offered only to a browser on Android: the app itself, and every other system, has no use for it. */
+function AndroidAppLink() {
+  const info = useAndroidApk()
+  if (!info) return null
+  return (
+    <a href="/api/v1/android/apk" download="fokuroru.apk" className="nav-link nav-footer-help">
+      <IconBrandAndroid size={18} stroke={1.7} className="nav-icon" />
+      <Trans>Get the Android app {info.versionName}</Trans>
+    </a>
   )
 }

@@ -2805,8 +2805,8 @@ msgstr "Solicitar"
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "Ask or suggest"
-msgstr "Perguntar ou sugerir"
+#~ msgid "Ask or suggest"
+#~ msgstr "Perguntar ou sugerir"
 
 #: src/pages/ScrobblePage.tsx
 #, fuzzy
@@ -5321,8 +5321,8 @@ msgstr "Nome de exibição"
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "Documentation"
-msgstr "Documentação"
+#~ msgid "Documentation"
+#~ msgstr "Documentação"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -6691,6 +6691,11 @@ msgstr "Gêneros na biblioteca"
 msgid "German"
 msgstr "Alemão"
 
+#. placeholder {0}: info.versionName
+#: src/components/layout/SidebarFooter.tsx
+msgid "Get the Android app {0}"
+msgstr ""
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Gets past Cloudflare for sources like MangaFire. Without it those sources are skipped."
@@ -6703,8 +6708,8 @@ msgstr "Girls Love"
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "GitHub Discussions."
-msgstr "GitHub Discussions."
+#~ msgid "GitHub Discussions."
+#~ msgstr "GitHub Discussions."
 
 #: src/components/DiscoverPresets.tsx
 #: src/components/rails/CustomRailEditor.tsx
@@ -6919,8 +6924,8 @@ msgstr ""
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "Help & feedback"
-msgstr "Ajuda e feedback"
+#~ msgid "Help & feedback"
+#~ msgstr "Ajuda e feedback"
 
 #: src/components/SetupWizard.tsx
 msgid "Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and manual imports untouched. Fōkurōru's own downloads always get one."
@@ -10531,8 +10536,8 @@ msgstr "Abre uma revisão de exclusão. Nada é removido até você confirmar ne
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "Opens a GitHub issue with the template."
-msgstr "Abre uma issue no GitHub usando o modelo."
+#~ msgid "Opens a GitHub issue with the template."
+#~ msgstr "Abre uma issue no GitHub usando o modelo."
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -11879,8 +11884,8 @@ msgstr ""
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "Release notes"
-msgstr "Notas da versão"
+#~ msgid "Release notes"
+#~ msgstr "Notas da versão"
 
 #: src/api/upgrades.ts
 msgid "Release number may be a sequel, not a chapter"
@@ -12170,8 +12175,8 @@ msgstr "substitui {replacedFileName}"
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "Report a bug"
-msgstr "Relatar um bug"
+#~ msgid "Report a bug"
+#~ msgstr "Relatar um bug"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -16563,8 +16568,8 @@ msgstr ""
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
-msgid "What's new in v{version}"
-msgstr "Novidades da v{version}"
+#~ msgid "What's new in v{version}"
+#~ msgstr "Novidades da v{version}"
 
 #: src/pages/ActivityPage.tsx
 #: src/pages/ScrobblePage.tsx

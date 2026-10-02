@@ -10,6 +10,8 @@ interface InitializeInfo {
    * Enough to draw the login page and no more. The issuer, client id and secret stay behind the
    * admin settings endpoint; this one is anonymous.
    */
+  /** The newest Android app this server was released with; `apkAvailable` once an operator has put the file in the config folder. */
+  androidApp?: { versionCode: number; versionName: string; apkAvailable: boolean } | null
   oidc: {
     enabled: boolean
     displayName: string

@@ -1,4 +1,5 @@
 using System.Reflection;
+using Maki.Api.Configuration;
 
 namespace Maki.Api;
 
@@ -11,6 +12,9 @@ public static class AndroidAppInfo
     public sealed record Build(int VersionCode, string VersionName);
 
     public static Build? Current { get; } = Read();
+
+    /// <summary>Where an operator puts the app to offer it to people on Android: <c>{config}/android/fokuroru.apk</c>.</summary>
+    public static string ApkPath(AppPaths paths) => Path.Combine(paths.ConfigDir, "android", "fokuroru.apk");
 
     internal static Build? Parse(string text)
     {
