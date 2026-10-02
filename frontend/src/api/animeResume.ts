@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { RecommendationItem } from './hooks'
+import { useDisplayGate, type RecommendationItem } from './hooks'
 
 /**
  * What the anime-resume resolver worked out for one manga: which anime covers it, how far, and
@@ -137,10 +137,13 @@ export function useDismissAnimeResume(seriesId: number) {
  * library first, then manga the reader could add.
  */
 export function useHomeFromAnime(enabled = true) {
+  const gate = useDisplayGate()
   return useQuery({
     queryKey: ['home', 'from-anime'],
     queryFn: () => api<HomeAnimeResumeItem[]>('/home/from-anime'),
     enabled,
     staleTime: 60_000,
+    // Library cards are judged here; catalogue cards were already narrowed by the server.
+    select: (items) => items.filter((item) => item.seriesId === null || gate(item.seriesId)),
   })
 }

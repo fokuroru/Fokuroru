@@ -1,5 +1,5 @@
 import { RATINGS, ratingShown, useSpice } from '../lib/spice'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { PREVIEW_RETENTION_MS, previewCacheKey, readPreviewCache, writePreviewCache } from './previewCache'
 import {
   keepPreviousData,
@@ -48,6 +48,24 @@ import type {
   UpdateSettingsDto,
   UpdateStatusDto,
 } from './types'
+
+/**
+ * Whether a library series may be shown at this device's spice level, judged by the library list's own ratings.
+ * Anything that lists series by id (reading rails, recently added, the queue) asks this instead of carrying a
+ * rating of its own. Everything shows until the library list has loaded.
+ */
+export function useDisplayGate(): (seriesId: number) => boolean {
+  const level = useSpice()
+  const { data: ratings } = useQuery({
+    queryKey: ['series'],
+    queryFn: () => api<SeriesDto[]>('/series'),
+    select: (list) => new Map(list.map((s) => [s.id, s.contentRating] as const)),
+  })
+  return useCallback(
+    (seriesId: number) => level >= RATINGS.length - 1 || ratingShown(ratings?.get(seriesId), level),
+    [level, ratings],
+  )
+}
 
 export function useSeries() {
   const level = useSpice()
@@ -836,23 +854,18 @@ export interface HomeRecentSeriesItem {
  * rather than where you actually stopped.
  */
 export function useHomeReading(limit = 12, enabled = true) {
-  const level = useSpice()
-  const queryClient = useQueryClient()
+  const gate = useDisplayGate()
   return useQuery({
     queryKey: ['home', 'reading', limit],
     queryFn: () => api<HomeReadingResponse>(`/home/reading?limit=${limit}`),
     enabled,
     staleTime: 30_000,
     refetchOnMount: 'always',
-    // Reading items carry no rating of their own, so they are judged by the library list when it is loaded.
-    select: (data) => {
-      if (level >= RATINGS.length - 1) return data
-      const ratings = new Map(
-        (queryClient.getQueryData<SeriesDto[]>(['series']) ?? []).map((s) => [s.id, s.contentRating] as const),
-      )
-      const shown = (item: HomeReadingItem) => ratingShown(ratings.get(item.seriesId), level)
-      return { ...data, continueReading: data.continueReading.filter(shown), jumpBackIn: data.jumpBackIn.filter(shown) }
-    },
+    select: (data) => ({
+      ...data,
+      continueReading: data.continueReading.filter((item) => gate(item.seriesId)),
+      jumpBackIn: data.jumpBackIn.filter((item) => gate(item.seriesId)),
+    }),
   })
 }
 
@@ -882,11 +895,13 @@ export function useHideHomeReading() {
 
 /** Series that recently gained chapter files. Invalidated live by the `chapterImported` event. */
 export function useHomeRecentlyAdded(limit = 12, enabled = true) {
+  const gate = useDisplayGate()
   return useQuery({
     queryKey: ['home', 'recently-added', limit],
     queryFn: () => api<HomeRecentSeriesItem[]>(`/home/recently-added?limit=${limit}`),
     enabled,
     staleTime: 60_000,
+    select: (items) => items.filter((item) => gate(item.seriesId)),
   })
 }
 

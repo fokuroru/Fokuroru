@@ -26,6 +26,7 @@ import {
   useHomeRecentlyAdded,
   useLibraryStats,
   useMetadataSettings,
+  useDisplayGate,
   useQueue,
   useRecommendations,
   useRootFolders,
@@ -133,6 +134,7 @@ export default function HomePage() {
   const { data: recent, isLoading: recentLoading } = useHomeRecentlyAdded(12, on('recent'))
   const { data: fromAnime, isLoading: fromAnimeLoading } = useHomeFromAnime(on('fromanime'))
   const { data: queue } = useQueue()
+  const gate = useDisplayGate()
   const { data: rails, isLoading: railsLoading } = useDiscover(0, needsDiscover && on('popular'))
   // An empty request object is deliberate: it hits the same server-side cache slot as Discover's
   // default Recommended tab, so this rail can never thrash that shared pool with different seeds.
@@ -145,7 +147,7 @@ export default function HomePage() {
 
   const continueReading = reading?.continueReading ?? []
   const jumpBackIn = reading?.jumpBackIn ?? []
-  const downloading = (queue?.items ?? []).filter((q) => isQueueActive(q.status))
+  const downloading = (queue?.items ?? []).filter((q) => isQueueActive(q.status) && gate(q.seriesId))
 
   // What is left to read, off the library list that is already loaded.
   //

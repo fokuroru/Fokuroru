@@ -122,7 +122,7 @@ public class CurrentUserMiddleware(RequestDelegate next)
 
     /// <summary>Routes that choose what to show from the catalogue, where a viewer may ask for less than their ceiling.</summary>
     private static readonly string[] BrowsePrefixes =
-        ["/api/v1/recommendations", "/api/v1/discover", "/api/v1/search", "/api/v1/preview"];
+        ["/api/v1/recommendations", "/api/v1/discover", "/api/v1/search", "/api/v1/preview", "/api/v1/home", "/api/v1/rails"];
 
     /// <summary>
     /// A viewer's own "show me less" setting (the spice slider), sent as <c>X-Maki-Display-Rating</c>. It can only

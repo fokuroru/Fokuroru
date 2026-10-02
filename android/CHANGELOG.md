@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.3 (31)
+- No app change. The content rating slider now also filters Home's Recently added, Continue from the anime and Downloading now.
+
 ## 0.5.2 (30)
 - No app change. Content rating (spice) button in the desktop header and the mobile view: a slider from a leaf to three chillies that narrows what this device shows.
 
