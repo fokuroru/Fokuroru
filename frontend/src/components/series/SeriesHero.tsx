@@ -1,4 +1,4 @@
-﻿import {type ReactNode, useMemo} from 'react'
+import {type ReactNode, useLayoutEffect, useMemo, useRef} from 'react'
 import {
     ActionIcon,
     Alert,
@@ -157,8 +157,26 @@ export function SeriesHero({
             ? series.originalTitle
             : series.displayTitle
 
+    // The spine title stops where the tabs start, however long it is: measured, because the tabs sit
+    // at a different height for every series (a long title wraps over more lines).
+    const heroRef = useRef<HTMLDivElement>(null)
+    useLayoutEffect(() => {
+        const hero = heroRef.current
+        if (!hero) return
+        const update = () => {
+            const tabs = hero.querySelector('.series-tabs')
+            if (!tabs) return
+            const room = tabs.getBoundingClientRect().top - hero.getBoundingClientRect().top - 24 - 12
+            hero.style.setProperty('--spine-title-max', `${Math.max(0, Math.floor(room))}px`)
+        }
+        update()
+        const observer = new ResizeObserver(update)
+        observer.observe(hero)
+        return () => observer.disconnect()
+    }, [])
+
     return (
-        <Box className="series-hero">
+        <Box ref={heroRef} className="series-hero">
             <div className="series-spine-band" aria-hidden="true"><span>{spineTitle}</span></div>
 
             <div className="series-hero-body">

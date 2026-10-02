@@ -3016,7 +3016,8 @@ svg.setup-rail-wordmark {
   flex: none;
   width: 72px;
   display: flex;
-  align-items: center;
+  /* The title hangs from the top of the band and stops where the tabs start (see --spine-title-max). */
+  align-items: flex-start;
   justify-content: center;
   padding-block: 24px;
   overflow: hidden;
@@ -3032,7 +3033,7 @@ svg.setup-rail-wordmark {
 .series-spine-band > span {
   writing-mode: vertical-rl;
   white-space: nowrap;
-  max-height: 100%;
+  max-height: var(--spine-title-max, 100%);
   overflow: hidden;
   text-overflow: ellipsis;
 }
