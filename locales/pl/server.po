@@ -4587,3 +4587,8 @@ msgstr "Opublikowane wektory używają nowszego schematu niż obsługuje ta komp
 #, fuzzy
 msgid "install.tasteVectors.truncated"
 msgstr "Opublikowane wektory wyglądają na niekompletne; zostaną pominięte."
+
+#: src/Maki.Api/Controllers/ReaderTapZonesController.cs
+#. English: Those tap zones are not valid.
+msgid "error.tapZones.invalid"
+msgstr ""

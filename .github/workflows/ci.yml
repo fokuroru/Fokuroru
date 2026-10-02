@@ -41,6 +41,11 @@ jobs:
       - name: No secure-context-only APIs outside their helpers
         run: npm run check:secure-context
 
+      # The tap zone layout is where every tap goes, and the built-in one has to stay the layout the
+      # reader always had, so this pins the defaults, the mirroring and how a stored layout is cleaned.
+      - name: Tap zone layouts behave
+        run: npm run check:tap-zones
+
       # Catches a new t/<Trans> whose English was never extracted, and a key hand-added to
       # en/server.po but never propagated. Either way the string compiles and renders in English
       # while being absent from thirteen catalogues, with nothing to say so. Diffing the whole tree

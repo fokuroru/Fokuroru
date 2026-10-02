@@ -2138,6 +2138,10 @@ msgstr "시리즈 추가"
 msgid "Add a series and Fōkurōru will start tracking chapters for it. This page fills up as you read and download."
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Add a zone"
+msgstr ""
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Add condition"
 msgstr ""
@@ -2166,6 +2170,10 @@ msgstr "추가"
 #, fuzzy
 msgid "Add one above, or tag a series from its detail page."
 msgstr "위 항목을 추가하거나 시리즈 상세 페이지에서 시리즈에 태그를 지정하세요."
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Add preset"
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -3136,6 +3144,7 @@ msgstr ""
 msgid "Blocks sign-in and kills existing sessions. Keeps the account and its history."
 msgstr "로그인을 차단하고 기존 세션을 종료합니다. 계정과 기록은 유지합니다."
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -3170,6 +3179,11 @@ msgstr "아래"
 #, fuzzy
 msgid "Boys Love"
 msgstr "보이즈 러브"
+
+#. placeholder {0}: index + 1
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Bring zone {0} to the top of the list"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Brought in from disk, not downloaded by Fōkurōru"
@@ -3224,6 +3238,10 @@ msgstr "카탈로그 탐색 중"
 #, fuzzy
 msgid "Building metadata search indexes"
 msgstr "메타데이터 검색 인덱스 빌드 중"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Built in"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -3294,6 +3312,7 @@ msgstr "이 다운로드를 읽을 수 없음"
 #: src/components/rails/CustomRailEditor.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/RatingImportModal.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/SeriesFilesSection.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
@@ -4409,6 +4428,14 @@ msgstr "코드 복사"
 msgid "Copy feed URL"
 msgstr "피드 URL 복사"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Copy layouts from my app"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Copy layouts from my browser"
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Copy this now. It can't be shown again; if you lose it, regenerate."
@@ -4558,6 +4585,10 @@ msgstr ""
 
 #: src/components/SourceMeasurePanel.tsx
 msgid "Couldn't sample"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Couldn't save the tap zones. Try again."
 msgstr ""
 
 #: src/pages/ActivityPage.tsx
@@ -4941,6 +4972,10 @@ msgstr "디스크에서 삭제"
 msgid "Delete permanently"
 msgstr "영구 삭제"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Delete preset"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #, fuzzy
@@ -5022,6 +5057,11 @@ msgstr "이 요청을 삭제할까요?"
 #, fuzzy
 msgid "Delete user"
 msgstr "사용자 삭제"
+
+#. placeholder {0}: index + 1
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Delete zone {0}"
+msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
@@ -5479,6 +5519,10 @@ msgstr ""
 msgid "Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Fōkurōru can't, as in Docker."
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Drag a zone to move it and pull a corner to resize it. A tap outside every zone shows or hides the menu. Where zones overlap, the one nearest the top of the list wins. These are kept for you, and separately for the app and for browsers."
+msgstr ""
+
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
 msgid "Drag to reorder. Click a section to change it."
@@ -5524,6 +5568,10 @@ msgstr "라이브러리 자체에서 획득하므로 이 인스턴스의 모든 
 #, fuzzy
 msgid "Ecchi"
 msgstr "에치"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Edges"
+msgstr ""
 
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/SeriesTagsEditor.tsx
@@ -5587,6 +5635,11 @@ msgstr "요청 편집"
 #, fuzzy
 msgid "Edit request for {title}"
 msgstr "{title}에 대한 요청 편집"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Edit tap zones"
+msgstr ""
 
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
@@ -6737,6 +6790,10 @@ msgstr "습관"
 msgid "Habits in numbers"
 msgstr "숫자로 보는 습관"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Half and half"
+msgstr ""
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 #, fuzzy
 msgid "Half of what rating the manga would carry. A show you loved lends its genres and tags to your profile without out-voting a book you actually read."
@@ -6809,6 +6866,7 @@ msgstr "상태 설정"
 msgid "Healthy"
 msgstr "정상"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Height"
@@ -7902,6 +7960,10 @@ msgstr "이 시리즈에 고정한 경우에만 이 프로필을 사용하려면
 msgid "Leave out series in your library"
 msgstr "라이브러리에 있는 시리즈 제외"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Left"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "left to right"
@@ -8592,6 +8654,10 @@ msgstr "중앙 대기 시간"
 msgid "Medium"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Menu only"
+msgstr ""
+
 #: src/pages/ImportPage.tsx
 #, fuzzy
 msgid "Merging folder"
@@ -8844,6 +8910,10 @@ msgstr ""
 msgid "Most read"
 msgstr "가장 많이 읽음"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Mostly forward"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -9001,6 +9071,10 @@ msgstr "이름 지정"
 #, fuzzy
 msgid "Naming tokens"
 msgstr "이름 지정 토큰"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Narrow edges"
+msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
@@ -9180,12 +9254,14 @@ msgstr "최신순"
 msgid "Newly enabled sources join at the bottom."
 msgstr "새로 활성화된 소스는 맨 아래에 추가됩니다."
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ChapterEnd.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Next chapter"
 msgstr "다음 챕터"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Next page"
@@ -9587,6 +9663,10 @@ msgstr ""
 msgid "No volume or chapter range in the title"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "No zones, so a tap anywhere shows or hides the menu."
+msgstr ""
+
 #: src/pages/CreatorPage.tsx
 #, fuzzy
 msgid "Nobody by that name is credited in the local MangaBaka database."
@@ -9799,6 +9879,10 @@ msgstr "아직 동기화되지 않음"
 #, fuzzy
 msgid "Note (optional)"
 msgstr "메모 (선택 사항)"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Nothing"
+msgstr ""
 
 #: src/components/CatalogueBrowser.tsx
 #, fuzzy
@@ -10551,6 +10635,7 @@ msgid "Page Up"
 msgstr ""
 
 #: src/components/discover/SeriesPreviewReader.tsx
+#: src/components/reader/TapZoneEditor.tsx
 msgid "Paged"
 msgstr ""
 
@@ -10730,6 +10815,10 @@ msgstr "이 서버에서는 개인 추가 가중치가 비활성화되어 있습
 msgid "Phone reader"
 msgstr "휴대폰 리더"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Pick a layout"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -10885,6 +10974,14 @@ msgstr "모델 준비 중…"
 msgid "Prequel to {relatedTo}"
 msgstr "{relatedTo}의 전일담"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Preset"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Preset name"
+msgstr ""
+
 #: src/components/SeriesTagsEditor.tsx
 #, fuzzy
 msgid "Press Enter to create a new tag"
@@ -10902,11 +10999,13 @@ msgstr ""
 msgid "Preview first chapter"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Previous chapter"
 msgstr "이전 챕터"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Previous page"
@@ -12122,6 +12221,7 @@ msgid "Rescanned: {newFiles} new, {relinked} relinked, {removed} removed"
 msgstr "다시 스캔 완료: 새 파일 {newFiles}개, 다시 연결됨 {relinked}개, 제거됨 {removed}개"
 
 #: src/components/CatalogueFilters.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/DiscoverPage.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -12489,6 +12589,7 @@ msgstr "샘플 챕터"
 #: src/components/DiscoverPresets.tsx
 #: src/components/NotificationsSection.tsx
 #: src/components/rails/CustomRailEditor.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/SaveButton.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
@@ -12513,6 +12614,10 @@ msgstr "각 시리즈 폴더에 cover.jpg 저장"
 #, fuzzy
 msgid "Save a cover.jpg into each series' library folder"
 msgstr "각 시리즈의 라이브러리 폴더에 cover.jpg 저장"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Save as a preset"
+msgstr ""
 
 #: src/components/DiscoverPresets.tsx
 #, fuzzy
@@ -12844,6 +12949,10 @@ msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Scroll up a screen (vertical navigation)"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Scrolling"
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
@@ -13527,6 +13636,10 @@ msgstr "더 보기"
 #, fuzzy
 msgid "Show on"
 msgstr "표시 위치"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Show or hide the menu"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -14367,6 +14480,10 @@ msgstr "제외할 태그"
 msgid "Tags to include"
 msgstr "포함할 태그"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Tap the page to see what a tap does."
+msgstr ""
+
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Tap zones"
@@ -14376,6 +14493,14 @@ msgstr "탭 영역"
 #, fuzzy
 msgid "Tap zones (click the page edges to turn)"
 msgstr "탭 영역 (페이지 가장자리를 클릭하여 넘김)"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Tap zones for this app"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Tap zones for this browser"
+msgstr ""
 
 #: src/pages/stats/sectionList.ts
 #, fuzzy
@@ -14628,6 +14753,10 @@ msgstr "특이한 항목"
 
 #: src/api/queue.ts
 msgid "The old file could not be moved aside for the upgrade"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "The page is shown as it would be held."
 msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
@@ -15216,9 +15345,14 @@ msgid "Tools you already run"
 msgstr "이미 사용 중인 도구"
 
 #: src/components/layout/SectionProperties.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #, fuzzy
 msgid "Top"
 msgstr "위"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Top and bottom"
+msgstr ""
 
 #: src/api/customRails.ts
 #: src/api/hooks.ts
@@ -15350,6 +15484,10 @@ msgstr "다시 시도"
 #, fuzzy
 msgid "Try clearing the filters."
 msgstr "필터를 지워 보세요."
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Try it: tapping the page shows what it would do"
+msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "Try the preview again"
@@ -16331,6 +16469,11 @@ msgstr "읽은 내용과 읽은 시간, 라이브러리에 있는 항목을 확�
 msgid "What you've read"
 msgstr "읽은 내용"
 
+#. placeholder {0}: index + 1
+#: src/components/reader/TapZoneEditor.tsx
+msgid "What zone {0} does"
+msgstr ""
+
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
 msgid "What's new in v{version}"
@@ -16422,6 +16565,10 @@ msgstr ""
 msgid "Which rails appear below the chapter list. Turning one off also stops it being fetched."
 msgstr "챕터 목록 아래에 표시할 레일입니다. 하나를 끄면 가져오기도 중단됩니다."
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Which reading layout to edit"
+msgstr ""
+
 #: src/components/SourceMappingsSection.tsx
 msgid "Which source a chapter downloads from first. Best quality ranks sources by this series' quality profile and what their recent chapters measured, with priority breaking ties."
 msgstr ""
@@ -16464,6 +16611,7 @@ msgstr "전체 연도"
 msgid "Whole-series pack, needs your call"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Width"
@@ -16820,6 +16968,10 @@ msgstr "내 취향"
 msgid "Your user or group key."
 msgstr "사용자 또는 그룹 키입니다."
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Yours"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Yours alone - this changes what lands in your bell, not anybody else's."
@@ -16830,6 +16982,10 @@ msgstr "나만 볼 수 있음 - 내 알림 벨에 표시되는 내용만 변경�
 #, fuzzy
 msgid "Z:\\downloads (optional)"
 msgstr "Z:\\downloads (선택 사항)"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Zones"
+msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Zoom ({scale}%)"

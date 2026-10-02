@@ -4587,3 +4587,8 @@ msgstr "В опубликованных векторах используетс�
 #, fuzzy
 msgid "install.tasteVectors.truncated"
 msgstr "Опубликованные векторы, похоже, обрезаны; они будут проигнорированы."
+
+#: src/Maki.Api/Controllers/ReaderTapZonesController.cs
+#. English: Those tap zones are not valid.
+msgid "error.tapZones.invalid"
+msgstr ""

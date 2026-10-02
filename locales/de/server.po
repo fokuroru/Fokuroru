@@ -4587,3 +4587,8 @@ msgstr "Die veröffentlichten Vektoren verwenden ein neueres Schema, das dieser 
 #, fuzzy
 msgid "install.tasteVectors.truncated"
 msgstr "Die veröffentlichten Vektoren scheinen abgeschnitten zu sein und werden ignoriert."
+
+#: src/Maki.Api/Controllers/ReaderTapZonesController.cs
+#. English: Those tap zones are not valid.
+msgid "error.tapZones.invalid"
+msgstr ""

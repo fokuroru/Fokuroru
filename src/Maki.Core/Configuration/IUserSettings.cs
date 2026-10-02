@@ -67,6 +67,8 @@ public static class UserSettingKeys
     [
         SettingKeys.ReaderPrefs,
         SettingKeys.ReaderPushToKavita,
+        SettingKeys.ReaderTapZonesApp,
+        SettingKeys.ReaderTapZonesWeb,
         SettingKeys.UiStartPage,
         SettingKeys.UiHomeSections,
         SettingKeys.UiDiscoverSections,

@@ -153,6 +153,16 @@ public static class SettingKeys
     public const string ReaderPrefs = "reader.prefs";
 
     /// <summary>
+    /// The reader's tap zone layouts and the presets saved beside them, as a JSON document. One key per
+    /// kind of client, because a layout that suits a phone held in one hand is not the one for a mouse:
+    /// the Android app and a browser each keep their own. See <c>TapZoneDocuments</c>.
+    /// </summary>
+    public const string ReaderTapZonesApp = "reader.tapzones.app";
+
+    /// <summary>The browser's copy of <see cref="ReaderTapZonesApp"/>.</summary>
+    public const string ReaderTapZonesWeb = "reader.tapzones.web";
+
+    /// <summary>
     /// "true" → after finishing a chapter in the built-in reader, also mark it read in Kavita.
     /// Default off. Only ever pushed for a series Kavita has actually reported (an adopted
     /// ReadingState row) — see ReadingProgressService for why an unmatched push double-counts.

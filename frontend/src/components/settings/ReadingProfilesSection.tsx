@@ -29,6 +29,7 @@ import {
 import { BACKGROUNDS, DEFAULT_PREFS, type ReaderPrefs } from '../../pages/reader/prefs'
 import { useReaderSettings, useSaveReaderSettings } from '../../api/reader'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
+import TapZoneEditor from '../reader/TapZoneEditor'
 import { SettingsSection } from '../../pages/settings/SettingsSection'
 import { useLabel } from '../../i18n-context'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -299,6 +300,7 @@ function ProfileEditor({
   const [types, setTypes] = useState<string[]>(initial.seriesTypes)
   const [prefs, setPrefs] = useState<ReaderPrefs>(initial.prefs)
   const set = (patch: Partial<ReaderPrefs>) => setPrefs((current) => ({ ...current, ...patch }))
+  const [tapEditorOpen, setTapEditorOpen] = useState(false)
 
   return (
     <Stack gap="sm" mt="sm">
@@ -437,6 +439,14 @@ function ProfileEditor({
         checked={prefs.tapZones}
         onChange={(e) => set({ tapZones: e.currentTarget.checked })}
       />
+      {prefs.tapZones && (
+        <>
+          <Button size="xs" variant="default" w="fit-content" onClick={() => setTapEditorOpen(true)}>
+            <Trans>Edit tap zones</Trans>
+          </Button>
+          <TapZoneEditor opened={tapEditorOpen} onClose={() => setTapEditorOpen(false)} direction={prefs.direction} />
+        </>
+      )}
       <Switch
         size="sm"
         label={t`Show page number`}

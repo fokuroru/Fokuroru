@@ -28,6 +28,8 @@ import { useReadingClock } from './useReadingClock'
 import { spineVars } from '../../lib/spine'
 import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
 import { useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
+import { useTapZones } from '../../api/tapZones'
+import { actionAt, layoutFor } from '../../lib/tapZones'
 
 const ZOOM_STEP = 0.25
 const ZOOM_MAX = 4
@@ -485,7 +487,13 @@ export default function ReaderPage() {
     else backward()
   })
 
-  /** Tap zones: outer thirds page, the middle toggles the chrome. Top and bottom under vertical navigation. */
+  const { data: tapDocument } = useTapZones()
+  const tapLayout = useMemo(
+    () => layoutFor(tapDocument, vertical ? 'vertical' : 'horizontal', prefs.direction),
+    [tapDocument, vertical, prefs.direction],
+  )
+
+  /** Tap zones: the layout this person set up, which by default is the outer thirds paging and the middle toggling the chrome. */
   const onSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!prefs.tapZones || zoom !== 1 || (prefs.mode === 'vertical' && !vertical)) {
       setChrome((visible) => !visible)
@@ -493,25 +501,34 @@ export default function ReaderPage() {
     }
 
     const bounds = event.currentTarget.getBoundingClientRect()
-    if (vertical) {
-      const y = (event.clientY - bounds.top) / bounds.height
-      if (y < 0.33) backward()
-      else if (y > 0.67) forward()
-      else setChrome((visible) => !visible)
-      return
-    }
-
-    const ratio = (event.clientX - bounds.left) / bounds.width
-    // Right-to-left reading puts "next" on the left edge.
-    const leftAdvances = prefs.direction === 'rtl'
-    if (ratio < 0.33) {
-      if (leftAdvances) next()
-      else previous()
-    } else if (ratio > 0.67) {
-      if (leftAdvances) previous()
-      else next()
-    } else {
-      setChrome((visible) => !visible)
+    const action = actionAt(
+      tapLayout,
+      (event.clientX - bounds.left) / bounds.width,
+      (event.clientY - bounds.top) / bounds.height,
+    )
+    switch (action) {
+      case 'next':
+        if (vertical) forward()
+        else next()
+        break
+      case 'prev':
+        if (vertical) backward()
+        else previous()
+        break
+      case 'menu':
+        setChrome((visible) => !visible)
+        break
+      case 'nextChapter':
+        if (manifest?.nextChapterId != null) void goToChapter(manifest.nextChapterId, true)
+        break
+      case 'prevChapter':
+        if (manifest?.previousChapterId != null) void goToChapter(manifest.previousChapterId, false)
+        break
+      case 'bookmark':
+        toggleBookmark.mutate(page)
+        break
+      case 'none':
+        break
     }
   }
 

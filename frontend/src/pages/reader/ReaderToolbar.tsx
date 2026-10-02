@@ -32,6 +32,7 @@ import { Trans, Plural, useLingui } from '@lingui/react/macro'
 import type { PrefsSource, ReaderManifest } from '../../api/reader'
 import type { ReadingProfile } from '../../api/readingProfiles'
 import { nativeApp } from '../../lib/nativeApp'
+import TapZoneEditor from '../../components/reader/TapZoneEditor'
 import { BACKGROUNDS, scaleMax, type PrefsSelection, type ReaderPrefs } from './prefs'
 
 /**
@@ -101,6 +102,7 @@ export default function ReaderToolbar({
   // previous-left / next-right in both directions: they're semantic controls, not positions.
   const rtl = prefs.direction === 'rtl'
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [tapEditorOpen, setTapEditorOpen] = useState(false)
 
   // "Auto" names the profile the series' type resolves to, so choosing it says what it will do.
   const autoProfile = profiles.find((p) => p.id === autoProfileId)
@@ -446,6 +448,11 @@ export default function ReaderToolbar({
                   checked={prefs.tapZones}
                   onChange={(event) => onPrefs({ tapZones: event.currentTarget.checked })}
                 />
+                {prefs.tapZones && (
+                  <Button size="compact-xs" variant="default" onClick={() => setTapEditorOpen(true)}>
+                    <Trans>Edit tap zones</Trans>
+                  </Button>
+                )}
                 <Switch
                   size="xs"
                   label={t`Show page number`}
@@ -542,6 +549,12 @@ export default function ReaderToolbar({
           </Tooltip>
         </Group>
       </div>
+      <TapZoneEditor
+        opened={tapEditorOpen}
+        onClose={() => setTapEditorOpen(false)}
+        direction={prefs.direction}
+        zIndex={OVERLAY_Z + 20}
+      />
     </>
   )
 }

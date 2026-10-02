@@ -17,6 +17,7 @@ object Routes {
         Regex("^/api/v1/readingprofiles$"),
         Regex("^/api/v1/reader/chapter/\\d+/bookmarks$"),
         Regex("^/api/v1/reader/series/\\d+/progress$"),
+        Regex("^/api/v1/reader/tap-zones/(?:app|web)$"),
     )
 
     fun parse(path: String): Route? {

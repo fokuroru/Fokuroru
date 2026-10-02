@@ -27,6 +27,8 @@ class RoutesTest {
         assertEquals(Route.Stashed, Routes.parse("/api/v1/auth/me"))
         assertEquals(Route.Stashed, Routes.parse("/api/v1/reader/chapter/4/bookmarks"))
         assertEquals(Route.Stashed, Routes.parse("/api/v1/reader/series/9/progress"))
+        assertEquals(Route.Stashed, Routes.parse("/api/v1/reader/tap-zones/app"))
+        assertEquals(Route.Stashed, Routes.parse("/api/v1/reader/tap-zones/web"))
     }
 
     @Test

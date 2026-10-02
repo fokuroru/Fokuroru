@@ -4587,3 +4587,8 @@ msgstr "게시된 벡터는 이 빌드에서 읽을 수 있는 것보다 최신 
 #, fuzzy
 msgid "install.tasteVectors.truncated"
 msgstr "게시된 벡터가 잘린 것 같습니다. 무시합니다."
+
+#: src/Maki.Api/Controllers/ReaderTapZonesController.cs
+#. English: Those tap zones are not valid.
+msgid "error.tapZones.invalid"
+msgstr ""

@@ -2138,6 +2138,10 @@ msgstr "シリーズを追加"
 msgid "Add a series and Fōkurōru will start tracking chapters for it. This page fills up as you read and download."
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Add a zone"
+msgstr ""
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Add condition"
 msgstr ""
@@ -2166,6 +2170,10 @@ msgstr "追加"
 #, fuzzy
 msgid "Add one above, or tag a series from its detail page."
 msgstr "上に1つ追加するか、詳細ページからシリーズにタグを付けてください。"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Add preset"
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -3136,6 +3144,7 @@ msgstr ""
 msgid "Blocks sign-in and kills existing sessions. Keeps the account and its history."
 msgstr "サインインをブロックし既存セッションを終了します。アカウントと履歴は保持されます。"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -3170,6 +3179,11 @@ msgstr "下"
 #, fuzzy
 msgid "Boys Love"
 msgstr "ボーイズラブ"
+
+#. placeholder {0}: index + 1
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Bring zone {0} to the top of the list"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Brought in from disk, not downloaded by Fōkurōru"
@@ -3224,6 +3238,10 @@ msgstr "カタログを閲覧中"
 #, fuzzy
 msgid "Building metadata search indexes"
 msgstr "メタデータ検索インデックスを構築中"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Built in"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -3294,6 +3312,7 @@ msgstr "このダウンロードを読み取れません"
 #: src/components/rails/CustomRailEditor.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/RatingImportModal.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/SeriesFilesSection.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
@@ -4409,6 +4428,14 @@ msgstr "コードをコピー"
 msgid "Copy feed URL"
 msgstr "フィードURLをコピー"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Copy layouts from my app"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Copy layouts from my browser"
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Copy this now. It can't be shown again; if you lose it, regenerate."
@@ -4558,6 +4585,10 @@ msgstr ""
 
 #: src/components/SourceMeasurePanel.tsx
 msgid "Couldn't sample"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Couldn't save the tap zones. Try again."
 msgstr ""
 
 #: src/pages/ActivityPage.tsx
@@ -4941,6 +4972,10 @@ msgstr "ディスクから削除"
 msgid "Delete permanently"
 msgstr "完全に削除"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Delete preset"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #, fuzzy
@@ -5022,6 +5057,11 @@ msgstr "このリクエストを削除しますか？"
 #, fuzzy
 msgid "Delete user"
 msgstr "ユーザーを削除"
+
+#. placeholder {0}: index + 1
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Delete zone {0}"
+msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
@@ -5479,6 +5519,10 @@ msgstr ""
 msgid "Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Fōkurōru can't, as in Docker."
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Drag a zone to move it and pull a corner to resize it. A tap outside every zone shows or hides the menu. Where zones overlap, the one nearest the top of the list wins. These are kept for you, and separately for the app and for browsers."
+msgstr ""
+
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
 msgid "Drag to reorder. Click a section to change it."
@@ -5524,6 +5568,10 @@ msgstr "ライブラリ自体で獲得するため、このインスタンスの
 #, fuzzy
 msgid "Ecchi"
 msgstr "エッチ"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Edges"
+msgstr ""
 
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/SeriesTagsEditor.tsx
@@ -5587,6 +5635,11 @@ msgstr "リクエストを編集"
 #, fuzzy
 msgid "Edit request for {title}"
 msgstr "{title}のリクエストを編集"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Edit tap zones"
+msgstr ""
 
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
@@ -6737,6 +6790,10 @@ msgstr "習慣"
 msgid "Habits in numbers"
 msgstr "読書習慣のデータ"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Half and half"
+msgstr ""
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 #, fuzzy
 msgid "Half of what rating the manga would carry. A show you loved lends its genres and tags to your profile without out-voting a book you actually read."
@@ -6809,6 +6866,7 @@ msgstr "ヘルス設定"
 msgid "Healthy"
 msgstr "正常"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Height"
@@ -7902,6 +7960,10 @@ msgstr "シリーズに固定した場所だけでこのプロファイルを使
 msgid "Leave out series in your library"
 msgstr "ライブラリ内のシリーズを除外"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Left"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "left to right"
@@ -8592,6 +8654,10 @@ msgstr "待ち時間の中央値"
 msgid "Medium"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Menu only"
+msgstr ""
+
 #: src/pages/ImportPage.tsx
 #, fuzzy
 msgid "Merging folder"
@@ -8844,6 +8910,10 @@ msgstr ""
 msgid "Most read"
 msgstr "最多読了"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Mostly forward"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -9001,6 +9071,10 @@ msgstr "名前付け"
 #, fuzzy
 msgid "Naming tokens"
 msgstr "名前付けトークン"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Narrow edges"
+msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
@@ -9180,12 +9254,14 @@ msgstr "新しい順"
 msgid "Newly enabled sources join at the bottom."
 msgstr "新たに有効にしたソースはリストの末尾に追加されます。"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ChapterEnd.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Next chapter"
 msgstr "次の章"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Next page"
@@ -9587,6 +9663,10 @@ msgstr ""
 msgid "No volume or chapter range in the title"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "No zones, so a tap anywhere shows or hides the menu."
+msgstr ""
+
 #: src/pages/CreatorPage.tsx
 #, fuzzy
 msgid "Nobody by that name is credited in the local MangaBaka database."
@@ -9799,6 +9879,10 @@ msgstr "未同期"
 #, fuzzy
 msgid "Note (optional)"
 msgstr "メモ（任意）"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Nothing"
+msgstr ""
 
 #: src/components/CatalogueBrowser.tsx
 #, fuzzy
@@ -10551,6 +10635,7 @@ msgid "Page Up"
 msgstr ""
 
 #: src/components/discover/SeriesPreviewReader.tsx
+#: src/components/reader/TapZoneEditor.tsx
 msgid "Paged"
 msgstr ""
 
@@ -10730,6 +10815,10 @@ msgstr "この環境では個人の追加による重み付けは無効です。
 msgid "Phone reader"
 msgstr "スマートフォンリーダー"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Pick a layout"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -10885,6 +10974,14 @@ msgstr "モデルを準備中…"
 msgid "Prequel to {relatedTo}"
 msgstr "{relatedTo}の前日譚"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Preset"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Preset name"
+msgstr ""
+
 #: src/components/SeriesTagsEditor.tsx
 #, fuzzy
 msgid "Press Enter to create a new tag"
@@ -10902,11 +10999,13 @@ msgstr ""
 msgid "Preview first chapter"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Previous chapter"
 msgstr "前の章"
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Previous page"
@@ -12122,6 +12221,7 @@ msgid "Rescanned: {newFiles} new, {relinked} relinked, {removed} removed"
 msgstr "再スキャン完了：新規{newFiles}件、再リンク{relinked}件、削除{removed}件"
 
 #: src/components/CatalogueFilters.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/DiscoverPage.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -12489,6 +12589,7 @@ msgstr "サンプル章"
 #: src/components/DiscoverPresets.tsx
 #: src/components/NotificationsSection.tsx
 #: src/components/rails/CustomRailEditor.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/SaveButton.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
@@ -12513,6 +12614,10 @@ msgstr "各シリーズフォルダーにcover.jpgを保存"
 #, fuzzy
 msgid "Save a cover.jpg into each series' library folder"
 msgstr "各シリーズのライブラリフォルダーにcover.jpgを保存"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Save as a preset"
+msgstr ""
 
 #: src/components/DiscoverPresets.tsx
 #, fuzzy
@@ -12844,6 +12949,10 @@ msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Scroll up a screen (vertical navigation)"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Scrolling"
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
@@ -13527,6 +13636,10 @@ msgstr "もっと表示"
 #, fuzzy
 msgid "Show on"
 msgstr "表示先"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Show or hide the menu"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -14367,6 +14480,10 @@ msgstr "除外するタグ"
 msgid "Tags to include"
 msgstr "含めるタグ"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Tap the page to see what a tap does."
+msgstr ""
+
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Tap zones"
@@ -14376,6 +14493,14 @@ msgstr "タップゾーン"
 #, fuzzy
 msgid "Tap zones (click the page edges to turn)"
 msgstr "タップゾーン（ページ端をクリックしてめくる）"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Tap zones for this app"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Tap zones for this browser"
+msgstr ""
 
 #: src/pages/stats/sectionList.ts
 #, fuzzy
@@ -14628,6 +14753,10 @@ msgstr "異なるもの"
 
 #: src/api/queue.ts
 msgid "The old file could not be moved aside for the upgrade"
+msgstr ""
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "The page is shown as it would be held."
 msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
@@ -15216,9 +15345,14 @@ msgid "Tools you already run"
 msgstr "すでに使っているツール"
 
 #: src/components/layout/SectionProperties.tsx
+#: src/components/reader/TapZoneEditor.tsx
 #, fuzzy
 msgid "Top"
 msgstr "上"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Top and bottom"
+msgstr ""
 
 #: src/api/customRails.ts
 #: src/api/hooks.ts
@@ -15350,6 +15484,10 @@ msgstr "再試行"
 #, fuzzy
 msgid "Try clearing the filters."
 msgstr "フィルターをクリアしてみてください。"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Try it: tapping the page shows what it would do"
+msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "Try the preview again"
@@ -16331,6 +16469,11 @@ msgstr "何をいつ読んだか、ライブラリに何があるかを確認で
 msgid "What you've read"
 msgstr "読んだもの"
 
+#. placeholder {0}: index + 1
+#: src/components/reader/TapZoneEditor.tsx
+msgid "What zone {0} does"
+msgstr ""
+
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
 msgid "What's new in v{version}"
@@ -16422,6 +16565,10 @@ msgstr ""
 msgid "Which rails appear below the chapter list. Turning one off also stops it being fetched."
 msgstr "章一覧の下に表示するレールです。オフにすると取得も停止します。"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Which reading layout to edit"
+msgstr ""
+
 #: src/components/SourceMappingsSection.tsx
 msgid "Which source a chapter downloads from first. Best quality ranks sources by this series' quality profile and what their recent chapters measured, with priority breaking ties."
 msgstr ""
@@ -16464,6 +16611,7 @@ msgstr "年間全体"
 msgid "Whole-series pack, needs your call"
 msgstr ""
 
+#: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Width"
@@ -16820,6 +16968,10 @@ msgstr "あなたのテイスト"
 msgid "Your user or group key."
 msgstr "ユーザーまたはグループのキー。"
 
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Yours"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Yours alone - this changes what lands in your bell, not anybody else's."
@@ -16830,6 +16982,10 @@ msgstr "自分だけの設定です。ベルに届く内容が変わりますが
 #, fuzzy
 msgid "Z:\\downloads (optional)"
 msgstr "Z:\\downloads（任意）"
+
+#: src/components/reader/TapZoneEditor.tsx
+msgid "Zones"
+msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Zoom ({scale}%)"

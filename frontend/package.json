@@ -11,6 +11,7 @@
     "check:shelf-physics": "node ../scripts/frontend/check-shelf-physics.mjs",
     "check:shelf-colours": "node ../scripts/frontend/check-shelf-colours.mjs",
     "check:shelf-layout": "node ../scripts/frontend/check-shelf-layout.mjs",
+    "check:tap-zones": "node ../scripts/frontend/check-tap-zones.mjs",
     "preview": "vite preview",
     "i18n:extract": "lingui extract",
     "i18n:sync": "node ../scripts/i18n/sync-server-keys.mjs",

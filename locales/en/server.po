@@ -3286,3 +3286,7 @@ msgstr "The published vectors use a newer schema than this build reads."
 #: src/Maki.Metadata/Taste/TasteVectorInstaller.cs
 msgid "install.tasteVectors.truncated"
 msgstr "The published vectors look truncated; ignoring them."
+
+#: src/Maki.Api/Controllers/ReaderTapZonesController.cs
+msgid "error.tapZones.invalid"
+msgstr "Those tap zones are not valid."

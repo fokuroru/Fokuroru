@@ -8,6 +8,10 @@ paths:
   - "src/Maki.Api/Controllers/Reader*.cs"
   - "src/Maki.Api/Controllers/ReadingProfiles*.cs"
   - "frontend/src/pages/reader/**"
+  - "frontend/src/components/reader/**"
+  - "frontend/src/lib/tapZones.ts"
+  - "frontend/src/api/tapZones.ts"
+  - "src/Maki.Api/Services/TapZone*.cs"
   - "src/Maki.Api/Services/SeriesReading*.cs"
   - "src/Maki.Core/Entities/ReadingStatus.cs"
   - "frontend/src/components/library/SpineShelf.tsx"
@@ -29,3 +33,4 @@ Migrated out of the root CLAUDE.md so this only loads when touching reader/progr
 - **Kavita read-status import is invisible to Rewind on purpose** (`KavitaReadImportService` → `ReadingProgressService.ImportSilentAsync`) — Kavita doesn't say *when* chapters were read, so dating them today would dump the whole back catalogue onto one day. Imported rows carry `PageCount = 0`; `Completed AND PageCount = 0` is how later code identifies an import.
 - **`ContinueReadingService.NextForAsync` is the only "what's next" resolver** — reads `ChapterProgress` only, never `ReadingState` (would double-count/multiply on duplicate rows).
 - **Reading status is per release, from history** (`SeriesReadingService`, `ReadingStatuses.For`). Completed/UpToDate need every whole-numbered chapter the series lists read, counting a number read when any language's row is completed; the highest number read is not enough (reading only the last chapter used to finish a series). It measures history, not files: `ReadMainChapters`/`MainChapterCount` on the DTO survive auto-delete, while `ReadChapterCount` (files on disk) drops with each deleted file. The Reading now shelf keys off the history pair for that reason.
+- **Tap zones are a per-user document kept once per client kind** (`reader.tapzones.app` for the Android app, `.web` for browsers, in `UserSettings`, served by `ReaderTapZonesController`), because the same person wants a different layout under a thumb than under a mouse. A layout is rectangles as page fractions with an action; the first zone under a tap wins and a tap no zone covers toggles the menu. `layoutFor` falls back to `defaultZones`, which must stay the old thirds layout (and flip for right-to-left), and saved layouts never flip: they say where, not which way. The server clamps and caps everything (`TapZoneDocuments.Tidy`); the web side runs what it receives through `tidyDocument` as well. Native offline reads of it go through the app's stash list (`web/Routes.kt`). `npm run check:tap-zones` guards the pure logic.

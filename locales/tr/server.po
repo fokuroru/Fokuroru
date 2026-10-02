@@ -4587,3 +4587,8 @@ msgstr "Yayımlanan vektörler, bu derlemenin okuyabildiğinden daha yeni bir ş
 #, fuzzy
 msgid "install.tasteVectors.truncated"
 msgstr "Yayımlanan vektörler eksik görünüyor; yok sayılıyor."
+
+#: src/Maki.Api/Controllers/ReaderTapZonesController.cs
+#. English: Those tap zones are not valid.
+msgid "error.tapZones.invalid"
+msgstr ""

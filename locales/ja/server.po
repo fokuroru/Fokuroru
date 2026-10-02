@@ -4587,3 +4587,8 @@ msgstr "公開されたベクトルは、このビルドが読み込めるもの
 #, fuzzy
 msgid "install.tasteVectors.truncated"
 msgstr "公開されたベクトルが途中で切れているようです。無視します。"
+
+#: src/Maki.Api/Controllers/ReaderTapZonesController.cs
+#. English: Those tap zones are not valid.
+msgid "error.tapZones.invalid"
+msgstr ""

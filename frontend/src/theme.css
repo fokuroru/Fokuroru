@@ -8820,3 +8820,80 @@ body.reader-open {
 .lite-none {
   padding: 24px 0;
 }
+
+/* Tap zone editor (components/reader/TapZoneEditor.tsx). */
+.tapzone-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tapzone-preview {
+  position: relative;
+  width: min(100%, 300px);
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--border-strong);
+  background: var(--app-bg);
+  touch-action: none;
+  user-select: none;
+}
+.tapzone-page {
+  position: absolute;
+  inset: 8% 10%;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 14px, color-mix(in srgb, var(--ink-3) 30%, transparent) 14px 16px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.tapzone-zone {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.tapzone-preview[data-trying='true'] .tapzone-zone {
+  cursor: pointer;
+}
+.tapzone-zone[data-selected='true'] {
+  border-style: dashed;
+  overflow: visible;
+}
+.tapzone-label {
+  padding: 0 4px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  text-align: center;
+  color: var(--ink-hi);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+.tapzone-handle {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: var(--ink-hi);
+  border: 2px solid var(--app-bg);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.tapzone-handle[data-corner='nw'] { left: -9px; top: -9px; cursor: nwse-resize; }
+.tapzone-handle[data-corner='ne'] { right: -9px; top: -9px; cursor: nesw-resize; }
+.tapzone-handle[data-corner='sw'] { left: -9px; bottom: -9px; cursor: nesw-resize; }
+.tapzone-handle[data-corner='se'] { right: -9px; bottom: -9px; cursor: nwse-resize; }
+.tapzone-row {
+  padding: 4px 6px;
+  border: 1px solid transparent;
+}
+.tapzone-row[data-selected='true'] {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.tapzone-swatch {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
