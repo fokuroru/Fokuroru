@@ -126,6 +126,7 @@ import { queueErrorMessage } from '../api/queue'
 import { useLabel } from '../i18n-context'
 import { usePageLabel } from '../lib/navHistory'
 import { AnimeCoverageBar } from '../components/AnimeCoverageBar'
+import DeviceSaveButton from '../components/DeviceSaveButton'
 import { LinkChaptersModal } from '../components/LinkChaptersModal'
 import { RelinkFilesModal } from '../components/RelinkFilesModal'
 import { MetadataLinks, SearchOnLinks } from '../components/MetadataLinks'
@@ -2903,6 +2904,7 @@ export default function SeriesDetailPage() {
                                               </ActionIcon>
                                             </Tooltip>
                                         )}
+                                        {c.hasFile && <DeviceSaveButton chapterId={c.id} label={chapterLbl} />}
                                         {c.hasFile && can('DeleteSeries') && (
                                             <Tooltip label={t`Delete file`} withArrow>
                                               <ActionIcon

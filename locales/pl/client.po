@@ -1029,17 +1029,6 @@ msgstr "{rated} ocenionych"
 msgid "{ratioValue} more than the MangaBaka catalogue carries, weighted toward titles more people read"
 msgstr "{ratioValue} więcej niż zawiera katalog MangaBaka, z naciskiem na tytuły czytane przez więcej osób"
 
-#: src/components/ui/CoverCard.tsx
-#: src/components/ui/SeriesRow.tsx
-#, fuzzy
-#~ msgid "{readChapterCount} of {have} downloaded read"
-#~ msgstr "Przeczytano {readChapterCount} z {have} pobranych"
-
-#: src/components/series/SeriesHero.tsx
-#, fuzzy
-#~ msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
-#~ msgstr "{readCount} / {haveCount, plural, one {# rozdział} few {# rozdziały} many {# rozdziałów} other {# rozdziału}}"
-
 #: src/components/series/SeriesHero.tsx
 msgid "{readCount} / {mainCount, plural, one {# main chapter} other {# main chapters}}"
 msgstr ""
@@ -1800,10 +1789,6 @@ msgstr "90 dni"
 msgid "A 10/10 anime seeds at {topSeed}, against 1.00 for an unrated book on your shelf."
 msgstr "Anime ocenione na 10/10 zaczyna z wagą {topSeed}, a nieoceniona manga na Twojej półce z wagą 1,00."
 
-#: src/components/SetupWizard.tsx
-#~ msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
-#~ msgstr ""
-
 #: src/api/inbox.ts
 msgid "A better release replaced a downloaded chapter's file."
 msgstr ""
@@ -1924,11 +1909,6 @@ msgstr "Prośba została zatwierdzona lub odrzucona."
 msgid "A row for each smaller theme on your shelf."
 msgstr "Osobny wiersz dla każdego mniejszego motywu w Twojej bibliotece."
 
-#: src/components/home/homeSectionDefs.ts
-#, fuzzy
-#~ msgid "A row of figures: what is in your library, your reading progress and what is waiting to be read."
-#~ msgstr "Rząd statystyk: zawartość biblioteki, postępy w czytaniu i to, co czeka na przeczytanie."
-
 #: src/pages/ActivityPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #: src/pages/SettingsPage.tsx
@@ -2022,10 +2002,6 @@ msgstr "Zajmuje około 3 GB miejsca na dysku i odświeża się co noc. Wyszukiwa
 #, fuzzy
 msgid "about a minute left"
 msgstr "pozostała około minuta"
-
-#: src/components/AppearancePicker.tsx
-#~ msgid "Accent"
-#~ msgstr ""
 
 #: src/components/settings/UsersSection.tsx
 #, fuzzy
@@ -2581,6 +2557,10 @@ msgstr "i"
 msgid "and {remaining} more selected on other pages"
 msgstr "i {remaining} więcej zaznaczonych na innych stronach"
 
+#: src/pages/SettingsPage.tsx
+msgid "Android app"
+msgstr ""
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 #, fuzzy
 msgid "AniList"
@@ -2679,6 +2659,10 @@ msgstr "Klucze API"
 #, fuzzy
 msgid "API only"
 msgstr "Tylko API"
+
+#: src/pages/SettingsPage.tsx
+msgid "App settings"
+msgstr ""
 
 #: src/components/AppearancePicker.tsx
 #: src/components/SetupWizard.tsx
@@ -2970,10 +2954,6 @@ msgstr "Zrób kopię zapasową teraz"
 msgid "Background"
 msgstr "Tło"
 
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "Background and accent colour are now picked separately, with new backgrounds to choose from. Tinted black is the new default. To keep the old look, pick Night. You can change this any time under Settings, Appearance."
-#~ msgstr ""
-
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Backlog"
@@ -3141,10 +3121,6 @@ msgstr ""
 #, fuzzy
 msgid "Blocks sign-in and kills existing sessions. Keeps the account and its history."
 msgstr "Blokuje logowanie i kończy istniejące sesje. Zachowuje konto i jego historię."
-
-#: src/theme-context.tsx
-#~ msgid "Blush"
-#~ msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
@@ -3329,6 +3305,10 @@ msgstr "Anuluj operację"
 #, fuzzy
 msgid "Cancel request"
 msgstr "Anuluj prośbę"
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Cancel saving {label}"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -3819,10 +3799,6 @@ msgstr "Rozdziały: {chapterRangeMin}–{chapterRangeMax}"
 #, fuzzy
 msgid "Chapters: {chaptersMin}–{chaptersMax}"
 msgstr "Rozdziały: {chaptersMin}–{chaptersMax}"
-
-#: src/theme-context.tsx
-#~ msgid "Charcoal"
-#~ msgstr ""
 
 #: src/components/NotificationsSection.tsx
 #, fuzzy
@@ -5034,10 +5010,6 @@ msgstr "Usuń użytkownika"
 msgid "Deleted \"{name}\""
 msgstr "Usunięto „{name}”"
 
-#: src/components/ImportReviewModal.tsx
-#~ msgid "Deleted files are removed from disk and cannot be recovered from Fōkurōru."
-#~ msgstr ""
-
 #. placeholder {0}: deleteFileChapter.label
 #: src/pages/SeriesDetailPage.tsx
 msgid "Deleted the file for {0}"
@@ -5118,6 +5090,10 @@ msgstr "Szczegóły"
 #, fuzzy
 msgid "Device"
 msgstr "Urządzenie"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Device settings"
+msgstr ""
 
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
@@ -5681,10 +5657,6 @@ msgstr "Angielski"
 #, fuzzy
 msgid "English (provider default)"
 msgstr "Angielski (domyślny dostawcy)"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Enjoying Fōkurōru?"
-#~ msgstr ""
 
 #: src/pages/LoginPage.tsx
 msgid "Enter one of your recovery codes"
@@ -6351,10 +6323,6 @@ msgstr "Dostępne jest Fōkurōru {checkedVersion}"
 #, fuzzy
 msgid "Fōkurōru {latestVersion} available"
 msgstr "Dostępna wersja Fōkurōru {latestVersion}"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Fōkurōru {latestVersion} is out"
-#~ msgstr ""
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
@@ -8826,14 +8794,6 @@ msgstr "Więcej opcji dla {seriesTitle}"
 msgid "More recommendation feedback actions"
 msgstr "Więcej działań dotyczących rekomendacji"
 
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "More ways to make Fōkurōru yours"
-#~ msgstr ""
-
-#: src/theme-context.tsx
-#~ msgid "Moss"
-#~ msgstr ""
-
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Most missing"
@@ -9121,10 +9081,6 @@ msgstr "Nowe rozdziały pobrane automatycznie w ciągu ostatnich 30 dni."
 msgid "New chapters, finished downloads and unlocked achievements land here."
 msgstr "Tutaj trafiają nowe rozdziały, ukończone pobrania i odblokowane osiągnięcia."
 
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "New default"
-#~ msgstr ""
-
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "New format"
 msgstr ""
@@ -9224,10 +9180,6 @@ msgstr "Następny poziom przy {nextValue}"
 #, fuzzy
 msgid "Next..."
 msgstr "Dalej..."
-
-#: src/theme-context.tsx
-#~ msgid "Night"
-#~ msgstr ""
 
 #: src/pages/stats/sections/ReadingSection.tsx
 #, fuzzy
@@ -10729,10 +10681,6 @@ msgstr "Osobiste wagi dodawania są wyłączone dla tej instancji."
 msgid "Phone reader"
 msgstr "Czytnik na telefonie"
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "Pick a background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
-#~ msgstr ""
-
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -10909,10 +10857,6 @@ msgstr ""
 #, fuzzy
 msgid "Previous chapter"
 msgstr "Poprzedni rozdział"
-
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "Previous default"
-#~ msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -11784,6 +11728,10 @@ msgstr ""
 msgid "Remove {label}"
 msgstr "Usuń {label}"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Remove {label} from this device"
+msgstr ""
+
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
 msgid "Remove {removingSourceName}?"
@@ -12497,6 +12445,10 @@ msgstr "Przykładowy rozdział"
 msgid "Save"
 msgstr "Zapisz"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Save {label} to this device"
+msgstr ""
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Save a cover.jpg into each series folder"
@@ -12563,6 +12515,10 @@ msgstr "Zapisz te filtry…"
 msgid "Save this filter"
 msgstr "Zapisz ten filtr"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Save to this device"
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 #, fuzzy
 msgid "Save your recovery codes"
@@ -12585,16 +12541,32 @@ msgstr "Zapisano"
 msgid "Saved as your default"
 msgstr "Zapisano jako domyślne"
 
+#: src/pages/SettingsPage.tsx
+msgid "Saved chapters"
+msgstr ""
+
 #: src/components/DiscoverPresets.tsx
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Saved filters"
 msgstr "Zapisane filtry"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Saved on this device. Tap to remove it"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Saves the current search, sort and every filter in the panel as a named preset."
 msgstr "Zapisuje bieżące wyszukiwanie, sortowanie i wszystkie filtry w panelu jako nazwany preset."
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Saving failed. Tap to retry"
+msgstr ""
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Saving to this device, {progress}"
+msgstr ""
 
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
@@ -15050,10 +15022,6 @@ msgstr "Strefa czasowa"
 msgid "Timezone (empty uses server timezone)"
 msgstr "Strefa czasowa (puste = strefa czasowa serwera)"
 
-#: src/theme-context.tsx
-#~ msgid "Tinted black"
-#~ msgstr ""
-
 #: src/api/customRails.ts
 #: src/components/CatalogueBrowser.tsx
 #: src/components/ReleaseSearchModal.tsx
@@ -16054,6 +16022,10 @@ msgstr "Tom {number}"
 msgid "Volume {range}"
 msgstr ""
 
+#: src/pages/SettingsPage.tsx
+msgid "Volume key page turns, screen and rotation controls, offline chapters and background sync are set in the app itself."
+msgstr ""
+
 #: src/api/inbox.ts
 msgid "Volume release proposed"
 msgstr ""
@@ -16128,6 +16100,10 @@ msgstr ""
 #, fuzzy
 msgid "Waiting to read"
 msgstr "Do przeczytania"
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Waiting to save to this device"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -16700,10 +16676,6 @@ msgstr ""
 #, fuzzy
 msgid "Your progress"
 msgstr "Twój postęp"
-
-#: src/components/home/homeSectionDefs.ts
-#~ msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the board hanging behind it."
-#~ msgstr ""
 
 #: src/components/home/homeSectionDefs.ts
 msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the wall behind it, among a few doodles."

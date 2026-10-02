@@ -27,6 +27,7 @@ import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
 import { spineVars } from '../../lib/spine'
 import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
+import { useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
 
 const ZOOM_STEP = 0.25
 const ZOOM_MAX = 4
@@ -43,8 +44,22 @@ export default function ReaderPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: manifest, isLoading, isError, isFetching } = useReaderManifest(chapterId)
-  const { prefs, update, selection, setSelection, source, autoProfileId, profiles } =
-    useReaderPrefs(manifest)
+  const {
+    prefs: savedPrefs,
+    update,
+    selection,
+    setSelection,
+    source,
+    autoProfileId,
+    profiles,
+  } = useReaderPrefs(manifest)
+  // The Android app reports a wide window (tablet, unfolded foldable). Single-page reading becomes
+  // a spread there without touching what is saved, so folding the device again brings it back.
+  const { dual: wideWindow } = useNativeLayout()
+  const prefs = useMemo(
+    () => (wideWindow && savedPrefs.mode === 'paged' ? { ...savedPrefs, mode: 'double' as const } : savedPrefs),
+    [wideWindow, savedPrefs],
+  )
 
   const [page, setPage] = useState(0)
   // Bumped on every *explicit* jump (resume, toolbar scrub, page-strip click, Home/End) so
@@ -462,6 +477,14 @@ export default function ReaderPage() {
     seekToPage,
   ])
 
+  // Volume keys, clickers and stylus buttons from the Android app. Same moves as the on-screen keys,
+  // minus the reading direction: the app has already decided which way each button goes.
+  useNativeTurn((direction) => {
+    if (shortcutsOpen) return
+    if (direction === 'next') forward()
+    else backward()
+  })
+
   /** Tap zones: outer thirds page, the middle toggles the chrome. Top and bottom under vertical navigation. */
   const onSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!prefs.tapZones || zoom !== 1 || (prefs.mode === 'vertical' && !vertical)) {
@@ -532,7 +555,7 @@ export default function ReaderPage() {
         onSeek={seekToPage}
         onPrevChapter={() => void goToChapter(manifest.previousChapterId, false)}
         onNextChapter={() => void goToChapter(manifest.nextChapterId, true)}
-        prefs={prefs}
+        prefs={savedPrefs}
         onPrefs={update}
         selection={selection}
         onSelection={setSelection}

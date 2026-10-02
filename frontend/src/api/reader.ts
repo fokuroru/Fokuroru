@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { ReaderPrefs } from '../pages/reader/prefs'
 import { api, authHeaders, getInitialize } from './client'
 import { useConnectionSettings } from './hooks'
+import { isNetworkError, nativeKnownOffline, queueNativeProgress } from '../lib/nativeApp'
 
 export interface ReaderManifest {
   chapterId: number
@@ -198,11 +199,18 @@ export async function saveProgress(
   completed?: boolean,
   seconds?: number,
 ): Promise<UnlockedAchievement[]> {
-  const result = await api<SaveProgressResult>(`/reader/chapter/${chapterId}/progress`, {
-    method: 'PUT',
-    body: JSON.stringify({ pageIndex, completed, seconds }),
-  })
-  return result?.unlocked ?? []
+  if (nativeKnownOffline() && queueNativeProgress(chapterId, pageIndex, completed, seconds, false)) return []
+  try {
+    const result = await api<SaveProgressResult>(`/reader/chapter/${chapterId}/progress`, {
+      method: 'PUT',
+      body: JSON.stringify({ pageIndex, completed, seconds }),
+    })
+    return result?.unlocked ?? []
+  } catch (error) {
+    // Offline in the Android app: the app keeps the write and sends it when the server is back.
+    if (isNetworkError(error) && queueNativeProgress(chapterId, pageIndex, completed, seconds, false)) return []
+    throw error
+  }
 }
 
 /**
@@ -220,14 +228,21 @@ export async function flushProgress(
   completed?: boolean,
   seconds?: number,
 ): Promise<UnlockedAchievement[]> {
+  if (nativeKnownOffline() && queueNativeProgress(chapterId, pageIndex, completed, seconds, true)) return []
   const init = await getInitialize()
-  const response = await fetch(`${init.apiRoot}/reader/chapter/${chapterId}/progress`, {
-    method: 'PUT',
-    keepalive: true,
-    credentials: 'same-origin',
-    headers: authHeaders(),
-    body: JSON.stringify({ pageIndex, completed, seconds, final: true }),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${init.apiRoot}/reader/chapter/${chapterId}/progress`, {
+      method: 'PUT',
+      keepalive: true,
+      credentials: 'same-origin',
+      headers: authHeaders(),
+      body: JSON.stringify({ pageIndex, completed, seconds, final: true }),
+    })
+  } catch (error) {
+    if (isNetworkError(error) && queueNativeProgress(chapterId, pageIndex, completed, seconds, true)) return []
+    throw error
+  }
   if (!response.ok) return []
   const result = (await response.json()) as SaveProgressResult
   return result?.unlocked ?? []

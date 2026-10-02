@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { nativeApp } from '../lib/nativeApp'
 import { getSkippedVersion, setSkippedVersion, subscribeSkippedVersion } from '../lib/updateSkip'
 import { ApiError } from '../api/client'
 import { useLabel, useLanguageChoice } from '../i18n-context'
@@ -2644,6 +2645,34 @@ function HomeSectionsSection() {
   )
 }
 
+/** Only inside the Android app: the way to its own settings, which a web page can't reach. */
+function AndroidAppBlock() {
+  const native = nativeApp()
+  if (!native) return null
+  return (
+    <>
+      <Divider my="md" />
+      <Text fw={500} size="sm" mb={4}>
+        <Trans>Android app</Trans>
+      </Text>
+      <SettingsHelp mb="xs">
+        <Trans>
+          Volume key page turns, screen and rotation controls, offline chapters and background sync are
+          set in the app itself.
+        </Trans>
+      </SettingsHelp>
+      <Group gap="sm">
+        <Button variant="default" onClick={() => native.openSettings()}>
+          <Trans>App settings</Trans>
+        </Button>
+        <Button variant="default" onClick={() => native.openDownloads()}>
+          <Trans>Saved chapters</Trans>
+        </Button>
+      </Group>
+    </>
+  )
+}
+
 function AppearanceSection() {
   return (
     <SettingsSection
@@ -2657,6 +2686,7 @@ function AppearanceSection() {
       }
     >
       <AppearancePicker />
+      <AndroidAppBlock />
     </SettingsSection>
   )
 }

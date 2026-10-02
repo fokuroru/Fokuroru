@@ -1029,17 +1029,6 @@ msgstr "평가함 {rated}개"
 msgid "{ratioValue} more than the MangaBaka catalogue carries, weighted toward titles more people read"
 msgstr "MangaBaka 카탈로그에 있는 항목보다 {ratioValue}개 더 많으며, 더 많은 사람이 읽은 제목에 가중치를 둡니다"
 
-#: src/components/ui/CoverCard.tsx
-#: src/components/ui/SeriesRow.tsx
-#, fuzzy
-#~ msgid "{readChapterCount} of {have} downloaded read"
-#~ msgstr "{have}개 다운로드된 챕터 중 {readChapterCount}개 읽음"
-
-#: src/components/series/SeriesHero.tsx
-#, fuzzy
-#~ msgid "{readCount} / {haveCount, plural, one {# chapter} other {# chapters}}"
-#~ msgstr "{readCount} / {haveCount, plural, other {# 챕터}}"
-
 #: src/components/series/SeriesHero.tsx
 msgid "{readCount} / {mainCount, plural, one {# main chapter} other {# main chapters}}"
 msgstr ""
@@ -1800,10 +1789,6 @@ msgstr "90일"
 msgid "A 10/10 anime seeds at {topSeed}, against 1.00 for an unrated book on your shelf."
 msgstr "10점 만점 애니메이션은 {topSeed}로 반영되며, 라이브러리의 평가하지 않은 책은 1.00로 반영됩니다."
 
-#: src/components/SetupWizard.tsx
-#~ msgid "A background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
-#~ msgstr ""
-
 #: src/api/inbox.ts
 msgid "A better release replaced a downloaded chapter's file."
 msgstr ""
@@ -1924,11 +1909,6 @@ msgstr "요청이 승인 또는 거절되었습니다."
 msgid "A row for each smaller theme on your shelf."
 msgstr "서재의 세부 주제마다 한 행씩 표시합니다."
 
-#: src/components/home/homeSectionDefs.ts
-#, fuzzy
-#~ msgid "A row of figures: what is in your library, your reading progress and what is waiting to be read."
-#~ msgstr "라이브러리의 작품, 읽기 진행률, 읽을 작품을 숫자로 보여주는 행입니다."
-
 #: src/pages/ActivityPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #: src/pages/SettingsPage.tsx
@@ -2022,10 +2002,6 @@ msgstr "디스크에서 약 3GB를 사용하며 매일 밤 새로 고칩니다. 
 #, fuzzy
 msgid "about a minute left"
 msgstr "약 1분 남음"
-
-#: src/components/AppearancePicker.tsx
-#~ msgid "Accent"
-#~ msgstr ""
 
 #: src/components/settings/UsersSection.tsx
 #, fuzzy
@@ -2581,6 +2557,10 @@ msgstr "그리고"
 msgid "and {remaining} more selected on other pages"
 msgstr "다른 페이지에서 추가로 {remaining}개 선택됨"
 
+#: src/pages/SettingsPage.tsx
+msgid "Android app"
+msgstr ""
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 #, fuzzy
 msgid "AniList"
@@ -2679,6 +2659,10 @@ msgstr "API 키"
 #, fuzzy
 msgid "API only"
 msgstr "API 전용"
+
+#: src/pages/SettingsPage.tsx
+msgid "App settings"
+msgstr ""
 
 #: src/components/AppearancePicker.tsx
 #: src/components/SetupWizard.tsx
@@ -2970,10 +2954,6 @@ msgstr "지금 백업"
 msgid "Background"
 msgstr "배경"
 
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "Background and accent colour are now picked separately, with new backgrounds to choose from. Tinted black is the new default. To keep the old look, pick Night. You can change this any time under Settings, Appearance."
-#~ msgstr ""
-
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Backlog"
@@ -3141,10 +3121,6 @@ msgstr ""
 #, fuzzy
 msgid "Blocks sign-in and kills existing sessions. Keeps the account and its history."
 msgstr "로그인을 차단하고 기존 세션을 종료합니다. 계정과 기록은 유지합니다."
-
-#: src/theme-context.tsx
-#~ msgid "Blush"
-#~ msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
@@ -3329,6 +3305,10 @@ msgstr "작업 취소"
 #, fuzzy
 msgid "Cancel request"
 msgstr "요청 취소"
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Cancel saving {label}"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -3819,10 +3799,6 @@ msgstr "챕터: {chapterRangeMin}–{chapterRangeMax}"
 #, fuzzy
 msgid "Chapters: {chaptersMin}–{chaptersMax}"
 msgstr "챕터: {chaptersMin}–{chaptersMax}"
-
-#: src/theme-context.tsx
-#~ msgid "Charcoal"
-#~ msgstr ""
 
 #: src/components/NotificationsSection.tsx
 #, fuzzy
@@ -5034,10 +5010,6 @@ msgstr "사용자 삭제"
 msgid "Deleted \"{name}\""
 msgstr "\"{name}\" 삭제됨"
 
-#: src/components/ImportReviewModal.tsx
-#~ msgid "Deleted files are removed from disk and cannot be recovered from Fōkurōru."
-#~ msgstr ""
-
 #. placeholder {0}: deleteFileChapter.label
 #: src/pages/SeriesDetailPage.tsx
 msgid "Deleted the file for {0}"
@@ -5118,6 +5090,10 @@ msgstr "세부 정보"
 #, fuzzy
 msgid "Device"
 msgstr "기기"
+
+#: src/pages/reader/ReaderToolbar.tsx
+msgid "Device settings"
+msgstr ""
 
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
@@ -5681,10 +5657,6 @@ msgstr "영어"
 #, fuzzy
 msgid "English (provider default)"
 msgstr "영어 (제공자 기본값)"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Enjoying Fōkurōru?"
-#~ msgstr ""
 
 #: src/pages/LoginPage.tsx
 msgid "Enter one of your recovery codes"
@@ -6351,10 +6323,6 @@ msgstr "Fōkurōru {checkedVersion}을 사용할 수 있습니다"
 #, fuzzy
 msgid "Fōkurōru {latestVersion} available"
 msgstr "Fōkurōru {latestVersion} 사용 가능"
-
-#: src/components/layout/SidebarFooter.tsx
-#~ msgid "Fōkurōru {latestVersion} is out"
-#~ msgstr ""
 
 #: src/components/layout/SidebarFooter.tsx
 #, fuzzy
@@ -8826,14 +8794,6 @@ msgstr "{seriesTitle}의 추가 옵션"
 msgid "More recommendation feedback actions"
 msgstr "추가 추천 피드백 작업"
 
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "More ways to make Fōkurōru yours"
-#~ msgstr ""
-
-#: src/theme-context.tsx
-#~ msgid "Moss"
-#~ msgstr ""
-
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Most missing"
@@ -9121,10 +9081,6 @@ msgstr "지난 30일 동안 새 챕터를 자동으로 가져왔습니다."
 msgid "New chapters, finished downloads and unlocked achievements land here."
 msgstr "새 챕터, 완료된 다운로드 및 달성한 업적이 여기에 표시됩니다."
 
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "New default"
-#~ msgstr ""
-
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "New format"
 msgstr ""
@@ -9224,10 +9180,6 @@ msgstr "{nextValue}에서 다음 등급"
 #, fuzzy
 msgid "Next..."
 msgstr "다음..."
-
-#: src/theme-context.tsx
-#~ msgid "Night"
-#~ msgstr ""
 
 #: src/pages/stats/sections/ReadingSection.tsx
 #, fuzzy
@@ -10729,10 +10681,6 @@ msgstr "이 서버에서는 개인 추가 가중치가 비활성화되어 있습
 msgid "Phone reader"
 msgstr "휴대폰 리더"
 
-#: src/pages/SettingsPage.tsx
-#~ msgid "Pick a background and an accent colour. The background can also be the light theme or whatever your system uses. Remembered on this device."
-#~ msgstr ""
-
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -10909,10 +10857,6 @@ msgstr ""
 #, fuzzy
 msgid "Previous chapter"
 msgstr "이전 챕터"
-
-#: src/components/AppearanceAnnouncementModal.tsx
-#~ msgid "Previous default"
-#~ msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -11784,6 +11728,10 @@ msgstr ""
 msgid "Remove {label}"
 msgstr "{label} 삭제"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Remove {label} from this device"
+msgstr ""
+
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
 msgid "Remove {removingSourceName}?"
@@ -12497,6 +12445,10 @@ msgstr "샘플 챕터"
 msgid "Save"
 msgstr "저장"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Save {label} to this device"
+msgstr ""
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Save a cover.jpg into each series folder"
@@ -12563,6 +12515,10 @@ msgstr "이 필터 저장…"
 msgid "Save this filter"
 msgstr "이 필터 저장"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Save to this device"
+msgstr ""
+
 #: src/components/settings/AccountSection.tsx
 #, fuzzy
 msgid "Save your recovery codes"
@@ -12585,16 +12541,32 @@ msgstr "저장됨"
 msgid "Saved as your default"
 msgstr "기본값으로 저장됨"
 
+#: src/pages/SettingsPage.tsx
+msgid "Saved chapters"
+msgstr ""
+
 #: src/components/DiscoverPresets.tsx
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Saved filters"
 msgstr "저장된 필터"
 
+#: src/components/DeviceSaveButton.tsx
+msgid "Saved on this device. Tap to remove it"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Saves the current search, sort and every filter in the panel as a named preset."
 msgstr "패널의 현재 검색, 정렬 및 모든 필터를 이름이 지정된 프리셋으로 저장합니다."
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Saving failed. Tap to retry"
+msgstr ""
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Saving to this device, {progress}"
+msgstr ""
 
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
@@ -15050,10 +15022,6 @@ msgstr "시간대"
 msgid "Timezone (empty uses server timezone)"
 msgstr "시간대 (비워 두면 서버 시간대 사용)"
 
-#: src/theme-context.tsx
-#~ msgid "Tinted black"
-#~ msgstr ""
-
 #: src/api/customRails.ts
 #: src/components/CatalogueBrowser.tsx
 #: src/components/ReleaseSearchModal.tsx
@@ -16054,6 +16022,10 @@ msgstr "{number}권"
 msgid "Volume {range}"
 msgstr ""
 
+#: src/pages/SettingsPage.tsx
+msgid "Volume key page turns, screen and rotation controls, offline chapters and background sync are set in the app itself."
+msgstr ""
+
 #: src/api/inbox.ts
 msgid "Volume release proposed"
 msgstr ""
@@ -16128,6 +16100,10 @@ msgstr ""
 #, fuzzy
 msgid "Waiting to read"
 msgstr "읽기 대기 중"
+
+#: src/components/DeviceSaveButton.tsx
+msgid "Waiting to save to this device"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -16700,10 +16676,6 @@ msgstr ""
 #, fuzzy
 msgid "Your progress"
 msgstr "내 진행 상황"
-
-#: src/components/home/homeSectionDefs.ts
-#~ msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the board hanging behind it."
-#~ msgstr ""
 
 #: src/components/home/homeSectionDefs.ts
 msgid "Your Reading now shelf. Your library figures, reading progress and what is waiting to be read are chalked on the wall behind it, among a few doodles."

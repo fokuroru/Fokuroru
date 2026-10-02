@@ -23,6 +23,7 @@ import {
   IconLayoutGrid,
   IconMaximize,
   IconMinimize,
+  IconDeviceMobileCog,
   IconSettings,
 } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
@@ -30,6 +31,7 @@ import { Link } from 'react-router-dom'
 import { Trans, Plural, useLingui } from '@lingui/react/macro'
 import type { PrefsSource, ReaderManifest } from '../../api/reader'
 import type { ReadingProfile } from '../../api/readingProfiles'
+import { nativeApp } from '../../lib/nativeApp'
 import { BACKGROUNDS, scaleMax, type PrefsSelection, type ReaderPrefs } from './prefs'
 
 /**
@@ -514,6 +516,19 @@ export default function ReaderToolbar({
               <IconKeyboard size={18} />
             </ActionIcon>
           </Tooltip>
+
+          {nativeApp() && (
+            <Tooltip label={t`Device settings`} withArrow zIndex={OVERLAY_Z}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => nativeApp()?.openReaderTools()}
+                aria-label={t`Device settings`}
+              >
+                <IconDeviceMobileCog size={18} />
+              </ActionIcon>
+            </Tooltip>
+          )}
 
           <Tooltip label={fullscreen ? t`Exit full screen` : t`Full screen`} withArrow zIndex={OVERLAY_Z}>
             <ActionIcon
