@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.34 (62)
+- No app change. Changing the content filter no longer reshuffles the doodles on the chalkboard when its figures change.
+
 ## 0.5.33 (61)
 - No app change. Board doodles keep clear of each other and of the notes: bigger footprint for the figure doodles, old writing only in gaps, the seasonal doodle placed anywhere free after the notes.
 

@@ -1824,7 +1824,11 @@ export class MangaShelf {
       c.translate(spot.x + block.w / 2, spot.y + block.h / 2)
       c.rotate(jit(0.09))
       c.translate(-block.w / 2, -block.h / 2)
+      // What a block draws with changes with its figures (a longer number is a longer leader), so the random
+      // stream is put back to a fixed step on afterwards: new numbers must not move the doodles drawn later.
+      const resume = (state + 0x2545f491) | 0
       block.draw()
+      state = resume
       c.restore()
     }
 
