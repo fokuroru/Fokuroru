@@ -2801,7 +2801,7 @@ export class MangaShelf {
       d.last = now
       const t = (now - d.at) / HAZE_MS
       const pos = d.sprite.position
-      const calm = Math.exp(-dt * DUST_DRAG * (d.haze ? 1.6 : 1))
+      const calm = Math.exp(-dt * DUST_DRAG * (d.haze ? 1.6 : 1) * (d.row.detached ? 0.2 : 1))
       d.vx *= calm
       d.vy *= calm
       d.vz *= calm
@@ -2809,6 +2809,8 @@ export class MangaShelf {
       d.vx += Math.sin(now * 0.0031 + d.phase) * 0.00002 * dt
       d.vz += Math.cos(now * 0.0027 + d.phase) * 0.000015 * dt
       d.vy += (d.haze ? 0.00001 : -DUST_FALL) * dt
+      // With the plank gone there is nothing to settle on: it drops like anything else.
+      if (d.row.detached) d.vy -= 0.0007 * dt
       const was = pos.y
       pos.x += d.vx * dt
       pos.y += d.vy * dt
@@ -2848,7 +2850,7 @@ export class MangaShelf {
           d.lx = dx * c - dy * sn
           d.ly = dx * sn + dy * c
         }
-      } else if (now - d.at > 6000) {
+      } else if (now - d.at > 6000 || pos.y < -300) {
         // Never came down (it drifted clear of the plank): let it go.
         d.sprite.removeFromParent()
         d.sprite.material.dispose()
