@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.8 (36)
+- No app change. Two percent of the time the chalkboard banner's tape fails on one side and it hangs, tipped, from the other.
+
 ## 0.5.7 (35)
 - No app change. Chalkboard banner is 40 to 60% of the board wide and can sit anywhere along the top. The series page's side title stops where the tabs start.
 

@@ -167,6 +167,8 @@ interface Row {
 /** How wide a taped banner is, as a share of the board: anywhere between these two. */
 const BANNER_WIDTH_MIN = 0.4
 const BANNER_WIDTH_MAX = 0.6
+/** How often the tape gives way on one side and the banner hangs from the other. */
+const BANNER_FLOP_SHARE = 0.02
 const ROW = 420
 /** Extra wall above the books while a chalkboard hangs there. */
 const BOARD_ROOM = 140
@@ -1289,7 +1291,12 @@ export class MangaShelf {
     // ---- a banner, taped along the top of the board, 40 to 60 percent of its width, and only if it fits:
     // clear of the other things already on the board and inside the band above where the books stand.
     // Its own random stream, so showing it does not move any of the chalk.
-    let taped: { x: number; y: number; w: number; h: number; tilt: number } | null = null
+    interface Taped {
+      x: number; y: number; w: number; h: number; tilt: number
+      /** The tape gave way on one side: the banner hangs from the other side's top corner at this angle (radians, towards the failed side). */
+      flop: { fromRight: boolean; angle: number; px: number; py: number } | null
+    }
+    let taped: Taped | null = null
     const banner = this.bannerImg
     if (banner && banner.naturalWidth > 0 && banner.naturalHeight > 0 && this.board) {
       let bs = (this.seed ^ 0x9e3779b9) | 0
@@ -1302,17 +1309,51 @@ export class MangaShelf {
       const bw = w * (BANNER_WIDTH_MIN + brnd() * (BANNER_WIDTH_MAX - BANNER_WIDTH_MIN))
       const bh = (bw * banner.naturalHeight) / banner.naturalWidth
       const allowance = 14
-      const hit = (x: number, y: number) => solid.some((o) =>
-        x - allowance < o.x + o.w && x + bw + allowance > o.x && y - allowance < o.y + o.h && y + bh + allowance > o.y)
+      const hit = (x: number, y: number, bx: number, by: number) => solid.some((o) =>
+        x - allowance < o.x + o.w && x + bx + allowance > o.x && y - allowance < o.y + o.h && y + by + allowance > o.y)
       const y = margin + allowance
+      // `?flop` on the address (or the preview switch) forces the failure, for looking at it.
+      const flopRoll = brnd()
+      const forceFlop = (window as { __makiBannerFlop?: boolean }).__makiBannerFlop === true
+      const failing = forceFlop || flopRoll < BANNER_FLOP_SHARE
       if (bw >= 110 && bh <= h * 0.35) {
-        // Anywhere along the top: a few random spots, then the two corners, and the first one clear is used.
         const room = w - margin * 2 - bw
-        const tries = room > 0 ? [margin + brnd() * room, margin + brnd() * room, margin + brnd() * room, margin, margin + room] : []
-        const x = tries.find((candidate) => !hit(candidate, y))
-        if (x !== undefined) {
-          taped = { x, y, w: bw, h: bh, tilt: (brnd() - 0.5) * 0.05 }
-          solid.push({ x: x - allowance, y: y - allowance, w: bw + allowance * 2, h: bh + allowance * 2 })
+        // Failing: hang from the top corner on the sound side, tipped towards the failed one, as far as the
+        // board allows without dropping below the middle of it.
+        if (failing) {
+          const fromRight = brnd() < 0.5
+          const angle = Math.min(0.35 + brnd() * 0.45, Math.asin(Math.min(1, (h * 0.42) / bw)))
+          if (angle >= 0.25) {
+            const sign = fromRight ? 1 : -1
+            const rot = angle * sign
+            // The banner's four corners relative to the pivot, turned by `rot`, to find the box it sweeps.
+            const rect: [number, number][] = fromRight
+              ? [[-bw, 0], [0, 0], [0, bh], [-bw, bh]]
+              : [[0, 0], [bw, 0], [bw, bh], [0, bh]]
+            const turned = rect.map(([cx, cy]) => [cx * Math.cos(-rot) - cy * Math.sin(-rot), cx * Math.sin(-rot) + cy * Math.cos(-rot)] as const)
+            const minX = Math.min(...turned.map((t) => t[0])), maxX = Math.max(...turned.map((t) => t[0]))
+            const minY = Math.min(...turned.map((t) => t[1])), maxY = Math.max(...turned.map((t) => t[1]))
+            const span = maxX - minX
+            const slack = w - margin * 2 - span
+            if (slack >= 0) {
+              const spots = [margin + brnd() * slack, margin + brnd() * slack, margin + brnd() * slack]
+              const left = spots.find((candidate) => !hit(candidate, y, span, maxY - minY))
+              if (left !== undefined) {
+                const px = left - minX
+                taped = { x: px, y, w: bw, h: bh, tilt: 0, flop: { fromRight, angle: -rot, px, py: y - minY } }
+                solid.push({ x: left - allowance, y: y - allowance, w: span + allowance * 2, h: maxY - minY + allowance * 2 })
+              }
+            }
+          }
+        }
+        if (!taped) {
+          // Anywhere along the top: a few random spots, then the two corners, and the first one clear is used.
+          const tries = room > 0 ? [margin + brnd() * room, margin + brnd() * room, margin + brnd() * room, margin, margin + room] : []
+          const x = tries.find((candidate) => !hit(candidate, y, bw, bh))
+          if (x !== undefined) {
+            taped = { x, y, w: bw, h: bh, tilt: (brnd() - 0.5) * 0.05, flop: null }
+            solid.push({ x: x - allowance, y: y - allowance, w: bw + allowance * 2, h: bh + allowance * 2 })
+          }
         }
       }
     }
@@ -1618,28 +1659,15 @@ export class MangaShelf {
     g.drawImage(layer, 0, 0)
     if (taped && banner) {
       const t = taped
-      g.save()
-      g.scale(scale, scale)
-      g.translate(t.x + t.w / 2, t.y + t.h / 2)
-      g.rotate(t.tilt)
-      g.shadowColor = 'rgba(0,0,0,0.5)'
-      g.shadowBlur = 10
-      g.shadowOffsetY = 3
-      g.fillStyle = '#ece6d6'
-      g.fillRect(-t.w / 2 - 3, -t.h / 2 - 3, t.w + 6, t.h + 6)
-      g.shadowColor = 'transparent'
-      g.shadowBlur = 0
-      g.shadowOffsetY = 0
-      g.drawImage(banner, -t.w / 2, -t.h / 2, t.w, t.h)
-      // A strip of clear sticky tape across each corner: pale, a little see-through, ends torn square-ish.
-      for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+      /** A strip of clear sticky tape across a corner: pale, a little see-through, ends torn square-ish. */
+      const tape = (cx: number, cy: number, angle: number, alpha = 0.74) => {
         const length = 38 + rnd() * 10
         const width = 13 + rnd() * 3
         g.save()
-        g.translate(sx * (t.w / 2 + 1), sy * (t.h / 2 + 1))
-        g.rotate(-sx * sy * (Math.PI / 4) + jit(0.18))
-        g.fillStyle = 'rgba(240, 230, 186, 0.74)'
-        g.strokeStyle = 'rgba(130, 112, 70, 0.35)'
+        g.translate(cx, cy)
+        g.rotate(angle)
+        g.fillStyle = `rgba(240, 230, 186, ${alpha})`
+        g.strokeStyle = `rgba(130, 112, 70, ${alpha * 0.47})`
         g.lineWidth = 0.8
         g.beginPath()
         g.moveTo(-length / 2, -width / 2)
@@ -1649,9 +1677,46 @@ export class MangaShelf {
         g.closePath()
         g.fill()
         g.stroke()
-        g.fillStyle = 'rgba(255, 255, 255, 0.28)'
+        g.fillStyle = `rgba(255, 255, 255, ${alpha * 0.38})`
         g.fillRect(-length / 2 + 2, -width / 2 + 2, length - 4, 2)
         g.restore()
+      }
+      /** The paper edge and the picture, with the shadow it throws on the board, from (0, 0) at its top-left corner. */
+      const paper = (left: number, top: number) => {
+        g.shadowColor = 'rgba(0,0,0,0.5)'
+        g.shadowBlur = 10
+        g.shadowOffsetY = 3
+        g.fillStyle = '#ece6d6'
+        g.fillRect(left - 3, top - 3, t.w + 6, t.h + 6)
+        g.shadowColor = 'transparent'
+        g.shadowBlur = 0
+        g.shadowOffsetY = 0
+        g.drawImage(banner, left, top, t.w, t.h)
+      }
+      g.save()
+      g.scale(scale, scale)
+      if (t.flop) {
+        // Hanging from the sound side: turned about its top corner there. The failed side's tape has let go of
+        // the board and is still stuck to the paper, lifted and curling away.
+        const { fromRight, angle, px, py } = t.flop
+        g.translate(px, py)
+        g.rotate(angle)
+        const left = fromRight ? -t.w : 0
+        paper(left, 0)
+        const soundX = fromRight ? 0 : t.w
+        const failedX = fromRight ? -t.w : 0
+        const out = fromRight ? -1 : 1
+        tape(soundX + out * -1, -1, (fromRight ? 1 : -1) * (Math.PI / 4) + jit(0.18))
+        tape(soundX + out * -1, t.h + 1, (fromRight ? -1 : 1) * (Math.PI / 4) + jit(0.18))
+        tape(failedX + out * 7, -2, out * 0.5 + jit(0.3), 0.4)
+        tape(failedX + out * 7, t.h + 3, -out * 0.5 + jit(0.3), 0.4)
+      } else {
+        g.translate(t.x + t.w / 2, t.y + t.h / 2)
+        g.rotate(t.tilt)
+        paper(-t.w / 2, -t.h / 2)
+        for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+          tape(sx * (t.w / 2 + 1), sy * (t.h / 2 + 1), -sx * sy * (Math.PI / 4) + jit(0.18))
+        }
       }
       g.restore()
     }
