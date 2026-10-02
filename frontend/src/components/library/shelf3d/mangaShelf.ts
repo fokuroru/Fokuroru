@@ -3376,6 +3376,17 @@ export class MangaShelf {
     const b = this.bannerAnim
     if (!b || !this.rows[0]) return null
     const at = this.boardAt(e)
+    // A strip of tape under the pointer is what is being picked up, whatever scrap of paper happens to lie nearer.
+    let strip: number | null = null
+    let near = 30
+    for (const t of b.tapes) {
+      const d = Math.hypot(b.pos[t.corner * 3] - at.x, b.pos[t.corner * 3 + 1] - at.y)
+      if (d < near) {
+        near = d
+        strip = t.corner
+      }
+    }
+    if (strip !== null) return strip
     let nearest: number | null = null
     let reach = 30
     const count = (b.cols + 1) * (b.rows + 1)
@@ -3389,20 +3400,33 @@ export class MangaShelf {
     return nearest
   }
 
-  /** The weights around one, up to `radius` steps away along the sheet. */
+  /**
+   * The weights around one, a few steps away along the paper. Only paper still joined to it counts: a scrap that
+   * has torn away, or that lies near it on the board, is not picked up with it and stays where it is.
+   */
   private around(b: BannerAnim, index: number, radius: number): number[] {
     const stride = b.cols + 1
-    const r0 = Math.floor(index / stride)
-    const c0 = index % stride
-    const out: number[] = []
-    for (let dr = -radius; dr <= radius; dr++) {
-      for (let dc = -radius; dc <= radius; dc++) {
-        const r = r0 + dr
-        const c = c0 + dc
-        if (r >= 0 && r <= b.rows && c >= 0 && c <= b.cols) out.push(r * stride + c)
+    const seen = new Map<number, number>([[index, 0]])
+    const queue = [index]
+    for (let head = 0; head < queue.length; head++) {
+      const i = queue[head]
+      const depth = seen.get(i)!
+      if (depth >= radius * 2) continue
+      const r = Math.floor(i / stride)
+      const c = i % stride
+      const next: number[] = []
+      if (c < b.cols && !b.brokenH[r * b.cols + c]) next.push(i + 1)
+      if (c > 0 && !b.brokenH[r * b.cols + c - 1]) next.push(i - 1)
+      if (r < b.rows && !b.brokenV[r * stride + c]) next.push(i + stride)
+      if (r > 0 && !b.brokenV[(r - 1) * stride + c]) next.push(i - stride)
+      for (const n of next) {
+        if (!seen.has(n)) {
+          seen.set(n, depth + 1)
+          queue.push(n)
+        }
       }
     }
-    return out
+    return queue
   }
 
   /** Takes hold of the paper at a point: that bit follows the pointer, a little proud of the board, until it is let go or stuck back. */

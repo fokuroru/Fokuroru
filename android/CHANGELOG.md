@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.20 (48)
+- No app change. Picking up a strip of tape takes only the paper still joined to it; paper that has torn away stays put.
+
 ## 0.5.19 (47)
 - No app change. Letting go of the paper no longer flings it: the speed built up while it was held is taken out.
 
