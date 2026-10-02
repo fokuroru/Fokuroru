@@ -20,7 +20,7 @@ import {
   IconArrowLeft,
   IconDownload,
   IconHeartbeat,
-  IconLayoutList,
+  IconDeviceMobile,
 } from '@tabler/icons-react'
 import { lazy, Suspense, useEffect } from 'react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
@@ -208,10 +208,18 @@ function HealthButton() {
   )
 }
 
+function useOpenSimpleView() {
+  const navigate = useNavigate()
+  return () => {
+    setSimpleViewPreferred(true)
+    navigate('/lite')
+  }
+}
+
 /** Phone-sized screens only: the way back to the simple front page from the full interface. */
 function SimpleViewButton() {
   const { t } = useLingui()
-  const navigate = useNavigate()
+  const open = useOpenSimpleView()
   return (
     <Tooltip label={t`Simple view`} withArrow>
       <ActionIcon
@@ -219,14 +227,31 @@ function SimpleViewButton() {
         color="gray"
         hiddenFrom="sm"
         aria-label={t`Simple view`}
-        onClick={() => {
-          setSimpleViewPreferred(true)
-          navigate('/lite')
-        }}
+        onClick={open}
       >
-        <IconLayoutList size={19} />
+        <IconDeviceMobile size={19} />
       </ActionIcon>
     </Tooltip>
+  )
+}
+
+/** The labelled way back to the simple view, in the phone drawer where the icon alone is easy to misread. */
+function SimpleViewLink({ onNavigate }: { onNavigate: () => void }) {
+  const open = useOpenSimpleView()
+  return (
+    <Box hiddenFrom="sm" mb={18}>
+      <button
+        type="button"
+        className="nav-link nav-link-button"
+        onClick={() => {
+          onNavigate()
+          open()
+        }}
+      >
+        <IconDeviceMobile size={18} stroke={1.7} className="nav-icon" />
+        <Trans>Simple view</Trans>
+      </button>
+    </Box>
   )
 }
 
@@ -427,6 +452,7 @@ function AppShellRoutes() {
           <BrandWordmark height={22} className="brand-wordmark" />
         </Group>
         <AppShell.Section grow component={ScrollArea} type="never">
+          <SimpleViewLink onNavigate={close} />
           <NavLinks
             sections={sections}
             onNavigate={close}

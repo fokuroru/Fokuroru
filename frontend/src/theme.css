@@ -456,6 +456,14 @@ svg.setup-rail-wordmark {
     background-color var(--dur-base) var(--ease),
     color var(--dur-base) var(--ease);
 }
+.nav-link-button {
+  width: 100%;
+  font-family: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
 .nav-link:hover {
   background: var(--surface-hover);
   color: var(--ink-hi);
