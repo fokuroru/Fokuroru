@@ -5,7 +5,7 @@ import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
 import prankFontUrl from '../../../assets/fonts/creamy-chalk-demo.ttf?url'
 import { coverPalette } from './coverPalette'
-import { drawHalloweenDoodle, halloweenDoodle } from './holidayDoodles'
+import { drawHolidayDoodle, holidayDoodle } from './holidayDoodles'
 
 const PRANK_CHANCE = 0.02
 const PRANKS = [
@@ -295,7 +295,7 @@ export class MangaShelf {
   private readonly withPlant = Math.random() < PLANT_CHANCE
   private readonly prank = Math.random() < PRANK_CHANCE ? PRANKS[Math.floor(Math.random() * PRANKS.length)] : null
   private readonly prankOnRight = Math.random() < 0.5
-  private readonly holidayDoodle = halloweenDoodle()
+  private readonly holidayDoodle = holidayDoodle()
   private prankFontReady = false
   /** Rolled once per page load and compared with how often the user wants one, so a figure stays or goes as a whole. */
   private readonly figureRoll = Math.random()
@@ -1227,7 +1227,7 @@ export class MangaShelf {
     if (this.holidayDoodle) {
       const size = Math.min(90, w * 0.18, h * 0.25)
       const x = w - margin - size
-      drawHalloweenDoodle(c, this.holidayDoodle, x, margin, size)
+      drawHolidayDoodle(c, this.holidayDoodle, x, margin, size)
       solid.push({ x: x - 8, y: margin - 8, w: size + 16, h: size + 16 })
     }
     if (this.prank && this.prankFontReady) {
