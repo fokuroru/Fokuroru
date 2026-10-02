@@ -1,8 +1,11 @@
 # Android app versions
 
-Every push bumps `version.properties` (versionCode by one, versionName patch by one, or minor for a feature) and adds a line here.
+Every APK build bumps `version.properties` (versionCode by one, versionName patch by one, or minor for a feature) and adds a line here.
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
+
+## 0.5.36 (64)
+- Rebuilt with everything since 0.5.31: hold a cover in the mobile view for Read, Download or desktop info; the library hides ongoing series that are fully read.
 
 ## 0.5.35 (63)
 - No app change. Mobile view: hold a cover for Read, Download (pick chapters on the server to save to the device) or Series info in the desktop view; the library hides series that are ongoing and fully read.
