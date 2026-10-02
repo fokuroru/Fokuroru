@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { SpiceButton } from '../components/layout/SpiceButton'
 import { useReadTracking } from '../api/reader'
 import { useAppVersion, useHomeReading, useSeries, type HomeReadingItem } from '../api/hooks'
 import { useAuth } from '../auth/AuthProvider'
@@ -102,6 +103,7 @@ export default function SimpleHomePage() {
               </ActionIcon>
             </>
           )}
+          <SpiceButton />
           <ActionIcon variant="subtle" color="gray" aria-label={t`Desktop view`} onClick={showFull}>
             <IconDeviceDesktop size={19} />
           </ActionIcon>

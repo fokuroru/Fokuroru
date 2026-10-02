@@ -1,3 +1,4 @@
+import { spiceHeader } from '../lib/spice'
 import { i18n } from '@lingui/core'
 import { t } from '@lingui/core/macro'
 
@@ -96,6 +97,7 @@ export function authHeaders(extra?: HeadersInit): HeadersInit {
   return {
     'Content-Type': 'application/json',
     ...languageHeader(),
+    ...spiceHeader(),
     ...xsrfHeader(),
     ...(extra as Record<string, string> | undefined),
   }

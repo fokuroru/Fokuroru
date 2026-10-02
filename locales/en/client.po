@@ -3652,6 +3652,7 @@ msgstr "Content"
 #: src/components/CatalogueFilters.tsx
 #: src/components/discover/DiscoverDetailModal.tsx
 #: src/components/discover/DiscoverGlance.tsx
+#: src/components/layout/SpiceButton.tsx
 #: src/components/series/SeriesHero.tsx
 #: src/components/SetupWizard.tsx
 #: src/pages/DiscoverPage.tsx
@@ -4890,6 +4891,7 @@ msgid "Era"
 msgstr "Era"
 
 #: src/api/hooks.ts
+#: src/components/layout/SpiceButton.tsx
 #: src/components/ui/status.tsx
 msgid "Erotica"
 msgstr "Erotica"
@@ -5090,6 +5092,10 @@ msgstr "Expand"
 #: src/pages/SeriesDetailPage.tsx
 msgid "Expand {spanLabel}"
 msgstr "Expand {spanLabel}"
+
+#: src/components/layout/SpiceButton.tsx
+msgid "Explicit"
+msgstr "Explicit"
 
 #: src/components/SourceCompareModal.tsx
 #: src/components/ui/status.tsx
@@ -8733,6 +8739,10 @@ msgstr "One-shot"
 msgid "Ongoing"
 msgstr "Ongoing"
 
+#: src/components/layout/SpiceButton.tsx
+msgid "Only changes what this device shows. Your account's content rating setting is not affected."
+msgstr "Only changes what this device shows. Your account's content rating setting is not affected."
+
 #: src/pages/stats/sections/RhythmSection.tsx
 msgid "Only Fōkurōru's reader records when you read. Chapters marked read from Kavita or OPDS apps do not carry a time."
 msgstr "Only Fōkurōru's reader records when you read. Chapters marked read from Kavita or OPDS apps do not carry a time."
@@ -10648,6 +10658,7 @@ msgid "Russian"
 msgstr "Russian"
 
 #: src/api/hooks.ts
+#: src/components/layout/SpiceButton.tsx
 #: src/components/ui/status.tsx
 msgid "Safe"
 msgstr "Safe"
@@ -12170,6 +12181,7 @@ msgid "Success and wait cover the last 30 days."
 msgstr "Success and wait cover the last 30 days."
 
 #: src/api/hooks.ts
+#: src/components/layout/SpiceButton.tsx
 #: src/components/ui/status.tsx
 msgid "Suggestive"
 msgstr "Suggestive"

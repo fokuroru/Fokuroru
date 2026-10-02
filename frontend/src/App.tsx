@@ -42,6 +42,7 @@ import { NotificationBell } from './components/NotificationBell'
 import MetadataDumpProgress from './components/MetadataDumpProgress'
 import SetupWizard from './components/SetupWizard'
 import SidebarFooter from './components/layout/SidebarFooter'
+import { SpiceButton } from './components/layout/SpiceButton'
 import LanguageAnnouncementModal from './components/LanguageAnnouncementModal'
 import { NavHistoryProvider, ScrollMemory } from './lib/navHistory'
 import { TipLayer } from './components/ui/TipLayer'
@@ -463,6 +464,7 @@ function AppShellRoutes() {
             <ActivityButton />
             <NotificationBell />
             {isAdmin && <HealthButton />}
+            <SpiceButton />
             <SimpleViewButton />
           </Group>
         </Group>

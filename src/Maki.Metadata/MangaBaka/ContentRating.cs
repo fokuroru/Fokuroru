@@ -24,6 +24,17 @@ public static class ContentRating
     /// <summary>What an account gets when nothing better is known — excludes only Pornographic.</summary>
     public const string Default = Erotica;
 
+    /// <summary>The stricter of two ceilings; an unrecognised one counts as no ceiling.</summary>
+    public static string Lower(string? first, string? second)
+    {
+        var a = Array.IndexOf(All, first);
+        var b = Array.IndexOf(All, second);
+        if (a < 0 && b < 0) return Default;
+        if (a < 0) return All[b];
+        if (b < 0) return All[a];
+        return All[Math.Min(a, b)];
+    }
+
     public static bool IsValid(string? rating) => rating is not null && Array.IndexOf(All, rating) >= 0;
 
     /// <summary>

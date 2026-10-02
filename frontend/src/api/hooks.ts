@@ -1,3 +1,4 @@
+import { RATINGS, ratingShown, useSpice } from '../lib/spice'
 import { useMemo } from 'react'
 import { PREVIEW_RETENTION_MS, previewCacheKey, readPreviewCache, writePreviewCache } from './previewCache'
 import {
@@ -49,9 +50,12 @@ import type {
 } from './types'
 
 export function useSeries() {
+  const level = useSpice()
   return useQuery({
     queryKey: ['series'],
     queryFn: () => api<SeriesDto[]>('/series'),
+    // The spice slider is a view over the library, so the cached list stays whole and only this read narrows it.
+    select: (list) => list.filter((s) => ratingShown(s.contentRating, level)),
   })
 }
 
@@ -832,12 +836,23 @@ export interface HomeRecentSeriesItem {
  * rather than where you actually stopped.
  */
 export function useHomeReading(limit = 12, enabled = true) {
+  const level = useSpice()
+  const queryClient = useQueryClient()
   return useQuery({
     queryKey: ['home', 'reading', limit],
     queryFn: () => api<HomeReadingResponse>(`/home/reading?limit=${limit}`),
     enabled,
     staleTime: 30_000,
     refetchOnMount: 'always',
+    // Reading items carry no rating of their own, so they are judged by the library list when it is loaded.
+    select: (data) => {
+      if (level >= RATINGS.length - 1) return data
+      const ratings = new Map(
+        (queryClient.getQueryData<SeriesDto[]>(['series']) ?? []).map((s) => [s.id, s.contentRating] as const),
+      )
+      const shown = (item: HomeReadingItem) => ratingShown(ratings.get(item.seriesId), level)
+      return { ...data, continueReading: data.continueReading.filter(shown), jumpBackIn: data.jumpBackIn.filter(shown) }
+    },
   })
 }
 

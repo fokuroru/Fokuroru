@@ -69,7 +69,7 @@ public class CurrentUserMiddleware(RequestDelegate next)
             snapshot.Permissions,
             snapshot.AllRootFolders,
             snapshot.RootFolderIds,
-            snapshot.MaxContentRating);
+            DisplayCeiling(context, snapshot.MaxContentRating));
 
         // Same facts, second consumer: CurrentUserContext answers "may this caller do X?" for the
         // authorization handlers, DataScope answers "which rows exist?" for the DbContext. Set from one
@@ -118,6 +118,27 @@ public class CurrentUserMiddleware(RequestDelegate next)
             row.Id, row.UserName ?? string.Empty, row.Permissions, row.AllRootFolders, folders, row.MaxContentRating);
         snapshots.Set(snapshot, generation);
         return snapshot;
+    }
+
+    /// <summary>Routes that choose what to show from the catalogue, where a viewer may ask for less than their ceiling.</summary>
+    private static readonly string[] BrowsePrefixes =
+        ["/api/v1/recommendations", "/api/v1/discover", "/api/v1/search", "/api/v1/preview"];
+
+    /// <summary>
+    /// A viewer's own "show me less" setting (the spice slider), sent as <c>X-Maki-Display-Rating</c>. It can only
+    /// lower the ceiling and only on browse routes: the account's real setting, which Settings reads and
+    /// writes, is never touched.
+    /// </summary>
+    private static string DisplayCeiling(HttpContext context, string accountCeiling)
+    {
+        var header = context.Request.Headers["X-Maki-Display-Rating"].ToString();
+        if (!Maki.Metadata.MangaBaka.ContentRating.IsValid(header) ||
+            !BrowsePrefixes.Any(p => context.Request.Path.StartsWithSegments(p, StringComparison.OrdinalIgnoreCase)))
+        {
+            return accountCeiling;
+        }
+
+        return Maki.Metadata.MangaBaka.ContentRating.Lower(accountCeiling, header);
     }
 
     /// <summary>

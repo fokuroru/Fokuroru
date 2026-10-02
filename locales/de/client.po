@@ -4368,6 +4368,7 @@ msgstr "Inhalt"
 #: src/components/CatalogueFilters.tsx
 #: src/components/discover/DiscoverDetailModal.tsx
 #: src/components/discover/DiscoverGlance.tsx
+#: src/components/layout/SpiceButton.tsx
 #: src/components/series/SeriesHero.tsx
 #: src/components/SetupWizard.tsx
 #: src/pages/DiscoverPage.tsx
@@ -5819,6 +5820,7 @@ msgid "Era"
 msgstr "Epoche"
 
 #: src/api/hooks.ts
+#: src/components/layout/SpiceButton.tsx
 #: src/components/ui/status.tsx
 #, fuzzy
 msgid "Erotica"
@@ -6062,6 +6064,10 @@ msgstr "Aufklappen"
 #, fuzzy
 msgid "Expand {spanLabel}"
 msgstr "{spanLabel} aufklappen"
+
+#: src/components/layout/SpiceButton.tsx
+msgid "Explicit"
+msgstr ""
 
 #: src/components/SourceCompareModal.tsx
 #: src/components/ui/status.tsx
@@ -10413,6 +10419,10 @@ msgstr "One-Shot"
 msgid "Ongoing"
 msgstr "Laufend"
 
+#: src/components/layout/SpiceButton.tsx
+msgid "Only changes what this device shows. Your account's content rating setting is not affected."
+msgstr ""
+
 #: src/pages/stats/sections/RhythmSection.tsx
 msgid "Only Fōkurōru's reader records when you read. Chapters marked read from Kavita or OPDS apps do not carry a time."
 msgstr ""
@@ -12678,6 +12688,7 @@ msgid "Russian"
 msgstr "Russisch"
 
 #: src/api/hooks.ts
+#: src/components/layout/SpiceButton.tsx
 #: src/components/ui/status.tsx
 #, fuzzy
 msgid "Safe"
@@ -14477,6 +14488,7 @@ msgid "Success and wait cover the last 30 days."
 msgstr "Erfolge und Wartezeiten der letzten 30 Tage."
 
 #: src/api/hooks.ts
+#: src/components/layout/SpiceButton.tsx
 #: src/components/ui/status.tsx
 #, fuzzy
 msgid "Suggestive"
