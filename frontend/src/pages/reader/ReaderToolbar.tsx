@@ -348,6 +348,7 @@ export default function ReaderToolbar({
                     value={prefs.mode}
                     onChange={(value) => onPrefs({ mode: value as ReaderPrefs['mode'] })}
                     data={[
+                      { label: t`Auto`, value: 'auto' },
                       { label: t`Single`, value: 'paged' },
                       { label: t`Double`, value: 'double' },
                       { label: t`Continuous`, value: 'vertical' },

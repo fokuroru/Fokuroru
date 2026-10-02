@@ -2847,6 +2847,7 @@ msgstr "Kavita 읽기 기록의 사용자"
 
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/SeriesPreviewReader.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Auto"
@@ -2861,6 +2862,10 @@ msgstr "자동 ({autoProfileName})"
 #, fuzzy
 msgid "Auto (my defaults)"
 msgstr "자동 (내 기본값)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Auto (two pages on wide screens)"
+msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy

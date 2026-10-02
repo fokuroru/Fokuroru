@@ -37,6 +37,7 @@ import { msg, t as now } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 
 const MODE_LABELS: Record<ReaderPrefs['mode'], MessageDescriptor> = {
+  auto: msg`Auto`,
   paged: msg`Single page`,
   double: msg`Two pages`,
   vertical: msg`Continuous`,
@@ -337,6 +338,7 @@ function ProfileEditor({
           value={prefs.mode}
           onChange={(value) => value && set({ mode: value as ReaderPrefs['mode'] })}
           data={[
+            { value: 'auto', label: t`Auto (two pages on wide screens)` },
             { value: 'paged', label: t`Single page` },
             { value: 'double', label: t`Two pages side by side` },
             { value: 'vertical', label: t`Continuous vertical (webtoon)` },

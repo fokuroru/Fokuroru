@@ -2378,6 +2378,7 @@ msgstr "Attribute Kavita's reading to"
 
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/SeriesPreviewReader.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Auto"
 msgstr "Auto"
@@ -2389,6 +2390,10 @@ msgstr "Auto ({autoProfileName})"
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Auto (my defaults)"
 msgstr "Auto (my defaults)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Auto (two pages on wide screens)"
+msgstr "Auto (two pages on wide screens)"
 
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Auto-advance to next chapter"

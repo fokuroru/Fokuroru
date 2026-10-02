@@ -73,7 +73,7 @@ export function SeriesPreviewReader({
   // Same as the real reader: a wide window in the Android app turns single pages into spreads.
   const { dual: wideWindow } = useNativeLayout()
   const prefs = useMemo(
-    () => (wideWindow && savedPrefs.mode === 'paged' ? { ...savedPrefs, mode: 'double' as const } : savedPrefs),
+    () => (savedPrefs.mode === 'auto' ? { ...savedPrefs, mode: wideWindow ? ('double' as const) : ('paged' as const) } : savedPrefs),
     [wideWindow, savedPrefs],
   )
   const mode = prefs.mode
@@ -537,6 +537,7 @@ export function SeriesPreviewReader({
                       value={savedPrefs.mode}
                       onChange={(value) => update({ mode: value as ReaderPrefs['mode'] })}
                       data={[
+                        { label: t`Auto`, value: 'auto' },
                         { label: t`Single`, value: 'paged' },
                         { label: t`Double`, value: 'double' },
                         { label: t`Continuous`, value: 'vertical' },

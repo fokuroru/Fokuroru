@@ -51,6 +51,7 @@ public record ReaderPrefsSpec(
     public const string NavHorizontal = "horizontal";
     public const string NavVertical = "vertical";
 
+    public const string ModeAuto = "auto";
     public const string ModePaged = "paged";
     public const string ModeDouble = "double";
     public const string ModeVertical = "vertical";
@@ -75,7 +76,7 @@ public record ReaderPrefsSpec(
         PropertyNameCaseInsensitive = true,
     };
 
-    private static readonly string[] Modes = [ModePaged, ModeDouble, ModeVertical];
+    private static readonly string[] Modes = [ModeAuto, ModePaged, ModeDouble, ModeVertical];
     private static readonly string[] Directions = [DirectionLtr, DirectionRtl];
     private static readonly string[] Fits = [FitWidth, FitHeight, FitScreen, FitOriginal];
     private static readonly string[] Navigations = [NavAuto, NavHorizontal, NavVertical];

@@ -3,7 +3,8 @@ import { api } from '../../api/client'
 import type { PrefsSource, ReaderManifest, ResolvedReaderPrefs } from '../../api/reader'
 import { useReadingProfiles, type ReadingProfile } from '../../api/readingProfiles'
 
-export type ReaderMode = 'paged' | 'double' | 'vertical'
+/** `auto` reads as a spread where the window is wide (tablet, unfolded foldable in the Android app) and a single page elsewhere. */
+export type ReaderMode = 'auto' | 'paged' | 'double' | 'vertical'
 export type ReaderDirection = 'ltr' | 'rtl'
 export type ReaderFit = 'width' | 'height' | 'screen' | 'original'
 /** Which way "next" moves. `auto` is vertical in continuous mode, horizontal otherwise. */
