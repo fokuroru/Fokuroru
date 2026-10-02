@@ -33,7 +33,9 @@ import dev.fokuroru.reader.input.Turn
 import dev.fokuroru.reader.ui.DownloadsActivity
 import dev.fokuroru.reader.ui.ReaderTools
 import dev.fokuroru.reader.ui.SettingsActivity
+import dev.fokuroru.reader.ui.ServersActivity
 import dev.fokuroru.reader.ui.SetupActivity
+import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.web.Offline
 import dev.fokuroru.reader.web.Routes
 import dev.fokuroru.reader.web.WebBridge
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var swallowStylus = false
     private var lastShellRefresh = 0L
+    private var loadedProfile = -1L
 
     @Volatile private var currentUrl: String? = null
     private var reading = false
@@ -122,6 +125,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        followProfile()
         applyChrome()
         pushLayout()
         if (Store.get(this).pendingChapterIds().isNotEmpty()) ProgressSync.schedule(this)
@@ -132,6 +136,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
+        Profiles.snapshotActive(this)
         remote?.setActive(false)
         CookieManager.getInstance().flush()
         web.onPause()
@@ -267,12 +272,31 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.offline_downloads).setOnClickListener { openDownloads() }
         findViewById<View>(R.id.offline_change_server).setOnClickListener {
-            setup.launch(Intent(this, SetupActivity::class.java))
+            startActivity(Intent(this, ServersActivity::class.java))
         }
+    }
+
+    /** When another profile was made the one in use, point the web view and the offline layer at it. */
+    private fun followProfile() {
+        val now = Profiles.activeId(this)
+        if (loadedProfile == -1L || now == loadedProfile) return
+        val base = prefs.serverUrl
+        if (base == null) {
+            loadedProfile = -1L
+            startActivity(Intent(this, SetupActivity::class.java))
+            return
+        }
+        loadedProfile = now
+        offline = Offline(this)
+        lastShellRefresh = 0L
+        offlineView.visibility = View.GONE
+        web.clearHistory()
+        web.loadUrl("$base/")
     }
 
     private fun start(intent: Intent?) {
         val base = prefs.serverUrl ?: return
+        if (loadedProfile == -1L) loadedProfile = Profiles.activeId(this)
         val action = intent?.action
         intent?.action = null
         if (action == ACTION_CONTINUE || action == ACTION_LATEST) {

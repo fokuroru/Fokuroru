@@ -13,8 +13,18 @@
     <string name="offline_body">You can still read chapters saved on this device.</string>
     <string name="offline_retry">Try again</string>
     <string name="offline_downloads">Saved chapters</string>
-    <string name="offline_change_server">Change server</string>
+    <string name="offline_change_server">Servers and accounts</string>
 
+    <string name="servers_title">Servers and accounts</string>
+    <string name="servers_empty">No servers saved yet.</string>
+    <string name="servers_add">Add server</string>
+    <string name="servers_add_account">Add another account on this server</string>
+    <string name="servers_in_use">In use</string>
+    <string name="servers_name_hint">Name (optional)</string>
+    <string name="servers_not_signed_in">Not signed in yet</string>
+    <string name="servers_delete_title">Delete %1$s?</string>
+    <string name="servers_delete_body">Its sign-in and the chapters saved for it are removed from this phone. Nothing changes on the server.</string>
+    <string name="servers_duplicate">That server and name are already saved.</string>
     <string name="settings_title">Android app settings</string>
     <string name="downloads_title">Saved on this device</string>
     <string name="downloads_empty">Nothing saved yet. Use the download button on a chapter to read it offline.</string>

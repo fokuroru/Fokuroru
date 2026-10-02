@@ -136,10 +136,11 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="Server" app:iconSpaceReserved="false">
+    <PreferenceCategory app:title="Servers" app:iconSpaceReserved="false">
         <Preference
             app:key="change_server"
-            app:title="Change server"
+            app:title="Servers and accounts"
+            app:summary="Save several servers, or several accounts on one."
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 </PreferenceScreen>

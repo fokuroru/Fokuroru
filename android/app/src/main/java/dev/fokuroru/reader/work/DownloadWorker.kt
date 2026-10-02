@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dev.fokuroru.reader.Events
 import dev.fokuroru.reader.Prefs
+import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.data.State
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
@@ -39,6 +40,8 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
     override suspend fun doWork(): Result {
         val chapterId = inputData.getInt(CHAPTER_ID, -1)
         if (chapterId < 0) return Result.failure()
+        // Chapter ids belong to one profile. Switching cancels these jobs and re-queues them on return.
+        if (Profiles.activeId(applicationContext) != inputData.getLong(PROFILE_ID, 0L)) return Result.failure()
 
         try {
             runCatching { setForeground(foreground("", 0, 0)) }
@@ -104,6 +107,7 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
 
     companion object {
         const val CHAPTER_ID = "chapter_id"
+        const val PROFILE_ID = "profile_id"
         private const val NOTIFICATION_ID = 4101
         private const val MAX_ATTEMPTS = 4
 
@@ -117,17 +121,21 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 .build()
             val request = OneTimeWorkRequestBuilder<DownloadWorker>()
                 .setConstraints(constraints)
-                .setInputData(Data.Builder().putInt(CHAPTER_ID, chapterId).build())
+                .setInputData(
+                    Data.Builder().putInt(CHAPTER_ID, chapterId).putLong(PROFILE_ID, Profiles.activeId(context)).build(),
+                )
                 .addTag(TAG)
                 .build()
             WorkManager.getInstance(context)
-                .enqueueUniqueWork("download-$chapterId", ExistingWorkPolicy.KEEP, request)
+                .enqueueUniqueWork(workName(context, chapterId), ExistingWorkPolicy.KEEP, request)
             Events.downloadsChanged()
         }
 
         fun cancel(context: Context, chapterId: Int) {
-            WorkManager.getInstance(context).cancelUniqueWork("download-$chapterId")
+            WorkManager.getInstance(context).cancelUniqueWork(workName(context, chapterId))
         }
+
+        private fun workName(context: Context, chapterId: Int) = "download-${Profiles.activeId(context)}-$chapterId"
 
         const val TAG = "downloads"
     }

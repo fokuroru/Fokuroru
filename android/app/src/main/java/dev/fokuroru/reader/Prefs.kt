@@ -9,9 +9,10 @@ import dev.fokuroru.reader.input.TurnConfig
 class Prefs(context: Context) {
     val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
 
-    var serverUrl: String?
-        get() = sp.getString(SERVER, null)
-        set(value) = sp.edit().putString(SERVER, value).apply()
+    private val appContext = context.applicationContext
+
+    /** The server of the profile in use. Profiles own it now, see [dev.fokuroru.reader.data.Profiles]. */
+    val serverUrl: String? get() = dev.fokuroru.reader.data.Profiles.active(appContext)?.url
 
     val volumeKeys get() = sp.getBoolean("volume_keys", true)
     val swapVolumeKeys get() = sp.getBoolean("swap_volume_keys", false)

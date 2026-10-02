@@ -8,19 +8,15 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import dev.fokuroru.reader.Prefs
 import dev.fokuroru.reader.R
 import dev.fokuroru.reader.Strings
-import dev.fokuroru.reader.data.Store
-import dev.fokuroru.reader.data.wipe
-import dev.fokuroru.reader.widget.ReadingNowWidget
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
+import dev.fokuroru.reader.data.Profiles
+import dev.fokuroru.reader.net.ServerCheck
+import dev.fokuroru.reader.work.ProfileSwitch
 import kotlin.concurrent.thread
 
+/** The first-run screen: saves the first server as a profile and makes it the one in use. */
 class SetupActivity : AppCompatActivity() {
-    private lateinit var prefs: Prefs
     private lateinit var input: TextInputEditText
     private lateinit var field: TextInputLayout
     private lateinit var connect: Button
@@ -28,7 +24,6 @@ class SetupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setup)
-        prefs = Prefs(this)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.setup_root)) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
@@ -39,7 +34,6 @@ class SetupActivity : AppCompatActivity() {
         input = findViewById(R.id.setup_input)
         field = findViewById(R.id.setup_field)
         connect = findViewById(R.id.setup_connect)
-        input.setText(prefs.serverUrl ?: "")
         connect.setOnClickListener { submit() }
         input.setOnEditorActionListener { _, action, _ ->
             if (action == EditorInfo.IME_ACTION_GO) submit()
@@ -57,36 +51,21 @@ class SetupActivity : AppCompatActivity() {
         connect.isEnabled = false
         connect.setText(R.string.setup_checking)
         thread {
-            val ok = looksLikeServer(address)
+            val ok = ServerCheck.isServer(address)
+            if (ok) {
+                val existing = Profiles.all(this).firstOrNull { it.url == address && it.user == null }
+                ProfileSwitch.to(this, (existing ?: Profiles.add(this, "", address)).id)
+            }
             runOnUiThread {
                 connect.isEnabled = true
                 connect.setText(R.string.setup_connect)
-                if (!ok) {
-                    field.error = getString(R.string.setup_error)
-                } else {
-                    val previous = prefs.serverUrl
-                    if (previous != null && previous != address) {
-                        Store.get(this).wipe(this)
-                        ReadingNowWidget.updateAll(this)
-                    }
-                    prefs.serverUrl = address
+                if (ok) {
                     setResult(RESULT_OK)
                     finish()
+                } else {
+                    field.error = getString(R.string.setup_error)
                 }
             }
         }
-    }
-
-    private fun looksLikeServer(address: String): Boolean = try {
-        val conn = URL("$address/initialize.json").openConnection() as HttpURLConnection
-        conn.connectTimeout = 6_000
-        conn.readTimeout = 6_000
-        try {
-            conn.responseCode == 200 && JSONObject(conn.inputStream.bufferedReader().readText()).has("apiRoot")
-        } finally {
-            conn.disconnect()
-        }
-    } catch (_: Exception) {
-        false
     }
 }

@@ -1,6 +1,5 @@
 package dev.fokuroru.reader.data
 
-import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -32,8 +31,8 @@ data class Download(
     val error: String?,
 )
 
-class Store private constructor(private val context: Context) :
-    SQLiteOpenHelper(context, "fokuroru.db", null, 1) {
+class Store private constructor(private val context: Context, val profileId: Long) :
+    SQLiteOpenHelper(context, "fokuroru-$profileId.db", null, 1) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -71,7 +70,9 @@ class Store private constructor(private val context: Context) :
 
     // ---- files ----
 
-    fun chapterDir(chapterId: Int) = File(context.filesDir, "chapters/$chapterId")
+    private val root = Profiles.dir(context, profileId)
+
+    fun chapterDir(chapterId: Int) = File(root, "chapters/$chapterId")
 
     fun pageFile(chapterId: Int, page: Int) = File(chapterDir(chapterId), page.toString())
 
@@ -241,22 +242,19 @@ class Store private constructor(private val context: Context) :
     )
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
-        @Volatile private var instance: Store? = null
+        private val instances = HashMap<Long, Store>()
 
-        fun get(context: Context): Store =
-            instance ?: synchronized(this) {
-                instance ?: Store(context.applicationContext).also { instance = it }
-            }
+        /** The store of the profile in use. */
+        @Synchronized
+        fun get(context: Context): Store {
+            val id = Profiles.activeId(context)
+            return instances.getOrPut(id) { Store(context.applicationContext, id) }
+        }
+
+        @Synchronized
+        fun forget(context: Context, id: Long) {
+            instances.remove(id)?.close()
+            context.applicationContext.deleteDatabase("fokuroru-$id.db")
+        }
     }
-}
-
-/** Chapter ids belong to one server, so pointing the app at another one starts clean. */
-fun Store.wipe(context: Context) {
-    writableDatabase.delete("downloads", null, null)
-    writableDatabase.delete("progress_queue", null, null)
-    File(context.filesDir, "chapters").deleteRecursively()
-    File(context.filesDir, "stash").deleteRecursively()
-    File(context.filesDir, "covers").deleteRecursively()
-    File(context.filesDir, "reading.json").delete()
 }

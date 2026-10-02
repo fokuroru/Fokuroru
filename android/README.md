@@ -37,6 +37,7 @@ Sign in on the normal login page. Plain HTTP on a LAN is allowed, since that is 
 | Reading now widget | `widget/ReadingNowWidget.kt` |
 | Dark mode and Material You colours | `Theme.Material3.DynamicColors.DayNight`, widget colours in `values-v31` |
 | Simple view as the start screen: last read hero, Continue reading, library grid, switch to the full version | `pages/SimpleHomePage.tsx` in the web UI, `lib/simpleView.ts` |
+| Several servers and accounts, switched from one screen | `ui/ServersActivity.kt`, `data/Profiles.kt` |
 | Two pages on tablets and unfolded foldables | `MainActivity.layoutJson`, `useNativeLayout` in the web UI |
 
 Page-turn buttons only act while a chapter is open (the WebView URL starts with `/read/`). The
@@ -48,6 +49,13 @@ to "next" and "previous", and the app never needs to know which way the book rea
 **One login.** The WebView's cookie jar holds the session. Background work reads the same cookie and
 echoes the antiforgery token as a header, so there is no second sign-in and no key to create. If the
 session expires, downloads fail with "Signed out" until you open the app and sign in again.
+
+**Servers and accounts.** A profile is one server plus one account on it. Each has its own folder
+under `profiles/<id>` for saved chapters, unsent progress and cached files, so nothing leaks between
+them. Switching saves the live sign-in cookies into the profile being left and puts the target's
+back, which is all a sign-in is here. A second account on the same server is just another profile
+with the same address: switch to it, sign in on the normal page, and its name shows in the list the
+next time it is read. Deleting a profile removes its sign-in and files from the phone only.
 
 **Offline reading without touching the reader.** `shouldInterceptRequest` answers page requests from
 disk when the chapter is saved. The reader manifest is answered from the saved copy only when the
@@ -72,6 +80,6 @@ server's setting uses. A chapter with progress still waiting to sync is never de
 ## Limits
 
 - Starting with no network needs the app to have been opened online once, so the web app's files are saved.
-- Saved chapters are tied to one server. Changing the server address clears them.
+- Saved chapters belong to one profile. Background sync and downloads only run for the profile in use; a download in flight when you switch is queued again when you come back.
 - No emulator image was available when this was written, so the app has been compiled and its logic
   unit tested, but not driven on a device.

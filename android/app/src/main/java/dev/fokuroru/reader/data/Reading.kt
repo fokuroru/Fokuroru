@@ -84,8 +84,8 @@ data class ReadingSnapshot(val updatedAt: Long, val items: List<ReadingItem>, va
             file(context).writeText(snapshot.toJson().toString())
         }
 
-        private fun file(context: Context) = File(context.filesDir, "reading.json")
+        private fun file(context: Context) = File(Profiles.activeDir(context), "reading.json")
 
-        fun coverFile(context: Context, seriesId: Int) = File(File(context.filesDir, "covers"), "$seriesId.jpg")
+        fun coverFile(context: Context, seriesId: Int) = File(File(Profiles.activeDir(context), "covers"), "$seriesId.jpg")
     }
 }

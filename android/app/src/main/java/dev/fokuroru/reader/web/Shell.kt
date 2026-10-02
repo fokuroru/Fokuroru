@@ -3,6 +3,7 @@ package dev.fokuroru.reader.web
 import android.content.Context
 import android.webkit.MimeTypeMap
 import android.webkit.WebResourceResponse
+import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.net.Api
 import java.io.File
 import java.io.FileInputStream
@@ -17,7 +18,7 @@ import java.security.MessageDigest
  * which makes a file-per-path cache safe: a new build brings new names, and old ones are pruned.
  */
 class Shell(context: Context, private val api: Api) {
-    private val dir = File(context.filesDir, "shell").apply { mkdirs() }
+    private val dir = File(Profiles.activeDir(context), "shell").apply { mkdirs() }
     private val indexFile = File(dir, "index.html")
 
     fun hasIndex() = indexFile.isFile

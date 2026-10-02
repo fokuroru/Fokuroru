@@ -35,7 +35,7 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
             findPreference<androidx.preference.Preference>("change_server")?.setOnPreferenceClickListener {
-                startActivity(Intent(requireContext(), SetupActivity::class.java))
+                startActivity(Intent(requireContext(), ServersActivity::class.java))
                 true
             }
         }

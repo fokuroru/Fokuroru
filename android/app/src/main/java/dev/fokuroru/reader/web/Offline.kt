@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
 import org.json.JSONObject
@@ -26,7 +27,7 @@ class Offline(private val context: Context) {
     private val api = Api(context)
     private val store = Store.get(context)
     private val shell = Shell(context, api)
-    private val stashDir = File(context.filesDir, "stash").apply { mkdirs() }
+    private val stashDir = File(Profiles.activeDir(context), "stash").apply { mkdirs() }
 
     @Volatile private var reachableAt = 0L
     @Volatile private var reachable = true
@@ -138,7 +139,10 @@ class Offline(private val context: Context) {
                     }
                     val stream = if (status in 200..299) conn.inputStream else conn.errorStream
                     val bytes = stream?.use { it.readBytes() } ?: ByteArray(0)
-                    if (status in 200..299) file.writeBytes(bytes)
+                    if (status in 200..299) {
+                        file.writeBytes(bytes)
+                        if (request.url.path == "/api/v1/auth/me") rememberUser(bytes)
+                    }
                     return WebResourceResponse(
                         conn.contentType?.substringBefore(';') ?: "application/json", "utf-8",
                         status, conn.responseMessage ?: "OK",
@@ -153,6 +157,16 @@ class Offline(private val context: Context) {
         }
         if (file.isFile) return json(200, file.readBytes())
         return json(503, "{\"error\":\"offline\"}".toByteArray())
+    }
+
+    /** The account name goes into the profile list, so two accounts on one server can be told apart. */
+    private fun rememberUser(body: ByteArray) {
+        val name = try {
+            JSONObject(String(body)).optString("userName")
+        } catch (_: Exception) {
+            ""
+        }
+        if (name.isNotEmpty()) Profiles.rememberUser(context, name)
     }
 
     private fun json(status: Int, body: ByteArray) = WebResourceResponse(
