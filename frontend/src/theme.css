@@ -8791,12 +8791,19 @@ body.reader-open {
   gap: 14px 12px;
 }
 .lite-card {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   display: flex;
   flex-direction: column;
   gap: 5px;
   min-width: 0;
   color: inherit;
   text-decoration: none;
+}
+.lite-cover img {
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 .lite-cover {
   position: relative;

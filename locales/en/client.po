@@ -3289,6 +3289,7 @@ msgid "Claim whose values name permissions, e.g. <0>DownloadChapters</0>. Values
 msgstr "Claim whose values name permissions, e.g. <0>DownloadChapters</0>. Values that match nothing are ignored."
 
 #: src/components/LinkFileToChaptersModal.tsx
+#: src/components/lite/SeriesSheet.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/pages/HealthPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -4536,6 +4537,7 @@ msgstr "Doujinshi"
 msgid "Down"
 msgstr "Down"
 
+#: src/components/lite/SeriesSheet.tsx
 #: src/pages/SeriesDetailPage.tsx
 msgid "Download"
 msgstr "Download"
@@ -7900,6 +7902,10 @@ msgstr "No changes yet"
 msgid "No chapter here carries a reading time, so there is no pace to report."
 msgstr "No chapter here carries a reading time, so there is no pace to report."
 
+#: src/components/lite/SeriesSheet.tsx
+msgid "No chapters are on the server for this series."
+msgstr "No chapters are on the server for this series."
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "No chapters known."
 msgstr "No chapters known."
@@ -9642,6 +9648,7 @@ msgstr "read"
 
 #: src/components/discover/SourcePreviewPanel.tsx
 #: src/components/home/RecentlyAddedRail.tsx
+#: src/components/lite/SeriesSheet.tsx
 #: src/components/ui/SeriesRow.tsx
 #: src/pages/discover/FeedbackLab.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
@@ -10697,6 +10704,11 @@ msgstr "Sample chapter"
 msgid "Save"
 msgstr "Save"
 
+#. placeholder {0}: picked.size
+#: src/components/lite/SeriesSheet.tsx
+msgid "Save {0} to this device"
+msgstr "Save {0} to this device"
+
 #: src/components/DeviceSaveButton.tsx
 msgid "Save {label} to this device"
 msgstr "Save {label} to this device"
@@ -11254,6 +11266,7 @@ msgstr "Select {fileName}"
 msgid "Select {relativePath}"
 msgstr "Select {relativePath}"
 
+#: src/components/lite/SeriesSheet.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 msgid "Select all"
@@ -11366,6 +11379,14 @@ msgstr "Series Folder Format"
 #: src/components/ui/seriesNotifications.ts
 msgid "Series I'm reading"
 msgstr "Series I'm reading"
+
+#: src/components/lite/SeriesSheet.tsx
+msgid "Series info (desktop view)"
+msgstr "Series info (desktop view)"
+
+#: src/components/lite/SeriesSheet.tsx
+msgid "Series info in the desktop view"
+msgstr "Series info in the desktop view"
 
 #: src/pages/SettingsPage.tsx
 msgid "Series metadata comes from MangaBaka. The local database keeps a nightly snapshot on disk (~3 GB) so search and imports skip the API's rate limit, and Discover needs it. The API is used until the first download finishes."

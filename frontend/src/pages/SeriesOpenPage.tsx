@@ -16,7 +16,7 @@ interface Next {
   downloaded: boolean
 }
 
-function labelOf(c: ChapterDto): string {
+export function labelOf(c: ChapterDto): string {
   if (c.isOneShot || c.number === null) return c.title ?? staticT`One-shot`
   const volume = c.fileVolume ?? (c.volume !== null ? String(c.volume) : null)
   const number = c.number

@@ -1,7 +1,7 @@
 import { ActionIcon, Alert, Button, Progress, SegmentedControl, Text, TextInput } from '@mantine/core'
 import { IconDeviceMobileDown, IconDeviceDesktop, IconSearch, IconSettings } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SpiceButton } from '../components/layout/SpiceButton'
@@ -13,6 +13,8 @@ import { BrandWordmark, IconBrandMark } from '../components/IconBrandMark'
 import { nativeApp } from '../lib/nativeApp'
 import { setSimpleViewPreferred } from '../lib/simpleView'
 import { spineVars } from '../lib/spine'
+import { SeriesSheet, type SheetSeries } from '../components/lite/SeriesSheet'
+import { useLongPress } from '../components/lite/useLongPress'
 
 const PAGE = 24
 
@@ -33,6 +35,7 @@ export default function SimpleHomePage() {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<Sort>('recent')
   const [shown, setShown] = useState(PAGE)
+  const [held, setHeld] = useState<SheetSeries | null>(null)
 
   const continuing = reading.data?.continueReading ?? []
   const upNext = reading.data?.jumpBackIn ?? []
@@ -61,10 +64,13 @@ export default function SimpleHomePage() {
 
   const books = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    // Only what can be read now: a series with nothing on the server would open to a download prompt.
+    // Only what there is to read: nothing on the server would open to a download prompt, and a series that is
+    // still coming out and fully read has nothing new.
     const list = (library.data ?? []).filter(
       (s) =>
         s.chapterFileCount > 0 &&
+        // Ongoing and caught up: nothing left to read until the next chapter arrives.
+        s.readingStatus !== 'UpToDate' &&
         (!needle || s.displayTitle.toLowerCase().includes(needle) || s.title.toLowerCase().includes(needle)),
     )
     return list.sort((a, b) => {
@@ -139,7 +145,7 @@ export default function SimpleHomePage() {
         )
       )}
 
-      {railItems.length > 0 && <Rail title={t`Continue reading`} items={railItems} />}
+      {railItems.length > 0 && <Rail title={t`Continue reading`} items={railItems} onHold={setHeld} />}
 
       <section className="lite-section" aria-labelledby="lite-library">
         <h2 id="lite-library" className="lite-heading">
@@ -177,7 +183,7 @@ export default function SimpleHomePage() {
           <>
             <div className="lite-grid">
               {books.slice(0, shown).map((s) => (
-                <Book key={s.id} series={s} />
+                <Book key={s.id} series={s} onHold={setHeld} />
               ))}
             </div>
             {books.length > shown && (
@@ -190,6 +196,7 @@ export default function SimpleHomePage() {
       </section>
 
       <AppStatus offline={offline} />
+      <SeriesSheet series={held} onClose={() => setHeld(null)} />
     </div>
   )
 }
@@ -323,13 +330,13 @@ function plainItem(series: SeriesDto): HomeReadingItem {
   }
 }
 
-function Rail({ title, items }: { title: string; items: HomeReadingItem[] }) {
+function Rail({ title, items, onHold }: { title: string; items: HomeReadingItem[]; onHold: (s: SheetSeries) => void }) {
   return (
     <section className="lite-section">
       <h2 className="lite-heading">{title}</h2>
       <div className="lite-rail">
         {items.map((item) => (
-          <Link key={item.seriesId} to={`/open/${item.seriesId}`} state={{ lite: true }} className="lite-card">
+          <HeldLink key={item.seriesId} id={item.seriesId} title={item.seriesTitle} onHold={onHold}>
             <span className="lite-cover">
               {item.coverUrl ? <img src={item.coverUrl} alt="" loading="lazy" /> : <span className="lite-cover-blank" />}
               {item.pageCount > 0 && item.page > 0 && (
@@ -338,20 +345,30 @@ function Rail({ title, items }: { title: string; items: HomeReadingItem[] }) {
             </span>
             <span className="lite-card-title">{item.seriesTitle}</span>
             <span className="lite-card-sub">{item.chapterLabel}</span>
-          </Link>
+          </HeldLink>
         ))}
       </div>
     </section>
   )
 }
 
-function Book({ series }: { series: SeriesDto }) {
+function Book({ series, onHold }: { series: SeriesDto; onHold: (s: SheetSeries) => void }) {
   return (
-    <Link to={`/open/${series.id}`} state={{ lite: true }} className="lite-card">
+    <HeldLink id={series.id} title={series.displayTitle} onHold={onHold}>
       <span className="lite-cover">
         {series.coverUrl ? <img src={series.coverUrl} alt="" loading="lazy" /> : <span className="lite-cover-blank" />}
       </span>
       <span className="lite-card-title">{series.displayTitle}</span>
+    </HeldLink>
+  )
+}
+
+/** A cover that opens the series on a tap and a menu on a hold. */
+function HeldLink({ id, title, onHold, children }: { id: number; title: string; onHold: (s: SheetSeries) => void; children: ReactNode }) {
+  const press = useLongPress(() => onHold({ id, title }))
+  return (
+    <Link to={`/open/${id}`} state={{ lite: true }} className="lite-card" {...press}>
+      {children}
     </Link>
   )
 }

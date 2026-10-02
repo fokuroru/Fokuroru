@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.35 (63)
+- No app change. Mobile view: hold a cover for Read, Download (pick chapters on the server to save to the device) or Series info in the desktop view; the library hides series that are ongoing and fully read.
+
 ## 0.5.34 (62)
 - No app change. Changing the content filter no longer reshuffles the doodles on the chalkboard when its figures change.
 

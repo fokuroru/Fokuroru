@@ -3933,6 +3933,7 @@ msgid "Claim whose values name permissions, e.g. <0>DownloadChapters</0>. Values
 msgstr "La revendication indique quelles valeurs nomment les autorisations, par exemple <0>DownloadChapters</0>. Les valeurs sans correspondance sont ignorées."
 
 #: src/components/LinkFileToChaptersModal.tsx
+#: src/components/lite/SeriesSheet.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/pages/HealthPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -5401,6 +5402,7 @@ msgstr "Doujinshi"
 msgid "Down"
 msgstr "En bas"
 
+#: src/components/lite/SeriesSheet.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Download"
@@ -9414,6 +9416,10 @@ msgstr "Aucune modification"
 msgid "No chapter here carries a reading time, so there is no pace to report."
 msgstr "Aucun chapitre ici ne contient de temps de lecture, il n'y a donc aucun rythme à afficher."
 
+#: src/components/lite/SeriesSheet.tsx
+msgid "No chapters are on the server for this series."
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "No chapters known."
@@ -11476,6 +11482,7 @@ msgstr "lu"
 
 #: src/components/discover/SourcePreviewPanel.tsx
 #: src/components/home/RecentlyAddedRail.tsx
+#: src/components/lite/SeriesSheet.tsx
 #: src/components/ui/SeriesRow.tsx
 #: src/pages/discover/FeedbackLab.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
@@ -12731,6 +12738,11 @@ msgstr "Chapitre échantillon"
 msgid "Save"
 msgstr "Enregistrer"
 
+#. placeholder {0}: picked.size
+#: src/components/lite/SeriesSheet.tsx
+msgid "Save {0} to this device"
+msgstr ""
+
 #: src/components/DeviceSaveButton.tsx
 msgid "Save {label} to this device"
 msgstr ""
@@ -13380,6 +13392,7 @@ msgstr "Sélectionner {fileName}"
 msgid "Select {relativePath}"
 msgstr "Sélectionner {relativePath}"
 
+#: src/components/lite/SeriesSheet.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -13516,6 +13529,14 @@ msgstr "Format de dossier de série"
 #, fuzzy
 msgid "Series I'm reading"
 msgstr "Séries que je lis"
+
+#: src/components/lite/SeriesSheet.tsx
+msgid "Series info (desktop view)"
+msgstr ""
+
+#: src/components/lite/SeriesSheet.tsx
+msgid "Series info in the desktop view"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy

@@ -3933,6 +3933,7 @@ msgid "Claim whose values name permissions, e.g. <0>DownloadChapters</0>. Values
 msgstr "As claims cujos valores nomeiam permissões, por exemplo, <0>DownloadChapters</0>. Valores que não correspondem a nada são ignorados."
 
 #: src/components/LinkFileToChaptersModal.tsx
+#: src/components/lite/SeriesSheet.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/pages/HealthPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -5401,6 +5402,7 @@ msgstr "Doujinshi"
 msgid "Down"
 msgstr "Para baixo"
 
+#: src/components/lite/SeriesSheet.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Download"
@@ -9414,6 +9416,10 @@ msgstr "Ainda não há alterações"
 msgid "No chapter here carries a reading time, so there is no pace to report."
 msgstr "Nenhum capítulo aqui tem tempo de leitura, então não há ritmo a informar."
 
+#: src/components/lite/SeriesSheet.tsx
+msgid "No chapters are on the server for this series."
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "No chapters known."
@@ -11476,6 +11482,7 @@ msgstr "lido"
 
 #: src/components/discover/SourcePreviewPanel.tsx
 #: src/components/home/RecentlyAddedRail.tsx
+#: src/components/lite/SeriesSheet.tsx
 #: src/components/ui/SeriesRow.tsx
 #: src/pages/discover/FeedbackLab.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
@@ -12731,6 +12738,11 @@ msgstr "Capítulo de exemplo"
 msgid "Save"
 msgstr "Salvar"
 
+#. placeholder {0}: picked.size
+#: src/components/lite/SeriesSheet.tsx
+msgid "Save {0} to this device"
+msgstr ""
+
 #: src/components/DeviceSaveButton.tsx
 msgid "Save {label} to this device"
 msgstr ""
@@ -13380,6 +13392,7 @@ msgstr "Selecionar {fileName}"
 msgid "Select {relativePath}"
 msgstr "Selecionar {relativePath}"
 
+#: src/components/lite/SeriesSheet.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -13516,6 +13529,14 @@ msgstr "Formato da pasta de séries"
 #, fuzzy
 msgid "Series I'm reading"
 msgstr "Séries que estou lendo"
+
+#: src/components/lite/SeriesSheet.tsx
+msgid "Series info (desktop view)"
+msgstr ""
+
+#: src/components/lite/SeriesSheet.tsx
+msgid "Series info in the desktop view"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
