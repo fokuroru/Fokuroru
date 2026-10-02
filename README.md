@@ -1,6 +1,6 @@
 # <img src="frontend/public/brand/fokuroru-icon-colour-light.svg" width="50" alt=""> Fōkurōru
 
-Fōkurōru is a personal fork of [Maki](https://github.com/OrbitMPGH/Maki) by OrbitMPGH. **All of
+Fōkurōru is a personal fork of [Maki](https://github.com/OrbitMPGH/Maki) by OrbitMPGH. **Most of
 the changes in this fork were written by AI.** It is maintained for my own use
 (so it'll probs break for you: no support and no promises).
 
@@ -8,6 +8,10 @@ For the original application's installation, configuration and documentation, se
 [original project](https://github.com/OrbitMPGH/Maki). Problems with Maki itself belong upstream,
 not here. The code, folders and container names still say Maki, and the
 [GPLv3 licence](LICENSE) carries over unchanged.
+
+## Why the Fork?
+
+So far, Maki has been the closest thing to what I want out of a manga manager, but there were a couple of missing features that'll likely appear down the line. I impatiently decided to move away from my existing setup and commit to Maki instead, but of course, I needed to tweak the product before it eventually gets built into the real deal. Ideally, I'd prefer using someone else's product as I have no appetite in handling my own garbage code. 
 
 ## Comparison baseline
 
