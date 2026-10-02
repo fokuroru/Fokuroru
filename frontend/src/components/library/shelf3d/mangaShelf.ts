@@ -168,8 +168,8 @@ interface Row {
 const BANNER_WIDTH_MIN = 0.4
 const BANNER_WIDTH_MAX = 0.6
 /** How much a sheet of paper resists being folded along its length and across it (0 is cloth, 1 is card). */
-const PAPER_STIFFNESS_ALONG = 0.5
-const PAPER_STIFFNESS_ACROSS = 0.7
+const PAPER_STIFFNESS_ALONG = 0.85
+const PAPER_STIFFNESS_ACROSS = 0.9
 /** How often the tape gives way on one side and the banner hangs from the other. */
 const BANNER_FLOP_SHARE = 0.02
 const ROW = 420
@@ -734,16 +734,29 @@ export class MangaShelf {
     const stride = cols + 1
     const count = stride * (rows + 1)
     const half = this.logicalWidth / 2
-    // What it can land on, in the board's coordinates: the tops of the books, props, and the plank.
-    const obstacles: { x0: number; x1: number; top: number }[] = []
+    // What it can land on, as solid boxes in the board's coordinates: every book (turned as it stands), prop and
+    // the plank. Each reaches back to the board, so the paper comes down onto the top of a book and cannot slip
+    // behind it, and none can be pushed through from the side or the front.
+    const boxes: { cx: number; cy: number; cz: number; hw: number; hh: number; hz: number; cos: number; sin: number }[] = []
+    const wallFace = -148
+    const addBox = (x0: number, x1: number, y0: number, y1: number, front: number, angle = 0, cx?: number, cy?: number, hw?: number, hh?: number) => {
+      boxes.push({
+        cx: cx ?? (x0 + x1) / 2, cy: cy ?? (y0 + y1) / 2, cz: (wallFace + front) / 2,
+        hw: hw ?? (x1 - x0) / 2, hh: hh ?? (y1 - y0) / 2, hz: (front - wallFace) / 2,
+        cos: Math.cos(angle), sin: Math.sin(angle),
+      })
+    }
     for (const item of this.items) {
       if (item.pulledAt !== undefined) continue
-      obstacles.push({ x0: item.body.bounds.min.x - half, x1: item.body.bounds.max.x - half, top: 380 - item.body.bounds.min.y })
+      const body = item.body
+      addBox(0, 0, 0, 0, body.z + body.depth / 2, -body.angle, body.position.x - half, 380 - body.position.y, body.bookWidth / 2, body.bookHeight / 2)
     }
     for (const prop of this.props) {
-      obstacles.push({ x0: prop.body.bounds.min.x - half, x1: prop.body.bounds.max.x - half, top: 380 - prop.body.bounds.min.y })
+      const bd = prop.body.bounds
+      addBox(bd.min.x - half, bd.max.x - half, 380 - bd.max.y, 380 - bd.min.y, prop.body.z + (prop.body.depth ?? 60) / 2)
     }
-    obstacles.push({ x0: -this.wallSize.w / 2, x1: this.wallSize.w / 2, top: 19.5 })
+    // The plank itself, which is as far down as anything falls.
+    addBox(-this.wallSize.w / 2, this.wallSize.w / 2, -200, 19.5, 14)
     const zBoard = -146.3
 
     const steps = Math.max(1, Math.round(frame * 120))
@@ -767,7 +780,7 @@ export class MangaShelf {
       }
       // Threads: each pair of neighbours wants to stay as far apart as paper keeps them. A few passes, so it
       // stays about the size it is without going stiff: nothing here resists bending, which is what makes it floppy.
-      for (let pass = 0; pass < 5; pass++) {
+      for (let pass = 0; pass < 7; pass++) {
         for (let r = 0; r <= rows; r++) {
           for (let c = 0; c <= cols; c++) {
             const i = r * stride + c
@@ -791,17 +804,34 @@ export class MangaShelf {
             pos[k + 2] = home[k + 2]
             continue
           }
-          // Not through the board, and not through whatever stands beneath it: it comes down onto the top of a
-          // book, a prop or the plank and rests there.
+          // Not through the board, and not through anything standing in front of it.
           if (pos[k + 2] < zBoard) pos[k + 2] = zBoard
-          for (const o of obstacles) {
-            if (pos[k] >= o.x0 && pos[k] <= o.x1 && pos[k + 1] < o.top && prev[k + 1] >= o.top - 4) {
-              pos[k + 1] = o.top
-              // Friction: it does not slide off the way ice would.
-              prev[k] += (pos[k] - prev[k]) * 0.35
-              prev[k + 2] += (pos[k + 2] - prev[k + 2]) * 0.35
-              prev[k + 1] = pos[k + 1]
-            }
+          for (const box of boxes) {
+            const px = pos[k] - box.cx
+            const py = pos[k + 1] - box.cy
+            const lx = px * box.cos + py * box.sin
+            const ly = -px * box.sin + py * box.cos
+            const lz = pos[k + 2] - box.cz
+            const dx = box.hw - Math.abs(lx)
+            const dy = box.hh - Math.abs(ly)
+            const dz = box.hz - Math.abs(lz)
+            if (dx <= 0 || dy <= 0 || dz <= 0) continue
+            // Out by the nearest face; a way out through the top is preferred, which is how it comes to rest on one.
+            const up = ly > 0 ? dy * 0.5 : dy
+            let nx = lx
+            let ny = ly
+            let nz = lz
+            const margin = 0.9
+            if (up <= dx && up <= dz) ny = (ly > 0 ? 1 : -1) * (box.hh + margin)
+            else if (dx <= dz) nx = (lx > 0 ? 1 : -1) * (box.hw + margin)
+            else nz = (lz >= 0 ? 1 : -1) * (box.hz + margin)
+            pos[k] = box.cx + nx * box.cos - ny * box.sin
+            pos[k + 1] = box.cy + nx * box.sin + ny * box.cos
+            pos[k + 2] = box.cz + nz
+            // Friction: it grips what it lands on rather than sliding off like ice.
+            prev[k] += (pos[k] - prev[k]) * 0.4
+            prev[k + 1] = pos[k + 1]
+            prev[k + 2] += (pos[k + 2] - prev[k + 2]) * 0.4
           }
         }
       }

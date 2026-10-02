@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.13 (41)
+- No app change. The failing banner's paper is much stiffer, and books, props and the plank are now solid boxes it cannot pass through from any side.
+
 ## 0.5.12 (40)
 - No app change. The failing banner's paper is a little stiffer: it resists folding, more firmly down its height than along its length.
 
