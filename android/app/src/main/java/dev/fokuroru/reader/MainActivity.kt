@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -22,6 +23,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -241,6 +243,7 @@ class MainActivity : AppCompatActivity() {
                 pageFailed = false
                 currentUrl = url
                 routeChanged(url)
+                view.postDelayed({ matchBarsToPage() }, 400)
             }
 
             override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
@@ -253,6 +256,7 @@ class MainActivity : AppCompatActivity() {
                 if (url.startsWith("chrome-error:")) return
                 if (!pageFailed) offlineView.visibility = View.GONE
                 pushLayout()
+                matchBarsToPage()
                 if (offServer()) {
                     gatewayBanner.visibility = View.GONE
                 } else {
@@ -534,6 +538,22 @@ class MainActivity : AppCompatActivity() {
 
     // ---- device ----
 
+    /** Paints the area behind the system bars in the page's own background, with icons that read on it. */
+    private fun matchBarsToPage() {
+        web.evaluateJavascript(
+            "(function(){for(var e of [document.body,document.documentElement]){var c=getComputedStyle(e).backgroundColor;" +
+                "if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c}return ''})()",
+        ) { raw ->
+            val parts = Regex("\\d+").findAll(raw ?: "").map { it.value.toInt() }.toList()
+            val color = if (parts.size >= 3) Color.rgb(parts[0], parts[1], parts[2]) else getColor(R.color.surface_dark)
+            root.setBackgroundColor(color)
+            val light = ColorUtils.calculateLuminance(color) > 0.5
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+            controller.isAppearanceLightStatusBars = light
+            controller.isAppearanceLightNavigationBars = light
+        }
+    }
+
     /** Brightness, rotation, bars, cutout and wake lock, all of which only apply while a chapter is open. */
     fun applyChrome() {
         val controller = WindowInsetsControllerCompat(window, window.decorView)
@@ -544,9 +564,13 @@ class MainActivity : AppCompatActivity() {
         } else {
             controller.show(WindowInsetsCompat.Type.systemBars())
         }
-        val night = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-        controller.isAppearanceLightStatusBars = !night
-        controller.isAppearanceLightNavigationBars = !night
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= 29) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
+        matchBarsToPage()
 
         val attrs = window.attributes
         attrs.screenBrightness =
