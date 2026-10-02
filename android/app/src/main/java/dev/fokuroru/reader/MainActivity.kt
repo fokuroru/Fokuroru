@@ -243,7 +243,7 @@ class MainActivity : AppCompatActivity() {
                 pageFailed = false
                 currentUrl = url
                 routeChanged(url)
-                view.postDelayed({ matchBarsToPage() }, 400)
+                view.postDelayed({ matchBarsToPage(); checkServer() }, 400)
             }
 
             override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
@@ -397,7 +397,7 @@ class MainActivity : AppCompatActivity() {
     private fun checkServer() {
         thread {
             val state = offline.probeState()
-            val info = if (state == ServerState.OK && !versionDismissed) Api(this).serverInfo() else null
+            val info = if (state == ServerState.OK) Api(this).serverInfo() else null
             val message = when {
                 info == null -> null
                 Versions.compare(info.version, BuildConfig.SERVER_VERSION) < 0 ->
@@ -409,7 +409,8 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 updateBanner(state)
                 versionBanner.text = message
-                versionBanner.visibility = if (message != null) View.VISIBLE else View.GONE
+                versionBanner.visibility = if (message != null && !versionDismissed) View.VISIBLE else View.GONE
+                showNoticeInFooter(message)
             }
         }
     }
@@ -537,6 +538,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ---- device ----
+
+    /**
+     * The mobile view's footer judges "up to date" by what it was built with, and an older server's web build
+     * knows nothing of this app's needs. The app's verdict replaces that line, in an element of its own so
+     * the page's rendering is left alone.
+     */
+    private fun showNoticeInFooter(message: String?) {
+        val text = org.json.JSONObject.quote(message ?: "")
+        web.evaluateJavascript(
+            "(function(m){var s=document.getElementById('maki-vn-style'),n=document.getElementById('maki-vn');" +
+                "if(!m){if(s)s.remove();if(n)n.remove();return}" +
+                "if(!s){s=document.createElement('style');s.id='maki-vn-style';" +
+                "s.textContent='.lite-status-row[data-state]{display:none}#maki-vn{color:var(--warn,#d9a13b)}';document.head.appendChild(s)}" +
+                "var f=document.querySelector('.lite-status');if(!f)return;" +
+                "if(!n){n=document.createElement('div');n.id='maki-vn';f.appendChild(n)}n.textContent=m})($text)",
+            null,
+        )
+    }
 
     /** Paints the area behind the system bars in the page's own background, with icons that read on it. */
     private fun matchBarsToPage() {

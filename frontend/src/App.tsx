@@ -459,11 +459,11 @@ function AppShellRoutes() {
             <ShellTitle />
           </Group>
           <Group gap={4} wrap="nowrap">
-            <SimpleViewButton />
             <CommandPalette navItems={allItems} />
             <ActivityButton />
             <NotificationBell />
             {isAdmin && <HealthButton />}
+            <SimpleViewButton />
           </Group>
         </Group>
       </AppShell.Header>

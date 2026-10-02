@@ -8666,7 +8666,7 @@ body.reader-open {
 .lite-bar-actions {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
 }
 .lite-alert,

@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.1.7 (8)
+- The app's version verdict replaces the mobile view footer's "up to date" line, so an older server's web build cannot claim a match.
+
 ## 0.1.6 (7)
 - System bars are transparent and take the page's own colour, so the app reads as full screen instead of showing a blue status bar.
 
