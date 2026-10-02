@@ -6,4 +6,6 @@
     <color name="widget_text">#161A16</color>
     <color name="widget_text_dim">#5B635B</color>
     <color name="widget_accent">#3E7A44</color>
+    <color name="widget_on_accent">#FFFFFF</color>
+    <color name="widget_chip">#14000000</color>
 </resources>

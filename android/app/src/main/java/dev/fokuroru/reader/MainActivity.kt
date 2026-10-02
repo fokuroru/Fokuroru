@@ -150,7 +150,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         Profiles.snapshotActive(this)
-        thread { Profiles.refreshUser(this) }
+        val wasReading = reading
+        thread {
+            Profiles.refreshUser(this)
+            // Leaving a chapter moves the place the widgets point at, so they are brought up to date now.
+            if (wasReading) runCatching { ReadingSync.refreshSnapshot(this) }
+        }
         remote?.setActive(false)
         CookieManager.getInstance().flush()
         web.onPause()

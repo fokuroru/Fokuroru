@@ -57,6 +57,10 @@
 
     <string name="widget_title">Reading now</string>
     <string name="widget_empty">Nothing in progress</string>
+    <string name="widget_shelf_title">Reading shelf</string>
+    <string name="widget_resume">Resume</string>
+    <string name="widget_start">Start</string>
+    <string name="widget_signed_out">Open Fōkurōru to sign in</string>
     <string name="widget_next">Next series</string>
     <string name="shortcut_continue">Continue reading</string>
     <string name="shortcut_latest">Latest chapter</string>

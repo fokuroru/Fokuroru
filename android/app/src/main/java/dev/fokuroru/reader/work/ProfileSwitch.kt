@@ -17,6 +17,7 @@ object ProfileSwitch {
             .forEach { DownloadWorker.enqueue(context, it.chapterId) }
         if (store.pendingChapterIds().isNotEmpty()) ProgressSync.schedule(context)
         SyncWorker.syncNow(context)
+        dev.fokuroru.reader.widget.ReadingNowWidget.updateAll(context)
         Events.downloadsChanged()
     }
 

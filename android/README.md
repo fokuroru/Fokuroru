@@ -34,7 +34,8 @@ Sign in on the normal login page. Plain HTTP on a LAN is allowed, since that is 
 | Delete read chapters, keep the last one | `data/AutoDelete.kt` |
 | Background sync, new chapter notices | `work/SyncWorker.kt` |
 | Shortcuts: Continue reading, Latest chapter | `res/xml/shortcuts.xml`, `MainActivity.start` |
-| Reading now widget | `widget/ReadingNowWidget.kt` |
+| Reading now widget, in compact, standard and large sizes | `widget/ReadingNowWidget.kt`, `widget/WidgetViews.kt` |
+| Reading shelf widget: a grid of covers for what you are reading and what is next | `widget/ShelfWidget.kt` |
 | Dark mode and Material You colours | `Theme.Material3.DynamicColors.DayNight`, widget colours in `values-v31` |
 | Simple view as the start screen: last read hero, Continue reading, library grid, switch to the full version | `pages/SimpleHomePage.tsx` in the web UI, `lib/simpleView.ts` |
 | Several servers and accounts, switched from one screen | `ui/ServersActivity.kt`, `data/Profiles.kt` |
@@ -87,6 +88,24 @@ archive is saved correctly. Resumable: pages already on disk are skipped.
 **Auto delete.** After each sync, read chapters are removed from the device. With "keep the last
 chapter read" on, the most recently read chapter of each series is held back, the same rule the
 server's setting uses. A chapter with progress still waiting to sync is never deleted.
+
+## Widgets
+
+Two widgets, both resizable. The layout follows the size the launcher gives each one, so a widget moved
+to a tablet or stretched across a home screen uses the room:
+
+- **Reading now**: compact (a thumbnail and the title), standard (cover, title, chapter, progress, and an
+  arrow to step through what you are reading), and large (a big cover, a Resume button and a row of up to
+  six other covers). The large cover and title scale with the widget on Android 12 and later.
+- **Reading shelf**: a grid of covers, two to six across and one or two rows, for what you are reading
+  and what is up next. Tapping a cover opens that chapter.
+
+Both read the saved list the background sync keeps (`reading.json`, per profile), so they show the active
+server and account, and are redrawn when a sync finishes, when you leave a chapter, and when you switch
+profile. A signed-out profile shows "Open Fōkurōru to sign in".
+
+Debug builds include `WidgetPreviewActivity`, which draws every layout at ten sizes with sample covers
+and needs no launcher: `adb shell am start -n dev.fokuroru.reader/.WidgetPreviewActivity`.
 
 ## Screen sizes
 
