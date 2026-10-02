@@ -127,6 +127,16 @@ replaced. Existing Maki features from before the fork are not repeated here.
 - Added a zoom slider that works with every fit mode, including narrowing webtoon strips on wide
   screens, and a reading progress line using the series' spine colour.
 
+### Android app
+
+- Added an Android app in `android/`: the web UI in a WebView, plus volume key, Bluetooth clicker,
+  headset and stylus page turns, brightness, rotation, immersive and notch controls, and two pages
+  on tablets and unfolded foldables.
+- Chapters can be saved to the device and read with no network. Progress read offline is queued and
+  sent when the connection returns. A background sync refreshes a Reading now widget and the
+  Continue reading and Latest chapter shortcuts, saves upcoming chapters and clears out read ones.
+  See [android/README.md](android/README.md).
+
 ### Platform, migrations and account isolation
 
 - Added an installable PWA with a service worker caching the app shell and hashed build assets.

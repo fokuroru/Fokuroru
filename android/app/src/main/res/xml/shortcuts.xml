@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="continue_reading"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_continue"
+        android:shortcutShortLabel="@string/shortcut_continue"
+        android:shortcutLongLabel="@string/shortcut_continue">
+        <intent
+            android:action="dev.fokuroru.reader.CONTINUE"
+            android:targetPackage="dev.fokuroru.reader"
+            android:targetClass="dev.fokuroru.reader.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="latest_chapter"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_latest"
+        android:shortcutShortLabel="@string/shortcut_latest"
+        android:shortcutLongLabel="@string/shortcut_latest">
+        <intent
+            android:action="dev.fokuroru.reader.LATEST"
+            android:targetPackage="dev.fokuroru.reader"
+            android:targetClass="dev.fokuroru.reader.MainActivity" />
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Fōkurōru</string>
+
+    <string name="setup_title">Connect to your server</string>
+    <string name="setup_body">Enter the address of your Fōkurōru server, for example http://192.168.1.20:8990.</string>
+    <string name="setup_hint">Server address</string>
+    <string name="setup_connect">Connect</string>
+    <string name="setup_checking">Checking the server…</string>
+    <string name="setup_error">Couldn\'t reach a Fōkurōru server at that address.</string>
+
+    <string name="offline_title">Can\'t reach the server</string>
+    <string name="offline_body">You can still read chapters saved on this device.</string>
+    <string name="offline_retry">Try again</string>
+    <string name="offline_downloads">Saved chapters</string>
+    <string name="offline_change_server">Change server</string>
+
+    <string name="settings_title">Android app settings</string>
+    <string name="downloads_title">Saved on this device</string>
+    <string name="downloads_empty">Nothing saved yet. Use the download button on a chapter to read it offline.</string>
+    <string name="downloads_delete">Delete</string>
+    <string name="downloads_delete_read">Delete read chapters</string>
+    <string name="downloads_state_queued">Waiting</string>
+    <string name="downloads_state_downloading">Downloading %1$d of %2$d</string>
+    <string name="downloads_state_failed">Failed</string>
+    <string name="downloads_signin">Sign in again in the app so downloads can continue.</string>
+
+    <string name="tools_title">Reading tools</string>
+    <string name="tools_brightness">Brightness</string>
+    <string name="tools_brightness_auto">Follow system</string>
+    <string name="tools_rotation">Rotation</string>
+    <string name="tools_rotation_auto">Auto</string>
+    <string name="tools_rotation_portrait">Portrait</string>
+    <string name="tools_rotation_landscape">Landscape</string>
+    <string name="tools_rotation_locked">Lock</string>
+    <string name="tools_immersive">Hide system bars</string>
+    <string name="tools_keep_awake">Keep screen on</string>
+    <string name="tools_invert">Invert page turns</string>
+
+    <string name="widget_title">Reading now</string>
+    <string name="widget_empty">Nothing in progress</string>
+    <string name="widget_next">Next series</string>
+    <string name="shortcut_continue">Continue reading</string>
+    <string name="shortcut_latest">Latest chapter</string>
+
+    <string name="channel_downloads">Downloads</string>
+    <string name="channel_updates">New chapters</string>
+    <string name="notification_downloading">Saving %1$s</string>
+    <plurals name="notification_new_chapters">
+        <item quantity="one">%1$s has %2$d unread chapter</item>
+        <item quantity="other">%1$s has %2$d unread chapters</item>
+    </plurals>
+</resources>

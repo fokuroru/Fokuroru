@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="rotation_entries">
+        <item>Auto</item>
+        <item>Portrait</item>
+        <item>Landscape</item>
+        <item>Lock current</item>
+    </string-array>
+    <string-array name="rotation_values">
+        <item>auto</item>
+        <item>portrait</item>
+        <item>landscape</item>
+        <item>locked</item>
+    </string-array>
+    <string-array name="auto_download_entries">
+        <item>Off</item>
+        <item>Next chapter</item>
+        <item>Next 3 chapters</item>
+        <item>Next 5 chapters</item>
+    </string-array>
+    <string-array name="auto_download_values">
+        <item>0</item>
+        <item>1</item>
+        <item>3</item>
+        <item>5</item>
+    </string-array>
+    <string-array name="sync_entries">
+        <item>Off</item>
+        <item>Every hour</item>
+        <item>Every 3 hours</item>
+        <item>Every 6 hours</item>
+        <item>Every 12 hours</item>
+        <item>Daily</item>
+    </string-array>
+    <string-array name="sync_values">
+        <item>0</item>
+        <item>1</item>
+        <item>3</item>
+        <item>6</item>
+        <item>12</item>
+        <item>24</item>
+    </string-array>
+</resources>

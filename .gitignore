@@ -55,3 +55,12 @@ skills-lock.json
 
 # macOS
 .DS_Store
+
+# Android app
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.kotlin/
+*.apk
+*.aab

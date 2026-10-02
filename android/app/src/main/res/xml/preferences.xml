@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="Page turning" app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            app:key="volume_keys"
+            app:title="Volume keys turn pages"
+            app:summary="While a chapter is open, volume down goes forward and volume up goes back."
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="swap_volume_keys"
+            app:title="Swap volume up and down"
+            app:dependency="volume_keys"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="invert_turn"
+            app:title="Invert page turns"
+            app:summary="Reverses every button below, not the reading direction."
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="remote_buttons"
+            app:title="Bluetooth clickers and headset buttons"
+            app:summary="Page up and down, media next and previous, and play or pause."
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="stylus_buttons"
+            app:title="Stylus buttons"
+            app:summary="The primary button goes forward, the secondary button goes back."
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Display" app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            app:key="keep_awake"
+            app:title="Keep screen on while reading"
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="immersive"
+            app:title="Hide system bars while reading"
+            app:summary="Swipe from an edge to show them again."
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="cutout"
+            app:title="Draw into the camera cutout"
+            app:summary="Lets pages use the area around the notch in landscape."
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="brightness_override"
+            app:title="Set brightness while reading"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+        <SeekBarPreference
+            app:key="brightness"
+            app:title="Brightness"
+            app:dependency="brightness_override"
+            app:min="1"
+            android:max="100"
+            app:defaultValue="60"
+            app:showSeekBarValue="true"
+            app:iconSpaceReserved="false" />
+        <ListPreference
+            app:key="rotation"
+            app:title="Rotation"
+            app:entries="@array/rotation_entries"
+            app:entryValues="@array/rotation_values"
+            app:defaultValue="auto"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="dual_page"
+            app:title="Two pages on tablets and unfolded foldables"
+            app:summary="Shows spreads when the window is wide."
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Downloads" app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            app:key="wifi_only"
+            app:title="Download on Wi-Fi only"
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="charging_only"
+            app:title="Download only while charging"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+        <ListPreference
+            app:key="auto_download_next"
+            app:title="Save the next chapters automatically"
+            app:entries="@array/auto_download_entries"
+            app:entryValues="@array/auto_download_values"
+            app:defaultValue="0"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="delete_read"
+            app:title="Delete chapters from this device once read"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="keep_last_read"
+            app:title="Keep the last chapter read"
+            app:summary="Holds back the most recently read chapter in each series, so Continue reading has somewhere to land."
+            app:dependency="delete_read"
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+        <Preference
+            app:key="open_downloads"
+            app:title="Saved chapters"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Background sync" app:iconSpaceReserved="false">
+        <ListPreference
+            app:key="sync_hours"
+            app:title="Check for updates"
+            app:entries="@array/sync_entries"
+            app:entryValues="@array/sync_values"
+            app:defaultValue="6"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:key="notify_new"
+            app:title="Notify about new chapters"
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Server" app:iconSpaceReserved="false">
+        <Preference
+            app:key="change_server"
+            app:title="Change server"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+</PreferenceScreen>
