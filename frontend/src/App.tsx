@@ -56,6 +56,7 @@ import { ShellTitleProvider, useShellTitleValue } from './lib/shellTitle'
 import HomePage from './pages/HomePage'
 import SimpleHomePage from './pages/SimpleHomePage'
 import { setSimpleViewPreferred, simpleViewPreferred } from './lib/simpleView'
+import { nativeApp } from './lib/nativeApp'
 import LibraryPage from './pages/LibraryPage'
 
 // Everything else is reached by a navigation, so it can arrive as its own chunk instead of riding
@@ -216,7 +217,11 @@ function useOpenSimpleView() {
   }
 }
 
-/** Phone-sized screens only: the way back to the simple front page from the full interface. */
+/**
+ * The way back to the simple front page from the full interface. In a browser only phone-sized windows
+ * get it; in the Android app it is always there, because an unfolded phone is wide but is still the
+ * device the simple view is for.
+ */
 function SimpleViewButton() {
   const { t } = useLingui()
   const open = useOpenSimpleView()
@@ -225,7 +230,7 @@ function SimpleViewButton() {
       <ActionIcon
         variant="subtle"
         color="gray"
-        hiddenFrom="sm"
+        hiddenFrom={nativeApp() ? undefined : 'sm'}
         aria-label={t`Simple view`}
         onClick={open}
       >
@@ -239,7 +244,7 @@ function SimpleViewButton() {
 function SimpleViewLink({ onNavigate }: { onNavigate: () => void }) {
   const open = useOpenSimpleView()
   return (
-    <Box hiddenFrom="sm" mb={18}>
+    <Box hiddenFrom={nativeApp() ? undefined : 'sm'} mb={18}>
       <button
         type="button"
         className="nav-link nav-link-button"
