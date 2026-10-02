@@ -33,9 +33,15 @@ RUN expected="$(ls -1d /src/locales/*/ | wc -l)" \
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS backend
 WORKDIR /src
 COPY Directory.Build.props ./
-COPY Maki.sln ./
+# Only the project files first, so the package restore below is cached until a dependency changes, not
+# every time a source file does. The tests are not part of the publish, so they are not copied at all.
+COPY src/Maki.Api/Maki.Api.csproj src/Maki.Api/
+COPY src/Maki.Core/Maki.Core.csproj src/Maki.Core/
+COPY src/Maki.Data/Maki.Data.csproj src/Maki.Data/
+COPY src/Maki.Metadata/Maki.Metadata.csproj src/Maki.Metadata/
+COPY src/Maki.Sources/Maki.Sources.csproj src/Maki.Sources/
+RUN dotnet restore src/Maki.Api/Maki.Api.csproj
 COPY src/ src/
-COPY tests/ tests/
 # Maki.Api embeds locales/*/server.po as resources; see the EmbeddedResource item in Maki.Api.csproj.
 COPY locales/ locales/
 # The Android app's current version, embedded so /initialize.json can tell the app when it is out of date.
@@ -47,7 +53,6 @@ COPY android/version.properties android/version.properties
 ARG VERSION
 ARG SOURCE_COMMIT
 
-RUN dotnet restore src/Maki.Api/Maki.Api.csproj
 # PlaywrightPlatform=all is not a recognized platform keyword in Microsoft.Playwright.targets, so
 # it hits that target's fallback branch and copies every node/<platform> driver folder instead of
 # just the host's. Needed because this publish runs once on $BUILDPLATFORM (native) but its output
@@ -103,13 +108,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=trimmed-publish /app ./
-COPY --from=frontend /src/frontend/dist ./wwwroot/
-COPY distribution/docker/entrypoint.sh /entrypoint.sh
-# The app runs as PUID via gosu, so build-context files with owner-only modes (a source tree copied
-# over a network share) would otherwise be unreadable at startup.
-RUN chmod +x /entrypoint.sh && chmod -R a+rX /app
-
+# The browser install below only needs the Playwright driver, which changes when the package version
+# does and not when the app's own code does. Copying just that folder first lets Docker reuse the
+# (large) install layer on every ordinary rebuild.
+COPY --from=trimmed-publish /app/.playwright ./.playwright
 # MangaFire's vrf request signature is only defeatable inside a real browser, so install a browser
 # for Playwright. We only ever launch headless, so install the ~100 MB chromium-headless-shell rather
 # than full Chromium (which also drags in the ~170 MB headed binary) — MangaFireBrowser launches with
@@ -124,6 +126,16 @@ RUN NODE_ARCH="$([ "$(uname -m)" = "aarch64" ] && echo linux-arm64 || echo linux
     && chmod a+rx /app/.playwright/node/"$NODE_ARCH"/node \
     && chmod -R a+rX /ms-playwright \
     && rm -rf /var/lib/apt/lists/*
+
+# The app itself goes in last: it changes on every build, and everything above it is then reused.
+COPY --from=trimmed-publish /app ./
+COPY --from=frontend /src/frontend/dist ./wwwroot/
+COPY distribution/docker/entrypoint.sh /entrypoint.sh
+# The app runs as PUID via gosu, so build-context files with owner-only modes (a source tree copied
+# over a network share) would otherwise be unreadable at startup. The driver binary is made
+# executable again too: the full copy above lays the publish output's own modes over the earlier ones.
+RUN chmod +x /entrypoint.sh && chmod -R a+rX /app \
+    && chmod a+rx /app/.playwright/node/"$([ "$(uname -m)" = "aarch64" ] && echo linux-arm64 || echo linux-x64)"/node
 
 # The runtime maps JIT-generated code twice, so a page is never both writable and executable: the
 # executable view is what runs, a separate writable view is what the JIT writes through. It is
