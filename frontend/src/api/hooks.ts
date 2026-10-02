@@ -3456,6 +3456,18 @@ export interface ScrobbleStatus {
   log: ScrobbleLogRow[]
 }
 
+/**
+ * Chrome on a tablet often asks for the desktop site, which drops "Android" from the user agent. The
+ * client hint and an ARM Linux touch device still give it away.
+ */
+function isAndroidBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false
+  if (/Android/i.test(navigator.userAgent)) return true
+  const hinted = (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform
+  if (hinted === 'Android') return true
+  return /^Linux (arm|aarch)/i.test(navigator.platform) && navigator.maxTouchPoints > 0
+}
+
 /** The Android app on offer to this browser, or null: only on Android, outside the app, once the server has the file. */
 export function useAndroidApk() {
   const { data } = useQuery({
@@ -3463,7 +3475,7 @@ export function useAndroidApk() {
     queryFn: async () => (await getInitialize()).androidApp ?? null,
     staleTime: Infinity,
   })
-  const onAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+  const onAndroid = isAndroidBrowser()
   return onAndroid && !nativeApp() && data?.apkAvailable ? data : null
 }
 

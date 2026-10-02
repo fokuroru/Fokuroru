@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.2.5 (14)
+- No app change. The web interface also recognises an Android tablet that asks for the desktop site.
+
 ## 0.2.4 (13)
 - No app change. `publish-apk.sh` now publishes to the maki-test server by default.
 
