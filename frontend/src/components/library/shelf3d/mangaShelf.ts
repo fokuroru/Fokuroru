@@ -722,7 +722,7 @@ export class MangaShelf {
       dx: sheetW / cols, dy: sheetH / rows, brokenH: new Uint8Array((rows + 1) * cols), brokenV: new Uint8Array((rows + 1) * (cols + 1)),
       strengthH: Float32Array.from({ length: (rows + 1) * cols }, () => 0.95 + Math.random() * 0.4),
       strengthV: Float32Array.from({ length: (rows + 1) * (cols + 1) }, () => 0.95 + Math.random() * 0.4),
-      holding: null, stuck: [], tapeMaterial: strip, tapes, start: null, last: 0, still: 0, done: false,
+      holding: null, tapes, start: null, last: 0, still: 0, done: false,
     }
     this.stepBanner(performance.now())
     this.wake()
@@ -751,9 +751,12 @@ export class MangaShelf {
       const body = item.body
       addBox(0, 0, 0, 0, body.z + body.depth / 2, -body.angle, body.position.x - half, 380 - body.position.y, body.bookWidth / 2, body.bookHeight / 2)
     }
-    for (const prop of this.props) {
-      const bd = prop.body.bounds
-      addBox(bd.min.x - half, bd.max.x - half, 380 - bd.max.y, 380 - bd.min.y, prop.body.z + (prop.body.depth ?? 60) / 2)
+    // Everything else lying or standing about: props, the chalk, and the duster, which the paper must not pass through
+    // and which pushes it along when it is moved against it.
+    const loose = [...this.props.map((prop) => prop.body), ...this.sticks.map((stick) => stick.body), ...(this.duster ? [this.duster.body] : [])]
+    for (const body of loose) {
+      const bd = body.bounds
+      addBox(bd.min.x - half, bd.max.x - half, 380 - bd.max.y, 380 - bd.min.y, body.z + (body.depth ?? 40) / 2)
     }
     // The plank itself, which is as far down as anything falls.
     addBox(-this.wallSize.w / 2, this.wallSize.w / 2, -200, 19.5, 14)
@@ -951,12 +954,6 @@ export class MangaShelf {
         t.mesh.position.set(pos[k] - t.across, pos[k + 1] + t.down, pos[k + 2] + 1)
         t.mesh.rotation.set(0, -Math.atan2(tz, Math.hypot(tx, ty)), t.angle + heading)
       }
-    }
-
-    for (const t of b.stuck) {
-      const k = t.anchor * 3
-      t.mesh.position.set(home[k], home[k + 1], zBoard + 0.6)
-      t.mesh.rotation.set(0, 0, t.angle)
     }
 
     if (seconds > 11) {
@@ -3422,12 +3419,6 @@ export class MangaShelf {
         for (const i of t.patch) b.pinned[i] = 0
       }
     }
-    b.stuck = b.stuck.filter((s) => {
-      if (!s.patch.some((i) => held.has(i))) return true
-      for (const i of s.patch) b.pinned[i] = 0
-      s.mesh.removeFromParent()
-      return false
-    })
     const at = this.boardAt(e)
     const offsets = new Float32Array(patch.length * 2)
     patch.forEach((i, n) => {
@@ -3472,21 +3463,38 @@ export class MangaShelf {
     this.wake()
   }
 
-  /** Space while holding the paper: it is stuck to the board where it is, with a new strip of tape over that spot. */
+  /**
+   * Space while holding the paper: a strip of tape that came away with it, the nearest to the spot held, is pressed
+   * back onto the board there. There is no new tape: with none near, there is nothing to stick it with.
+   */
   private stickBanner() {
     const b = this.bannerAnim
     const hold = b?.holding
     if (!b || !hold) return
-    // The tape holds only the spot under it, so the rest of the paper is free to turn about it.
-    const keep = new Set(this.around(b, hold.anchor, 1).filter((i) => Math.abs(i - hold.anchor) <= 1 || Math.abs(i - hold.anchor) === b.cols + 1))
-    for (const i of hold.patch) {
-      if (keep.has(i)) b.home[i * 3 + 2] = -146.3
-      else b.pinned[i] = 0
+    const ax = b.pos[hold.anchor * 3]
+    const ay = b.pos[hold.anchor * 3 + 1]
+    let strip: BannerAnim['tapes'][number] | null = null
+    let nearest = 80
+    for (const t of b.tapes) {
+      if (!t.released) continue
+      const d = Math.hypot(b.pos[t.corner * 3] - ax, b.pos[t.corner * 3 + 1] - ay)
+      if (d < nearest) {
+        nearest = d
+        strip = t
+      }
     }
-    const mesh = new T.Mesh(new T.PlaneGeometry(46, 14.4), b.tapeMaterial)
-    mesh.renderOrder = 2
-    b.group.add(mesh)
-    b.stuck.push({ mesh, patch: [...keep], anchor: hold.anchor, angle: (Math.random() < 0.5 ? 1 : -1) * (Math.PI / 4 + (Math.random() - 0.5) * 0.4) })
+    if (!strip) return
+    // The strip goes down where it is, on the paper it is stuck to; only the weights under it are held.
+    const under = new Set(strip.patch)
+    for (const i of hold.patch) if (!under.has(i)) b.pinned[i] = 0
+    for (const i of strip.patch) {
+      b.pinned[i] = 1
+      b.home[i * 3] = b.pos[i * 3]
+      b.home[i * 3 + 1] = b.pos[i * 3 + 1]
+      b.home[i * 3 + 2] = -146.3
+    }
+    strip.released = false
+    strip.releaseAt = Infinity
     b.holding = null
     b.done = false
     b.still = 0
@@ -3687,9 +3695,6 @@ interface BannerAnim {
   strengthV: Float32Array
   /** Paper being held in the hand: the weights, where each sits relative to the one grabbed, and which that is. */
   holding: { patch: number[]; offsets: Float32Array; anchor: number; at: { x: number; y: number }; target: { x: number; y: number } } | null
-  /** Strips of tape the person has put back up, each holding the few weights under it. */
-  stuck: { mesh: T.Mesh; patch: number[]; anchor: number; angle: number }[]
-  tapeMaterial: T.MeshBasicMaterial
   tapes: { mesh: T.Mesh; patch: number[]; corner: number; across: number; down: number; releaseAt: number; released: boolean; angle: number }[]
   start: number | null
   last: number

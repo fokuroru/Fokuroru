@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.18 (46)
+- No app change. The chalk duster and the sticks of chalk are solid to the failing banner's paper and push it along. Space presses back the strip of tape that came away with the paper, nearest the held spot, instead of making a new one.
+
 ## 0.5.17 (45)
 - No app change. The failing banner's paper can be picked up at any point, not only the corners, and Space tapes it up wherever it is held. The hand moves at a pace the paper can follow, so a twitch no longer shreds it.
 
