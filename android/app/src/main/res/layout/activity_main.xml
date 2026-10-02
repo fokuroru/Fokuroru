@@ -64,6 +64,19 @@
             android:layout_weight="1" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/version_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorErrorContainer"
+        android:elevation="6dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnErrorContainer"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/gateway_banner"
         android:layout_width="match_parent"

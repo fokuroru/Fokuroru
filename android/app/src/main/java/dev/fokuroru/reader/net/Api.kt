@@ -150,6 +150,21 @@ class Api(context: Context) {
         private set
 
     /** One anonymous request to see whether the server answers, and as itself. Blocks. */
+    /** The server's own build version, or null when it can't be read. */
+    fun serverVersion(): String? = try {
+        val conn = open("/initialize.json")
+        conn.connectTimeout = 4_000
+        conn.readTimeout = 6_000
+        try {
+            keepCookies(conn)
+            if (Gateway.status(conn) == 200) org.json.JSONObject(conn.inputStream.use { String(it.readBytes()) }).optString("version").ifEmpty { null } else null
+        } finally {
+            conn.disconnect()
+        }
+    } catch (_: Exception) {
+        null
+    }
+
     fun probe(): ServerState = try {
         var target = "/initialize.json"
         var result: ServerState? = null

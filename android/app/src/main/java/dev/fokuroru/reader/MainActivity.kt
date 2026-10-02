@@ -30,8 +30,10 @@ import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.device.Remote
 import dev.fokuroru.reader.input.PageTurnMap
 import dev.fokuroru.reader.input.Turn
+import dev.fokuroru.reader.net.Api
 import dev.fokuroru.reader.net.Gateway
 import dev.fokuroru.reader.net.ServerState
+import dev.fokuroru.reader.net.Versions
 import dev.fokuroru.reader.ui.DownloadsActivity
 import dev.fokuroru.reader.ui.Layouts
 import dev.fokuroru.reader.ui.ReaderTools
@@ -54,6 +56,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var root: View
     private lateinit var offlineView: View
     private lateinit var gatewayBanner: View
+    private lateinit var versionBanner: android.widget.TextView
+    private var versionDismissed = false
     private lateinit var signInBar: View
     private var loginShown = false
     private var loginCheck = 0
@@ -92,6 +96,11 @@ class MainActivity : AppCompatActivity() {
         web = findViewById(R.id.web)
         offlineView = findViewById(R.id.offline)
         gatewayBanner = findViewById(R.id.gateway_banner)
+        versionBanner = findViewById(R.id.version_banner)
+        versionBanner.setOnClickListener {
+            versionDismissed = true
+            versionBanner.visibility = View.GONE
+        }
         signInBar = findViewById(R.id.signin_bar)
         findViewById<View>(R.id.signin_back).setOnClickListener { startActivity(Intent(this, ServersActivity::class.java)) }
         offline = newOffline()
@@ -384,7 +393,16 @@ class MainActivity : AppCompatActivity() {
     private fun checkServer() {
         thread {
             val state = offline.probeState()
-            runOnUiThread { updateBanner(state) }
+            val server = if (state == ServerState.OK && !versionDismissed) Api(this).serverVersion() else null
+            runOnUiThread {
+                updateBanner(state)
+                if (server != null && Versions.compare(server, BuildConfig.SERVER_VERSION) < 0) {
+                    versionBanner.text = getString(R.string.server_too_old, server, BuildConfig.SERVER_VERSION)
+                    versionBanner.visibility = View.VISIBLE
+                } else {
+                    versionBanner.visibility = View.GONE
+                }
+            }
         }
     }
 
