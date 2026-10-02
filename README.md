@@ -46,50 +46,7 @@ replaced. Existing Maki features from before the fork are not repeated here.
 
 ### Home bookshelf and chalkboard
 
-- Added a 3D Reading now shelf using Three.js and Matter.js, then moved it to the top of Home.
-  Reading history determines which series appear, even after read files are deleted.
-- Ordered series by last read, included part-read first chapters, and left variable free space
-  instead of filling the whole shelf. A flat spine shelf is the fallback when WebGL cannot start.
-- Added thirty randomly dealt spine editions, real front covers, blank back covers, title and
-  author lettering, and a chapter band showing the next chapter number.
-- Matched books to their cover proportions, varied their heights on each page load, and allowed
-  some wide-cover books to overhang. Spines, back covers and page edges use the cover's strongest
-  colour family, with contrasting black or white lettering. Skin tones are excluded, muted colours
-  remain eligible, and mostly grey, black or white covers keep the edition palette.
-- Added hover lifting, dragging, rotation, collisions and depth movement. Books stay clear of
-  the wall, tip over the front edge and fall when unsupported. Stacked books can settle on other
-  objects, and hovering does not suspend a falling book.
-- Added a pull-out animation towards the camera before opening the next chapter. Keyboard focus
-  and Enter also open books; arrow keys move focused books in depth.
-- Added covers that swing open during fast movement and stay clear of neighbouring books,
-  shelf shaking after heavy landings, and jolts from rapid page scrolling.
-- Added a randomly placed potted plant with a rigid pot and leaf column, with leaves that bend
-  visually around books. The plant stands before the books arrive.
-- Turned the wall behind the shelf into a chalkboard with library and reading figures, progress,
-  hand-drawn lettering and doodles, including Cool S drawings. Improved spacing between figures
-  and doodles and removed the separate Home page and Reading headings.
-- Added occasional sticks of chalk, thrown onto the shelf after the books appear. Chalk collides
-  with objects and the frame, can roll off the ends, and can draw on the board.
-- Added a chalk duster that wipes drawings and the board's original writing. While holding chalk
-  or the duster, scrolling up or holding Space presses it to the board; scrolling down lifts it.
-  Drawing and erasing are kept for the current page load.
-- Added chalk wear: a stick snaps after roughly a minute of drawing, and heavy objects can crush
-  it into fragments and dust. Fine dust falls onto the plank and other objects.
-- Removed the gap below the shelf and fixed placement, depth, shaking and support behaviour.
-
-### Custom shelf figures
-
-- Added per-user GLB figure uploads, listing, download and deletion in Settings and the API.
-  Users can store up to 12 figures, each at most 30 MiB. Figures are excluded from backups.
-- Picked a figure for the shelf and added size and appearance-frequency settings remembered on
-  the current device: small, medium or large; rarely, sometimes, often or always.
-- Validated binary glTF 2.0 uploads, rejected external resource references and required extensions
-  the shelf cannot decode, including Draco and Basis/KTX2, and warned when models have no images
-  or vertex colours.
-- Allowed embedded figure textures under the content security policy and returned validation
-  errors for malformed JSON property types instead of throwing server errors.
-- Disposed texture maps and shadow resources during cleanup, cancelled outstanding figure fetches
-  on teardown, and disposed loaded figures when their layout was superseded or had no books.
+- Added a 3D Reading now shelf using Three.js and Matter.js. It displays the last few read series and showcases reader stats. It also has a handful of random surprizes buried in it and seasonal changes. 
 
 ### Library and reading status
 
