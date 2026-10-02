@@ -176,6 +176,8 @@ export class ShelfPhysics {
   }
 
   private readonly visiblePlank: Matter.Body
+  /** Set once the plank has come off the wall: there is no floor under anything any more. */
+  collapsed = false
   private readonly walls: Matter.Body[]
 
   /** Which side of the shelf carries more weight: -1 left, 1 right. */
@@ -195,6 +197,7 @@ export class ShelfPhysics {
    * end wall goes too, so what slides down the plank leaves it instead of piling up at the end.
    */
   tiltPlank(side: -1 | 1, angle: number) {
+    this.collapsed = true
     const px = side < 0 ? this.width + 6 : -6
     const a = side * angle
     const dx = this.width / 2 - px
@@ -593,7 +596,7 @@ export class ShelfPhysics {
    * of the bodies, so a tilted book is landed on along its slope.
    */
   surfaceBelow(x: number, y: number, z: number): { y: number; body: BookBody | null } {
-    let best = this.floor
+    let best = this.collapsed ? Infinity : this.floor
     let host: BookBody | null = null
     for (const body of this.bodies) {
       if (Math.abs(z - body.z) > body.depth / 2) continue

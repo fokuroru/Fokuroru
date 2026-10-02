@@ -773,7 +773,7 @@ export class MangaShelf {
       addBox(bd.min.x - half, bd.max.x - half, 380 - bd.max.y, 380 - bd.min.y, body.z + (body.depth ?? 40) / 2)
     }
     // The plank itself, which is as far down as anything falls.
-    addBox(-this.wallSize.w / 2, this.wallSize.w / 2, -200, 19.5, 14)
+    if (!this.rows[0]?.detached) addBox(-this.wallSize.w / 2, this.wallSize.w / 2, -200, 19.5, 14)
     // The wooden frame round the board: three bars standing proud of its face, as solid as anything else.
     const w = this.wallSize.w
     const h = this.wallSize.h
@@ -3278,7 +3278,20 @@ export class MangaShelf {
   private shudder(row: Row, amplitude: number) {
     row.shake = { at: performance.now(), amplitude }
     shelfShakes++
-    if (shelfShakes > SHAKES_TO_DETACH && !row.detached) row.detached = { side: row.physics.heavierSide(), angle: 0, speed: 0 }
+    if (shelfShakes > SHAKES_TO_DETACH && !row.detached) {
+      row.detached = { side: row.physics.heavierSide(), angle: 0, speed: 0 }
+      // Dust lying on the plank itself has nothing under it now: it drifts down like the rest.
+      const now = performance.now()
+      for (const d of this.dust) {
+        if (d.row !== row || !d.settled || d.host || !d.sprite.parent) continue
+        d.settled = false
+        d.sprite.scale.set(d.size, d.size, 1)
+        d.sprite.material.opacity = 0.9
+        d.vx = d.vy = d.vz = 0
+        d.at = now
+        d.last = now
+      }
+    }
   }
 
   private shakeAt(shake: { at: number; amplitude: number }, now: number): number {
