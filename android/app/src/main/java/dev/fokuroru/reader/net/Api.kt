@@ -64,7 +64,7 @@ class Api(context: Context) {
 
     fun checked(conn: HttpURLConnection, expectJson: Boolean = true): HttpURLConnection {
         keepCookies(conn)
-        val status = conn.responseCode
+        val status = Gateway.status(conn)
         if (status in 300..399) {
             val location = conn.getHeaderField("Location")
             if (Gateway.leavesHost(location, Gateway.hostOf(base))) throw GatewayException(location)
@@ -81,7 +81,7 @@ class Api(context: Context) {
         var target = path
         repeat(4) {
             val conn = open(target)
-            val status = conn.responseCode
+            val status = Gateway.status(conn)
             val location = conn.getHeaderField("Location")
             if (status in 300..399 && location != null && !Gateway.leavesHost(location, Gateway.hostOf(base))) {
                 conn.disconnect()
@@ -152,12 +152,12 @@ class Api(context: Context) {
         repeat(3) {
             if (result != null) return@repeat
             val conn = open(target)
-            conn.connectTimeout = 3_000
-            conn.readTimeout = 3_000
+            conn.connectTimeout = 4_000
+            conn.readTimeout = 6_000
             try {
                 keepCookies(conn)
                 val location = conn.getHeaderField("Location")
-                result = Gateway.classify(conn.responseCode, conn.contentType, location, Gateway.hostOf(base))
+                result = Gateway.classify(Gateway.status(conn), conn.contentType, location, Gateway.hostOf(base))
                 if (result == null && location != null) target = if (location.startsWith("http")) location else base + location
             } finally {
                 conn.disconnect()

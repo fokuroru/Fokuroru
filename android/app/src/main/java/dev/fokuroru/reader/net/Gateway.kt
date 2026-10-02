@@ -13,6 +13,18 @@ enum class ServerState { OK, GATEWAY, UNREACHABLE }
  */
 object Gateway {
     /**
+     * The status of [conn]. Android's HttpURLConnection throws "No authentication challenge found" on a
+     * 401 that carries no `WWW-Authenticate` header, which is exactly what a forward-auth gateway sends,
+     * so that case is read as the 401 it is.
+     */
+    fun status(conn: java.net.HttpURLConnection): Int = try {
+        conn.responseCode
+    } catch (e: java.io.IOException) {
+        if (e.message?.contains("authentication challenge", ignoreCase = true) == true) 401 else throw e
+    }
+
+
+    /**
      * Reads the answer to the anonymous `/initialize.json`. Returns null for a redirect that stays on
      * the same host, which the caller follows.
      */

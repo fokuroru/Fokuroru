@@ -29,6 +29,10 @@
     <string name="gateway_signin">Sign in</string>
     <string name="notification_signin_title">Sign in needed</string>
     <string name="notification_signin_body">Your server\'s sign-in expired, so downloads and sync are paused.</string>
+    <string name="signin_back">Servers and accounts</string>
+    <string name="signin_title">Signing in to %1$s</string>
+    <string name="signin_gateway_title">Server sign-in for %1$s</string>
+    <string name="signin_detail">%1$s · tap the arrow to use another server</string>
     <string name="settings_title">Android app settings</string>
     <string name="downloads_title">Saved on this device</string>
     <string name="downloads_empty">Nothing saved yet. Use the download button on a chapter to read it offline.</string>

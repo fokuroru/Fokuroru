@@ -52,6 +52,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var root: View
     private lateinit var offlineView: View
     private lateinit var gatewayBanner: View
+    private lateinit var signInBar: View
+    private var loginShown = false
+    private var loginCheck = 0
     private lateinit var offline: Offline
     private var remote: Remote? = null
     private var unsubscribe: (() -> Unit)? = null
@@ -84,6 +87,8 @@ class MainActivity : AppCompatActivity() {
         web = findViewById(R.id.web)
         offlineView = findViewById(R.id.offline)
         gatewayBanner = findViewById(R.id.gateway_banner)
+        signInBar = findViewById(R.id.signin_bar)
+        findViewById<View>(R.id.signin_back).setOnClickListener { startActivity(Intent(this, ServersActivity::class.java)) }
         offline = newOffline()
 
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
@@ -310,6 +315,39 @@ class MainActivity : AppCompatActivity() {
         gatewayBanner.visibility = if (state == ServerState.GATEWAY && !offServer()) View.VISIBLE else View.GONE
     }
 
+    /**
+     * Names the server on any sign-in page, with a way back to the list. A sign-in page cannot say which
+     * server it belongs to, and with several saved the person has to be told.
+     */
+    private fun updateSignInBar() {
+        val profile = Profiles.active(this)
+        val gateway = offServer()
+        val show = profile != null && !reading && (gateway || loginShown)
+        signInBar.visibility = if (show) View.VISIBLE else View.GONE
+        if (!show || profile == null) return
+        findViewById<android.widget.TextView>(R.id.signin_title).text =
+            getString(if (gateway) R.string.signin_gateway_title else R.string.signin_title, profile.title())
+        findViewById<android.widget.TextView>(R.id.signin_detail).text =
+            getString(R.string.signin_detail, profile.url.substringAfter("://"))
+    }
+
+    /** Looks for a sign-in form once the page has had time to draw, which works on any server version. */
+    private fun scheduleLoginCheck() {
+        val round = ++loginCheck
+        for (delay in longArrayOf(400, 1500, 3000, 5000, 8000, 12000, 20000, 30000)) {
+            web.postDelayed({
+                if (round != loginCheck) return@postDelayed
+                web.evaluateJavascript(LOGIN_PROBE) { result ->
+                    val found = result == "true"
+                    if (found != loginShown) {
+                        loginShown = found
+                        updateSignInBar()
+                    }
+                }
+            }, delay)
+        }
+    }
+
     private fun checkServer() {
         thread {
             val state = offline.probeState()
@@ -380,7 +418,10 @@ class MainActivity : AppCompatActivity() {
         val now = onServer && Routes.isReader(parsed.path)
         runOnUiThread {
             reading = now
+            loginShown = false
             applyChrome()
+            updateSignInBar()
+            scheduleLoginCheck()
         }
     }
 
@@ -502,6 +543,8 @@ class MainActivity : AppCompatActivity() {
         const val ACTION_CONTINUE = "dev.fokuroru.reader.CONTINUE"
         const val ACTION_LATEST = "dev.fokuroru.reader.LATEST"
         const val EXTRA_PATH = "path"
+        private const val LOGIN_PROBE =
+            "!!document.querySelector('input[type=password]') && !document.querySelector('.app-navbar, .reader-root, .lite')"
         private const val STALE_MS = 30 * 60 * 1000L
         private const val SHELL_REFRESH_MS = 30 * 60 * 1000L
         private const val WIDE_DP = 600

@@ -58,9 +58,11 @@ class Offline(private val context: Context) {
     /** Build files come from disk once kept; a navigation with no server falls back to the saved entry page. */
     private fun shellFile(request: WebResourceRequest, path: String): WebResourceResponse? {
         if (path.startsWith("/assets/")) {
-            shell.asset(path)?.let { return it }
-            return if (serverReachable()) shell.fetch(path) else null
+            // Not fetched here on a miss: the web view's own loader is much faster on a cold start, and
+            // refreshShell() fills the cache once the page is up.
+            return shell.asset(path)
         }
+        if (request.isForMainFrame) reachableAt = 0
         val isPage = request.isForMainFrame && !path.startsWith("/api/") && !path.substringAfterLast('/').contains('.')
         if (isPage && shell.hasIndex() && !forceNetwork && !serverReachable()) return shell.index()
         return null
@@ -83,7 +85,8 @@ class Offline(private val context: Context) {
     @Synchronized
     fun probeState(): ServerState {
         val now = System.currentTimeMillis()
-        if (now - reachableAt < 8_000) return state
+        // A bad answer is rechecked soon: signing in at a gateway changes it within seconds.
+        if (now - reachableAt < if (state == ServerState.OK) 8_000 else 1_500) return state
         reachableAt = now
         setState(if (isOnline()) api.probe() else ServerState.UNREACHABLE)
         return state
@@ -153,15 +156,19 @@ class Offline(private val context: Context) {
         val key = key(request.url.path + "?" + (request.url.query ?: ""))
         val file = File(stashDir, key)
 
-        if (serverReachable()) {
+        // Tried whenever there is a network, not only after a probe passed: a slow first connection can fail
+        // a short probe while the real request would have gone through, and that must not look like offline.
+        if (isOnline()) {
             try {
                 val headers = request.requestHeaders.filterKeys { name ->
                     FORWARD_BLOCKED.none { it.equals(name, true) }
                 }
                 val conn = api.open(request.url.toString().removePrefix(api.base), "GET", null, headers)
+                conn.connectTimeout = 4_000
+                conn.readTimeout = 8_000
                 try {
                     api.keepCookies(conn)
-                    val status = conn.responseCode
+                    val status = Gateway.status(conn)
                     if (status in 300..399 && Gateway.leavesHost(conn.getHeaderField("Location"), Gateway.hostOf(api.base))) {
                         setState(ServerState.GATEWAY)
                         throw IOException("gateway")
@@ -172,6 +179,8 @@ class Offline(private val context: Context) {
                     val stream = if (status in 200..299) conn.inputStream else conn.errorStream
                     val bytes = stream?.use { it.readBytes() } ?: ByteArray(0)
                     if (status in 200..299) {
+                        setState(ServerState.OK)
+                        reachableAt = System.currentTimeMillis()
                         file.writeBytes(bytes)
                         if (request.url.path == "/api/v1/auth/me") rememberUser(bytes)
                     }

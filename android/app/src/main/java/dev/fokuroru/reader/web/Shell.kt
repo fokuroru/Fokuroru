@@ -34,14 +34,6 @@ class Shell(context: Context, private val api: Api) {
         )
     }
 
-    /** Fetches one build file through the app's connection and keeps it. */
-    fun fetch(path: String): WebResourceResponse? = try {
-        api.download(path, fileFor(path))
-        asset(path)
-    } catch (_: IOException) {
-        null
-    }
-
     /** Re-reads the entry page and pulls in every file it can reach, so lazy routes work offline too. */
     fun refresh() {
         val html = try {

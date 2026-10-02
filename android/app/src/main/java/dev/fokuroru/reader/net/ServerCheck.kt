@@ -20,7 +20,7 @@ object ServerCheck {
                 conn.setRequestProperty("Accept", "application/json")
                 try {
                     val location = conn.getHeaderField("Location")
-                    val state = Gateway.classify(conn.responseCode, conn.contentType, location, host)
+                    val state = Gateway.classify(Gateway.status(conn), conn.contentType, location, host)
                     if (state != null) return state
                     if (location == null) return ServerState.UNREACHABLE
                     target = if (location.startsWith("http")) location else address + location
