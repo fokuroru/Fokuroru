@@ -150,14 +150,24 @@ class Api(context: Context) {
         private set
 
     /** One anonymous request to see whether the server answers, and as itself. Blocks. */
-    /** The server's own build version, or null when it can't be read. */
-    fun serverVersion(): String? = try {
+    class ServerInfo(val version: String, val appCode: Int?, val appName: String?)
+
+    /** What the server says about itself and the newest app it was released with; null when it can't be read. */
+    fun serverInfo(): ServerInfo? = try {
         val conn = open("/initialize.json")
         conn.connectTimeout = 4_000
         conn.readTimeout = 6_000
         try {
             keepCookies(conn)
-            if (Gateway.status(conn) == 200) org.json.JSONObject(conn.inputStream.use { String(it.readBytes()) }).optString("version").ifEmpty { null } else null
+            if (Gateway.status(conn) == 200) {
+                val json = org.json.JSONObject(conn.inputStream.use { String(it.readBytes()) })
+                val app = json.optJSONObject("androidApp")
+                json.optString("version").takeIf { it.isNotEmpty() }?.let {
+                    ServerInfo(it, app?.optInt("versionCode")?.takeIf { code -> code > 0 }, app?.optString("versionName")?.ifEmpty { null })
+                }
+            } else {
+                null
+            }
         } finally {
             conn.disconnect()
         }

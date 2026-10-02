@@ -38,6 +38,8 @@ COPY src/ src/
 COPY tests/ tests/
 # Maki.Api embeds locales/*/server.po as resources; see the EmbeddedResource item in Maki.Api.csproj.
 COPY locales/ locales/
+# The Android app's current version, embedded so /initialize.json can tell the app when it is out of date.
+COPY android/version.properties android/version.properties
 
 # .dockerignore excludes .git, so the version cannot be derived from a tag in here — CI computes it
 # from the ref and passes it down. A plain `docker build` gets the -dev default from

@@ -393,15 +393,19 @@ class MainActivity : AppCompatActivity() {
     private fun checkServer() {
         thread {
             val state = offline.probeState()
-            val server = if (state == ServerState.OK && !versionDismissed) Api(this).serverVersion() else null
+            val info = if (state == ServerState.OK && !versionDismissed) Api(this).serverInfo() else null
+            val message = when {
+                info == null -> null
+                Versions.compare(info.version, BuildConfig.SERVER_VERSION) < 0 ->
+                    getString(R.string.server_too_old, BuildConfig.SERVER_VERSION)
+                info.appCode != null && info.appCode > BuildConfig.VERSION_CODE ->
+                    getString(R.string.app_too_old, info.appName ?: info.appCode.toString())
+                else -> null
+            }
             runOnUiThread {
                 updateBanner(state)
-                if (server != null && Versions.compare(server, BuildConfig.SERVER_VERSION) < 0) {
-                    versionBanner.text = getString(R.string.server_too_old, BuildConfig.SERVER_VERSION)
-                    versionBanner.visibility = View.VISIBLE
-                } else {
-                    versionBanner.visibility = View.GONE
-                }
+                versionBanner.text = message
+                versionBanner.visibility = if (message != null) View.VISIBLE else View.GONE
             }
         }
     }

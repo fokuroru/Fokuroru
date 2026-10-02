@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.1.5 (6)
+- The server reports the newest app version in `/initialize.json`, and the app warns when it is behind.
+
 ## 0.1.4 (5)
 - Shorter version warning: "Version mismatch. Please update server to X."
 

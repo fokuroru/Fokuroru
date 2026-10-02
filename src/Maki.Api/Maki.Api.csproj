@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="..\..\android\version.properties" LogicalName="Maki.Android.version.properties" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Maki.Core\Maki.Core.csproj" />
     <ProjectReference Include="..\Maki.Data\Maki.Data.csproj" />
     <ProjectReference Include="..\Maki.Sources\Maki.Sources.csproj" />

@@ -1498,6 +1498,7 @@ try
     {
         apiRoot = "/api/v1",
         version = VersionInfo.Version,
+        androidApp = AndroidAppInfo.Current,
         // True while the placeholder account the migration created is unclaimed, which is what sends
         // both a fresh install and an upgraded single-user one through first-run setup.
         setupNeeded = await db.Users.AnyAsync(u => u.PendingSetup, ct),
