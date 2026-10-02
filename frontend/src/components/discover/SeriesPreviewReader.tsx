@@ -1,16 +1,42 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActionIcon, Button, Center, Group, Portal, SegmentedControl, Stack, Text } from '@mantine/core'
-import { IconArrowLeft, IconX } from '@tabler/icons-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ActionIcon,
+  Button,
+  Center,
+  Group,
+  Popover,
+  Portal,
+  SegmentedControl,
+  Slider,
+  Stack,
+  Switch,
+  Text,
+} from '@mantine/core'
+import { IconArrowLeft, IconSettings, IconX } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { previewPageUrl, useSeriesPreview } from '../../api/preview'
 import { useReaderSettings } from '../../api/reader'
 import { useReadingProfiles } from '../../api/readingProfiles'
 import ContinuousView from '../../pages/reader/ContinuousView'
 import PagedView from '../../pages/reader/PagedView'
-import { DEFAULT_PREFS } from '../../pages/reader/prefs'
+import {
+  BACKGROUNDS,
+  DEFAULT_PREFS,
+  navigatesVertically,
+  scaleMax,
+  type ReaderPrefs,
+} from '../../pages/reader/prefs'
 import { usePreload } from '../../pages/reader/usePageUrls'
+import { spreadIndexOf, usePageAspects, useSpreads } from '../../pages/reader/useSpreads'
+import { useTapZones } from '../../api/tapZones'
+import { useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
+import { actionAt, layoutFor } from '../../lib/tapZones'
+import TapZoneEditor from '../reader/TapZoneEditor'
 
-type PreviewMode = 'paged' | 'vertical'
+const ZOOM_STEP = 0.25
+const ZOOM_MAX = 4
+const CHROME_HIDE_MS = 4000
+const OVERLAY_Z = 1200
 
 /**
  * Reads the first chapter of a series that is not in the library, stacked over the Discover card.
@@ -38,12 +64,20 @@ export function SeriesPreviewReader({
   // claims the type, the same order the real reader resolves in for a series without an override.
   const { data: settings } = useReaderSettings()
   const { data: profiles } = useReadingProfiles()
-  const prefs = useMemo(() => {
+  const [changes, setChanges] = useState<Partial<ReaderPrefs>>({})
+  const savedPrefs = useMemo<ReaderPrefs>(() => {
     const claimed = seriesType ? profiles?.find((p) => p.seriesTypes.includes(seriesType)) : undefined
-    return { ...DEFAULT_PREFS, ...settings?.defaults, ...claimed?.prefs }
-  }, [settings, profiles, seriesType])
-  const [modeChoice, setModeChoice] = useState<PreviewMode | null>(null)
-  const mode: PreviewMode = modeChoice ?? (prefs.mode === 'vertical' ? 'vertical' : 'paged')
+    return { ...DEFAULT_PREFS, ...settings?.defaults, ...claimed?.prefs, ...changes }
+  }, [settings, profiles, seriesType, changes])
+  const update = useCallback((patch: Partial<ReaderPrefs>) => setChanges((c) => ({ ...c, ...patch })), [])
+  // Same as the real reader: a wide window in the Android app turns single pages into spreads.
+  const { dual: wideWindow } = useNativeLayout()
+  const prefs = useMemo(
+    () => (wideWindow && savedPrefs.mode === 'paged' ? { ...savedPrefs, mode: 'double' as const } : savedPrefs),
+    [wideWindow, savedPrefs],
+  )
+  const mode = prefs.mode
+  const vertical = navigatesVertically(prefs)
 
   const pageCount = preview?.pageCount ?? 0
   const version = preview?.version ?? null
@@ -75,6 +109,15 @@ export function SeriesPreviewReader({
   const [page, setPage] = useState(0)
   const [seekVersion, setSeekVersion] = useState(0)
   const [atEnd, setAtEnd] = useState(false)
+  const [zoom, setZoom] = useState(1)
+  const [chrome, setChrome] = useState(false)
+  const [chromeHeld, setChromeHeld] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [tapEditorOpen, setTapEditorOpen] = useState(false)
+  const surfaceRef = useRef<HTMLDivElement>(null)
+  const { wide, measure } = usePageAspects(urls)
+  const spreads = useSpreads(urls.length, wide, mode === 'double')
+  const spreadIndex = useMemo(() => spreadIndexOf(spreads, page), [spreads, page])
   const seekToPage = useCallback((index: number) => {
     setPage(index)
     setSeekVersion((v) => v + 1)
@@ -90,23 +133,73 @@ export function SeriesPreviewReader({
 
   const next = useCallback(() => {
     if (atEnd) return
-    if (page + 1 < pageCount) seekToPage(page + 1)
+    const nextSpread = spreads[spreadIndex + 1]
+    if (nextSpread) seekToPage(nextSpread[0])
     else if (complete) setAtEnd(true)
-  }, [atEnd, page, pageCount, complete, seekToPage])
+  }, [atEnd, spreads, spreadIndex, complete, seekToPage])
 
   const previous = useCallback(() => {
-    if (atEnd) setAtEnd(false)
-    else if (page > 0) seekToPage(page - 1)
-  }, [atEnd, page, seekToPage])
+    if (atEnd) {
+      setAtEnd(false)
+      return
+    }
+    const previousSpread = spreads[spreadIndex - 1]
+    if (previousSpread) seekToPage(previousSpread[0])
+  }, [atEnd, spreads, spreadIndex, seekToPage])
 
   const pastEnd = useCallback(() => {
     if (complete) setAtEnd(true)
   }, [complete])
 
+  useEffect(() => {
+    setZoom(1)
+  }, [version])
+
+  useEffect(() => {
+    const el = surfaceRef.current
+    if (el && mode !== 'vertical') el.scrollTop = 0
+  }, [spreadIndex, mode])
+
+  useEffect(() => {
+    if (!chrome || chromeHeld || settingsOpen) return
+    const timer = setTimeout(() => setChrome(false), CHROME_HIDE_MS)
+    return () => clearTimeout(timer)
+  }, [chrome, chromeHeld, settingsOpen, page])
+
+  /** Scrolls the surface most of a screen; false when already at that edge, so the caller turns the page. */
+  const scrollStep = useCallback(
+    (direction: 1 | -1): boolean => {
+      const el = surfaceRef.current
+      if (!el) return false
+      const room = direction > 0 ? el.scrollHeight - el.clientHeight - el.scrollTop : el.scrollTop
+      if (room <= 2) return false
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollBy({
+        top: direction * Math.min(room, el.clientHeight * 0.85),
+        behavior: prefs.smoothScroll && !reduceMotion ? 'smooth' : 'auto',
+      })
+      return true
+    },
+    [prefs.smoothScroll],
+  )
+
+  const forward = useCallback(() => {
+    if (vertical && !atEnd && scrollStep(1)) return
+    next()
+  }, [vertical, atEnd, scrollStep, next])
+
+  const backward = useCallback(() => {
+    if (vertical && !atEnd && scrollStep(-1)) return
+    previous()
+  }, [vertical, atEnd, scrollStep, previous])
+
   const rtl = prefs.direction === 'rtl'
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
+      const target = event.target as HTMLElement | null
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+      if (tapEditorOpen) return
       const forwardKey = rtl ? 'ArrowLeft' : 'ArrowRight'
       const backKey = rtl ? 'ArrowRight' : 'ArrowLeft'
       switch (event.key) {
@@ -118,14 +211,70 @@ export function SeriesPreviewReader({
           event.preventDefault()
           previous()
           break
+        case 'ArrowDown':
+        case 'PageDown':
+          if (vertical) {
+            event.preventDefault()
+            forward()
+          }
+          break
+        case 'ArrowUp':
+        case 'PageUp':
+          if (vertical) {
+            event.preventDefault()
+            backward()
+          }
+          break
         case ' ':
-          if (mode !== 'vertical' || atEnd) {
+          if (vertical) {
+            event.preventDefault()
+            if (event.shiftKey) backward()
+            else forward()
+          } else if (mode !== 'vertical' || atEnd) {
             event.preventDefault()
             if (event.shiftKey) previous()
             else next()
           }
           break
+        case 'Home':
+          event.preventDefault()
+          seekToPage(0)
+          break
+        case 'End':
+          event.preventDefault()
+          seekToPage(Math.max(0, urls.length - 1))
+          break
+        case 'f':
+          if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
+          else void document.documentElement.requestFullscreen().catch(() => {})
+          break
+        case 'd':
+          update({ direction: rtl ? 'ltr' : 'rtl' })
+          break
+        case '1':
+          update({ mode: 'paged' })
+          break
+        case '2':
+          update({ mode: 'double' })
+          break
+        case '3':
+          update({ mode: 'vertical' })
+          break
+        case '+':
+        case '=':
+          if (mode === 'vertical') update({ scale: Math.min(scaleMax(prefs.fit), prefs.scale + 10) })
+          else setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))
+          break
+        case '-':
+          if (mode === 'vertical') update({ scale: Math.max(25, prefs.scale - 10) })
+          else setZoom((z) => Math.max(1, z - ZOOM_STEP))
+          break
+        case '0':
+          if (mode === 'vertical') update({ scale: 100 })
+          else setZoom(1)
+          break
         case 'Escape':
+          if (document.fullscreenElement) break
           event.preventDefault()
           event.stopPropagation()
           onClose()
@@ -134,18 +283,43 @@ export function SeriesPreviewReader({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [rtl, mode, atEnd, next, previous, onClose])
+  }, [
+    rtl, mode, vertical, atEnd, next, previous, forward, backward, seekToPage, urls.length,
+    prefs.fit, prefs.scale, update, onClose, tapEditorOpen,
+  ])
+
+  // Volume keys, clickers and stylus buttons from the Android app, as in the real reader.
+  useNativeTurn((direction) => {
+    if (tapEditorOpen) return
+    if (direction === 'next') forward()
+    else backward()
+  })
+
+  const { data: tapDocument } = useTapZones()
+  const tapLayout = useMemo(
+    () => layoutFor(tapDocument, vertical ? 'vertical' : 'horizontal', prefs.direction),
+    [tapDocument, vertical, prefs.direction],
+  )
 
   const onSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!prefs.tapZones || mode === 'vertical') return
+    if (!prefs.tapZones || zoom !== 1 || (mode === 'vertical' && !vertical)) {
+      setChrome((visible) => !visible)
+      return
+    }
     const bounds = event.currentTarget.getBoundingClientRect()
-    const ratio = (event.clientX - bounds.left) / bounds.width
-    if (ratio < 0.33) {
-      if (rtl) next()
-      else previous()
-    } else if (ratio > 0.67) {
-      if (rtl) previous()
+    const action = actionAt(
+      tapLayout,
+      (event.clientX - bounds.left) / bounds.width,
+      (event.clientY - bounds.top) / bounds.height,
+    )
+    if (action === 'next') {
+      if (vertical) forward()
       else next()
+    } else if (action === 'prev') {
+      if (vertical) backward()
+      else previous()
+    } else if (action === 'menu') {
+      setChrome((visible) => !visible)
     }
   }
 
@@ -227,8 +401,9 @@ export function SeriesPreviewReader({
   } else {
     body = (
       <div
+        ref={surfaceRef}
         className="reader-surface"
-        data-scroll={mode === 'vertical' ? 'vertical' : undefined}
+        data-scroll={mode === 'vertical' && !(prefs.scale > 100) ? 'vertical' : undefined}
         onClick={onSurfaceClick}
       >
         {mode === 'vertical' ? (
@@ -255,23 +430,33 @@ export function SeriesPreviewReader({
         ) : (
           <PagedView
             urls={urls}
-            spread={[page]}
+            spread={spreads[spreadIndex] ?? [0]}
             fit={prefs.fit}
             direction={prefs.direction}
-            zoom={1}
+            zoom={zoom}
             scale={prefs.scale}
             label={label}
-            onMeasure={() => {}}
+            onMeasure={measure}
           />
         )}
       </div>
     )
   }
 
+  const stop = (event: React.MouseEvent) => event.stopPropagation()
+  const hold = (held: boolean) => () => setChromeHeld(held)
+  const total = Math.max(1, urls.length)
+
   return (
     <Portal>
       <div className="reader-root" data-preview style={{ background: prefs.background }}>
-        <div className="reader-bar reader-bar-top" data-visible onClick={(e) => e.stopPropagation()}>
+        <div
+          className="reader-bar reader-bar-top"
+          data-visible={chrome || Boolean(failure)}
+          onClick={stop}
+          onMouseEnter={hold(true)}
+          onMouseLeave={hold(false)}
+        >
           <Group gap="sm" wrap="nowrap" px="md" h="100%">
             <ActionIcon variant="subtle" color="gray" aria-label={t`Close preview`} onClick={onClose}>
               <IconX size={18} />
@@ -290,25 +475,202 @@ export function SeriesPreviewReader({
                 )}
               </Text>
             </div>
-            <SegmentedControl
-              size="xs"
-              value={mode}
-              onChange={(value) => setModeChoice(value as PreviewMode)}
-              data={[
-                { value: 'paged', label: t`Paged` },
-                { value: 'vertical', label: t`Scroll` },
-              ]}
-            />
           </Group>
         </div>
 
         <div className="reader-preview-body">{body}</div>
 
-        {prefs.showPageNumber && pageCount > 0 && !atEnd && !failure && (
+        <div
+          className="reader-bar reader-bar-bottom"
+          data-visible={chrome && urls.length > 0 && !failure}
+          onClick={stop}
+          onMouseEnter={hold(true)}
+          onMouseLeave={hold(false)}
+        >
+          <Group gap="xs" wrap="nowrap" px="md" h="100%">
+            <Slider
+              className="reader-slider"
+              min={1}
+              max={total}
+              value={rtl ? total - page : page + 1}
+              onChange={(value) => seekToPage(rtl ? total - value : value - 1)}
+              label={(value) => `${rtl ? total - value + 1 : value} / ${pageCount}`}
+              inverted={rtl}
+              style={{ flex: 1 }}
+            />
+            <Text
+              visibleFrom="xs"
+              fz="xs"
+              c="var(--ink-3)"
+              style={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}
+            >
+              {pageNumber} / {pageCount}
+            </Text>
+            <Popover
+              width={280}
+              position="top-end"
+              withArrow
+              shadow="md"
+              zIndex={OVERLAY_Z}
+              opened={settingsOpen}
+              onChange={setSettingsOpen}
+            >
+              <Popover.Target>
+                <ActionIcon
+                  variant={settingsOpen ? 'light' : 'subtle'}
+                  color="gray"
+                  onClick={() => setSettingsOpen((open) => !open)}
+                  aria-label={t`Reader settings`}
+                >
+                  <IconSettings size={18} />
+                </ActionIcon>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Stack gap="sm">
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Layout</Trans>
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={savedPrefs.mode}
+                      onChange={(value) => update({ mode: value as ReaderPrefs['mode'] })}
+                      data={[
+                        { label: t`Single`, value: 'paged' },
+                        { label: t`Double`, value: 'double' },
+                        { label: t`Continuous`, value: 'vertical' },
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Direction</Trans>
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={prefs.direction}
+                      onChange={(value) => update({ direction: value as ReaderPrefs['direction'] })}
+                      data={[
+                        { label: t`Left to right`, value: 'ltr' },
+                        { label: t`Right to left`, value: 'rtl' },
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Fit</Trans>
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={prefs.fit}
+                      onChange={(value) => update({ fit: value as ReaderPrefs['fit'], scale: 100 })}
+                      data={[
+                        { label: t`Width`, value: 'width' },
+                        { label: t`Height`, value: 'height' },
+                        { label: t`Screen`, value: 'screen' },
+                        { label: '1:1', value: 'original' },
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Navigation</Trans>
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={prefs.navigation}
+                      onChange={(value) => update({ navigation: value as ReaderPrefs['navigation'] })}
+                      data={[
+                        { label: t`Auto`, value: 'auto' },
+                        { label: t`Horizontal`, value: 'horizontal' },
+                        { label: t`Vertical`, value: 'vertical' },
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <Group justify="space-between" mb={4} wrap="nowrap">
+                      <Text fz="xs" c="var(--ink-3)">
+                        <Trans>Zoom ({prefs.scale}%)</Trans>
+                      </Text>
+                      {prefs.scale !== 100 && (
+                        <Button size="compact-xs" variant="subtle" onClick={() => update({ scale: 100 })}>
+                          <Trans>Reset</Trans>
+                        </Button>
+                      )}
+                    </Group>
+                    <Slider
+                      size="xs"
+                      min={25}
+                      max={scaleMax(prefs.fit)}
+                      step={5}
+                      value={prefs.scale}
+                      onChange={(value) => update({ scale: value })}
+                      marks={[{ value: 100 }]}
+                      label={(value) => `${value}%`}
+                    />
+                  </div>
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Background</Trans>
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={prefs.background === BACKGROUNDS.oled ? 'oled' : 'dark'}
+                      onChange={(value) =>
+                        update({ background: value === 'oled' ? BACKGROUNDS.oled : BACKGROUNDS.dark })
+                      }
+                      data={[
+                        { label: t`Dark`, value: 'dark' },
+                        { label: t`OLED black`, value: 'oled' },
+                      ]}
+                    />
+                  </div>
+                  <Switch
+                    size="xs"
+                    label={t`Tap zones`}
+                    checked={prefs.tapZones}
+                    onChange={(event) => update({ tapZones: event.currentTarget.checked })}
+                  />
+                  {prefs.tapZones && (
+                    <Button size="compact-xs" variant="default" onClick={() => setTapEditorOpen(true)}>
+                      <Trans>Edit tap zones</Trans>
+                    </Button>
+                  )}
+                  <Switch
+                    size="xs"
+                    label={t`Show page number`}
+                    checked={prefs.showPageNumber}
+                    onChange={(event) => update({ showPageNumber: event.currentTarget.checked })}
+                  />
+                  <Switch
+                    size="xs"
+                    label={t`Smooth scrolling`}
+                    checked={prefs.smoothScroll}
+                    onChange={(event) => update({ smoothScroll: event.currentTarget.checked })}
+                  />
+                </Stack>
+              </Popover.Dropdown>
+            </Popover>
+          </Group>
+        </div>
+
+        {prefs.showPageNumber && pageCount > 0 && !chrome && !atEnd && !failure && (
           <div className="reader-page-badge">
             {pageNumber} / {pageCount}
           </div>
         )}
+
+        <TapZoneEditor
+          opened={tapEditorOpen}
+          onClose={() => setTapEditorOpen(false)}
+          direction={prefs.direction}
+          zIndex={OVERLAY_Z + 20}
+        />
       </div>
     </Portal>
   )

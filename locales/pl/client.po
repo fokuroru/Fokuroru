@@ -2841,6 +2841,7 @@ msgid "Attribute Kavita's reading to"
 msgstr "Przypisz czytanie z Kavity do"
 
 #: src/components/discover/DiscoverHero.tsx
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Auto"
@@ -2970,6 +2971,7 @@ msgstr ""
 msgid "Back up now"
 msgstr "Zrób kopię zapasową teraz"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -4391,6 +4393,7 @@ msgstr "Kontynuuj z {displayName}"
 msgid "Continue without saving"
 msgstr "Kontynuuj bez zapisywania"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
@@ -4806,6 +4809,7 @@ msgstr ""
 msgid "Damaged image"
 msgstr "Uszkodzony obraz"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/theme-context.tsx
@@ -5163,6 +5167,7 @@ msgstr "Pochłonięte"
 msgid "Didn't score higher than the current file"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5312,6 +5317,7 @@ msgstr "Nie pobieraj rozdziałów specjalnych"
 msgid "Done"
 msgstr "Gotowe"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Double"
@@ -5636,6 +5642,7 @@ msgstr "Edytuj prośbę"
 msgid "Edit request for {title}"
 msgstr "Edytuj prośbę o {title}"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Edit tap zones"
@@ -6335,6 +6342,7 @@ msgstr "Pierwszy widoczny folder"
 msgid "First page"
 msgstr "Pierwsza strona"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Fit"
@@ -6866,6 +6874,7 @@ msgstr "Ustawienia kondycji"
 msgid "Healthy"
 msgstr "Sprawne"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -7054,6 +7063,7 @@ msgstr "sekcje Startu, sekcje, kontynuuj czytanie, ostatnio dodane, kolejność 
 msgid "Home server"
 msgstr "Serwer domowy"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Horizontal"
 msgstr ""
@@ -7883,6 +7893,7 @@ msgstr ""
 msgid "latest"
 msgstr "najnowszy"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
@@ -7969,6 +7980,7 @@ msgstr ""
 msgid "left to right"
 msgstr "od lewej do prawej"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -9076,6 +9088,7 @@ msgstr "Tokeny nazewnictwa"
 msgid "Narrow edges"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Navigation"
@@ -10244,6 +10257,7 @@ msgstr "Najstarsze"
 msgid "Oldest first"
 msgstr "Od najstarszych"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -10634,7 +10648,6 @@ msgstr ""
 msgid "Page Up"
 msgstr ""
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Paged"
 msgstr ""
@@ -11455,6 +11468,7 @@ msgstr "Czytnik"
 msgid "Reader counts replace it once that data is installed."
 msgstr "Liczby czytelników zastąpią to, gdy te dane zostaną zainstalowane."
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Reader settings"
@@ -12221,6 +12235,7 @@ msgid "Rescanned: {newFiles} new, {relinked} relinked, {removed} removed"
 msgstr "Przeskanowano ponownie: {newFiles} nowych, {relinked} ponownie połączonych, {removed} usuniętych"
 
 #: src/components/CatalogueFilters.tsx
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
 #: src/pages/DiscoverPage.tsx
 #: src/pages/reader/ReaderToolbar.tsx
@@ -12483,6 +12498,7 @@ msgstr "Rytm"
 msgid "right to left"
 msgstr "od prawej do lewej"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Right to left"
@@ -12894,6 +12910,7 @@ msgstr "Źródła skrobowania, zachowanie pobierania i ścieżka torrentów."
 msgid "scrapers, manage sources, priority, source priority, 18+, adult sources, mangadex, mangafire, webtoons, asura, tcb, flame comics, order sources, disable source, auto-match, reorder, dynasty scans, dynasty, yuri, mangalib, toonily, manhwa, gigaviewer, jump+, shonen jump plus, comic days, sunday webry, magcomi, tonari no young jump, zenon, kurage bunch, manhwa18, manhwa18.net, manhwa18net, manhwaweb, manhwa web, manhwaweb.com, shinigami, shngm, olympus, olympus scanlation, olympusxyz, subo de nivel solo, animesama, anime-sama, anime sama, naver, naver webtoon, 네이버 웹툰, manga-tube, mangatube, manga tube, manhuagui, 漫画柜, mhgui, cuutruyen, cứu truyện, cuu truyen, mangaworld, manga world, comic walker, comicwalker, kadocomi, kadokawa, rawkuma, raw, raw manga, ラークマ, mangadenizi, manga denizi, teamx, team-x, team x, olympustaff, taiyo, taiyo.moe"
 msgstr "scrapers, zarządzaj źródłami, priorytet, priorytet źródeł, 18+, źródła dla dorosłych, mangadex, mangafire, webtoons, asura, tcb, flame comics, kolejność źródeł, wyłącz źródło, automatyczne dopasowanie, zmień kolejność, dynasty scans, dynasty, yuri, mangalib, toonily, manhwa, gigaviewer, jump+, shonen jump plus, comic days, sunday webry, magcomi, tonari no young jump, zenon, kurage bunch, manhwa18, manhwa18.net, manhwa18net, manhwaweb, manhwa web, manhwaweb.com, shinigami, shngm, olympus, olympus scanlation, olympusxyz, subo de nivel solo, animesama, anime-sama, anime sama, naver, naver webtoon, 네이버 웹툰, manga-tube, mangatube, manga tube, manhuagui, 漫画柜, mhgui, cuutruyen, cứu truyện, cuu truyen, mangaworld, manga world, comic walker, comicwalker, kadocomi, kadokawa, rawkuma, raw, raw manga, ラークマ, mangadenizi, manga denizi, teamx, team-x, team x, olympustaff, taiyo, taiyo.moe"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Screen"
@@ -12923,8 +12940,8 @@ msgid "Scrobbling"
 msgstr "Scrobblowanie"
 
 #: src/components/discover/SeriesPreviewReader.tsx
-msgid "Scroll"
-msgstr ""
+#~ msgid "Scroll"
+#~ msgstr ""
 
 #: src/components/ui/Rail.tsx
 msgid "Scroll back"
@@ -13646,6 +13663,7 @@ msgstr ""
 msgid "Show or hide this list"
 msgstr "Pokaż lub ukryj tę listę"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -13793,6 +13811,7 @@ msgstr "Proste"
 msgid "Simple view"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Single"
@@ -13936,6 +13955,7 @@ msgstr "Smart Download"
 msgid "Smart Download queued chapters"
 msgstr "Smart Download dodał rozdziały do kolejki"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Smooth scrolling"
@@ -14484,6 +14504,7 @@ msgstr "Tagi do uwzględnienia"
 msgid "Tap the page to see what a tap does."
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Tap zones"
@@ -16134,6 +16155,7 @@ msgstr "Zweryfikuj ten plik"
 msgid "Version"
 msgstr "Wersja"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Vertical"
 msgstr ""
@@ -16611,6 +16633,7 @@ msgstr "Cały rok"
 msgid "Whole-series pack, needs your call"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -16985,6 +17008,11 @@ msgstr "Z:\\downloads (opcjonalnie)"
 
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Zones"
+msgstr ""
+
+#. placeholder {0}: prefs.scale
+#: src/components/discover/SeriesPreviewReader.tsx
+msgid "Zoom ({0}%)"
 msgstr ""
 
 #: src/pages/reader/ReaderToolbar.tsx
