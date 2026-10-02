@@ -60,8 +60,11 @@ export default function SimpleHomePage() {
 
   const books = useMemo(() => {
     const needle = query.trim().toLowerCase()
+    // Only what can be read now: a series with nothing on the server would open to a download prompt.
     const list = (library.data ?? []).filter(
-      (s) => !needle || s.displayTitle.toLowerCase().includes(needle) || s.title.toLowerCase().includes(needle),
+      (s) =>
+        s.chapterFileCount > 0 &&
+        (!needle || s.displayTitle.toLowerCase().includes(needle) || s.title.toLowerCase().includes(needle)),
     )
     return list.sort((a, b) => {
       if (sort === 'recent') {
