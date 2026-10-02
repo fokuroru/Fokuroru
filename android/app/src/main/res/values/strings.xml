@@ -96,4 +96,15 @@
     <string name="pad_brightness_up">Brighter</string>
     <string name="pad_brightness_down">Dimmer</string>
     <string name="pad_close">Leave the reader</string>
+    <string name="setup_scan">Scan QR code</string>
+    <string name="setup_find">Find servers on this network</string>
+    <string name="discover_title">Find servers</string>
+    <string name="discover_searching">Looking on this network for Fōkurōru servers. This takes a few seconds.</string>
+    <string name="discover_none">No Fōkurōru server answered on this network. A server behind a login page, or one on another network, has to be added by its address or by scanning its QR code.</string>
+    <string name="discover_pick">Choose a server</string>
+    <string name="pair_working">Connecting…</string>
+    <string name="pair_not_ours">That code is not for Fōkurōru.</string>
+    <string name="pair_scan_failed">The scanner could not start. It needs Google Play services.</string>
+    <string name="pair_gateway">This server asks for a sign-in first. Sign in to it here, then scan again to sign in as that account.</string>
+    <string name="pair_refused">The code was refused. It works once and for five minutes, so make a new one in Settings on the web.</string>
 </resources>

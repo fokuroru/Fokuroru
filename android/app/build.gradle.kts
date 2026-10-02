@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.material)
+    implementation(libs.play.code.scanner)
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)

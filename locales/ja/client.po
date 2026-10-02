@@ -2203,6 +2203,10 @@ msgstr ""
 msgid "Add the series to your library, or request it, to keep reading."
 msgstr ""
 
+#: src/pages/SettingsPage.tsx
+msgid "Add this server to the Android app and sign it in as you, without typing a password."
+msgstr ""
+
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
@@ -4534,6 +4538,10 @@ msgstr "進捗を読み込めませんでした。理由はサーバーログに
 #, fuzzy
 msgid "Could not load your signals: {loadError}"
 msgstr "シグナルを読み込めませんでした: {loadError}"
+
+#: src/components/settings/PairAppModal.tsx
+msgid "Could not make a code. Try again."
+msgstr ""
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Could not queue the chapter."
@@ -7397,6 +7405,10 @@ msgstr "進行中"
 msgid "In queue"
 msgstr "キュー内"
 
+#: src/components/settings/PairAppModal.tsx
+msgid "In the app, choose Scan QR code on the first screen or in Servers and accounts, then point it at this code. The app is signed in as you."
+msgstr ""
+
 #: src/pages/rewind/slides.tsx
 #, fuzzy
 msgid "in the reader"
@@ -8408,6 +8420,10 @@ msgstr "{relatedTo}の本編"
 #, fuzzy
 msgid "mainstream"
 msgstr "主流"
+
+#: src/components/settings/PairAppModal.tsx
+msgid "Make a new code"
+msgstr ""
 
 #: src/components/discover/FollowingRail.tsx
 #, fuzzy
@@ -10727,6 +10743,11 @@ msgstr "先行取得したページ。"
 msgid "Pages matched"
 msgstr "一致したページ"
 
+#: src/components/settings/PairAppModal.tsx
+#: src/pages/SettingsPage.tsx
+msgid "Pair the Android app"
+msgstr ""
+
 #: src/components/layout/SectionProperties.tsx
 #, fuzzy
 msgid "Panels"
@@ -11217,6 +11238,10 @@ msgstr "新しいシリーズを自動照合するときに使うグローバル
 #, fuzzy
 msgid "qBittorrent"
 msgstr "qBittorrent"
+
+#: src/components/settings/PairAppModal.tsx
+msgid "QR code for pairing the Android app"
+msgstr ""
 
 #: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
@@ -15057,6 +15082,10 @@ msgstr ""
 msgid "This chapter was added or upgraded too recently"
 msgstr ""
 
+#: src/components/settings/PairAppModal.tsx
+msgid "This code has expired."
+msgstr ""
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "This file is already gone from disk, so nothing is deleted. It drops the record that still links these chapters to it, so they stop reading as downloaded."
@@ -16742,6 +16771,12 @@ msgstr "このアニメからの再開は今後おすすめしません。"
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Working…"
+msgstr ""
+
+#. placeholder {0}: Math.floor(left / 60)
+#. placeholder {1}: String(left % 60).padStart(2, '0')
+#: src/components/settings/PairAppModal.tsx
+msgid "Works once, for {0}:{1} more."
 msgstr ""
 
 #: src/components/SetupWizard.tsx

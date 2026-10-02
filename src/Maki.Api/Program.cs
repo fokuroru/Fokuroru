@@ -780,6 +780,7 @@ try
     builder.Services.AddHostedService<HealthWorker>();
 
     builder.Services.AddSingleton(TimeProvider.System);
+    builder.Services.AddSingleton<AppPairing>();
     // Singleton on purpose: the point is that every concurrent resolve for one series shares a
     // single chapter listing. A scoped one would be per-request and cache nothing across a batch.
     builder.Services.AddSingleton<SourceChapterListCache>();

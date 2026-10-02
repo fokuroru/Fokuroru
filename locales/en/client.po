@@ -1839,6 +1839,10 @@ msgstr "Add some series to your library first and Fōkurōru will suggest more l
 msgid "Add the series to your library, or request it, to keep reading."
 msgstr "Add the series to your library, or request it, to keep reading."
 
+#: src/pages/SettingsPage.tsx
+msgid "Add this server to the Android app and sign it in as you, without typing a password."
+msgstr "Add this server to the Android app and sign it in as you, without typing a password."
+
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "Add to library"
@@ -3788,6 +3792,10 @@ msgstr "Could not load your progress. The server logs will say why."
 #: src/pages/discover/FeedbackLab.tsx
 msgid "Could not load your signals: {loadError}"
 msgstr "Could not load your signals: {loadError}"
+
+#: src/components/settings/PairAppModal.tsx
+msgid "Could not make a code. Try again."
+msgstr "Could not make a code. Try again."
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Could not queue the chapter."
@@ -6202,6 +6210,10 @@ msgstr "In progress"
 msgid "In queue"
 msgstr "In queue"
 
+#: src/components/settings/PairAppModal.tsx
+msgid "In the app, choose Scan QR code on the first screen or in Servers and accounts, then point it at this code. The app is signed in as you."
+msgstr "In the app, choose Scan QR code on the first screen or in Servers and accounts, then point it at this code. The app is signed in as you."
+
 #: src/pages/rewind/slides.tsx
 msgid "in the reader"
 msgstr "in the reader"
@@ -7046,6 +7058,10 @@ msgstr "Main story of {relatedTo}"
 #: src/pages/DiscoverPage.tsx
 msgid "mainstream"
 msgstr "mainstream"
+
+#: src/components/settings/PairAppModal.tsx
+msgid "Make a new code"
+msgstr "Make a new code"
 
 #: src/components/discover/FollowingRail.tsx
 msgid "Manage"
@@ -8990,6 +9006,11 @@ msgstr "Pages fetched ahead."
 msgid "Pages matched"
 msgstr "Pages matched"
 
+#: src/components/settings/PairAppModal.tsx
+#: src/pages/SettingsPage.tsx
+msgid "Pair the Android app"
+msgstr "Pair the Android app"
+
 #: src/components/layout/SectionProperties.tsx
 msgid "Panels"
 msgstr "Panels"
@@ -9405,6 +9426,10 @@ msgstr "Puts these sources, in this order, at the front of the global priority l
 #: src/pages/settings/registry.ts
 msgid "qBittorrent"
 msgstr "qBittorrent"
+
+#: src/components/settings/PairAppModal.tsx
+msgid "QR code for pairing the Android app"
+msgstr "QR code for pairing the Android app"
 
 #: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
@@ -12650,6 +12675,10 @@ msgstr "This chapter is not on your server yet."
 msgid "This chapter was added or upgraded too recently"
 msgstr "This chapter was added or upgraded too recently"
 
+#: src/components/settings/PairAppModal.tsx
+msgid "This code has expired."
+msgstr "This code has expired."
+
 #: src/pages/HealthPage.tsx
 msgid "This file is already gone from disk, so nothing is deleted. It drops the record that still links these chapters to it, so they stop reading as downloaded."
 msgstr "This file is already gone from disk, so nothing is deleted. It drops the record that still links these chapters to it, so they stop reading as downloaded."
@@ -14080,6 +14109,12 @@ msgstr "Won't suggest resuming from this anime again."
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Working…"
 msgstr "Working…"
+
+#. placeholder {0}: Math.floor(left / 60)
+#. placeholder {1}: String(left % 60).padStart(2, '0')
+#: src/components/settings/PairAppModal.tsx
+msgid "Works once, for {0}:{1} more."
+msgstr "Works once, for {0}:{1} more."
 
 #: src/components/SetupWizard.tsx
 #: src/pages/SettingsPage.tsx

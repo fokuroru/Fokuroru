@@ -125,6 +125,12 @@ class ServersActivity : AppCompatActivity() {
         val address = view.findViewById<TextInputEditText>(R.id.dialog_url)
         val addressField = view.findViewById<TextInputLayout>(R.id.dialog_url_field)
         url?.let { address.setText(it) }
+        view.findViewById<View>(R.id.dialog_scan).setOnClickListener {
+            ServerSources.scan(this) { link -> ServerSources.pair(this, link) }
+        }
+        view.findViewById<View>(R.id.dialog_find).setOnClickListener {
+            ServerSources.find(this) { found -> address.setText(found) }
+        }
 
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (url == null) R.string.servers_add else R.string.servers_add_account)

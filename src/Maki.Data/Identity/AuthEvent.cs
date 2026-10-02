@@ -19,6 +19,7 @@ public enum AuthEventType
     SessionsRevoked = 14,
     OidcLinked = 15,
     OidcProvisioned = 16,
+    AppPaired = 17,
 }
 
 /// <summary>

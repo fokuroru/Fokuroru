@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.3.0 (17)
+- Add a server without typing: Find servers on this network (scans the local subnet for Fōkurōru), and Scan QR code, which adds the server and signs in as the account that showed the code (Settings, Android app, Pair the Android app, in the web interface). Needs the matching server build.
+
 ## 0.2.7 (16)
 - Fix: a fresh install crashed on launch because the web layer was built before any server was set. The setup screen now opens first and returns to the app when done.
 

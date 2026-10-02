@@ -214,6 +214,35 @@ public class AuthController(
         return Ok(await CompleteSignInAsync(user, ct));
     }
 
+    /// <summary>A code for the Android app to sign in as the caller, shown as a QR code. Needs a session of its own.</summary>
+    [HttpPost("pairing")]
+    public IActionResult CreatePairing([FromServices] AppPairing pairing)
+    {
+        var (code, expires) = pairing.Create(currentUser.UserId);
+        return Ok(new { code, expiresAt = expires });
+    }
+
+    /// <summary>Exchanges a pairing code for a session. Every failure looks the same, as with the password form.</summary>
+    [HttpPost("pair")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
+    public async Task<IActionResult> Pair(
+        [FromBody] PairRequest request, [FromServices] AppPairing pairing, CancellationToken ct)
+    {
+        var userId = pairing.Redeem(request.Code);
+        var user = userId is { } id ? await userManager.FindByIdAsync(id.ToString()) : null;
+        if (user is null || user.Disabled || user.PendingSetup)
+        {
+            await auditLog.LogAsync(AuthEventType.LoginFailed, string.Empty, user?.Id, HttpContext,
+                detail: "app pairing refused", ct: ct);
+            return AuthUnauthorized("error.auth.signInFailed");
+        }
+
+        await signInManager.SignInAsync(user, isPersistent: true);
+        await auditLog.LogAsync(AuthEventType.AppPaired, user.UserName ?? string.Empty, user.Id, HttpContext, ct: ct);
+        return Ok(await CompleteSignInAsync(user, ct, alreadySignedIn: true));
+    }
+
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(CancellationToken ct)
     {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncE
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { nativeApp } from '../lib/nativeApp'
+import PairAppModal from '../components/settings/PairAppModal'
 import { getSkippedVersion, setSkippedVersion, subscribeSkippedVersion } from '../lib/updateSkip'
 import { ApiError } from '../api/client'
 import { useLabel, useLanguageChoice } from '../i18n-context'
@@ -2648,7 +2649,24 @@ function HomeSectionsSection() {
 /** Only inside the Android app: the way to its own settings, which a web page can't reach. */
 function AndroidAppBlock() {
   const native = nativeApp()
-  if (!native) return null
+  const [pairOpen, setPairOpen] = useState(false)
+  if (!native) {
+    return (
+      <>
+        <Divider my="md" />
+        <Text fw={500} size="sm" mb={4}>
+          <Trans>Android app</Trans>
+        </Text>
+        <SettingsHelp mb="xs">
+          <Trans>Add this server to the Android app and sign it in as you, without typing a password.</Trans>
+        </SettingsHelp>
+        <Button variant="default" onClick={() => setPairOpen(true)}>
+          <Trans>Pair the Android app</Trans>
+        </Button>
+        <PairAppModal opened={pairOpen} onClose={() => setPairOpen(false)} />
+      </>
+    )
+  }
   return (
     <>
       <Divider my="md" />

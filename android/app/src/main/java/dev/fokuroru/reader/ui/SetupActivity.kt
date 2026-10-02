@@ -38,6 +38,15 @@ class SetupActivity : AppCompatActivity() {
         field = findViewById(R.id.setup_field)
         connect = findViewById(R.id.setup_connect)
         connect.setOnClickListener { submit() }
+        findViewById<Button>(R.id.setup_scan).setOnClickListener {
+            ServerSources.scan(this) { link -> ServerSources.pair(this, link) { setResult(RESULT_OK) } }
+        }
+        findViewById<Button>(R.id.setup_find).setOnClickListener {
+            ServerSources.find(this) { url ->
+                input.setText(url)
+                submit()
+            }
+        }
         input.setOnEditorActionListener { _, action, _ ->
             if (action == EditorInfo.IME_ACTION_GO) submit()
             action == EditorInfo.IME_ACTION_GO

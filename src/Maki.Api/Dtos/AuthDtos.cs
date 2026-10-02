@@ -5,6 +5,8 @@ namespace Maki.Api.Dtos;
 
 public record LoginRequest(string? Username, string? Password);
 
+public record PairRequest(string? Code);
+
 public record TwoFactorRequest(string? Code, bool RememberMachine);
 
 public record SetupRequest(string? Username, string? Password, string? DisplayName);
