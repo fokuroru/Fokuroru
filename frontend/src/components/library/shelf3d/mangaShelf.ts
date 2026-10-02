@@ -317,6 +317,7 @@ export class MangaShelf {
   private bannerImg: HTMLImageElement | null = null
   private bannerPlan: Taped | null = null
   private bannerAnim: BannerAnim | null = null
+  private bannerBuilt: { img: HTMLImageElement | null; row: Row | undefined } | null = null
   private prankFontReady = false
   /** Rolled once per page load and compared with how often the user wants one, so a figure stays or goes as a whole. */
   private readonly figureRoll = Math.random()
@@ -639,6 +640,8 @@ export class MangaShelf {
    * one has to move.
    */
   private syncBannerObject() {
+    // Redrawing the board (new stats, a refetch) must not put back a banner that has come down or been torn up.
+    if (this.bannerBuilt && this.bannerBuilt.img === this.bannerImg && this.bannerBuilt.row === this.rows[0]) return
     if (this.bannerAnim) {
       this.disposeModel(this.bannerAnim.group)
       this.bannerAnim = null
@@ -647,6 +650,7 @@ export class MangaShelf {
     const row = this.rows[0]
     const img = this.bannerImg
     if (!plan?.flop || !row || !img) return
+    this.bannerBuilt = { img, row }
 
     const border = 3
     const sheetW = plan.w + border * 2
@@ -2238,6 +2242,7 @@ export class MangaShelf {
   private clear() {
     this.select(null)
     this.bannerAnim = null
+    this.bannerBuilt = null
     for (const r of this.rows) {
       r.physics.destroy()
       this.disposeModel(r.scene)
@@ -3282,6 +3287,7 @@ export class MangaShelf {
     shelfShakes++
     if (shelfShakes > SHAKES_TO_DETACH && !row.detached) {
       row.detached = { side: row.physics.heavierSide(), angle: 0, speed: 0 }
+      row.physics.collapsed = true
       // Dust lying on the plank itself has nothing under it now: it drifts down like the rest.
       const now = performance.now()
       for (const d of this.dust) {

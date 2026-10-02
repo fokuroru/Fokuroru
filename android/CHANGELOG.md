@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.31 (59)
+- No app change. Dust no longer lands on the missing plank in the first frame after the shelf collapses, and a torn banner is not put back when the board is redrawn.
+
 ## 0.5.30 (58)
 - No app change. Chalk dust in the air after the shelf collapses now falls with gravity instead of drifting.
 
