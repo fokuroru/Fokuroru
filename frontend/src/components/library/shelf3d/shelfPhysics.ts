@@ -196,7 +196,7 @@ export class ShelfPhysics {
    */
   tiltPlank(side: -1 | 1, angle: number) {
     const px = side < 0 ? this.width + 6 : -6
-    const a = -side * angle
+    const a = side * angle
     const dx = this.width / 2 - px
     const cx = px + dx * Math.cos(a) - 35 * Math.sin(a)
     const cy = this.floor + dx * Math.sin(a) + 35 * Math.cos(a)

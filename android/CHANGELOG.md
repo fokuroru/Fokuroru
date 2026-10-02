@@ -4,6 +4,9 @@ Every push bumps `version.properties` (versionCode by one, versionName patch by 
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.28 (56)
+- No app change. The loosened shelf now tips down at its heavy end, and the books and props slide off it.
+
 ## 0.5.27 (55)
 - No app change. After the shelf shudders over 100 times in one page load (10 on the dev server), its heavier end comes off the wall and the plank hangs from the other.
 

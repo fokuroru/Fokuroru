@@ -3769,7 +3769,7 @@ export class MangaShelf {
         for (const i of this.items) if (i.row === r) i.model.position.y += dy
         for (const p of this.props) if (p.row === r) p.model.position.y += dy
       }
-      if (r.shake) pulling = true
+      if (r.shake || (r.detached && r.detached.angle < DETACH_ANGLE)) pulling = true
     }
     const rowPx = this.rowH * this.scale
     this.renderer.setScissorTest(true)
