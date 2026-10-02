@@ -170,6 +170,18 @@ export default function SimpleHomePage() {
   )
 }
 
+/** Numeric parts compared in order, so 0.31.1-fok.66 is newer than 0.31.1-fok.9. */
+function compareVersions(a: string, b: string): number {
+  const parts = (v: string) => v.split(/\D+/).filter(Boolean).map(Number)
+  const x = parts(a)
+  const y = parts(b)
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const d = (x[i] ?? 0) - (y[i] ?? 0)
+    if (d !== 0) return d
+  }
+  return 0
+}
+
 /** Which app, server and account this is, and whether the web interface on screen is the server's current one. */
 function AppStatus({ offline }: { offline: boolean }) {
   const native = nativeApp()
@@ -188,7 +200,9 @@ function AppStatus({ offline }: { offline: boolean }) {
 
   const server = live.data
   const checked = !offline && server !== undefined && server !== 'offline'
-  const synced = checked && loaded !== undefined && server === loaded
+  const needed = native?.serverVersion?.()
+  const tooOld = checked && needed !== undefined && compareVersions(server, needed) < 0
+  const synced = checked && !tooOld && loaded !== undefined && server === loaded
 
   return (
     <footer className="lite-status">
@@ -205,6 +219,10 @@ function AppStatus({ offline }: { offline: boolean }) {
         {!checked ? (
           <span>
             <Trans>Can't check the server right now</Trans>
+          </span>
+        ) : tooOld ? (
+          <span>
+            <Trans>Server is on {server}, this app needs {needed}</Trans>
           </span>
         ) : synced ? (
           <span>

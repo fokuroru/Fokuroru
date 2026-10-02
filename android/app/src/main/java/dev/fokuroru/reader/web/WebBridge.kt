@@ -19,6 +19,10 @@ class WebBridge(private val activity: MainActivity) {
     @JavascriptInterface
     fun version(): String = BuildConfig.VERSION_NAME
 
+    /** The oldest server this build was made to work with. */
+    @JavascriptInterface
+    fun serverVersion(): String = BuildConfig.SERVER_VERSION
+
     @JavascriptInterface
     fun offline(): Boolean = activity.trusted() && activity.serverOffline()
 

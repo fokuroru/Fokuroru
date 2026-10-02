@@ -17,6 +17,7 @@ android {
         targetSdk = 34
         versionCode = appVersion.getProperty("versionCode").toInt()
         versionName = appVersion.getProperty("versionName")
+        buildConfigField("String", "SERVER_VERSION", "\"${appVersion.getProperty("serverVersion")}\"")
     }
 
     buildFeatures {

@@ -6,6 +6,8 @@ import { useEffect, useRef, useSyncExternalStore } from 'react'
  */
 interface MakiNativeBridge {
   version(): string
+  /** The oldest server version this app build works with; absent on an older app. */
+  serverVersion?(): string
   layout(): string
   offline(): boolean
   queueProgress(chapterId: number, page: number, completed: boolean, seconds: number, final: boolean): void

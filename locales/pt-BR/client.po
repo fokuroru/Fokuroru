@@ -13507,6 +13507,10 @@ msgid "Server {server}, up to date"
 msgstr ""
 
 #: src/pages/SimpleHomePage.tsx
+msgid "Server is on {server}, this app needs {needed}"
+msgstr ""
+
+#: src/pages/SimpleHomePage.tsx
 msgid "Server is on {server}, this screen is on {loaded}"
 msgstr ""
 

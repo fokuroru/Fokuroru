@@ -125,4 +125,4 @@ type sizes from 700dp. `Layouts` has the rules and its tests.
 
 ## Versions
 
-`version.properties` holds the version. Bump it on every push and add a line to `CHANGELOG.md`.
+`version.properties` holds the version. Bump it on every push and add a line to `CHANGELOG.md`. `serverVersion` is the server build that push produces, which the footer of the mobile view checks the server against.
