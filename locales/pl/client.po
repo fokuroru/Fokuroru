@@ -672,6 +672,10 @@ msgstr "{folderLabel}: połączono {filesLinked, plural, one {# plik} few {# pli
 msgid "{folderLabel}: linked {filesLinked, plural, one {# file} other {# files}}, {filesUnrecognized, plural, one {# unrecognized} other {# unrecognized}}"
 msgstr "{folderLabel}: połączono {filesLinked, plural, one {# plik} few {# pliki} many {# plików} other {# pliku}}, {filesUnrecognized, plural, one {# nierozpoznany} few {# nierozpoznane} many {# nierozpoznanych} other {# nierozpoznanego}}"
 
+#: src/pages/ImportPage.tsx
+msgid "{folderLabel}: linked {filesLinked, plural, one {# file} other {# files}}, {skippedCount, plural, one {# not linked} other {# not linked}}"
+msgstr ""
+
 #: src/pages/reader/ChapterEnd.tsx
 #, fuzzy
 msgid "{forwardKey} or Space opens it, Esc goes back to the series."
@@ -956,6 +960,10 @@ msgstr "{name}: {ok}/{total} powodzeń"
 #, fuzzy
 msgid "{name}: {ok}/{total} succeeded, first error: {firstError}"
 msgstr "{name}: powodzenie dla {ok}/{total}, pierwszy błąd: {firstError}"
+
+#: src/pages/ImportPage.tsx
+msgid "{name}: {reason}"
+msgstr ""
 
 #: src/components/home/RecentlyAddedRail.tsx
 msgid "{newChapterCount, plural, one {# new} other {# new}}"
@@ -4531,6 +4539,10 @@ msgstr "Kluczowy"
 #, fuzzy
 msgid "Corrupt"
 msgstr "Uszkodzone"
+
+#: src/pages/ImportPage.tsx
+msgid "could not be read, the archive is corrupt or truncated"
+msgstr ""
 
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
@@ -9486,6 +9498,12 @@ msgstr "Żaden rozdział tutaj nie ma zapisanego czasu czytania, więc nie ma te
 
 #: src/components/lite/SeriesSheet.tsx
 msgid "No chapters are on the server for this series."
+#: src/pages/ImportPage.tsx
+msgid "no chapter or volume number in the name"
+msgstr ""
+
+#: src/pages/ImportPage.tsx
+msgid "no chapter with this number in the series"
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
