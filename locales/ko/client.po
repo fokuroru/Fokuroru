@@ -11203,6 +11203,7 @@ msgstr ""
 
 #: src/api/hooks.ts
 #: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Previews"
 msgstr ""
 

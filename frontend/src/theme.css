@@ -8698,6 +8698,10 @@ body.reader-open {
   position: relative;
   overflow: hidden;
   margin: 4px 0 0;
+  /* Holding it opens the series sheet, like a library cover, so the press must not select text or raise the browser menu. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .lite-hero-backdrop {
   position: absolute;
@@ -8818,6 +8822,15 @@ body.reader-open {
 .lite-cover img {
   -webkit-user-drag: none;
   pointer-events: none;
+}
+/* A card that is a button (the Previews rail) rather than a link. */
+.lite-card-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 .lite-cover {
   position: relative;

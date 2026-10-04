@@ -6,7 +6,18 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SpiceButton } from '../components/layout/SpiceButton'
 import { useReadTracking } from '../api/reader'
-import { useAppVersion, useHomeFresh, useHomeReading, useSeries, type HomeReadingItem } from '../api/hooks'
+import {
+  useAppVersion,
+  useHomeFresh,
+  useHomeReading,
+  useRootFolders,
+  useSeries,
+  useSeriesIdLookup,
+  type HomeReadingItem,
+  type RecommendationItem,
+} from '../api/hooks'
+import { useCachedPreviews } from '../api/preview'
+import { DiscoverDetailModal } from '../components/discover/DiscoverDetailModal'
 import { useAuth } from '../auth/AuthProvider'
 import type { SeriesDto } from '../api/types'
 import { BrandWordmark, IconBrandMark } from '../components/IconBrandMark'
@@ -37,6 +48,10 @@ export default function SimpleHomePage() {
   const [sort, setSort] = useState<Sort>('recent')
   const [shown, setShown] = useState(PAGE)
   const [held, setHeld] = useState<SheetSeries | null>(null)
+  const [previewItem, setPreviewItem] = useState<RecommendationItem | null>(null)
+  const previews = useCachedPreviews(true)
+  const { data: rootFolders } = useRootFolders()
+  const seriesIdFor = useSeriesIdLookup()
 
   const continuing = reading.data?.continueReading ?? []
   const upNext = reading.data?.jumpBackIn ?? []
@@ -131,7 +146,7 @@ export default function SimpleHomePage() {
       )}
 
       {hero ? (
-        <Hero item={hero} resuming={continuing.some((c) => c.seriesId === hero.seriesId)} />
+        <Hero item={hero} resuming={continuing.some((c) => c.seriesId === hero.seriesId)} onHold={setHeld} />
       ) : (
         !reading.isPending &&
         !offline && (
@@ -165,6 +180,28 @@ export default function SimpleHomePage() {
       )}
 
       {railItems.length > 0 && <Rail title={t`Continue reading`} items={railItems} onHold={setHeld} />}
+
+      {(previews.data ?? []).length > 0 && (
+        <section className="lite-section" aria-labelledby="lite-previews">
+          <h2 id="lite-previews" className="lite-heading">
+            <Trans>Previews</Trans>
+          </h2>
+          <div className="lite-rail">
+            {(previews.data ?? []).map((item) => (
+              <button key={item.providerId} type="button" className="lite-card lite-card-button" onClick={() => setPreviewItem(item)}>
+                <span className="lite-cover">
+                  {item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl ? (
+                    <img src={item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl ?? ''} alt="" loading="lazy" />
+                  ) : (
+                    <span className="lite-cover-blank" />
+                  )}
+                </span>
+                <span className="lite-card-title">{item.title}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="lite-section" aria-labelledby="lite-library">
         <h2 id="lite-library" className="lite-heading">
@@ -216,6 +253,13 @@ export default function SimpleHomePage() {
 
       <AppStatus offline={offline} />
       <SeriesSheet series={held} onClose={() => setHeld(null)} />
+      <DiscoverDetailModal
+        item={previewItem}
+        feedbackContext={{ surface: 'home' }}
+        inLibrarySeriesId={previewItem ? seriesIdFor(previewItem) : null}
+        rootFolders={rootFolders}
+        onClose={() => setPreviewItem(null)}
+      />
     </div>
   )
 }
@@ -293,12 +337,13 @@ function AppStatus({ offline }: { offline: boolean }) {
   )
 }
 
-function Hero({ item, resuming }: { item: HomeReadingItem; resuming: boolean }) {
+function Hero({ item, resuming, onHold }: { item: HomeReadingItem; resuming: boolean; onHold: (s: SheetSeries) => void }) {
   const { t } = useLingui()
+  const press = useLongPress(() => onHold({ id: item.seriesId, title: item.seriesTitle }))
   const started = item.pageCount > 0 && item.page > 0
   const percent = item.pageCount > 0 ? Math.min(100, Math.round(((item.page + 1) / item.pageCount) * 100)) : 0
   return (
-    <section className="lite-hero" style={spineVars(item.spineColor, 'dark')}>
+    <section className="lite-hero" style={spineVars(item.spineColor, 'dark')} {...press}>
       {item.coverUrl && <div className="lite-hero-backdrop" style={{ backgroundImage: `url(${item.coverUrl})` }} aria-hidden />}
       <div className="lite-hero-body">
         <Link to={`/open/${item.seriesId}`} state={{ lite: true }} className="lite-hero-cover" aria-label={t`Open ${item.seriesTitle}`}>
