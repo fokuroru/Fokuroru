@@ -531,6 +531,11 @@ export default function ActivityPage() {
                             {rejectionText ?? (held ? t`Paused` : renderLabel(visual.label))}
                           </StatusDot>
                         </Tooltip>
+                        {q.status === 'Failed' && failure && !rejectionText && (
+                          <Text size="xs" c="var(--ink-3)" lineClamp={2} maw={320}>
+                            {failure}
+                          </Text>
+                        )}
                       </Table.Td>
                       <Table.Td>
                         <Group gap={4} wrap="nowrap" justify="flex-end">

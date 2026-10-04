@@ -204,7 +204,9 @@ public class ChapterDownloadProcessor(
                 if (!await ImageValidator.IsValidImageAsync(file, ct))
                 {
                     File.Delete(file); // force re-download on retry
-                    throw new InvalidOperationException($"Invalid image: {Path.GetFileName(file)}");
+                    logger.LogWarning("Queue item {Id}: page {Page} is not an image", item.Id, Path.GetFileName(file));
+                    await FailAsync(item, "error.download.invalidPage", ct, detail: Path.GetFileName(file));
+                    return DownloadOutcome.Settled;
                 }
             }
 
@@ -407,12 +409,12 @@ public class ChapterDownloadProcessor(
         {
             if (item.HealthOperationId != null)
             {
-                await FailAsync(item, "error.download.approvedSourceNoPages", ct);
+                await FailAsync(item, "error.download.approvedSourceNoPages", ct, detail: hre.Message);
                 return DownloadOutcome.Settled;
             }
             if (item.PreferredMappingId != null)
             {
-                await FailAsync(item, "error.download.pickedSourceUnavailable", ct);
+                await FailAsync(item, "error.download.pickedSourceUnavailable", ct, detail: hre.Message);
                 return DownloadOutcome.Settled;
             }
             logger.LogError(hre, "Download failed for queue item {Id}. Page not found, retrying.", item.Id);
@@ -431,7 +433,7 @@ public class ChapterDownloadProcessor(
                 .ToListAsync(ct), ct);
             if (mappings.Count == 0)
             {
-                await FailAsync(item, "error.download.noMoreSources", ct);
+                await FailAsync(item, "error.download.noMoreSources", ct, detail: hre.Message);
                 return DownloadOutcome.Settled;
             }
 
@@ -452,7 +454,8 @@ public class ChapterDownloadProcessor(
         catch (Exception ex)
         {
             logger.LogError(ex, "Download failed for queue item {Id}", item.Id);
-            await FailAsync(item, "error.download.unexpected", ct);
+            var (key, detail) = DownloadFailureReason.Classify(ex);
+            await FailAsync(item, key, ct, detail: detail);
             return DownloadOutcome.Settled;
         }
     }
@@ -895,10 +898,12 @@ public class ChapterDownloadProcessor(
     /// Nothing a retry could change: the row fails without a retry scheduled or counted, and
     /// <see cref="DownloadQueueService.RequeueEligibleFailuresAsync"/> leaves it alone.
     /// </param>
-    private async Task FailAsync(DownloadQueueItem item, string key, CancellationToken ct, bool permanent = false)
+    /// <param name="detail">What the source or the exception said, shown after the keyed reason.</param>
+    private async Task FailAsync(
+        DownloadQueueItem item, string key, CancellationToken ct, bool permanent = false, string? detail = null)
     {
         item.Status = QueueStatus.Failed;
-        item.SetError(key);
+        item.SetError(key, detail: detail);
         if (permanent)
         {
             item.NextAttempt = null;
