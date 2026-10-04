@@ -39,6 +39,7 @@ import {
 import { useIsFetching } from '@tanstack/react-query'
 import { useDebouncedValue } from '@mantine/hooks'
 import { Trans, Plural, useLingui } from '@lingui/react/macro'
+import { CatalogueUnavailable } from '../components/CatalogueUnavailable'
 import { plural, t as now } from '@lingui/core/macro'
 import { notifications } from '@mantine/notifications'
 import {
@@ -52,6 +53,7 @@ import {
   useDiscoverSideInterests,
   READER_COHORT_FEED,
   useMetadataSearch,
+  useMetadataSettings,
   useRecommendationDefaults,
   useRecommendations,
   useRootFolders,
@@ -1555,6 +1557,22 @@ const TAB_PATHS: Record<DiscoverTab, string> = {
  * the reader's own taste profile.
  */
 export default function DiscoverPage() {
+  const { t } = useLingui()
+  const { data: metadata, refetch } = useMetadataSettings()
+  // Nav keeps Discover visible while the database downloads; say so here rather than let every
+  // rail fail on its own.
+  if (metadata && !(metadata.useLocalDb && metadata.dumpPresent)) {
+    return (
+      <>
+        <PageHeader title={t`Discover`} />
+        <CatalogueUnavailable onReady={() => void refetch()} />
+      </>
+    )
+  }
+  return <DiscoverPageContent />
+}
+
+function DiscoverPageContent() {
   const { t } = useLingui()
   const { tab } = useParams()
   const navigate = useNavigate()

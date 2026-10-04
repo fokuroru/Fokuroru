@@ -17,8 +17,8 @@
   --ink: #ece5d8;
   --ink-2: #cfc7b8;
   --ink-3: #a39c8e;
-  /* 4.7:1 on the ground; below 4.5:1 on --surface, so use --ink-3 for small text there. */
-  --ink-4: #8c8578;
+  /* 6.1:1 on the ground and 5.3:1 on --surface, so it holds for small text on both. */
+  --ink-4: #a0998b;
   --hairline: var(--border);
   --mantine-color-dimmed: var(--ink-3);
   --rating: #d9b75c;
@@ -607,10 +607,16 @@ svg.setup-rail-wordmark {
   right: 6px;
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   border-radius: 4px;
   color: var(--ink-4);
+}
+/* The glyph stays small; the tap area grows to 32px. */
+.nav-footer .nav-footer-dismiss::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
 }
 .nav-footer .nav-footer-dismiss:hover {
   color: var(--ink-hi);
@@ -800,6 +806,12 @@ svg.setup-rail-wordmark {
   background-image: none;
   box-shadow: none;
   font-variant-numeric: tabular-nums;
+}
+.count-indicator[data-tone='warn'] > .mantine-Indicator-indicator {
+  color: var(--app-bg);
+}
+.count-indicator[data-tone='danger'] > .mantine-Indicator-indicator {
+  color: var(--app-bg);
 }
 .count-indicator[data-tone='brand'] > .mantine-Indicator-indicator {
   background: var(--brand);

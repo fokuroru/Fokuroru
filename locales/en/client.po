@@ -2137,6 +2137,10 @@ msgstr "Ambiguous names"
 msgid "An admin decides where it lands and what gets downloaded."
 msgstr "An admin decides where it lands and what gets downloaded."
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "An admin needs to download it first. Ask them to install the local database."
+msgstr "An admin needs to download it first. Ask them to install the local database."
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "An admin will see it on the Requests page."
 msgstr "An admin will see it on the Requests page."
@@ -3411,6 +3415,7 @@ msgstr "Client secret"
 #: src/components/series/SeriesReviews.tsx
 #: src/components/SourceCompareModal.tsx
 #: src/components/TagBrowserModal.tsx
+#: src/main.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
 #: src/pages/reader/DownloadSplash.tsx
 #: src/pages/reader/ShortcutSheet.tsx
@@ -6407,6 +6412,10 @@ msgstr "Isekai"
 msgid "Issuer URL"
 msgstr "Issuer URL"
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "It is downloading now. This page fills in when it finishes."
+msgstr "It is downloading now. This page fills in when it finishes."
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "It may have been removed from the library."
 msgstr "It may have been removed from the library."
@@ -8901,6 +8910,14 @@ msgstr "Open file findings"
 #: src/App.tsx
 msgid "Open Health"
 msgstr "Open Health"
+
+#: src/components/CatalogueUnavailable.tsx
+msgid "Open metadata settings"
+msgstr "Open metadata settings"
+
+#: src/App.tsx
+msgid "Open navigation"
+msgstr "Open navigation"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Open on"
@@ -12607,6 +12624,10 @@ msgstr "The library"
 msgid "The linked file has not been inventoried yet, so its pages cannot be shown. Run Scan files, then come back to compare them."
 msgstr "The linked file has not been inventoried yet, so its pages cannot be shown. Run Scan files, then come back to compare them."
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "The local database is not installed yet. Download it once from the metadata settings."
+msgstr "The local database is not installed yet. Download it once from the metadata settings."
+
 #: src/components/SetupWizard.tsx
 msgid "The most explicit rating shown in search, Discover and recommendations. Everything up to it is allowed."
 msgstr "The most explicit rating shown in search, Discover and recommendations. Everything up to it is allowed."
@@ -12859,6 +12880,10 @@ msgstr "This month"
 #: src/pages/HealthPage.tsx
 msgid "This operation is {opStatus} and needs no further action."
 msgstr "This operation is {opStatus} and needs no further action."
+
+#: src/components/CatalogueUnavailable.tsx
+msgid "This page needs the metadata database"
+msgstr "This page needs the metadata database"
 
 #: src/pages/HealthPage.tsx
 msgid "This permanently deletes {count, plural, one {the file} other {these files}} from disk. Chapter records, Wanted flags and reading history are kept, so anything still wanted can be downloaded again. Archives already missing from disk have nothing to delete: for those this only clears the record that still says their chapters are downloaded."

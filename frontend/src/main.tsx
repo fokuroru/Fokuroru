@@ -1,8 +1,9 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Notifications, notifications } from '@mantine/notifications'
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
+import { useLingui } from '@lingui/react/macro'
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
 // Bundled rather than linked from a font CDN: a self-hosted instance may have no internet, and
@@ -17,7 +18,7 @@ import { AppThemeProvider } from './theme-context'
 import { AppI18nProvider } from './i18n-context'
 import { loadLocale, resolveInitialLocale } from './i18n'
 import App from './App.tsx'
-import { ApiError } from './api/client'
+import { ApiError, isLocalCatalogueUnavailable } from './api/client'
 import { syncSkeletonPulses } from './lib/skeletonSync'
 
 syncSkeletonPulses()
@@ -33,6 +34,8 @@ syncSkeletonPulses()
  */
 function reportError(error: unknown, meta?: Record<string, unknown>) {
   if (meta?.silent) return
+  // Pages that need the catalogue explain this inline, with the download's progress.
+  if (isLocalCatalogueUnavailable(error)) return
   if (meta?.inlineNotFound && error instanceof ApiError && error.status === 404) return
   notifications.show({
     message:
@@ -76,6 +79,23 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   })
 }
 
+/** Mantine's toast close button ships unnamed and Notifications takes no prop for it, so name each as it mounts. */
+function ToastHost() {
+  const { t } = useLingui()
+  const label = t`Close`
+  useEffect(() => {
+    const name = () =>
+      document
+        .querySelectorAll('.mantine-Notification-closeButton:not([aria-label])')
+        .forEach((b) => b.setAttribute('aria-label', label))
+    name()
+    const observer = new MutationObserver(name)
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [label])
+  return <Notifications autoClose={6000} zIndex={2000} />
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppI18nProvider>
@@ -83,7 +103,7 @@ createRoot(document.getElementById('root')!).render(
         {/* Above every modal, not Mantine's default 400. The Discover detail modal sits at 1000 and
             the fullscreen "Show more" modal above that, so a toast raised by an action taken inside
             one of them rendered behind it: the action worked, said so, and the reader saw nothing. */}
-        <Notifications autoClose={6000} zIndex={2000} />
+        <ToastHost />
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <App />

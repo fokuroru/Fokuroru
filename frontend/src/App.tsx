@@ -29,6 +29,7 @@ import {
   useMetadataSettings,
   useQueueSummary,
   useSetupStatus,
+  useDumpProgress,
   useUiSettings,
 } from './api/hooks'
 import { usePendingRequestCount } from './api/requests'
@@ -50,6 +51,7 @@ import { EmptyState } from './components/ui/EmptyState'
 import { useLanguageSync } from './i18n-context'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useLingui as useLinguiReact } from '@lingui/react'
+import { PageSkeleton } from './components/ui/PageSkeleton'
 import { navSections, isActive, type NavItem } from './nav'
 import { ShellTitleProvider, useShellTitleValue } from './lib/shellTitle'
 // Home and Library stay eagerly imported: "/" resolves to one of the two on every cold load
@@ -103,13 +105,9 @@ function NotFoundPage() {
   )
 }
 
-/** Shared placeholder while a route chunk is in flight. Matches StartPageRedirect's loader. */
+/** Shared placeholder while a route chunk is in flight. */
 function RouteFallback() {
-  return (
-    <Center py={80}>
-      <Loader />
-    </Center>
-  )
+  return <PageSkeleton />
 }
 
 function NavLinks({
@@ -169,6 +167,7 @@ function HealthButton() {
           label={health.length}
           withBorder
           className="count-indicator"
+          data-tone={hasError ? 'danger' : 'warn'}
         >
           <ActionIcon
             variant="subtle"
@@ -414,7 +413,13 @@ function AppShellRoutes() {
 
   // Both default to "available" while their settings load, so a tab doesn't flash away and back
   // on every visit. HomePage takes the opposite default for its own data, see the note there.
-  const discoverAvailable = metadata ? metadata.useLocalDb && metadata.dumpPresent : true
+  const { data: dump, isFetched: dumpFetched } = useDumpProgress(can('Admin'))
+  // Stays listed while the database downloads, so the tab does not appear and vanish on first
+  // run. The page itself explains the wait.
+  const discoverAvailable = metadata
+    ? metadata.useLocalDb &&
+      (metadata.dumpPresent || Boolean(dump?.running || dump?.lastInstalled) || (can('Admin') && !dumpFetched))
+    : true
   const homeEnabled = ui ? ui.homeLayout.enabled : true
   const isAdmin = can('Admin')
   const canAdd = can('AddSeries')
@@ -451,7 +456,13 @@ function AppShellRoutes() {
       <AppShell.Header className="app-header">
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
           <Group gap="sm" wrap="nowrap">
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Burger
+              opened={opened}
+              onClick={toggle}
+              hiddenFrom="sm"
+              size="sm"
+              aria-label={t`Open navigation`}
+            />
             <Group gap="sm" wrap="nowrap" hiddenFrom="sm">
               <span className="brand-mark" role="img" aria-label={t`Manga manager`} title={t`Manga manager`}>
                 <IconBrandMark />

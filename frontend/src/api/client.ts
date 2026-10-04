@@ -49,6 +49,11 @@ export class UnauthorizedError extends Error {
   }
 }
 
+/** The server refusing a catalogue read because the local MangaBaka database is not installed yet. */
+export function isLocalCatalogueUnavailable(error: unknown): boolean {
+  return error instanceof ApiError && /needslocaldb|localdbunavailable/i.test(error.code ?? '')
+}
+
 export class ApiError extends Error {
   readonly status: number
   /** The stable dotted key behind `message` (`error.upgrades.trashGone`), or null when the body carried none. */

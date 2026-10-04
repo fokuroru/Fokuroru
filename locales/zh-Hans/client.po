@@ -2555,6 +2555,10 @@ msgstr "名称有歧义"
 msgid "An admin decides where it lands and what gets downloaded."
 msgstr "管理员会决定它存放的位置以及要下载的内容。"
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "An admin needs to download it first. Ask them to install the local database."
+msgstr ""
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
 msgid "An admin will see it on the Requests page."
@@ -4079,6 +4083,7 @@ msgstr "客户端密钥"
 #: src/components/series/SeriesReviews.tsx
 #: src/components/SourceCompareModal.tsx
 #: src/components/TagBrowserModal.tsx
+#: src/main.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
 #: src/pages/reader/DownloadSplash.tsx
 #: src/pages/reader/ShortcutSheet.tsx
@@ -7630,6 +7635,10 @@ msgstr "异世界"
 msgid "Issuer URL"
 msgstr "签发者 URL"
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "It is downloading now. This page fills in when it finishes."
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "It may have been removed from the library."
@@ -10599,6 +10608,14 @@ msgstr "打开文件发现项"
 #, fuzzy
 msgid "Open Health"
 msgstr "打开健康状态页"
+
+#: src/components/CatalogueUnavailable.tsx
+msgid "Open metadata settings"
+msgstr ""
+
+#: src/App.tsx
+msgid "Open navigation"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -14977,6 +14994,10 @@ msgstr "资料库"
 msgid "The linked file has not been inventoried yet, so its pages cannot be shown. Run Scan files, then come back to compare them."
 msgstr "关联文件尚未盘点，因此无法显示其页面。运行“扫描文件”，然后回来进行比较。"
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "The local database is not installed yet. Download it once from the metadata settings."
+msgstr ""
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "The most explicit rating shown in search, Discover and recommendations. Everything up to it is allowed."
@@ -15272,6 +15293,10 @@ msgstr "本月"
 #, fuzzy
 msgid "This operation is {opStatus} and needs no further action."
 msgstr "此操作为 {opStatus}，无需进一步操作。"
+
+#: src/components/CatalogueUnavailable.tsx
+msgid "This page needs the metadata database"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy

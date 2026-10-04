@@ -2555,6 +2555,10 @@ msgstr "Niejednoznaczne nazwy"
 msgid "An admin decides where it lands and what gets downloaded."
 msgstr "Administrator decyduje, gdzie trafi seria i co zostanie pobrane."
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "An admin needs to download it first. Ask them to install the local database."
+msgstr ""
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
 msgid "An admin will see it on the Requests page."
@@ -4079,6 +4083,7 @@ msgstr "Sekret klienta"
 #: src/components/series/SeriesReviews.tsx
 #: src/components/SourceCompareModal.tsx
 #: src/components/TagBrowserModal.tsx
+#: src/main.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
 #: src/pages/reader/DownloadSplash.tsx
 #: src/pages/reader/ShortcutSheet.tsx
@@ -7630,6 +7635,10 @@ msgstr "Isekai"
 msgid "Issuer URL"
 msgstr "URL wystawcy"
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "It is downloading now. This page fills in when it finishes."
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "It may have been removed from the library."
@@ -10599,6 +10608,14 @@ msgstr "Otwórz znaleziska plików"
 #, fuzzy
 msgid "Open Health"
 msgstr "Otwórz Zdrowie"
+
+#: src/components/CatalogueUnavailable.tsx
+msgid "Open metadata settings"
+msgstr ""
+
+#: src/App.tsx
+msgid "Open navigation"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -14977,6 +14994,10 @@ msgstr "Biblioteka"
 msgid "The linked file has not been inventoried yet, so its pages cannot be shown. Run Scan files, then come back to compare them."
 msgstr "Połączony plik nie został jeszcze zinwentaryzowany, więc jego strony nie mogą zostać pokazane. Uruchom Skanuj pliki, a następnie wróć, aby je porównać."
 
+#: src/components/CatalogueUnavailable.tsx
+msgid "The local database is not installed yet. Download it once from the metadata settings."
+msgstr ""
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "The most explicit rating shown in search, Discover and recommendations. Everything up to it is allowed."
@@ -15272,6 +15293,10 @@ msgstr "Ten miesiąc"
 #, fuzzy
 msgid "This operation is {opStatus} and needs no further action."
 msgstr "Ta operacja ma status {opStatus} i nie wymaga dalszych działań."
+
+#: src/components/CatalogueUnavailable.tsx
+msgid "This page needs the metadata database"
+msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy

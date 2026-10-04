@@ -803,7 +803,14 @@ function GuideRail({
       </nav>
 
       <div className="setup-rail-foot">
-        <Button variant="subtle" color="var(--neutral)" size="xs" onClick={onSkip} loading={skipping}>
+        <Button
+          variant="subtle"
+          color="var(--neutral)"
+          size="xs"
+          mih={32}
+          onClick={onSkip}
+          loading={skipping}
+        >
           <Trans>Skip setup</Trans>
         </Button>
         <Text className="setup-rail-note">
@@ -936,7 +943,13 @@ export default function SetupWizard() {
                   Step {stepNumber} of {stepTotal}
                 </Trans>
               </Text>
-              <Button variant="subtle" color="var(--neutral)" size="compact-xs" onClick={() => confirmedFinish()}>
+              <Button
+                variant="subtle"
+                color="var(--neutral)"
+                size="compact-xs"
+                mih={32}
+                onClick={() => confirmedFinish()}
+              >
                 <Trans>Skip setup</Trans>
               </Button>
               <div className="setup-mobile-progress" aria-hidden>

@@ -47,6 +47,8 @@ import { FilterMatchCount } from './CatalogueRules'
 import { HiddenContentButton, PresetMenu } from './DiscoverPresets'
 import { DiscoverDetailModal } from './discover/DiscoverDetailModal'
 import { EmptyState } from './ui/EmptyState'
+import { CatalogueUnavailable } from './CatalogueUnavailable'
+import { isLocalCatalogueUnavailable } from '../api/client'
 import { RecommendationCard, RecommendationRow } from './ui/DiscoverRail'
 import { useWindowedRows, WINDOW_MIN_ITEMS } from './ui/useWindowedRows'
 import {
@@ -229,6 +231,7 @@ export function CatalogueBrowser({
   const items = searching ? (search.data?.items ?? []) : (browse.data ?? [])
   const loading = searching ? search.isFetching && !search.data : browse.isFetching && !browse.data
   const error = searching ? search.error : browse.error
+  const unavailable = isLocalCatalogueUnavailable(error)
   const credits = search.data?.credits ?? []
   const corrected = search.data?.correctedQuery ?? null
 
@@ -414,17 +417,26 @@ export function CatalogueBrowser({
             </Group>
           </Group>
 
-          {error && (
+          {error && !unavailable && (
             <Alert color="var(--warn)" variant="light" mb="md">
-              {String(error)}
+              {error instanceof Error ? error.message : String(error)}
             </Alert>
+          )}
+
+          {unavailable && (
+            <CatalogueUnavailable
+              onReady={() => {
+                void browse.refetch()
+                void search.refetch()
+              }}
+            />
           )}
 
           {loading && (
             <PosterSkeletons density={prefs.density} viewMode={prefs.viewMode} />
           )}
 
-          {!loading && items.length === 0 && (
+          {!loading && !unavailable && items.length === 0 && (
             <EmptyState
               title={searching ? t`No matches` : t`Nothing here`}
               description={
