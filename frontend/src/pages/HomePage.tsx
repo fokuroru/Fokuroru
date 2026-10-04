@@ -5,6 +5,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
 import {
   IconBook,
+  IconBellRinging,
   IconBookmarks,
   IconDeviceTv,
   IconDownload,
@@ -23,6 +24,7 @@ import {
   useDiscover,
   useProgressSummary,
   useHomeReading,
+  useHomeFresh,
   useHomeRecentlyAdded,
   useLibraryStats,
   useMetadataSettings,
@@ -58,6 +60,7 @@ import type { ReadingRailKind } from '../components/home/ReadingCardMenu'
 import { DownloadingStrip } from '../components/home/DownloadingStrip'
 import { AnimeResumeRail } from '../components/home/AnimeResumeRail'
 import { SpineShelf, type BoardModel } from '../components/library/SpineShelf'
+import { FreshChaptersRail } from '../components/home/FreshChaptersRail'
 import { RecentlyAddedRail } from '../components/home/RecentlyAddedRail'
 import { DiscoverRailRow, EngineRailRow } from '../components/ui/DiscoverRail'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -132,6 +135,7 @@ export default function HomePage() {
     refetch: refetchReading,
   } = useHomeReading(12, needsReading)
   const { data: recent, isLoading: recentLoading } = useHomeRecentlyAdded(12, on('recent'))
+  const { data: fresh } = useHomeFresh(12, on('glance'))
   const { data: fromAnime, isLoading: fromAnimeLoading } = useHomeFromAnime(on('fromanime'))
   const { data: queue } = useQueue()
   const gate = useDisplayGate()
@@ -395,7 +399,17 @@ export default function HomePage() {
       )
     ),
 
-    glance: <SpineShelf series={series ?? []} readTracking={readTracking} board={board} />,
+    glance: (
+      <>
+        <SpineShelf series={series ?? []} readTracking={readTracking} board={board} />
+        {fresh && fresh.length > 0 && (
+          <>
+            <SectionHeader icon={IconBellRinging} title={t`New chapters`} count={fresh.length} />
+            <FreshChaptersRail items={fresh} />
+          </>
+        )}
+      </>
+    ),
   }
 
   const visible = layout.filter(sectionVisible)

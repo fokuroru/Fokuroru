@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SpiceButton } from '../components/layout/SpiceButton'
 import { useReadTracking } from '../api/reader'
-import { useAppVersion, useHomeReading, useSeries, type HomeReadingItem } from '../api/hooks'
+import { useAppVersion, useHomeFresh, useHomeReading, useSeries, type HomeReadingItem } from '../api/hooks'
 import { useAuth } from '../auth/AuthProvider'
 import type { SeriesDto } from '../api/types'
 import { BrandWordmark, IconBrandMark } from '../components/IconBrandMark'
@@ -29,6 +29,7 @@ export default function SimpleHomePage() {
   const { t } = useLingui()
   const navigate = useNavigate()
   const reading = useHomeReading(12)
+  const fresh = useHomeFresh(12)
   const library = useSeries()
   const native = nativeApp()
 
@@ -143,6 +144,24 @@ export default function SimpleHomePage() {
             </Text>
           </section>
         )
+      )}
+
+      {(fresh.data ?? []).length > 0 && (
+        <Rail
+          title={t`New chapters`}
+          items={(fresh.data ?? []).map((f) => ({
+            seriesId: f.seriesId,
+            seriesTitle: f.seriesTitle,
+            coverUrl: f.coverUrl,
+            chapterId: f.chapterId,
+            chapterLabel: f.newChapterCount > 1 ? `${f.chapterLabel} +${f.newChapterCount - 1}` : f.chapterLabel,
+            page: 0,
+            pageCount: 0,
+            lastReadAt: '',
+            unreadChapters: f.newChapterCount,
+          }))}
+          onHold={setHeld}
+        />
       )}
 
       {railItems.length > 0 && <Rail title={t`Continue reading`} items={railItems} onHold={setHeld} />}

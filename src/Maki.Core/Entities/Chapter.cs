@@ -26,6 +26,14 @@ public class Chapter
     public DateTime? ReleaseDate { get; set; }
 
     /// <summary>
+    /// When sync first listed this chapter as a new release: a main chapter numbered past everything
+    /// the series already held, on a series that already had chapters. Null for everything else
+    /// (the first listing, backfilled or imported chapters), which is what keeps a back catalogue
+    /// from reading as fresh. Drives the Home rail of new chapters for up to date series.
+    /// </summary>
+    public DateTime? DiscoveredAt { get; set; }
+
+    /// <summary>
     /// Whether the user wants this chapter at all. Purely their intent: it decides what counts
     /// toward a series' chapter total and what is eligible to download, and nothing else.
     /// <para>

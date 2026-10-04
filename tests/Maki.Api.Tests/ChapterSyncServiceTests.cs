@@ -83,6 +83,29 @@ public class ChapterSyncServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Only_a_main_chapter_past_the_end_of_a_listed_series_is_a_new_release()
+    {
+        var seriesId = _db.SeedSeries(mappings: Mapping("fake"));
+        var maker = new FakeSource { Name = "fake" };
+        var listed = new List<SourceChapter> { maker.Chapter(1), maker.Chapter(2) };
+        var fake = new FakeSource { Name = "fake", OnListChapters = _ => listed };
+
+        // First listing is the back catalogue, however many chapters it holds.
+        await BuildService(null, fake).SyncSeriesAsync(seriesId);
+        Assert.All(ChaptersOf(seriesId), c => Assert.Null(c.DiscoveredAt));
+
+        // A chapter past the end, a special past the end, and one numbered inside what is held.
+        listed.AddRange([maker.Chapter(3), maker.Chapter(3.5m), maker.Chapter(0)]);
+        await BuildService(null, fake).SyncSeriesAsync(seriesId);
+
+        var byNumber = ChaptersOf(seriesId).ToDictionary(c => c.Number!.Value);
+        Assert.NotNull(byNumber[3m].DiscoveredAt);
+        Assert.Null(byNumber[3.5m].DiscoveredAt);
+        Assert.Null(byNumber[0m].DiscoveredAt);
+        Assert.Null(byNumber[1m].DiscoveredAt);
+    }
+
+    [Fact]
     public async Task Successful_refresh_replaces_only_the_mapping_snapshot()
     {
         var seriesId = _db.SeedSeries(mappings: Mapping("fake"));

@@ -9331,6 +9331,8 @@ msgid "New chapter available"
 msgstr "Yeni bölüm mevcut"
 
 #: src/components/ImportListsSection.tsx
+#: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "New chapters"
 msgstr "Yeni bölümler"
@@ -11566,6 +11568,7 @@ msgid "read"
 msgstr "okundu"
 
 #: src/components/discover/SourcePreviewPanel.tsx
+#: src/components/home/FreshChaptersRail.tsx
 #: src/components/home/RecentlyAddedRail.tsx
 #: src/components/lite/SeriesSheet.tsx
 #: src/components/ui/SeriesRow.tsx
@@ -11655,6 +11658,10 @@ msgstr ""
 #, fuzzy
 msgid "Read slowly over a long span"
 msgstr "Uzun zamana yayarak yavaş oku"
+
+#: src/components/home/FreshChaptersRail.tsx
+msgid "Read the new chapter"
+msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/settings/registry.ts

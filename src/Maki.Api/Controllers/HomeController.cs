@@ -330,7 +330,7 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
                 NewestFileId = g.OrderByDescending(f => f.DateAdded).ThenByDescending(f => f.Id).First().Id
             })
             .OrderByDescending(g => g.AddedAt)
-            .Take(limit)
+            .Take(limit * 4)
             .ToList();
 
         if (bySeries.Count == 0)
@@ -364,8 +364,10 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
 
         var next = await continueReading.NextForAsync(seriesIds, ct);
 
+        // A series the reader is caught up on has nothing to open from here, so it is not a
+        // recently added series to offer.
         var items = bySeries
-            .Where(g => titles.ContainsKey(g.SeriesId))
+            .Where(g => titles.ContainsKey(g.SeriesId) && next.ContainsKey(g.SeriesId))
             .Select(g =>
             {
                 var series = titles[g.SeriesId];
@@ -378,10 +380,20 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
                     labelByFile.GetValueOrDefault(g.NewestFileId),
                     next.GetValueOrDefault(g.SeriesId)?.ChapterId);
             })
+            .Take(limit)
             .ToList();
 
         return Ok(items);
     }
+
+    /// <summary>
+    /// New chapters that landed on series the reader was up to date on, for a week or until read or
+    /// deleted. See <see cref="FreshChaptersService"/>.
+    /// </summary>
+    [HttpGet("fresh")]
+    public async Task<IActionResult> Fresh(
+        [FromServices] FreshChaptersService fresh, [FromQuery] int limit = 12, CancellationToken ct = default) =>
+        Ok(await fresh.RailAsync(DateTime.UtcNow, Math.Clamp(limit, 1, 40), ct));
 
     /// <summary>
     /// Library series whose anime the reader finished, starting after the last chapter it adapts.

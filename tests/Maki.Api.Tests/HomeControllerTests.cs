@@ -333,15 +333,13 @@ public class HomeControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task RecentlyAdded_read_chapter_is_null_once_everything_is_read()
+    public async Task RecentlyAdded_leaves_out_a_series_with_nothing_left_to_read()
     {
         var seriesId = _db.SeedSeries();
         var chapterId = SeedChapter(seriesId, 1);
         SeedProgress(seriesId, chapterId, pageIndex: 0, completed: true, updatedAt: Base);
 
-        var item = Assert.Single(Recent(await Controller().RecentlyAdded(ct: CancellationToken.None)));
-
-        Assert.Null(item.ReadChapterId);
+        Assert.Empty(Recent(await Controller().RecentlyAdded(ct: CancellationToken.None)));
     }
 
     [Fact]

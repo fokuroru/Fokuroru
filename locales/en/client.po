@@ -7845,6 +7845,8 @@ msgid "New chapter available"
 msgstr "New chapter available"
 
 #: src/components/ImportListsSection.tsx
+#: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "New chapters"
 msgstr "New chapters"
 
@@ -9732,6 +9734,7 @@ msgid "read"
 msgstr "read"
 
 #: src/components/discover/SourcePreviewPanel.tsx
+#: src/components/home/FreshChaptersRail.tsx
 #: src/components/home/RecentlyAddedRail.tsx
 #: src/components/lite/SeriesSheet.tsx
 #: src/components/ui/SeriesRow.tsx
@@ -9810,6 +9813,10 @@ msgstr "Read now"
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Read slowly over a long span"
 msgstr "Read slowly over a long span"
+
+#: src/components/home/FreshChaptersRail.tsx
+msgid "Read the new chapter"
+msgstr "Read the new chapter"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/settings/registry.ts

@@ -905,6 +905,31 @@ export function useHomeRecentlyAdded(limit = 12, enabled = true) {
   })
 }
 
+/** A series the reader was up to date on that has since gained chapters. */
+export interface HomeFreshItem {
+  seriesId: number
+  seriesTitle: string
+  coverUrl: string | null
+  /** The oldest of the new chapters still unread. */
+  chapterId: number
+  chapterLabel: string
+  newChapterCount: number
+  discoveredAt: string
+  spineColor: string | null
+}
+
+/** New chapters for up to date series, for a week or until read or deleted. Refreshed by anything that invalidates `home`. */
+export function useHomeFresh(limit = 12, enabled = true) {
+  const gate = useDisplayGate()
+  return useQuery({
+    queryKey: ['home', 'fresh', limit],
+    queryFn: () => api<HomeFreshItem[]>(`/home/fresh?limit=${limit}`),
+    enabled,
+    staleTime: 60_000,
+    select: (items) => items.filter((item) => gate(item.seriesId)),
+  })
+}
+
 /** Home section keys, in the order they ship. Mirrors `HomeSections.All` on the server exactly. */
 export const HOME_SECTIONS = [
   'glance',

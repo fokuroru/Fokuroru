@@ -57,6 +57,10 @@ public class ChapterSyncService(
         // whether a newly listed special is wanted, and a Smart series can't say so via its mode.
         var skipSpecials = await appSettings.GetAsync(SettingKeys.MonitoringUnmonitorSpecials, ct) == "true";
         var newChapters = new List<Chapter>();
+        // A new release is a main chapter past everything already held. Fixed before the loop so a
+        // later mapping's listing cannot push the bar up on what this run itself added.
+        var hadChapters = existing.Count > 0;
+        var topMain = existing.Where(c => ReadingStatuses.IsMain(c.Number)).Max(c => c.Number) ?? 0m;
         var numbersBySource = new Dictionary<string, IReadOnlyCollection<decimal?>>();
         var promotedBesideExisting = false;
 
@@ -144,7 +148,10 @@ public class ChapterSyncService(
                             IsOneShot = sc.Number is null,
                             Language = sc.Language,
                             ReleaseDate = sc.ReleaseDate,
-                            Wanted = Chapter.WantedUnder(series.MonitorNewItems, sc.Number, skipSpecials)
+                            Wanted = Chapter.WantedUnder(series.MonitorNewItems, sc.Number, skipSpecials),
+                            DiscoveredAt = hadChapters && ReadingStatuses.IsMain(sc.Number) && sc.Number > topMain
+                                ? DateTime.UtcNow
+                                : null
                         };
                         db.Chapters.Add(match);
                         existing.Add(match);

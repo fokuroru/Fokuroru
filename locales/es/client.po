@@ -9331,6 +9331,8 @@ msgid "New chapter available"
 msgstr "Nuevo capítulo disponible"
 
 #: src/components/ImportListsSection.tsx
+#: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "New chapters"
 msgstr "Capítulos nuevos"
@@ -11566,6 +11568,7 @@ msgid "read"
 msgstr "leído"
 
 #: src/components/discover/SourcePreviewPanel.tsx
+#: src/components/home/FreshChaptersRail.tsx
 #: src/components/home/RecentlyAddedRail.tsx
 #: src/components/lite/SeriesSheet.tsx
 #: src/components/ui/SeriesRow.tsx
@@ -11655,6 +11658,10 @@ msgstr ""
 #, fuzzy
 msgid "Read slowly over a long span"
 msgstr "Leer poco a poco durante mucho tiempo"
+
+#: src/components/home/FreshChaptersRail.tsx
+msgid "Read the new chapter"
+msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/settings/registry.ts

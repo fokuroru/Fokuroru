@@ -867,6 +867,7 @@ try
     builder.Services.AddHostedService(sp => sp.GetRequiredService<KavitaLiveReadSync>());
     builder.Services.AddScoped<ReaderService>();
     builder.Services.AddScoped<ContinueReadingService>();
+    builder.Services.AddScoped<FreshChaptersService>();
     builder.Services.AddScoped<ReadingProfileService>();
     builder.Services.AddScoped<ReadingTimeEstimateService>();
     builder.Services.AddScoped<OpdsCatalogService>();
