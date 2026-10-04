@@ -27,9 +27,9 @@ The fork starts from Maki commit
 and upstream `dev` through
 [`56e98365`](https://github.com/OrbitMPGH/Maki/commit/56e98365903cfa6592d76f7cd39f4ba8dd1e161f).
 
-The sections below separate Fōkurōru's own changes from changes inherited in those upstream
-merges. The complete commit list follows them, including intermediate changes that were later
-replaced. Existing Maki features from before the fork are not repeated here.
+The sections below list Fōkurōru's own changes. The complete commit list follows them, including
+intermediate changes that were later replaced. Features that came from Maki, before or after the
+fork, are not documented here.
 
 ## Fōkurōru changes
 
@@ -113,72 +113,6 @@ replaced. Existing Maki features from before the fork are not repeated here.
 - Added regression tests for reader selection, reading status, downloads, deletion, page counts,
   schema repair, spine colours and figure uploads, plus `npm run check:shelf-physics`.
 - Extracted new interface strings into the existing translation catalogues.
-
-## Changes inherited from upstream after the fork
-
-These also change this version relative to the original fork point. They are upstream Maki work,
-not exclusive Fōkurōru features. Some upstream appearance changes were replaced by the Spine design.
-
-### Quality, upgrades and sources
-
-- Recorded file provenance and measured page quality; added quality profiles, preferred formats,
-  weighted scoring, cutoffs and a list of chapters below their quality cutoff.
-- Added automatic and manual upgrades with candidate probing, comparison scores, replacement
-  checks, trash and revert, plus torrent volume verdicts and proposals.
-- Scored resolution and compression, stored measured source quality per series, ordered sources
-  by measured quality, and added upfront source measuring, source ratings and quality tiers.
-- Added profile descriptions, bulk profile assignment and filtering, live source-measurement
-  and upgrade-scan progress, and manual scans that try every chapter and report passed-over reasons.
-- Preserved source links after empty listings, used labels to identify unnumbered chapters, and
-  parsed chapter numbers from URLs when labels only contain titles.
-- Limited image processing, bounded source discovery work, improved Cloudflare challenge detection,
-  checked FlareSolverr results, shared concurrent solves and timed out stalled image bodies.
-
-### Discovery, import and interface
-
-- Added creator filters, creator following and notifications for their new series.
-- Added unadded manga to Continue from the anime, displayed every matching title there, and kept
-  watched chapters out of Jump back in.
-- Added first-chapter previews inside Discover cards, background preview downloads and reuse of
-  preview source searches when adding a series.
-- Added MyAnimeList reviews in a drawer on the series page.
-- Imported library folders in parallel and remembered chapter filters and sort direction.
-- Refined shell navigation, cards, rails, section headings, empty states, 404 pages, skeleton
-  timing, status chips, toolbar sizing and toast Undo buttons.
-- Pinned chapter toolbars and selection bars while scrolling, and showed Settings Save and Discard
-  controls only while a section has unsaved changes.
-- Added background and accent themes and an appearance announcement upstream; the fork's current
-  theme choices are described above. The commit list retains that intermediate history.
-
-### Storage, downloads and performance
-
-- Preserved library files during imports, folder collisions, rescans and deletes; kept database
-  records when roots were unreachable and guarded series operations with locks.
-- Improved duplicate detection, shared-folder deletion, path comparison across case and separators,
-  hard-link handling, partial-import reporting and protection against deleting active downloads.
-- Required language matches for chapter resolution, checked page-work manifests, avoided filename
-  overwrites and saved completed download records together.
-- Fixed retry loops, rate-limit cooldowns, manual-import races, missing-root handling, torrent
-  disappearance reporting, batch notifications and bulk queue insertion.
-- Added Brotli/Gzip response compression, immutable caching for hashed assets, SQLite tuning,
-  database indexes, cached settings and slimmer request queries.
-- Improved MangaBaka API fallback, merged-ID handling, dump indexes, artifact-download timeouts,
-  vector-index invalidation, background search warming and embedding model recovery.
-
-### Accounts, reading progress and integrations
-
-- Improved genuine-read counting, silent bulk read changes, atomic progress saves, timezone
-  detection and achievement timing.
-- Serialised MyAnimeList token refresh, paced AniList calls, isolated tracker failures, improved
-  one-shot completion and batched Kavita progress updates.
-- Added 2FA recovery-code login and administrator reset, password checks for sensitive account
-  actions, SSO unlinking and stricter SSO linking, CSRF header enforcement and content-rating checks.
-- Fixed lockout handling, refreshed cookies after security-stamp changes, disconnected users
-  whose access changed, and invalidated OPDS token caches when credentials or permissions changed.
-- Cached per-request user snapshots and scoped recommendation and upgrade caches to their callers.
-- Made clipboard and UUID helpers work over plain LAN HTTP, added a secure-context API check,
-  improved fresh-database startup and supplied release test fixtures and a release checklist.
-- Updated translations and added regression coverage for the upstream changes.
 
 ## Complete commit list
 
