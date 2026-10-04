@@ -6322,8 +6322,8 @@ msgstr "Filter gespeichert"
 
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
-msgid "Filter the catalogue"
-msgstr "Katalog filtern"
+#~ msgid "Filter the catalogue"
+#~ msgstr "Katalog filtern"
 
 #: src/components/CatalogueBrowser.tsx
 #: src/pages/CreatorPage.tsx
@@ -13211,6 +13211,10 @@ msgstr "Suchen"
 msgid "Search (Ctrl+K)"
 msgstr "Suchen (Strg+K)"
 
+#: src/pages/DiscoverPage.tsx
+msgid "Search and ask an admin for a title, or browse for something new."
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Search by chapter number or title"
@@ -13274,8 +13278,8 @@ msgid "Search MangaBaka and add your first series. Fōkurōru will monitor for n
 msgstr ""
 
 #: src/pages/DiscoverPage.tsx
-msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
-msgstr ""
+#~ msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
+#~ msgstr ""
 
 #: src/components/SetupWizard.tsx
 #, fuzzy
@@ -13283,8 +13287,8 @@ msgid "Search MangaBaka and start downloading."
 msgstr "MangaBaka durchsuchen und Downloads starten."
 
 #: src/pages/DiscoverPage.tsx
-msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
-msgstr ""
+#~ msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
+#~ msgstr ""
 
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -13349,6 +13353,10 @@ msgstr "Die übrigen Quellen erneut nach diesem Titel durchsuchen. Bereits verkn
 #, fuzzy
 msgid "Search titles"
 msgstr "Titel suchen"
+
+#: src/pages/DiscoverPage.tsx
+msgid "Search to add a series, or browse for something new."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Search torrents for volume releases"
@@ -15165,8 +15173,8 @@ msgstr ""
 
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
-msgid "The whole catalogue"
-msgstr "Gesamter Katalog"
+#~ msgid "The whole catalogue"
+#~ msgstr "Gesamter Katalog"
 
 #: src/pages/ImportPage.tsx
 #, fuzzy

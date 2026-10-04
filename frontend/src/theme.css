@@ -1747,6 +1747,8 @@ svg.setup-rail-wordmark {
    padding back on three sides or it reads as a card with art in it. */
 .discover-hero.series-hero[data-compact] {
   margin: calc(var(--app-shell-padding, 1rem) * -1);
+  /* The search row now sits between the tabs and the band; pulling the band up would tuck it under that row. */
+  margin-top: 0;
   margin-bottom: var(--mantine-spacing-xl);
   border-radius: 0;
 }

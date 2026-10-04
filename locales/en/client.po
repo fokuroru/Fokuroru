@@ -5314,8 +5314,8 @@ msgid "Filter saved"
 msgstr "Filter saved"
 
 #: src/pages/DiscoverPage.tsx
-msgid "Filter the catalogue"
-msgstr "Filter the catalogue"
+#~ msgid "Filter the catalogue"
+#~ msgstr "Filter the catalogue"
 
 #: src/components/CatalogueBrowser.tsx
 #: src/pages/CreatorPage.tsx
@@ -11129,6 +11129,10 @@ msgstr "Search"
 msgid "Search (Ctrl+K)"
 msgstr "Search (Ctrl+K)"
 
+#: src/pages/DiscoverPage.tsx
+msgid "Search and ask an admin for a title, or browse for something new."
+msgstr "Search and ask an admin for a title, or browse for something new."
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "Search by chapter number or title"
 msgstr "Search by chapter number or title"
@@ -11182,16 +11186,16 @@ msgid "Search MangaBaka and add your first series. Fōkurōru will monitor for n
 msgstr "Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically."
 
 #: src/pages/DiscoverPage.tsx
-msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
-msgstr "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
+#~ msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
+#~ msgstr "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
 
 #: src/components/SetupWizard.tsx
 msgid "Search MangaBaka and start downloading."
 msgstr "Search MangaBaka and start downloading."
 
 #: src/pages/DiscoverPage.tsx
-msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
-msgstr "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
+#~ msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
+#~ msgstr "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
 
 #: src/pages/LibraryPage.tsx
 msgid "Search missing"
@@ -11244,6 +11248,10 @@ msgstr "Search the remaining sources for this title again. Sources already linke
 #: src/pages/discover/ManageSignalsModal.tsx
 msgid "Search titles"
 msgstr "Search titles"
+
+#: src/pages/DiscoverPage.tsx
+msgid "Search to add a series, or browse for something new."
+msgstr "Search to add a series, or browse for something new."
 
 #: src/pages/SettingsPage.tsx
 msgid "Search torrents for volume releases"
@@ -12775,8 +12783,8 @@ msgid "The upgrade scan could not run. The server log has the details."
 msgstr "The upgrade scan could not run. The server log has the details."
 
 #: src/pages/DiscoverPage.tsx
-msgid "The whole catalogue"
-msgstr "The whole catalogue"
+#~ msgid "The whole catalogue"
+#~ msgstr "The whole catalogue"
 
 #: src/pages/ImportPage.tsx
 msgid "Their folders have comics that are not linked yet. Importing links them into the existing series."

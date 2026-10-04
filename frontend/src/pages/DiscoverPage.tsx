@@ -1107,7 +1107,10 @@ function DiscoverBrowseTab({
   editing,
   onExitEditing,
   seededQuery,
+  onTakeoverChange,
 }: {
+  /** Tells the shell when search or filters replace the rails, so it can drop the rails' controls. */
+  onTakeoverChange: (takenOver: boolean) => void
   /** Starting search text, e.g. the `?q=` the command palette and import lists send. */
   seededQuery: string | null
   /** Bumped by the page header's refresh action; busts the server-side rail cache. */
@@ -1443,28 +1446,7 @@ function DiscoverBrowseTab({
 
     catalogue: (
       <div>
-        <SectionHeader
-          icon={IconCompass}
-          title={t`Browse the catalogue`}
-          action={
-            <Button
-              variant="subtle"
-              size="xs"
-              leftSection={<IconAdjustmentsHorizontal size={14} />}
-              onClick={() =>
-                setExpandedRail({
-                  key: 'catalogue',
-                  title: t`The whole catalogue`,
-                  feed: 'Popular',
-                  genre: null,
-                  items: [],
-                })
-              }
-            >
-              <Trans>Filter the catalogue</Trans>
-            </Button>
-          }
-        />
+        <SectionHeader icon={IconCompass} title={t`Browse the catalogue`} />
         {catalogueStatus ??
           (isFetching && !rails ? (
             <>
@@ -1543,6 +1525,7 @@ function DiscoverBrowseTab({
       scope="discover"
       idle={body}
       seededQuery={seededQuery}
+      onSearchingChange={onTakeoverChange}
       placeholder={t`Search by title, description, or by feel`}
       hideSearch={editing}
     />
@@ -1582,6 +1565,7 @@ function DiscoverPageContent() {
   const navigate = useNavigate()
   // The command palette and import lists send the title they want to add as ?q=.
   const [searchParams] = useSearchParams()
+  const [takenOver, setTakenOver] = useState(false)
   const { can } = useAuth()
   const canAdd = can('AddSeries')
   const active: DiscoverTab =
@@ -1612,11 +1596,11 @@ function DiscoverPageContent() {
         title={t`Discover`}
         description={
           canAdd
-            ? t`Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel.`
-            : t`Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel.`
+            ? t`Search to add a series, or browse for something new.`
+            : t`Search and ask an admin for a title, or browse for something new.`
         }
         actions={
-          active === 'browse' && !editing ? (
+          active === 'browse' && !editing && !takenOver ? (
             <Group gap="xs" wrap="wrap">
               <Button variant="default" leftSection={<IconLayoutDashboard size={16} />} onClick={enterEditing}>
                 <Trans>Edit layout</Trans>
@@ -1669,6 +1653,7 @@ function DiscoverPageContent() {
       ) : (
         <DiscoverBrowseTab
           seededQuery={searchParams.get('q')}
+          onTakeoverChange={setTakenOver}
           refreshNonce={refreshNonce}
           onRefresh={refreshRails}
           density={browseDensity}

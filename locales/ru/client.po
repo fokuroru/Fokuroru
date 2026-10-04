@@ -6322,8 +6322,8 @@ msgstr "Фильтр сохранён"
 
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
-msgid "Filter the catalogue"
-msgstr "Фильтровать каталог"
+#~ msgid "Filter the catalogue"
+#~ msgstr "Фильтровать каталог"
 
 #: src/components/CatalogueBrowser.tsx
 #: src/pages/CreatorPage.tsx
@@ -13211,6 +13211,10 @@ msgstr "Поиск"
 msgid "Search (Ctrl+K)"
 msgstr "Поиск (Ctrl+K)"
 
+#: src/pages/DiscoverPage.tsx
+msgid "Search and ask an admin for a title, or browse for something new."
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Search by chapter number or title"
@@ -13274,8 +13278,8 @@ msgid "Search MangaBaka and add your first series. Fōkurōru will monitor for n
 msgstr ""
 
 #: src/pages/DiscoverPage.tsx
-msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
-msgstr ""
+#~ msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
+#~ msgstr ""
 
 #: src/components/SetupWizard.tsx
 #, fuzzy
@@ -13283,8 +13287,8 @@ msgid "Search MangaBaka and start downloading."
 msgstr "Найти в MangaBaka и начать загрузку."
 
 #: src/pages/DiscoverPage.tsx
-msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
-msgstr ""
+#~ msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
+#~ msgstr ""
 
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -13349,6 +13353,10 @@ msgstr "Снова искать совпадение этого названия
 #, fuzzy
 msgid "Search titles"
 msgstr "Поиск названий"
+
+#: src/pages/DiscoverPage.tsx
+msgid "Search to add a series, or browse for something new."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Search torrents for volume releases"
@@ -15165,8 +15173,8 @@ msgstr ""
 
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
-msgid "The whole catalogue"
-msgstr "Весь каталог"
+#~ msgid "The whole catalogue"
+#~ msgstr "Весь каталог"
 
 #: src/pages/ImportPage.tsx
 #, fuzzy

@@ -142,9 +142,6 @@ export function CatalogueBrowser({
   const trimmed = debounced.trim()
   const searching = trimmed.length >= minChars
 
-  useEffect(() => {
-    onSearchingChange?.(searching)
-  }, [searching, onSearchingChange])
 
   // `applied` is separate from the live control state because a query re-runs on every change to
   // it, and dragging a slider would otherwise fire one full-catalogue query per pixel.
@@ -189,6 +186,12 @@ export function CatalogueBrowser({
   const appliedCount = Object.keys(applied).length
   const filters = appliedCount > 0 ? applied : undefined
   const showIdle = Boolean(idle) && !(touched && appliedCount > 0)
+
+  // Whether the box or the filters have taken the page over from the idle rails.
+  const takenOver = searching || (Boolean(idle) && !showIdle)
+  useEffect(() => {
+    onSearchingChange?.(takenOver)
+  }, [takenOver, onSearchingChange])
 
   // A new query or a new filter set starts the browse list over. Not on mount, though: restored
   // filters arrive looking like a change, and resetting there would drop the pages someone had
