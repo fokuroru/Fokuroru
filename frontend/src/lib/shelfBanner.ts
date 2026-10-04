@@ -16,7 +16,9 @@ function bannerCandidates(series: SeriesDto[]): SeriesDto[] {
  * and then the board goes without. Returns an object URL, released when the shelf goes away.
  */
 export function useShelfBanner(series: SeriesDto[], enabled: boolean): string | null {
-  const [wanted] = useState(() => Math.random() < BANNER_SHARE)
+  // `?banner` on the address forces one, for looking at it without waiting for the one-in-five roll.
+  const [wanted] = useState(() => Math.random() < BANNER_SHARE ||
+    new URLSearchParams(window.location.search).has('banner'))
   const [url, setUrl] = useState<string | null>(null)
   const tried = useRef(false)
 
