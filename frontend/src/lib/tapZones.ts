@@ -38,6 +38,17 @@ export type TapClient = 'app' | 'web'
 
 export const TAP_ACTIONS: TapAction[] = ['next', 'prev', 'menu', 'nextChapter', 'prevChapter', 'bookmark', 'none']
 
+/** One colour per action, shared by the editor and the reader's first-open hint. */
+export const ACTION_COLOURS: Record<TapAction, string> = {
+  next: '#4caf7a',
+  prev: '#5b9bd5',
+  menu: '#d4a84b',
+  nextChapter: '#8e6fd1',
+  prevChapter: '#c06ea9',
+  bookmark: '#d9695f',
+  none: '#8a8a8a',
+}
+
 export const MAX_ZONES = 16
 export const MAX_PRESETS = 20
 export const MIN_SIDE = 0.02

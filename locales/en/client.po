@@ -2657,6 +2657,7 @@ msgid "Blocks sign-in and kills existing sessions. Keeps the account and its his
 msgstr "Blocks sign-in and kills existing sessions. Keeps the account and its history."
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Bookmark this page"
@@ -7921,12 +7922,14 @@ msgid "Newly enabled sources join at the bottom."
 msgstr "Newly enabled sources join at the bottom."
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ChapterEnd.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Next chapter"
 msgstr "Next chapter"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Next page"
 msgstr "Next page"
@@ -9415,11 +9418,13 @@ msgid "Previews"
 msgstr "Previews"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Previous chapter"
 msgstr "Previous chapter"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Previous page"
 msgstr "Previous page"
@@ -11696,6 +11701,7 @@ msgid "Show on"
 msgstr "Show on"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 msgid "Show or hide the menu"
 msgstr "Show or hide the menu"
 

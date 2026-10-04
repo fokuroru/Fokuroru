@@ -8998,3 +8998,41 @@ body.reader-open {
 .lite-status-row[data-state='stale'] {
   color: var(--warn, var(--ink-3));
 }
+
+/* The reader's first-open tap zone hint (components/reader/TapZoneHint.tsx). Pointer-transparent and faint. */
+.tap-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  animation: tap-hint-fade 3.4s ease-in-out forwards;
+}
+.tap-hint-zone {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--zone) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--zone) 30%, transparent);
+}
+.tap-hint-label {
+  padding: 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  color: color-mix(in srgb, var(--ink-hi) 55%, transparent);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+@keyframes tap-hint-fade {
+  0% { opacity: 0; }
+  15%, 65% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tap-hint { animation-name: tap-hint-hold; }
+}
+@keyframes tap-hint-hold {
+  0%, 95% { opacity: 1; }
+  100% { opacity: 0; }
+}

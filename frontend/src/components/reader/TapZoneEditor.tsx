@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { tapClient, useSaveTapZones, useTapZones } from '../../api/tapZones'
 import { randomUUID } from '../../lib/uuid'
 import {
+  ACTION_COLOURS,
   actionAt,
   builtInPresets,
   clampZone,
@@ -20,16 +21,6 @@ import {
   type TapZone,
   type TapZoneDocument,
 } from '../../lib/tapZones'
-
-const ACTION_COLOURS: Record<TapAction, string> = {
-  next: '#4caf7a',
-  prev: '#5b9bd5',
-  menu: '#d4a84b',
-  nextChapter: '#8e6fd1',
-  prevChapter: '#c06ea9',
-  bookmark: '#d9695f',
-  none: '#8a8a8a',
-}
 
 type Corner = 'nw' | 'ne' | 'sw' | 'se'
 type Drag = { index: number; mode: 'move' | Corner; startX: number; startY: number; zone: TapZone }

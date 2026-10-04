@@ -3175,6 +3175,7 @@ msgid "Blocks sign-in and kills existing sessions. Keeps the account and its his
 msgstr "Oturum açmayı engeller ve mevcut oturumları sonlandırır. Hesabı ve geçmişini korur."
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -9424,6 +9425,7 @@ msgid "Newly enabled sources join at the bottom."
 msgstr "Yeni etkinleştirilen kaynaklar listenin sonuna eklenir."
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ChapterEnd.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -9431,6 +9433,7 @@ msgid "Next chapter"
 msgstr "Sonraki bölüm"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Next page"
@@ -11204,12 +11207,14 @@ msgid "Previews"
 msgstr ""
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Previous chapter"
 msgstr "Önceki bölüm"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Previous page"
@@ -13889,6 +13894,7 @@ msgid "Show on"
 msgstr "Şurada göster"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/reader/TapZoneHint.tsx
 msgid "Show or hide the menu"
 msgstr ""
 

@@ -29,6 +29,7 @@ import { spineVars } from '../../lib/spine'
 import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
 import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
 import { useTapZones } from '../../api/tapZones'
+import TapZoneHint from '../../components/reader/TapZoneHint'
 import { actionAt, layoutFor } from '../../lib/tapZones'
 
 const ZOOM_STEP = 0.25
@@ -628,6 +629,11 @@ export default function ReaderPage() {
         visible={chrome}
         onHold={setChromeHeld}
         onShortcuts={() => setShortcutsOpen(true)}
+      />
+
+      <TapZoneHint
+        zones={tapLayout}
+        active={prefs.tapZones && zoom === 1 && !(prefs.mode === 'vertical' && !vertical) && !atEnd}
       />
 
       {atEnd ? (
