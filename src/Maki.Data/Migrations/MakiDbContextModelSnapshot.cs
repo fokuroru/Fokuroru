@@ -2216,6 +2216,9 @@ namespace Maki.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("MaxTierScoreDrop")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("MinScoreDelta")
                         .HasColumnType("INTEGER");
 

@@ -294,6 +294,74 @@ public class QualityScorerTests
             S(QualityTier.Scanlator, 15), 1400, 20));
     }
 
+    [Fact]
+    public void IsUpgrade_to_a_higher_tier_ignores_score_without_a_drop_limit()
+    {
+        Assert.True(QualityScorer.IsUpgrade(Profile(), S(QualityTier.Scanlator, 6), 20, false,
+            S(QualityTier.Official, -10), 1135, 20));
+    }
+
+    [Fact]
+    public void IsUpgrade_to_a_higher_tier_refuses_a_score_drop_past_the_limit()
+    {
+        var profile = Profile(p => p.MaxTierScoreDrop = 10);
+
+        Assert.True(QualityScorer.IsUpgrade(profile, S(QualityTier.Scanlator, 6), 20, false,
+            S(QualityTier.Official, -4), 1135, 20));
+        Assert.False(QualityScorer.IsUpgrade(profile, S(QualityTier.Scanlator, 6), 20, false,
+            S(QualityTier.Official, -5), 1135, 20));
+    }
+
+    private static UpgradeProfile Grouped(params QualityTier[] grouped) => Profile(p => p.Tiers =
+        [.. p.Tiers.Select(t => t with { Grouped = grouped.Contains(t.Tier) })]);
+
+    [Fact]
+    public void Grouped_tiers_share_a_rank()
+    {
+        var profile = Grouped(QualityTier.Scanlator);
+
+        Assert.Equal(QualityScorer.Rank(profile, QualityTier.Official), QualityScorer.Rank(profile, QualityTier.Scanlator));
+        Assert.True(QualityScorer.Rank(profile, QualityTier.Official) > QualityScorer.Rank(profile, QualityTier.Aggregator));
+        Assert.True(QualityScorer.Rank(profile, QualityTier.Volume) > QualityScorer.Rank(profile, QualityTier.Official));
+    }
+
+    [Fact]
+    public void IsUpgrade_inside_a_group_goes_by_score_alone()
+    {
+        var profile = Grouped(QualityTier.Scanlator);
+        profile.Cutoff = QualityTier.Volume;
+        profile.MinScoreDelta = 5;
+
+        Assert.False(QualityScorer.IsUpgrade(profile, S(QualityTier.Scanlator, 6), 20, false,
+            S(QualityTier.Official, -8), 1135, 20));
+        Assert.True(QualityScorer.IsUpgrade(profile, S(QualityTier.Official, -8), 20, false,
+            S(QualityTier.Scanlator, 6), 1680, 20));
+        Assert.True(QualityScorer.IsUpgrade(profile, S(QualityTier.Aggregator, 20), 20, false,
+            S(QualityTier.Scanlator, 0), 1680, 20));
+    }
+
+    [Fact]
+    public void A_cutoff_on_a_grouped_tier_is_met_by_the_whole_group()
+    {
+        var profile = Grouped(QualityTier.Scanlator);
+        profile.Cutoff = QualityTier.Official;
+
+        Assert.True(QualityScorer.CutoffMet(profile, QualityTier.Scanlator, 0));
+        Assert.False(QualityScorer.CutoffMet(profile, QualityTier.Aggregator, 0));
+
+        profile.UpgradeUntilScore = 10000;
+        Assert.False(QualityScorer.CutoffMet(profile, QualityTier.Scanlator, 50));
+    }
+
+    [Fact]
+    public void Normalise_ungroups_the_first_tier()
+    {
+        var profile = new UpgradeProfile { Tiers = [new(QualityTier.Official, true, Grouped: true)] };
+        UpgradeProfileDefaults.Normalise(profile);
+
+        Assert.False(profile.Tiers[0].Grouped);
+    }
+
     private static QualityCandidate Listing(QualityTier tier, string source = "site", string? group = null) =>
         new(tier, source, null, group, "Series 012.cbz", null, null, null, null, "en");
 
@@ -381,5 +449,37 @@ public class QualityScorerTests
             profile.Tiers.Select(t => t.Tier));
         Assert.False(profile.Tiers[0].Allowed);
         Assert.All(profile.Tiers.Skip(2), t => Assert.True(t.Allowed));
+    }
+
+    [Fact]
+    public void An_equal_score_is_never_an_upgrade_even_with_no_minimum_gain()
+    {
+        var profile = Profile(p => p.MinScoreDelta = 0);
+
+        Assert.False(QualityScorer.IsUpgrade(profile, S(QualityTier.Scanlator, 10), 20, false,
+            S(QualityTier.Scanlator, 10), 1400, 20));
+        Assert.True(QualityScorer.IsUpgrade(profile, S(QualityTier.Scanlator, 10), 20, false,
+            S(QualityTier.Scanlator, 11), 1400, 20));
+    }
+
+    [Fact]
+    public void An_unmeasured_candidate_is_compared_without_the_files_measured_points()
+    {
+        var profile = Profile(p => { p.Cutoff = QualityTier.Volume; p.MaxTierScoreDrop = 10; });
+        var sharp = new QualityScore(QualityTier.Scanlator, 30, [], ResolutionPoints: 10, CompressionPoints: 20);
+        var volume = S(QualityTier.Volume);
+
+        Assert.False(QualityScorer.IsUpgrade(profile, sharp, null, false, volume, 1, null));
+        Assert.True(QualityScorer.IsUnmeasuredUpgrade(profile, sharp, false, volume));
+        Assert.False(QualityScorer.IsUnmeasuredUpgrade(profile, sharp, true, volume));
+    }
+
+    [Fact]
+    public void An_unmeasured_candidate_still_meets_a_cutoff_reached_by_the_full_score()
+    {
+        var profile = Profile(p => { p.Cutoff = QualityTier.Scanlator; p.UpgradeUntilScore = 25; });
+        var sharp = new QualityScore(QualityTier.Scanlator, 30, [], ResolutionPoints: 10, CompressionPoints: 20);
+
+        Assert.False(QualityScorer.IsUnmeasuredUpgrade(profile, sharp, false, S(QualityTier.Volume)));
     }
 }

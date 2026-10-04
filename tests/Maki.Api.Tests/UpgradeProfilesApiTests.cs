@@ -57,7 +57,7 @@ public sealed class UpgradeProfilesApiTests : IDisposable
         recoGraphCache: null!, coReadInstaller: null!, coReadCache: null!, readerCohortInstaller: null!,
         readerCohortCache: null!, tasteVectorInstaller: null!, vectorIndexCache: null!,
         modelSwitcher: null!, db: db, updateCheck: null!, currentUser: new TestCurrentUser(1),
-        userSettings: null!, kavitaUser: null!, schedulerFactory: null!, scopeFactory: _db.ScopeFactory(),
+        userSettings: null!, kavitaUser: null!, kavitaLive: null!, schedulerFactory: null!, scopeFactory: _db.ScopeFactory(),
         logger: NullLogger<SettingsController>.Instance);
 
     private static UpgradeProfileWriteDto ProfileBody(
@@ -190,12 +190,14 @@ public sealed class UpgradeProfilesApiTests : IDisposable
 
         var cutoff = await controller.Create(ProfileBody(tiers: [new("official", false)]), default);
         var delta = await controller.Create(ProfileBody(minScoreDelta: -1), default);
+        var drop = await controller.Create(ProfileBody() with { MaxTierScoreDrop = -1 }, default);
         var tolerance = await controller.Create(ProfileBody(pageTolerance: 101), default);
         var format = await controller.Create(ProfileBody(scores: [new(999, 5)]), default);
         var tier = await controller.Create(ProfileBody(cutoff: "legendary"), default);
 
         Assert.Equal("error.upgrades.cutoffNotAllowed", Code(cutoff));
         Assert.Equal("error.upgrades.minScoreDeltaRange", Code(delta));
+        Assert.Equal("error.upgrades.maxTierScoreDropRange", Code(drop));
         Assert.Equal("error.upgrades.pageToleranceRange", Code(tolerance));
         Assert.Equal("error.upgrades.formatNotFound", Code(format));
         Assert.Equal("error.upgrades.unknownTier", Code(tier));
@@ -577,13 +579,19 @@ public sealed class UpgradeProfilesApiTests : IDisposable
             var profiles = db.UpgradeProfiles.ToDictionary(p => p.Name);
             Assert.Equal(2, db.QualityFormats.Count());
             Assert.Equal(
-                [UpgradeProfileSeeder.NeverUpgrade, UpgradeProfileSeeder.ReplaceAggregatorCopies,
-                    UpgradeProfileSeeder.UpgradeToVolumes, UpgradeProfileSeeder.UpgradeToOfficial],
+                [UpgradeProfileSeeder.BestCopyFromAnySource, UpgradeProfileSeeder.NeverUpgrade,
+                    UpgradeProfileSeeder.ReplaceAggregatorCopies, UpgradeProfileSeeder.UpgradeToVolumes,
+                    UpgradeProfileSeeder.UpgradeToOfficial],
                 profiles.Keys.Order());
             Assert.False(profiles[UpgradeProfileSeeder.NeverUpgrade].UpgradesEnabled);
             Assert.Equal(QualityTier.Scanlator, profiles[UpgradeProfileSeeder.ReplaceAggregatorCopies].Cutoff);
             Assert.Equal(QualityTier.Official, profiles[UpgradeProfileSeeder.UpgradeToOfficial].Cutoff);
             Assert.Equal(QualityTier.Volume, profiles[UpgradeProfileSeeder.UpgradeToVolumes].Cutoff);
+            var anySource = profiles[UpgradeProfileSeeder.BestCopyFromAnySource];
+            Assert.Equal(UpgradeProfileSeeder.NeverStopScore, anySource.UpgradeUntilScore);
+            Assert.Equal(
+                QualityScorer.Rank(anySource, QualityTier.Official), QualityScorer.Rank(anySource, QualityTier.Aggregator));
+            Assert.True(QualityScorer.Rank(anySource, QualityTier.Volume) > QualityScorer.Rank(anySource, QualityTier.Official));
             var scores = profiles[UpgradeProfileSeeder.NeverUpgrade].FormatScores;
             Assert.Equal(2, scores.Count);
             Assert.All(profiles.Values, p =>
@@ -595,7 +603,7 @@ public sealed class UpgradeProfilesApiTests : IDisposable
                 Assert.Equal(UpgradeProfileSeeder.MeasuredWeight, p.CompressionWeight);
                 Assert.Equal(UpgradeProfileDefaults.DefaultOrder, p.Tiers.Select(t => t.Tier));
             });
-            Assert.False(db.AppConfig.Any(c => c.Key == SettingKeys.UpgradesDefaultProfileId));
+            Assert.Equal(anySource.Id.ToString(), db.AppConfig.Single(c => c.Key == SettingKeys.UpgradesDefaultProfileId).Value);
 
             db.UpgradeProfiles.RemoveRange(profiles.Values);
             db.SaveChanges();
@@ -605,6 +613,24 @@ public sealed class UpgradeProfilesApiTests : IDisposable
         {
             await new UpgradeProfileSeeder(db, NullLogger<UpgradeProfileSeeder>.Instance).RunOnceAsync();
             Assert.Empty(db.UpgradeProfiles);
+        }
+    }
+
+    [Fact]
+    public async Task Seeding_the_any_source_profile_keeps_a_default_the_admin_already_picked()
+    {
+        using (var db = _db.NewContext())
+        {
+            var mine = new UpgradeProfile { Name = "Mine", Cutoff = QualityTier.Official };
+            db.UpgradeProfiles.Add(mine);
+            db.SaveChanges();
+            db.AppConfig.Add(new AppConfigEntry { Key = SettingKeys.UpgradesDefaultProfileId, Value = mine.Id.ToString() });
+            db.SaveChanges();
+
+            await new UpgradeProfileSeeder(db, NullLogger<UpgradeProfileSeeder>.Instance).RunOnceAsync();
+
+            Assert.Contains(db.UpgradeProfiles.ToList(), p => p.Name == UpgradeProfileSeeder.BestCopyFromAnySource);
+            Assert.Equal(mine.Id.ToString(), db.AppConfig.Single(c => c.Key == SettingKeys.UpgradesDefaultProfileId).Value);
         }
     }
 
@@ -657,7 +683,9 @@ public sealed class UpgradeProfilesApiTests : IDisposable
         using (var db = _db.NewContext())
         {
             var profiles = db.UpgradeProfiles.ToDictionary(p => p.Name);
-            Assert.Equal(["Official releases", UpgradeProfileSeeder.ReplaceAggregatorCopies], profiles.Keys.Order());
+            Assert.Equal(
+                [UpgradeProfileSeeder.BestCopyFromAnySource, "Official releases", UpgradeProfileSeeder.ReplaceAggregatorCopies],
+                profiles.Keys.Order());
             var renamed = profiles[UpgradeProfileSeeder.ReplaceAggregatorCopies];
             Assert.NotNull(renamed.Description);
             Assert.Equal(2, renamed.FormatScores.Count);

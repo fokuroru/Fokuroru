@@ -23,6 +23,7 @@ import {
   SegmentedControl,
   MultiSelect,
   NumberInput,
+  PasswordInput,
   Progress,
   Radio,
   Select,
@@ -854,9 +855,85 @@ function KavitaSyncSection() {
           )}
         </div>
 
+        {ownsKavita ? <KavitaLiveReadControl /> : null}
+
         {ownsKavita ? <KavitaReadImportControl /> : null}
       </Stack>
     </SettingsSection>
+  )
+}
+
+/**
+ * Live pull from Kavita. Kavita only pushes progress events to admins, so a non-admin API key is
+ * the one failure worth explaining; everything else falls back to the regular sync anyway.
+ */
+function KavitaLiveReadControl() {
+  const { t } = useLingui()
+  const { data: settings } = useReaderSettings()
+  const save = useSaveReaderSettings()
+  const queryClient = useQueryClient()
+  const enabled = settings?.pullFromKavita ?? false
+  const status = settings?.kavitaLive
+
+  // The connection settles a moment after the switch flips, so refetch until it does.
+  const settling = enabled && status !== 'Connected' && status !== 'NotAdmin'
+  useEffect(() => {
+    if (!settling) return
+    const id = setInterval(
+      () => void queryClient.invalidateQueries({ queryKey: ['settings', 'reader'] }),
+      3000,
+    )
+    return () => clearInterval(id)
+  }, [settling, queryClient])
+
+  return (
+    <div>
+      <Switch
+        label={t`Mark chapters read here as soon as they're read in Kavita`}
+        checked={enabled}
+        disabled={!settings}
+        onChange={(e) =>
+          settings &&
+          save.mutate(
+            {
+              defaults: settings.defaults,
+              pushToKavita: settings.pushToKavita,
+              pullFromKavita: e.currentTarget.checked,
+            },
+            { onSuccess: () => notifications.show({ message: now`Saved`, color: 'var(--ok)' }) },
+          )
+        }
+      />
+      <Text size="xs" c="var(--ink-3)" mt={4}>
+        <Trans>
+          Finished chapters show up as read within seconds, marked the same way the import marks
+          them. Without this they wait for the next scrobble sync.
+        </Trans>
+      </Text>
+      {enabled && status === 'Connected' && (
+        <Text size="xs" c="var(--ok)" mt={4}>
+          <Trans>Connected to Kavita.</Trans>
+        </Text>
+      )}
+      {enabled && (status === 'Connecting' || status === 'Off') && (
+        <Text size="xs" c="var(--ink-3)" mt={4}>
+          <Trans>Connecting to Kavita…</Trans>
+        </Text>
+      )}
+      {enabled && status === 'NotAdmin' && (
+        <Text size="xs" c="var(--danger)" mt={4}>
+          <Trans>
+            Kavita only sends reading updates to admin accounts. Use an API key from a Kavita admin
+            under Settings → Integrations → Kavita.
+          </Trans>
+        </Text>
+      )}
+      {enabled && status === 'Unreachable' && (
+        <Text size="xs" c="var(--danger)" mt={4}>
+          <Trans>Can't reach Kavita right now. Maki keeps retrying, and the scrobble sync still catches up.</Trans>
+        </Text>
+      )}
+    </div>
   )
 }
 
@@ -870,6 +947,8 @@ function OpdsSection() {
   const save = useSaveOpdsSettings()
   const rotate = useRotateOpdsToken()
   const [rotateModalOpen, setRotateModalOpen] = useState(false)
+  const [enableModalOpen, setEnableModalOpen] = useState(false)
+  const [password, setPassword] = useState('')
   const { copy: copyFeedUrl } = useCopyText()
 
   // The token itself is never stored, only its SHA-256 digest, so the full feed URL exists exactly
@@ -883,13 +962,20 @@ function OpdsSection() {
   // so the address the user actually pastes is assembled here.
   const feedUrl = revealedPath ? `${window.location.origin}${revealedPath}` : null
 
-  const saveWith = (patch: Partial<{ enabled: boolean; trackProgress: boolean }>) =>
+  const closePasswordModals = () => {
+    setRotateModalOpen(false)
+    setEnableModalOpen(false)
+    setPassword('')
+  }
+
+  const saveWith = (patch: Partial<{ enabled: boolean; trackProgress: boolean }>, confirmPassword?: string) =>
     save.mutate(
-      { enabled, trackProgress, ...patch },
+      { enabled, trackProgress, ...patch, password: confirmPassword || undefined },
       {
         onSuccess: (result) => {
           // Enabling for the first time mints the token, so this is the one save that reveals a URL.
           if (result.feedUrl) setRevealedPath(result.feedUrl)
+          closePasswordModals()
           notifications.show({ message: now`Saved`, color: 'var(--ok)' })
         },
       },
@@ -918,7 +1004,11 @@ function OpdsSection() {
           <Switch
             label={t`Enable the OPDS catalogue`}
             checked={enabled}
-            onChange={(e) => saveWith({ enabled: e.currentTarget.checked })}
+            onChange={(e) => {
+              const next = e.currentTarget.checked
+              if (next && !opds?.hasToken) setEnableModalOpen(true)
+              else saveWith({ enabled: next })
+            }}
           />
           <Text size="xs" c="var(--ink-3)" mt={4}>
             <Trans>
@@ -990,12 +1080,29 @@ function OpdsSection() {
         )}
       </Stack>
 
-      <Modal
-        opened={rotateModalOpen}
-        onClose={() => setRotateModalOpen(false)}
-        title={t`Regenerate OPDS token`}
-        centered
-      >
+      <Modal opened={enableModalOpen} onClose={closePasswordModals} title={t`Enable the OPDS catalogue`} centered>
+        <Stack>
+          <Text size="sm">
+            <Trans>Enabling it creates the feed URL. Confirm your password to continue.</Trans>
+          </Text>
+          <PasswordInput
+            label={t`Your password`}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.currentTarget.value)}
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={closePasswordModals}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button loading={save.isPending} onClick={() => saveWith({ enabled: true }, password)}>
+              <Trans>Enable</Trans>
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      <Modal opened={rotateModalOpen} onClose={closePasswordModals} title={t`Regenerate OPDS token`} centered>
         <Stack>
           <Text size="sm">
             <Trans>
@@ -1003,17 +1110,23 @@ function OpdsSection() {
               one.
             </Trans>
           </Text>
+          <PasswordInput
+            label={t`Your password`}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.currentTarget.value)}
+          />
           <Group justify="flex-end">
-            <Button variant="default" onClick={() => setRotateModalOpen(false)}>
+            <Button variant="default" onClick={closePasswordModals}>
               <Trans>Cancel</Trans>
             </Button>
             <Button
               color="var(--danger-fill)"
               loading={rotate.isPending}
               onClick={() =>
-                rotate.mutate(undefined, {
+                rotate.mutate(password, {
                   onSuccess: (result) => {
-                    setRotateModalOpen(false)
+                    closePasswordModals()
                     // The only moment the new URL exists in a readable form.
                     setRevealedPath(result.feedUrl)
                     notifications.show({ message: now`New OPDS feed URL generated`, color: 'var(--ok)' })

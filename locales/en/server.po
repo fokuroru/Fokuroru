@@ -148,6 +148,12 @@ msgstr "That account is disabled"
 msgid "error.auth.ssoAccountNotSetUp"
 msgstr "That account has not been set up yet"
 
+#. Self-service linking (settings page): the account already has a single sign-on login, and only
+#. one is allowed. Removing it first is the way to link a different one.
+#: src/Maki.Api/Controllers/AuthController.cs
+msgid "error.auth.ssoAlreadyLinked"
+msgstr "This account already has a single sign-on login. Remove it before linking another."
+
 #. Self-service linking (settings page), not the automatic linking a verified email does at
 #. sign-in: this subject is already linked to a different Maki account.
 #: src/Maki.Api/Controllers/AuthController.cs
@@ -1133,6 +1139,10 @@ msgid "error.upgrades.minScoreDeltaRange"
 msgstr "Minimum score gain cannot be negative"
 
 #: src/Maki.Api/Controllers/UpgradeProfilesController.cs
+msgid "error.upgrades.maxTierScoreDropRange"
+msgstr "Maximum score loss for a higher tier cannot be negative"
+
+#: src/Maki.Api/Controllers/UpgradeProfilesController.cs
 #: src/Maki.Api/Controllers/QualityFormatsController.cs
 msgid "error.upgrades.nameRequired"
 msgstr "Name is required"
@@ -1207,6 +1217,15 @@ msgstr "The previous file is no longer in the trash, so this upgrade cannot be r
 #: src/Maki.Api/Controllers/UpgradesController.cs
 msgid "error.upgrades.revertMoveFailed"
 msgstr "Could not swap the files back. Another program may have the chapter open"
+
+#. The chapter was downloaded or imported again after the upgrade; reverting would throw that newer copy away.
+#: src/Maki.Api/Controllers/UpgradesController.cs
+msgid "error.upgrades.fileChangedSinceUpgrade"
+msgstr "This chapter's file was replaced after the upgrade, so reverting it would discard the newer copy"
+
+#: src/Maki.Api/Controllers/UpgradesController.cs
+msgid "error.upgrades.revertDownloadInFlight"
+msgstr "A download for this chapter is running. Try again once it finishes"
 
 #. An upgrade scan request named both a series and a chapter; it has to name one or neither.
 #: src/Maki.Api/Controllers/UpgradesController.cs

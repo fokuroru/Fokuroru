@@ -6,7 +6,8 @@ using Maki.Core.Quality;
 namespace Maki.Api.Dtos;
 
 /// <param name="Tier">Lowercase <see cref="QualityTier"/> name.</param>
-public record ProfileTierDto(string Tier, bool Allowed);
+/// <param name="Grouped">Shares its rank with the tier above it.</param>
+public record ProfileTierDto(string Tier, bool Allowed, bool Grouped = false);
 
 public record FormatScoreDto(int FormatId, int Score);
 
@@ -20,6 +21,7 @@ public record UpgradeProfileDto(
     string Cutoff,
     bool UpgradesEnabled,
     int MinScoreDelta,
+    int? MaxTierScoreDrop,
     int UpgradeUntilScore,
     IReadOnlyList<FormatScoreDto> FormatScores,
     int ResolutionWeight,
@@ -33,10 +35,11 @@ public record UpgradeProfileDto(
         p.Id,
         p.Name,
         p.Description,
-        [.. p.Tiers.Select(t => new ProfileTierDto(QualityNames.Tier(t.Tier), t.Allowed))],
+        [.. p.Tiers.Select(t => new ProfileTierDto(QualityNames.Tier(t.Tier), t.Allowed, t.Grouped))],
         QualityNames.Tier(p.Cutoff),
         p.UpgradesEnabled,
         p.MinScoreDelta,
+        p.MaxTierScoreDrop,
         p.UpgradeUntilScore,
         [.. p.FormatScores.Select(s => new FormatScoreDto(s.FormatId, s.Score))],
         p.ResolutionWeight,
@@ -59,7 +62,8 @@ public record UpgradeProfileWriteDto(
     bool AllowReplacingUnknown,
     int ResolutionWeight = 0,
     int CompressionWeight = 0,
-    string? Description = null);
+    string? Description = null,
+    int? MaxTierScoreDrop = null);
 
 /// <param name="Type">camelCase <see cref="FormatConditionType"/> name, e.g. <c>minWidth</c>.</param>
 public record FormatConditionDto(string Type, string Value, bool Required, bool Negate);
@@ -300,7 +304,7 @@ public record TrustedDto(bool Trusted);
 /// <summary>Wire spellings for the quality enums: tiers lowercase, condition types camelCase.</summary>
 public static class QualityNames
 {
-    public static string Tier(QualityTier tier) => tier.ToString().ToLowerInvariant();
+    public static string Tier(QualityTier tier) => QualitySnapshot.TierName(tier);
 
     public static bool TryParseTier(string? value, out QualityTier tier) =>
         Enum.TryParse(value, ignoreCase: true, out tier) && Enum.IsDefined(tier) && !int.TryParse(value, out _);

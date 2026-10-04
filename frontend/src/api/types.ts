@@ -175,6 +175,8 @@ export interface TagDto {
 export interface LibraryFilterSpec {
   query?: string | null
   status: string
+  /** `SeriesDto.type` values to include. Empty/null means "don't filter"; untyped series only show then. */
+  types?: string[] | null
   tagIds?: number[] | null
   /** "any" | "all": whether a series must carry every listed tag. */
   tagMatch: string
@@ -246,12 +248,7 @@ export interface RootFolder {
 
 /** A file's release tier and archive stats, as the quality backfill measures it. */
 export interface ChapterFileQualityDto {
-  /**
-   * The backing `ChapterFile`'s id. Not in the phase 1 contract; assumed alongside `trusted` since
-   * this is the only object carrying per-file identity into `ChapterDto`/`SeriesFileDto`, and the
-   * trusted-toggle endpoint (`POST /chapter-files/{id}/trusted`) needs one. Confirm against the
-   * backend's actual `ChapterFileQualityDto`.
-   */
+  /** The backing `ChapterFile`'s id, for the per-file actions such as `POST /chapter-files/{id}/trusted`. */
   fileId: number
   tier: 'unknown' | 'aggregator' | 'scanlator' | 'official' | 'volume'
   group: string | null

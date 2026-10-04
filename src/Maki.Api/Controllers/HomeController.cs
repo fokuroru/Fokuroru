@@ -390,8 +390,10 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
     [HttpGet("from-anime")]
     public async Task<IActionResult> FromAnime(
         [FromServices] AnimeResumeService animeResume,
-        CancellationToken ct = default) =>
-        Ok(await animeResume.RailAsync(ct));
+        CancellationToken ct = default)
+    {
+        return Ok(await animeResume.RailAsync(ct));
+    }
 
     /// <summary>Labels for a set of chapter ids, in one query.</summary>
     private async Task<Dictionary<int, string>> ChapterLabelsAsync(

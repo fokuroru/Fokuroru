@@ -136,14 +136,23 @@ export function useDismissAnimeResume(seriesId: number) {
  * Home's "Continue from the anime" rail: series whose anime is done but the manga isn't caught up,
  * library first, then manga the reader could add.
  */
+export interface HomeAnimeResumePage {
+  /** Capped by the server; `total` is the real count. */
+  items: HomeAnimeResumeItem[]
+  total: number
+}
+
 export function useHomeFromAnime(enabled = true) {
   const gate = useDisplayGate()
   return useQuery({
     queryKey: ['home', 'from-anime'],
-    queryFn: () => api<HomeAnimeResumeItem[]>('/home/from-anime'),
+    queryFn: () => api<HomeAnimeResumePage>('/home/from-anime'),
     enabled,
     staleTime: 60_000,
     // Library cards are judged here; catalogue cards were already narrowed by the server.
-    select: (items) => items.filter((item) => item.seriesId === null || gate(item.seriesId)),
+    select: (page) => ({
+      ...page,
+      items: page.items.filter((item) => item.seriesId === null || gate(item.seriesId)),
+    }),
   })
 }

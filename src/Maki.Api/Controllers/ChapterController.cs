@@ -471,7 +471,7 @@ public class ChapterController(
         // same physical file, and overlapping root folders can too, so ChapterFileId alone can't
         // tell if the file is still claimed elsewhere.
         var claims = await FileClaims.LoadAsync(db, ct);
-        var releasing = fileIds.ToHashSet();
+        var releasing = fileIds.Where(id => !stillReferenced.Contains(id)).ToHashSet();
 
         // Collected here instead of deleted in place: rows are saved first, and only a successful
         // save unlocks touching the filesystem.

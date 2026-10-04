@@ -1541,6 +1541,10 @@ msgstr "A file move is blocked for any series with an active download."
 msgid "A format matches a file by its source, its group or release name, its resolution, or its image codec. Every required condition has to match, plus at least one condition that isn't marked required."
 msgstr "A format matches a file by its source, its group or release name, its resolution, or its image codec. Every required condition has to match, plus at least one condition that isn't marked required."
 
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "A higher tier still replaces the current file when its score is at most this much lower. Leave empty to let a higher tier always win."
+msgstr "A higher tier still replaces the current file when its score is at most this much lower. Leave empty to let a higher tier always win."
+
 #: src/pages/LibraryPage.tsx
 msgid "A large selection can take a while."
 msgstr "A large selection can take a while."
@@ -1933,7 +1937,6 @@ msgid "Affected chapters:"
 msgstr "Affected chapters:"
 
 #: src/api/upgrades.ts
-#: src/components/series/FileQualityBadge.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Aggregator"
 msgstr "Aggregator"
@@ -2778,6 +2781,10 @@ msgstr "C:\\Manga or /library"
 #: src/pages/SimpleHomePage.tsx
 msgid "Can't check the server right now"
 msgstr "Can't check the server right now"
+
+#: src/pages/SettingsPage.tsx
+msgid "Can't reach Kavita right now. Maki keeps retrying, and the scrobble sync still catches up."
+msgstr "Can't reach Kavita right now. Maki keeps retrying, and the scrobble sync still catches up."
 
 #: src/pages/SimpleHomePage.tsx
 msgid "Can't reach the server"
@@ -3625,9 +3632,17 @@ msgstr "connected"
 msgid "Connected"
 msgstr "Connected"
 
+#: src/pages/SettingsPage.tsx
+msgid "Connected to Kavita."
+msgstr "Connected to Kavita."
+
 #: src/components/SetupWizard.tsx
 msgid "Connected: {connectedList}"
 msgstr "Connected: {connectedList}"
+
+#: src/pages/SettingsPage.tsx
+msgid "Connecting to Kavita…"
+msgstr "Connecting to Kavita…"
 
 #: src/components/SetupWizard.tsx
 #: src/pages/ScrobblePage.tsx
@@ -4824,6 +4839,10 @@ msgstr "Empty"
 msgid "Empty."
 msgstr "Empty."
 
+#: src/pages/SettingsPage.tsx
+msgid "Enable"
+msgstr "Enable"
+
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Enable {label}"
 msgstr "Enable {label}"
@@ -4855,6 +4874,10 @@ msgstr "Enable the OPDS catalogue"
 #: src/pages/SettingsPage.tsx
 msgid "Enabled"
 msgstr "Enabled"
+
+#: src/pages/SettingsPage.tsx
+msgid "Enabling it creates the feed URL. Confirm your password to continue."
+msgstr "Enabling it creates the feed URL. Confirm your password to continue."
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "End"
@@ -5356,6 +5379,10 @@ msgstr "Finish setup"
 msgid "Finished"
 msgstr "Finished"
 
+#: src/pages/SettingsPage.tsx
+msgid "Finished chapters show up as read within seconds, marked the same way the import marks them. Without this they wait for the next scrobble sync."
+msgstr "Finished chapters show up as read within seconds, marked the same way the import marks them. Without this they wait for the next scrobble sync."
+
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Finished in a rush"
 msgstr "Finished in a rush"
@@ -5748,6 +5775,10 @@ msgstr "Grid view"
 msgid "Group matches (regex)"
 msgstr "Group matches (regex)"
 
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "Group with the tier above"
+msgstr "Group with the tier above"
+
 #: src/pages/discover/TasteTab.tsx
 msgid "Groups overlap on purpose, so one series can belong to several of them."
 msgstr "Groups overlap on purpose, so one series can belong to several of them."
@@ -5946,8 +5977,12 @@ msgid "Higher numbers are more intrusive."
 msgstr "Higher numbers are more intrusive."
 
 #: src/components/settings/UpgradeProfilesSection.tsx
-msgid "Highest priority first. Switch a tier off to never prefer or accept it."
-msgstr "Highest priority first. Switch a tier off to never prefer or accept it."
+#~ msgid "Highest priority first. Switch a tier off to never prefer or accept it."
+#~ msgstr "Highest priority first. Switch a tier off to never prefer or accept it."
+
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "Highest priority first. Switch a tier off to never prefer or accept it. Grouped tiers rank the same, so the better scoring copy wins between them."
+msgstr "Highest priority first. Switch a tier off to never prefer or accept it. Grouped tiers rank the same, so the better scoring copy wins between them."
 
 #: src/components/CatalogueFilters.tsx
 msgid "Historical"
@@ -6445,6 +6480,10 @@ msgid "Kavita libraries"
 msgstr "Kavita libraries"
 
 #: src/pages/SettingsPage.tsx
+msgid "Kavita only sends reading updates to admin accounts. Use an API key from a Kavita admin under Settings → Integrations → Kavita."
+msgstr "Kavita only sends reading updates to admin accounts. Use an API key from a Kavita admin under Settings → Integrations → Kavita."
+
+#: src/pages/SettingsPage.tsx
 msgid "Kavita series you haven't started are added as plan to read. Entries already on your lists are never changed."
 msgstr "Kavita series you haven't started are added as plan to read. Entries already on your lists are never changed."
 
@@ -6489,6 +6528,10 @@ msgstr "Keep folder name, but put new downloads in a Fōkurōru standard folder"
 msgid "Keep manual priority, but renumber it to follow the measured order."
 msgstr "Keep manual priority, but renumber it to follow the measured order."
 
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "Keep taking better scoring copies once the cutoff is reached, until a file scores this much. 0 stops at the cutoff. Set it very high to never stop."
+msgstr "Keep taking better scoring copies once the cutoff is reached, until a file scores this much. 0 stops at the cutoff. Set it very high to never stop."
+
 #: src/pages/SettingsPage.tsx
 msgid "Keep the last chapter read"
 msgstr "Keep the last chapter read"
@@ -6502,8 +6545,12 @@ msgid "Keep the name, download into it too"
 msgstr "Keep the name, download into it too"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
-msgid "Keep upgrading past the cutoff tier until this score is reached. 0 ignores score entirely."
-msgstr "Keep upgrading past the cutoff tier until this score is reached. 0 ignores score entirely."
+#~ msgid "Keep upgrading past the cutoff tier until this score is reached. 0 ignores score entirely."
+#~ msgstr "Keep upgrading past the cutoff tier until this score is reached. 0 ignores score entirely."
+
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "Keeps taking better scoring copies until one scores {upgradeUntilScore}"
+msgstr "Keeps taking better scoring copies until one scores {upgradeUntilScore}"
 
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "Keeps this series out of tracker pushes, and out of stats entirely on Full."
@@ -7187,6 +7234,10 @@ msgid "Mark ch. 1 to {coveredTo} watched"
 msgstr "Mark ch. 1 to {coveredTo} watched"
 
 #: src/pages/SettingsPage.tsx
+msgid "Mark chapters read here as soon as they're read in Kavita"
+msgstr "Mark chapters read here as soon as they're read in Kavita"
+
+#: src/pages/SettingsPage.tsx
 msgid "Mark chapters read in Kavita too"
 msgstr "Mark chapters read in Kavita too"
 
@@ -7204,8 +7255,13 @@ msgstr "Mark read"
 
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
-msgid "mark read in kavita, push to kavita, import read status, kavita progress"
-msgstr "mark read in kavita, push to kavita, import read status, kavita progress"
+#~ msgid "mark read in kavita, push to kavita, import read status, kavita progress"
+#~ msgstr "mark read in kavita, push to kavita, import read status, kavita progress"
+
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "mark read in kavita, push to kavita, import read status, kavita progress, live sync, instant"
+msgstr "mark read in kavita, push to kavita, import read status, kavita progress, live sync, instant"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Mark the chapters before {chapterLbl} as read"
@@ -7291,6 +7347,10 @@ msgstr "Maximum chapters"
 #: src/components/settings/UsersSection.tsx
 msgid "Maximum content rating"
 msgstr "Maximum content rating"
+
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "Maximum score loss for a higher tier"
+msgstr "Maximum score loss for a higher tier"
 
 #: src/pages/rewind/slides.tsx
 msgid "Maybe next year"
@@ -8653,7 +8713,6 @@ msgid "Off skips any series set to Scrobble-only or Full incognito; on scans the
 msgstr "Off skips any series set to Scrobble-only or Full incognito; on scans them too."
 
 #: src/api/upgrades.ts
-#: src/components/series/FileQualityBadge.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Official"
 msgstr "Official"
@@ -8713,8 +8772,12 @@ msgid "On your shelf, not used for ranking"
 msgstr "On your shelf, not used for ranking"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
-msgid "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise)."
-msgstr "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise)."
+#~ msgid "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise)."
+#~ msgstr "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise)."
+
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise). A grouped tier's cutoff is its whole group."
+msgstr "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise). A grouped tier's cutoff is its whole group."
 
 #: src/pages/SettingsPage.tsx
 msgid "Once a new series is matched, sample a few pages from three chapters on each linked source, so its first downloads already come from the best one. Downloads a little from every source for every series you add."
@@ -10674,6 +10737,10 @@ msgstr "Safe"
 msgid "same author"
 msgstr "same author"
 
+#: src/api/upgrades.ts
+msgid "Same copy as the file on disk"
+msgstr "Same copy as the file on disk"
+
 #: src/components/discover/SourcePreviewPanel.tsx
 msgid "Same work"
 msgstr "Same work"
@@ -10877,7 +10944,6 @@ msgid "scan, api key, path mapping, covers, library server, attribute reading, k
 msgstr "scan, api key, path mapping, covers, library server, attribute reading, kavita user, progress owner"
 
 #: src/api/upgrades.ts
-#: src/components/series/FileQualityBadge.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Scanlator"
 msgstr "Scanlator"
@@ -12027,6 +12093,10 @@ msgstr "Spin-off of {relatedTo}"
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "Split double-width pages"
 msgstr "Split double-width pages"
+
+#: src/components/settings/UpgradeProfilesSection.tsx
+msgid "Split from the tier above"
+msgstr "Split from the tier above"
 
 #: src/components/TagBuckets.tsx
 msgid "Spoiler - hover to reveal"
@@ -13262,6 +13332,7 @@ msgstr "Two-factor turned off for this account"
 #: src/components/NotificationsSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
 msgid "Type"
 msgstr "Type"
@@ -13505,8 +13576,13 @@ msgstr "Upgrade now"
 
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
-msgid "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, allow replacing unknown, resolution weight, compression weight, measured quality"
-msgstr "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, allow replacing unknown, resolution weight, compression weight, measured quality"
+#~ msgid "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, allow replacing unknown, resolution weight, compression weight, measured quality"
+#~ msgstr "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, allow replacing unknown, resolution weight, compression weight, measured quality"
+
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, maximum score loss, allow replacing unknown, resolution weight, compression weight, measured quality"
+msgstr "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, maximum score loss, allow replacing unknown, resolution weight, compression weight, measured quality"
 
 #: src/api/inbox.ts
 msgid "Upgrade restore failed"
@@ -13823,7 +13899,6 @@ msgid "Vol.{volume} Ch.{number}"
 msgstr "Vol.{volume} Ch.{number}"
 
 #: src/api/upgrades.ts
-#: src/components/series/FileQualityBadge.tsx
 msgid "Volume"
 msgstr "Volume"
 
@@ -14408,6 +14483,7 @@ msgid "Your next unread chapter is not downloaded yet. It is being fetched now, 
 msgstr "Your next unread chapter is not downloaded yet. It is being fetched now, and you can read it as soon as it finishes."
 
 #: src/components/settings/AccountSection.tsx
+#: src/pages/SettingsPage.tsx
 msgid "Your password"
 msgstr "Your password"
 

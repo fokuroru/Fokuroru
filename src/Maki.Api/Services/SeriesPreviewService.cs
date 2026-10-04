@@ -52,6 +52,9 @@ public sealed class SeriesPreviewService(
 
     internal static readonly TimeSpan KeepFinished = TimeSpan.FromDays(30);
 
+    /// <summary>Finished previews kept for a quick reopen. Each one holds a whole chapter on disk.</summary>
+    internal const int MaxFinishedJobs = 6;
+
     private readonly ConcurrentDictionary<long, Job> _jobs = new();
     private readonly object _sync = new();
 
@@ -65,10 +68,7 @@ public sealed class SeriesPreviewService(
         Job job;
         lock (_sync)
         {
-            foreach (var (id, stale) in _jobs.Where(pair => pair.Value.Expired).ToList())
-            {
-                Remove(id, stale);
-            }
+            SweepFinished();
 
             // Closing a preview does not discard a download the user asked to keep.
             if (!_jobs.ContainsKey(providerId) && Restore(providerId) is { } restored)
@@ -273,6 +273,32 @@ public sealed class SeriesPreviewService(
             {
                 TryDelete(JobRoot(job));
             }
+
+            lock (_sync)
+            {
+                SweepFinished();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Drops expired previews, then the oldest finished ones past <see cref="MaxFinishedJobs"/>,
+    /// unwatched ones first. Caller holds <see cref="_sync"/>.
+    /// </summary>
+    private void SweepFinished()
+    {
+        foreach (var (id, stale) in _jobs.Where(pair => pair.Value.Expired).ToList())
+        {
+            Remove(id, stale);
+        }
+
+        var finished = _jobs.Where(pair => pair.Value.Finished).ToList();
+        foreach (var (id, old) in finished
+                     .OrderBy(pair => pair.Value.Viewers.Count > 0)
+                     .ThenBy(pair => pair.Value.FinishedAtTicks)
+                     .Take(finished.Count - MaxFinishedJobs))
+        {
+            Remove(id, old);
         }
     }
 
@@ -312,7 +338,7 @@ public sealed class SeriesPreviewService(
                 ? new ListedCandidate(candidate, first, null)
                 : new ListedCandidate(candidate, null, "error.preview.noChapter");
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             return new ListedCandidate(candidate, null, Failed(job, source, ex));
         }
@@ -339,7 +365,7 @@ public sealed class SeriesPreviewService(
             job.MarkReady();
             return null;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             job.Unserve();
             TryDelete(dir);
@@ -519,6 +545,8 @@ public sealed class SeriesPreviewService(
         private long _finishedAtTicks;
 
         public bool Finished => Interlocked.Read(ref _finishedAtTicks) != 0;
+
+        public long FinishedAtTicks => Interlocked.Read(ref _finishedAtTicks);
 
         public bool Expired
         {

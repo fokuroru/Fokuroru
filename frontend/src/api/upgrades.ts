@@ -31,6 +31,8 @@ export const QUALITY_TIER_COLOR: Record<QualityTierName, string> = {
 export interface ProfileTierDto {
   tier: QualityTierName
   allowed: boolean
+  /** Shares its rank with the tier above it, so score alone decides between them. */
+  grouped: boolean
 }
 
 export interface FormatScoreDto {
@@ -48,6 +50,8 @@ export interface UpgradeProfileDto {
   cutoff: QualityTierName
   upgradesEnabled: boolean
   minScoreDelta: number
+  /** How far below the current file's score a higher-tier candidate may be and still win. Null lets a higher tier always win. */
+  maxTierScoreDrop: number | null
   /** 0 means ignore, i.e. never stop upgrading once the cutoff tier is met. */
   upgradeUntilScore: number
   formatScores: FormatScoreDto[]
@@ -310,6 +314,7 @@ export type UpgradeSkipReasonCode =
   | 'trusted'
   | 'cutoff_met'
   | 'shared_file'
+  | 'same_copy'
   | 'queued'
   | 'memoised'
   | 'probe_budget'
@@ -342,6 +347,7 @@ export const UPGRADE_REASON_LABELS: Record<UpgradeReasonCode | UpgradeSkipReason
   trusted: msg`Protected from upgrades`,
   cutoff_met: msg`Already meets the cutoff`,
   shared_file: msg`Shares a file with another chapter`,
+  same_copy: msg`Same copy as the file on disk`,
   queued: msg`Already queued`,
   memoised: msg`Already checked recently`,
   no_other_source: msg`No other source lists it`,
@@ -679,6 +685,7 @@ function useUpgradeProfileMutation<TArgs>(fn: (args: TArgs) => Promise<unknown>)
       void queryClient.invalidateQueries({ queryKey: ['series'] })
       void queryClient.invalidateQueries({ queryKey: ['chapters'] })
       void queryClient.invalidateQueries({ queryKey: ['series-files'] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order'] })
     },
   })
 }
@@ -761,10 +768,11 @@ export function useUpgradesSummary(enabled = true) {
   })
 }
 
-export function useUpgradeSettings() {
+export function useUpgradeSettings(enabled = true) {
   return useQuery({
     queryKey: ['settings', 'upgrades'],
     queryFn: () => api<UpgradeSettings>('/settings/upgrades'),
+    enabled,
   })
 }
 
@@ -780,6 +788,7 @@ export function useSaveUpgradeSettings() {
       void queryClient.invalidateQueries({ queryKey: ['upgrades'] })
       void queryClient.invalidateQueries({ queryKey: ['chapters'] })
       void queryClient.invalidateQueries({ queryKey: ['series-files'] })
+      void queryClient.invalidateQueries({ queryKey: ['source-order'] })
     },
   })
 }
@@ -814,6 +823,7 @@ function useUpgradeMutation<TArgs, TResult>(fn: (args: TArgs) => Promise<TResult
       void queryClient.invalidateQueries({ queryKey: ['chapters'] })
       void queryClient.invalidateQueries({ queryKey: ['series-files'] })
       void queryClient.invalidateQueries({ queryKey: ['queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
       void queryClient.invalidateQueries({ queryKey: ['queue-history'] })
     },
   })
@@ -850,6 +860,7 @@ function useProposalMutation(action: 'grab' | 'dismiss') {
     onSuccess: (_result, { seriesId }) => {
       void queryClient.invalidateQueries({ queryKey: ['upgrades'] })
       void queryClient.invalidateQueries({ queryKey: ['queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
       void queryClient.invalidateQueries({ queryKey: ['series', seriesId] })
     },
   })
@@ -875,6 +886,7 @@ export function useVolumeSearch() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['upgrades'] })
       void queryClient.invalidateQueries({ queryKey: ['queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })
     },
   })
@@ -912,6 +924,7 @@ export function useRunUpgradeScan() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['upgrades'] })
       void queryClient.invalidateQueries({ queryKey: ['queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
       void queryClient.invalidateQueries({ queryKey: ['queue-history'] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })
       void queryClient.invalidateQueries({ queryKey: ['chapters'] })
@@ -936,6 +949,7 @@ export function useUpgradeChapterNow() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['upgrades'] })
       void queryClient.invalidateQueries({ queryKey: ['queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
       void queryClient.invalidateQueries({ queryKey: ['queue-history'] })
       void queryClient.invalidateQueries({ queryKey: ['chapters'] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })

@@ -122,7 +122,7 @@ public class UpgradeProfilesController(ILocalizer localizer, MakiDbContext db) :
                 return this.Fail(localizer, "error.upgrades.unknownTier", new { tier = tier.Tier });
             }
 
-            tiers.Add(new ProfileTier(parsed, tier.Allowed));
+            tiers.Add(new ProfileTier(parsed, tier.Allowed, tier.Grouped));
         }
 
         if (!QualityNames.TryParseTier(request.Cutoff, out var cutoff))
@@ -140,6 +140,11 @@ public class UpgradeProfilesController(ILocalizer localizer, MakiDbContext db) :
         if (request.MinScoreDelta < 0)
         {
             return this.Fail(localizer, "error.upgrades.minScoreDeltaRange");
+        }
+
+        if (request.MaxTierScoreDrop < 0)
+        {
+            return this.Fail(localizer, "error.upgrades.maxTierScoreDropRange");
         }
 
         if (request.UpgradeUntilScore < 0)
@@ -182,6 +187,7 @@ public class UpgradeProfilesController(ILocalizer localizer, MakiDbContext db) :
         profile.Cutoff = cutoff;
         profile.UpgradesEnabled = request.UpgradesEnabled;
         profile.MinScoreDelta = request.MinScoreDelta;
+        profile.MaxTierScoreDrop = request.MaxTierScoreDrop;
         profile.UpgradeUntilScore = request.UpgradeUntilScore;
         profile.FormatScores = scores;
         profile.ResolutionWeight = request.ResolutionWeight;
