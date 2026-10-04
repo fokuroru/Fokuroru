@@ -103,6 +103,7 @@ export default function ImportPage() {
   // Read (not rendered) inside the hub handler below to drop events from a run this tab isn't
   // showing, e.g. another admin's import in progress at the same time.
   const operationIdRef = useRef<string | null>(null)
+  const keepResultsRef = useRef(false)
 
   useHubEvent<ImportProgressEvent>('importProgress', (evt) => {
     if (evt.operationId != null && evt.operationId !== operationIdRef.current) return
@@ -123,7 +124,8 @@ export default function ImportPage() {
     onSuccess: (data, folderId) => {
       setCandidates(data)
       setScannedRootFolderId(String(folderId))
-      setResults(null)
+      if (!keepResultsRef.current) setResults(null)
+      keepResultsRef.current = false
       const initial: Record<string, string> = {}
       for (const c of data) {
         if (c.matches.length > 0 && c.existingSeriesId === null) {
@@ -186,7 +188,10 @@ export default function ImportPage() {
         color: ok === data.length ? 'var(--ok)' : 'var(--warn)',
       })
       setProgress({})
-      if (rootFolderId) scan.mutate(Number(rootFolderId))
+      if (rootFolderId) {
+        keepResultsRef.current = true
+        scan.mutate(Number(rootFolderId))
+      }
     },
     // Only the local cleanup; results-so-far were already recorded batch by batch above, and the
     // error toast comes from the global handler in main.tsx.
