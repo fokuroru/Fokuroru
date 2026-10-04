@@ -77,18 +77,19 @@ const PAGE_SIZE = 60
 const MAX_BROWSE = 600
 
 /**
- * The catalogue, searchable and browsable, shared by Discover, Add series and the creator page.
+ * The catalogue, searchable and browsable, shared by Discover (which is also where series are added)
+ * and the creator page.
  *
  * <p>
  * It renders browse results when the box is empty and search results when it is not, which is what
  * makes the filters mean the same thing either way: pick Romance plus Isekai and you get isekai
- * romance, then type into the box to narrow it further. The Add page relies on that, since the
- * point of opening it is often to see what exists rather than to look something up.
+ * romance, then type into the box to narrow it further. Opening the page is often about seeing what
+ * exists rather than looking something up.
  * </p>
  *
  * <p>
- * Discover passes its curated rails as `idle` and keeps them; everywhere else the empty box shows
- * the filtered catalogue by popularity.
+ * Discover passes its curated rails as `idle` and shows them until there is a query or a filter the
+ * reader chose; everywhere else the empty box shows the filtered catalogue by popularity.
  * </p>
  */
 export function CatalogueBrowser({
@@ -150,6 +151,10 @@ export function CatalogueBrowser({
   const [filtersOpen, setFiltersOpen] = usePageState(memory('filters-open'), false)
   const [applied, setApplied] = usePageState<RecommendationFilters>(memory('applied'), {})
   const [sort, setSort] = usePageState<BrowseSort>(memory('sort'), 'popular')
+  // Filters the reader chose this visit, as opposed to a saved default seeded into `applied`. With
+  // curated rails as the idle state, only a deliberate filter swaps them for the filtered catalogue;
+  // a saved default still narrows searches, as it always has.
+  const [touched, setTouched] = usePageState(memory('touched'), false)
   const [pages, setPages] = usePageState(memory('pages'), 1)
   const catalogue = useCatalogueFilters(undefined, memory('filters'))
 
@@ -183,6 +188,7 @@ export function CatalogueBrowser({
 
   const appliedCount = Object.keys(applied).length
   const filters = appliedCount > 0 ? applied : undefined
+  const showIdle = Boolean(idle) && !(touched && appliedCount > 0)
 
   // A new query or a new filter set starts the browse list over. Not on mount, though: restored
   // filters arrive looking like a change, and resetting there would drop the pages someone had
@@ -208,7 +214,7 @@ export function CatalogueBrowser({
 
   const browseRequest = useMemo(
     () =>
-      !searching && !idle && hydrated
+      !searching && !showIdle && hydrated
         ? {
             feed: 'Popular',
             filters,
@@ -216,7 +222,7 @@ export function CatalogueBrowser({
             limit: Math.min(MAX_BROWSE, PAGE_SIZE * pages),
           }
         : null,
-    [searching, idle, hydrated, filters, sort, pages],
+    [searching, showIdle, hydrated, filters, sort, pages],
   )
 
   const search = useDiscoverSearch(searchRequest, hydrated, minChars)
@@ -346,8 +352,12 @@ export function CatalogueBrowser({
                   onReset={() => {
                     catalogue.reset()
                     setApplied({})
+                    setTouched(false)
                   }}
-                  onApply={() => setApplied(catalogue.build())}
+                  onApply={() => {
+                    setApplied(catalogue.build())
+                    setTouched(true)
+                  }}
                   saving={saveDefaults.isPending}
                   onSaveAsDefault={showSaveDefault ? saveAsDefault : undefined}
                   extra={
@@ -357,6 +367,7 @@ export function CatalogueBrowser({
                         onLoad={(f) => {
                           catalogue.hydrate(f)
                           setApplied(f)
+                          setTouched(true)
                         }}
                       />
                       <HiddenContentButton />
@@ -370,7 +381,7 @@ export function CatalogueBrowser({
         </>
       )}
 
-      {!searching && idle ? (
+      {!searching && showIdle ? (
         idle
       ) : (
         <>

@@ -119,7 +119,7 @@ export default function CommandPalette({ navItems }: Props) {
       : []
 
     // Last, always: the palette only searches the local library, so a title that isn't in it yet
-    // has no result at all. This hands the same typed text to /add, which searches MangaBaka:
+    // has no result at all. This hands the same typed text to /discover, which searches MangaBaka:
     // "add" or "request" depending on what the caller may do, matching the page's own verb.
     const typed = query.trim()
     const searchFallback: Result[] = q
@@ -129,7 +129,7 @@ export default function CommandPalette({ navItems }: Props) {
             key: 'search-metadata',
             label: _(msg`Search for “${typed}”`),
             sub: canAdd ? _(msg`Add series`) : _(msg`Request series`),
-            path: `/add?q=${encodeURIComponent(query.trim())}`,
+            path: `/discover?q=${encodeURIComponent(query.trim())}`,
           },
         ]
       : []

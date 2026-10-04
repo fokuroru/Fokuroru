@@ -626,7 +626,7 @@ function FinishStep({ goTo, finishTo }: { goTo: (step: StepId) => void; finishTo
         <Trans>Where to go next</Trans>
       </Text>
       <div className="setup-next">
-        <UnstyledButton className="setup-next-card" onClick={() => finishTo('/add')}>
+        <UnstyledButton className="setup-next-card" onClick={() => finishTo('/discover')}>
           <Text className="setup-row-label">
             <Trans>Add a series</Trans>
           </Text>

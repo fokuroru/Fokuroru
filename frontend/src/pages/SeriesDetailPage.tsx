@@ -1345,7 +1345,7 @@ function SeriesDetailBody() {
               actionTo="/library"
               actionIcon={<IconArrowLeft size={16} />}
               secondaryActionLabel={can('AddSeries') ? t`Search MangaBaka` : undefined}
-              secondaryActionTo="/add"
+              secondaryActionTo="/discover"
               secondaryActionIcon={<IconSearch size={16} />}
           />
         </SurfaceFrame>

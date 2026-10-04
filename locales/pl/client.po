@@ -2191,8 +2191,6 @@ msgstr "Dodaj regułę"
 
 #: src/components/CommandPalette.tsx
 #: src/components/settings/UsersSection.tsx
-#: src/nav.ts
-#: src/pages/AddSeriesPage.tsx
 #: src/pages/HomePage.tsx
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -3227,12 +3225,12 @@ msgstr "Przeglądaj bibliotekę"
 
 #: src/pages/AddSeriesPage.tsx
 #, fuzzy
-msgid "Browse or search MangaBaka and ask an admin for a title. You can ask for a chapter range too."
-msgstr "Przeglądaj lub szukaj w MangaBaka i poproś administratora o tytuł. Możesz też podać zakres rozdziałów."
+#~ msgid "Browse or search MangaBaka and ask an admin for a title. You can ask for a chapter range too."
+#~ msgstr "Przeglądaj lub szukaj w MangaBaka i poproś administratora o tytuł. Możesz też podać zakres rozdziałów."
 
 #: src/pages/AddSeriesPage.tsx
-msgid "Browse or search MangaBaka, pick a title, choose where it lives, and Fōkurōru handles the rest."
-msgstr ""
+#~ msgid "Browse or search MangaBaka, pick a title, choose where it lives, and Fōkurōru handles the rest."
+#~ msgstr ""
 
 #: src/components/CatalogueRules.tsx
 #, fuzzy
@@ -3257,8 +3255,8 @@ msgstr "Przeglądaj katalog"
 
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
-msgid "Browse the MangaBaka catalogue, or get personalised picks from your library's feel."
-msgstr "Przeglądaj katalog MangaBaka albo otrzymaj spersonalizowane propozycje na podstawie klimatu Twojej biblioteki."
+#~ msgid "Browse the MangaBaka catalogue, or get personalised picks from your library's feel."
+#~ msgstr "Przeglądaj katalog MangaBaka albo otrzymaj spersonalizowane propozycje na podstawie klimatu Twojej biblioteki."
 
 #: src/components/CatalogueBrowser.tsx
 #, fuzzy
@@ -5207,8 +5205,8 @@ msgstr ""
 
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
-msgid "Describe what you're after, a title, or author:\"Junji Ito\""
-msgstr "Opisz, czego szukasz, podaj tytuł lub author:\"Junji Ito\""
+#~ msgid "Describe what you're after, a title, or author:\"Junji Ito\""
+#~ msgstr "Opisz, czego szukasz, podaj tytuł lub author:\"Junji Ito\""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Description"
@@ -12375,8 +12373,6 @@ msgstr "Prośba rozpatrzona"
 
 #: src/components/CommandPalette.tsx
 #: src/components/RequestForm.tsx
-#: src/nav.ts
-#: src/pages/AddSeriesPage.tsx
 #: src/pages/HomePage.tsx
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -13230,7 +13226,7 @@ msgstr "Szukaj po nazwie"
 msgid "Search by title, description, or author:\"Junji Ito\""
 msgstr "Szukaj po tytule, opisie lub author:\"Junji Ito\""
 
-#: src/pages/AddSeriesPage.tsx
+#: src/pages/DiscoverPage.tsx
 #, fuzzy
 msgid "Search by title, description, or by feel"
 msgstr "Szukaj po tytule, opisie lub klimacie"
@@ -13277,10 +13273,18 @@ msgstr ""
 msgid "Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically."
 msgstr ""
 
+#: src/pages/DiscoverPage.tsx
+msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
+msgstr ""
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Search MangaBaka and start downloading."
 msgstr "Wyszukaj w MangaBaka i rozpocznij pobieranie."
+
+#: src/pages/DiscoverPage.tsx
+msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
+msgstr ""
 
 #: src/pages/LibraryPage.tsx
 #, fuzzy

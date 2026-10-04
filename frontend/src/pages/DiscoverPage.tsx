@@ -1,7 +1,7 @@
 // Loaded in the shell rather than the tab so it lands once, whichever tab opens first.
 import '@mantine/charts/styles.css'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ActionIcon,
   Alert,
@@ -1106,7 +1106,10 @@ function DiscoverBrowseTab({
   density,
   editing,
   onExitEditing,
+  seededQuery,
 }: {
+  /** Starting search text, e.g. the `?q=` the command palette and import lists send. */
+  seededQuery: string | null
   /** Bumped by the page header's refresh action; busts the server-side rail cache. */
   refreshNonce: number
   onRefresh: () => void
@@ -1539,8 +1542,9 @@ function DiscoverBrowseTab({
     <CatalogueBrowser
       scope="discover"
       idle={body}
-      placeholder={t`Describe what you're after, a title, or author:"Junji Ito"`}
-      hideSearch
+      seededQuery={seededQuery}
+      placeholder={t`Search by title, description, or by feel`}
+      hideSearch={editing}
     />
   )
 }
@@ -1576,6 +1580,10 @@ function DiscoverPageContent() {
   const { t } = useLingui()
   const { tab } = useParams()
   const navigate = useNavigate()
+  // The command palette and import lists send the title they want to add as ?q=.
+  const [searchParams] = useSearchParams()
+  const { can } = useAuth()
+  const canAdd = can('AddSeries')
   const active: DiscoverTab =
     tab === 'recommended'
       ? 'recommended'
@@ -1602,7 +1610,11 @@ function DiscoverPageContent() {
     <SurfaceFrame width="full" pageStyle="editorial">
       <PageHeader
         title={t`Discover`}
-        description={t`Browse the MangaBaka catalogue, or get personalised picks from your library's feel.`}
+        description={
+          canAdd
+            ? t`Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel.`
+            : t`Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel.`
+        }
         actions={
           active === 'browse' && !editing ? (
             <Group gap="xs" wrap="wrap">
@@ -1656,6 +1668,7 @@ function DiscoverPageContent() {
         <TasteTab />
       ) : (
         <DiscoverBrowseTab
+          seededQuery={searchParams.get('q')}
           refreshNonce={refreshNonce}
           onRefresh={refreshRails}
           density={browseDensity}

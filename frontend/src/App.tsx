@@ -66,7 +66,6 @@ import LibraryPage from './pages/LibraryPage'
 // in the initial bundle. Stats in particular pulls @mantine/charts and recharts, and Settings and
 // Discover are the two largest pages in the app, and none of which someone landing on Home needs.
 const SeriesDetailPage = lazy(() => import('./pages/SeriesDetailPage'))
-const AddSeriesPage = lazy(() => import('./pages/AddSeriesPage'))
 const CreatorPage = lazy(() => import('./pages/CreatorPage'))
 const ActivityPage = lazy(() => import('./pages/ActivityPage'))
 const RequestsPage = lazy(() => import('./pages/RequestsPage'))
@@ -88,6 +87,11 @@ function ShellTitle() {
       {title}
     </Text>
   )
+}
+
+function AddRedirect() {
+  const { search } = useLocation()
+  return <Navigate to={`/discover${search}`} replace />
 }
 
 function NotFoundPage() {
@@ -425,9 +429,7 @@ function AppShellRoutes() {
   const canAdd = can('AddSeries')
   const sections = navSections({
     isAdmin,
-    discoverAvailable,
     homeEnabled,
-    canAdd,
     // An admin works the queue; anyone who has to ask for a series or a download wants to see what
     // happened to what they asked for. Someone holding both permissions never files one.
     requestsVisible: isAdmin || !canAdd || !can('DownloadChapters'),
@@ -438,13 +440,11 @@ function AppShellRoutes() {
   useEffect(() => {
     // Send anyone sitting on a page that has just become unavailable back through "/", which
     // resolves to whatever their start page is now allowed to be.
-    const stranded =
-      (!discoverAvailable && location.pathname.startsWith('/discover')) ||
-      (!homeEnabled && location.pathname.startsWith('/home'))
+    const stranded = !homeEnabled && location.pathname.startsWith('/home')
     if (stranded) {
       navigate('/', { replace: true })
     }
-  }, [discoverAvailable, homeEnabled, location.pathname, navigate])
+  }, [homeEnabled, location.pathname, navigate])
 
   return (
     <ShellTitleProvider>
@@ -541,7 +541,8 @@ function AppShellRoutes() {
             />
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/series/:id" element={<SeriesDetailPage />} />
-            <Route path="/add" element={<AddSeriesPage />} />
+            {/* Add series lives at the top of Discover now; old links and bookmarks land there. */}
+            <Route path="/add" element={<AddRedirect />} />
             <Route path="/creator/:name" element={<CreatorPage />} />
             <Route path="/discover/:tab?" element={<DiscoverPage />} />
             <Route path="/import" element={<ImportPage />} />

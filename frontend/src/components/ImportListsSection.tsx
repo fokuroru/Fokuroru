@@ -289,7 +289,7 @@ function SkipRow({ skip, trackerLabel }: { skip: ImportListSkipDto; trackerLabel
         </Text>
       </Group>
       <Group gap="xs" mt="xs">
-        <Button size="compact-xs" variant="light" onClick={() => navigate(`/add?q=${encodeURIComponent(title)}`)}>
+        <Button size="compact-xs" variant="light" onClick={() => navigate(`/discover?q=${encodeURIComponent(title)}`)}>
           <Trans>Search</Trans>
         </Button>
         {isIgnored ? (

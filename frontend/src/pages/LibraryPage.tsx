@@ -844,7 +844,7 @@ export default function LibraryPage() {
               >
                 <Trans>Select</Trans>
               </Button>
-              <Button component={Link} to="/add" leftSection={<IconPlus size={16} />}>
+              <Button component={Link} to="/discover" leftSection={<IconPlus size={16} />}>
                 <Trans>Add series</Trans>
               </Button>
             </>
@@ -1751,7 +1751,7 @@ export default function LibraryPage() {
           title={t`Your library is empty`}
           description={t`Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically.`}
           actionLabel={can('AddSeries') ? t`Add a series` : t`Request series`}
-          actionTo="/add"
+          actionTo="/discover"
           actionIcon={<IconPlus size={16} />}
           secondaryActionLabel={can('ImportLibrary') ? t`Import a folder` : undefined}
           secondaryActionTo="/import"
@@ -1784,7 +1784,7 @@ export default function LibraryPage() {
             ))}
             {!selectMode && (series?.length ?? 0) < 12 && (
               <Link
-                to="/add"
+                to="/discover"
                 className="library-add-cell"
                 aria-label={can('AddSeries') ? t`Add a series` : t`Request series`}
               >

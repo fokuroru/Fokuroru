@@ -231,7 +231,7 @@ export default function HomePage() {
           title={t`Nothing in your library yet`}
           description={t`Add a series and Fōkurōru will start tracking chapters for it. This page fills up as you read and download.`}
           actionLabel={can('AddSeries') ? t`Add series` : t`Request series`}
-          actionTo="/add"
+          actionTo="/discover"
           actionIcon={<IconPlus size={16} />}
           secondaryActionLabel={can('ImportLibrary') ? t`Import a folder` : undefined}
           secondaryActionTo="/import"
