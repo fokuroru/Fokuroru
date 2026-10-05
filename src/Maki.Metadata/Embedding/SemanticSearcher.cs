@@ -313,6 +313,9 @@ public class SemanticSearcher(
 
         var winners = RankCandidates(index, plan, fused, exactTitles, limit, nearTitles);
         var lead = await UnindexedLeadAsync(index, filters, exactTitles, nearTitles, lexical, unindexedCreditWorks, ct);
+        logger.LogInformation(
+            "Semantic search channels: exact={Exact} near={Near} lexical={Lexical} unindexedLead={Lead} winners={Winners}",
+            exactTitles.Count, nearTitles.Count, lexical.Count, lead.Count, winners.Count);
         var results = await HydrateAsync(lead.Concat(winners).Distinct().Take(limit).ToList(), ct);
         logger.LogInformation(
             "Semantic search for {Length}-char query returned {Count} of {Pool} candidates in {Elapsed:F0}ms",

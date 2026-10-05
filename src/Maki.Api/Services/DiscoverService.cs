@@ -783,6 +783,12 @@ public class DiscoverService(
         // waits for the semantic engine to warm rather than answering with titles the filters
         // exclude. Only while the model can load, though: waiting on one that can't answers nothing.
         var narrowed = Narrows(request.Filters);
+        logger.LogInformation(
+            "Discover search: {Length}-char query, titleOnly={TitleOnly}, narrowed={Narrowed}, ratings=[{Ratings}], hidden={Hidden}, credits={Credits}, filters={Filters}",
+            query.Length, request.WantsTitleOnly, narrowed,
+            string.Join(",", request.Filters?.ContentRatings ?? []), request.Filters?.Hidden?.Count ?? 0,
+            request.Filters?.Credits?.Count ?? 0,
+            request.Filters is null ? "none" : System.Text.Json.JsonSerializer.Serialize(request.Filters with { Hidden = null, CreditIds = null }));
         if (!request.WantsTitleOnly &&
             (searcher.IsReady() || (narrowed && searcher.IsAvailable() && searcher.CanEmbed())))
         {
