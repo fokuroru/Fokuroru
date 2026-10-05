@@ -921,6 +921,7 @@ try
     builder.Services.AddSingleton<AnimeSignalSyncService>();
     builder.Services.AddScoped<AnimeResumeService>();
     builder.Services.AddSingleton<AnimeResumePendingService>();
+    builder.Services.AddSingleton<PreviewReadPendingService>();
 
     // Read before the host is built, unlike the rest of auth.*, because whether the OpenID Connect
     // scheme is registered at all is decided here. See OidcRuntimeOptions.Load.

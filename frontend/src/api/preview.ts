@@ -19,6 +19,35 @@ export interface SeriesPreview {
 
 const key = (providerId: string) => ['series-preview', providerId]
 
+// Previews read to the end, by provider id. Adding the series happens in another component (the
+// Discover card), so this hands the chapter over without threading it through every caller.
+const finishedPreviews = new Map<string, string>()
+
+export function markPreviewFinished(providerId: string, chapterLabel: string) {
+  finishedPreviews.set(providerId, chapterLabel)
+}
+
+/** The chapter label of a preview read to the end, once; null when the preview was not finished. */
+export function takePreviewFinished(providerId: string): string | null {
+  const label = finishedPreviews.get(providerId) ?? null
+  finishedPreviews.delete(providerId)
+  return label
+}
+
+/**
+ * Marks the chapter read as a preview read and unwanted on a series that has just been added. The
+ * server holds the mark until source matching has brought the chapter in.
+ */
+export function useMarkPreviewRead() {
+  return useMutation({
+    mutationFn: ({ seriesId, chapterNumber }: { seriesId: number; chapterNumber: number }) =>
+      api<void>(`/series/${seriesId}/preview-read`, {
+        method: 'POST',
+        body: JSON.stringify({ chapterNumber }),
+      }),
+  })
+}
+
 export function useStartSeriesPreview() {
   const queryClient = useQueryClient()
   return useMutation({

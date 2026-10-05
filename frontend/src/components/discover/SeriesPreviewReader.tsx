@@ -25,7 +25,7 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { previewPageUrl, useSeriesPreview } from '../../api/preview'
+import { markPreviewFinished, previewPageUrl, useSeriesPreview } from '../../api/preview'
 import { useReaderSettings } from '../../api/reader'
 import { useReadingProfiles } from '../../api/readingProfiles'
 import ContinuousView from '../../pages/reader/ContinuousView'
@@ -419,6 +419,11 @@ export function SeriesPreviewReader({
   const chapterLabel = preview?.chapterLabel
   const pageNumber = page + 1
   const readyPages = readyCount
+
+  // Remembered for the add that usually follows, which marks this chapter read and unwanted.
+  useEffect(() => {
+    if (atEnd && chapterLabel) markPreviewFinished(providerId, chapterLabel)
+  }, [atEnd, chapterLabel, providerId])
 
   const chapterName = chapterLabel ? t`Chapter ${chapterLabel}` : t`First chapter`
   const label = `${title} · ${chapterName}`

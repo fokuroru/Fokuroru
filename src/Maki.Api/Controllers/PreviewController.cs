@@ -76,6 +76,41 @@ public class PreviewController(
         return Ok(await store.GetByIdsAsync(wanted, ContentRating.Allowed(currentUser.MaxContentRating), ct));
     }
 
+    public record PreviewReadRequest(decimal ChapterNumber);
+
+    /// <summary>
+    /// Records that the caller read this chapter as a preview before adding the series: it ends up
+    /// read and unwanted. A fresh add has no chapters yet, so the mark is kept and
+    /// <see cref="PreviewReadPendingService"/> applies it when the sync brings the chapter in.
+    /// </summary>
+    [HttpPost("~/api/v1/series/{seriesId:int}/preview-read")]
+    public async Task<IActionResult> MarkRead(
+        int seriesId,
+        PreviewReadRequest request,
+        [FromServices] Maki.Data.MakiDbContext db,
+        [FromServices] PreviewReadPendingService pending,
+        CancellationToken ct)
+    {
+        if (!await db.Series.AnyAsync(s => s.Id == seriesId, ct))
+        {
+            return NotFound();
+        }
+
+        var state = await db.UserSeriesStates.FirstOrDefaultAsync(s => s.SeriesId == seriesId, ct);
+        if (state is null)
+        {
+            state = new Maki.Data.Identity.UserSeriesState { SeriesId = seriesId };
+            db.UserSeriesStates.Add(state);
+        }
+
+        state.PreviewReadPendingTo = (double)request.ChapterNumber;
+        state.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        await pending.ApplyAsync(seriesId, ct);
+        return NoContent();
+    }
+
     [HttpGet("{providerId:long}")]
     public IActionResult Get(long providerId) =>
         previews.Snapshot(providerId, currentUser.UserId, localizer) is { } snapshot ? Ok(snapshot) : NotFound();

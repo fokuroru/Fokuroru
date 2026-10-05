@@ -76,5 +76,12 @@ public class UserSeriesState : IUserOwned
     /// </summary>
     public double? AnimeWatchPendingTo { get; set; }
 
+    /// <summary>
+    /// The number of the chapter this reader finished as a preview before adding the series. A fresh
+    /// add has no chapter rows yet, so the chapter sync that first brings that chapter in marks it
+    /// read and unwanted, then clears this.
+    /// </summary>
+    public double? PreviewReadPendingTo { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

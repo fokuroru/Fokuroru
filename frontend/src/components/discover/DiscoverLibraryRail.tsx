@@ -13,6 +13,7 @@ import {
 import { useUpgradeProfiles } from '../../api/upgrades'
 import { useCreateSeriesRequest } from '../../api/requests'
 import { useApplyAnimeResumeAfterAdd } from '../../api/animeResume'
+import { takePreviewFinished, useMarkPreviewRead } from '../../api/preview'
 import { useAuth } from '../../auth/AuthProvider'
 import type { RootFolder } from '../../api/types'
 import { RequestForm } from '../RequestForm'
@@ -52,6 +53,7 @@ export function DiscoverLibraryRail({
   const addMutationId = useRef<string | null>(null)
   const createRequest = useCreateSeriesRequest()
   const applyAnimeResume = useApplyAnimeResumeAfterAdd()
+  const markPreviewRead = useMarkPreviewRead()
   const { data: librarySettings } = useLibrarySettings()
   const { data: upgradeProfiles } = useUpgradeProfiles()
 
@@ -131,6 +133,11 @@ export function DiscoverLibraryRail({
           // button becomes "Go to series" instead, so leaving is their choice.
           setAddedSeriesId(series.id)
           if (animeResume && markAnimeWatched) applyAnimeResume.mutate({ seriesId: series.id })
+
+          // A preview read to the end counts as that chapter read, and it is not wanted again.
+          const finished = takePreviewFinished(String(item.providerId))
+          const chapterNumber = finished == null ? NaN : Number.parseFloat(finished)
+          if (Number.isFinite(chapterNumber)) markPreviewRead.mutate({ seriesId: series.id, chapterNumber })
 
           // The series was created either way, so this stays a success, but a failed folder has to
           // be said out loud, not just logged server-side. Source matching is no longer among the

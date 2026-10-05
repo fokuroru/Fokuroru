@@ -489,6 +489,52 @@ public sealed class AnimeResumeServiceTests : IDisposable
         Assert.Equal(12m, items[1].CoveredTo);
     }
 
+    private PreviewReadPendingService PreviewPendingService()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => _db.NewContext());
+        services.AddScoped(sp =>
+        {
+            var context = sp.GetRequiredService<MakiDbContext>();
+            return new ReaderService(context, new ReaderArchiveCache(NullLogger<ReaderArchiveCache>.Instance),
+                new ReadingProgressService(context, _gate, NullLogger<ReadingProgressService>.Instance),
+                InertKavitaPusher.For(_db.ScopeFactory()), new ReadingSessionService(context),
+                NullLogger<ReaderService>.Instance);
+        });
+        return new PreviewReadPendingService(
+            services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<PreviewReadPendingService>.Instance);
+    }
+
+    [Fact]
+    public async Task Preview_read_marks_the_chapter_read_and_unwanted_once_it_syncs()
+    {
+        var seriesId = SeedWatchedSeries();
+        using (var db = _db.NewContext(User))
+        {
+            db.UserSeriesStates.Add(new Maki.Data.Identity.UserSeriesState { SeriesId = seriesId, PreviewReadPendingTo = 1 });
+            db.SaveChanges();
+        }
+
+        // Nothing synced yet: the mark waits.
+        await PreviewPendingService().ApplyAsync(seriesId, CancellationToken.None);
+        using (var db = _db.NewContext())
+        {
+            Assert.Equal(1, db.UserSeriesStates.Single(s => s.SeriesId == seriesId).PreviewReadPendingTo);
+        }
+
+        var chapters = AnimeResumeFixture.SeedChapters(_db, seriesId, 1, 2);
+        await PreviewPendingService().ApplyAsync(seriesId, CancellationToken.None);
+
+        using var after = _db.NewContext();
+        var first = after.Chapters.Single(c => c.Id == chapters[1m]);
+        Assert.False(first.Wanted);
+        Assert.True(after.ChapterProgress.Single(p => p.ChapterId == chapters[1m]) is { UserId: User, Completed: true, Watched: false });
+        Assert.True(after.Chapters.Single(c => c.Id == chapters[2m]).Wanted);
+        Assert.DoesNotContain(after.ChapterProgress.ToList(), p => p.ChapterId == chapters[2m]);
+        Assert.Null(after.UserSeriesStates.Single(s => s.SeriesId == seriesId).PreviewReadPendingTo);
+    }
+
     private AnimeResumePendingService PendingService()
     {
         var services = new ServiceCollection();
