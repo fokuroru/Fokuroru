@@ -12,7 +12,7 @@ import {
   Switch,
   Text,
 } from '@mantine/core'
-import { IconArrowLeft, IconSettings, IconX } from '@tabler/icons-react'
+import { IconArrowLeft, IconHome, IconPlus, IconSettings, IconTrash, IconX } from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { previewPageUrl, useSeriesPreview } from '../../api/preview'
 import { useReaderSettings } from '../../api/reader'
@@ -50,12 +50,18 @@ export function SeriesPreviewReader({
   coverUrl,
   seriesType,
   onClose,
+  endActions,
 }: {
   providerId: string
   title: string
   coverUrl: string | null
   seriesType: string | null
   onClose: () => void
+  /**
+   * Replaces the end screen's "Back to the series" with what to do next, for a preview opened
+   * from the rail rather than from a series card.
+   */
+  endActions?: { onHome: () => void; onDelete: () => void; onAdd: () => void }
 }) {
   const { t } = useLingui()
   const { data: preview, error: lostError } = useSeriesPreview(providerId, true)
@@ -367,14 +373,31 @@ export function SeriesPreviewReader({
             <span className="reader-end-note">
               <Trans>Add the series to your library, or request it, to keep reading.</Trans>
             </span>
-            <Group gap="xs" mt="md">
-              <Button onClick={onClose} leftSection={<IconArrowLeft size={16} />}>
-                <Trans>Back to the series</Trans>
-              </Button>
-              <Button variant="subtle" color="gray" className="reader-end-quiet" onClick={() => setAtEnd(false)}>
-                <Trans>Stay here</Trans>
-              </Button>
-            </Group>
+            {endActions ? (
+              <Group gap="xs" mt="md">
+                <Button onClick={endActions.onAdd} leftSection={<IconPlus size={16} />}>
+                  <Trans>Add to library</Trans>
+                </Button>
+                <Button variant="light" onClick={endActions.onHome} leftSection={<IconHome size={16} />}>
+                  <Trans>Back to home</Trans>
+                </Button>
+                <Button variant="light" color="red" onClick={endActions.onDelete} leftSection={<IconTrash size={16} />}>
+                  <Trans>Delete preview</Trans>
+                </Button>
+                <Button variant="subtle" color="gray" className="reader-end-quiet" onClick={() => setAtEnd(false)}>
+                  <Trans>Stay here</Trans>
+                </Button>
+              </Group>
+            ) : (
+                          <Group gap="xs" mt="md">
+                <Button onClick={onClose} leftSection={<IconArrowLeft size={16} />}>
+                  <Trans>Back to the series</Trans>
+                </Button>
+                <Button variant="subtle" color="gray" className="reader-end-quiet" onClick={() => setAtEnd(false)}>
+                  <Trans>Stay here</Trans>
+                </Button>
+              </Group>
+            )}
           </div>
         </div>
       </div>

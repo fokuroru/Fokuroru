@@ -17,6 +17,7 @@ import {
   type RecommendationItem,
 } from '../api/hooks'
 import { useCachedPreviews } from '../api/preview'
+import { PreviewRailReader } from '../components/discover/PreviewRailReader'
 import { DiscoverDetailModal } from '../components/discover/DiscoverDetailModal'
 import { useAuth } from '../auth/AuthProvider'
 import type { SeriesDto } from '../api/types'
@@ -49,6 +50,7 @@ export default function SimpleHomePage() {
   const [shown, setShown] = useState(PAGE)
   const [held, setHeld] = useState<SheetSeries | null>(null)
   const [previewItem, setPreviewItem] = useState<RecommendationItem | null>(null)
+  const [previewReaderItem, setPreviewReaderItem] = useState<RecommendationItem | null>(null)
   const previews = useCachedPreviews(true)
   const { data: rootFolders } = useRootFolders()
   const seriesIdFor = useSeriesIdLookup()
@@ -188,7 +190,7 @@ export default function SimpleHomePage() {
           </h2>
           <div className="lite-rail">
             {(previews.data ?? []).map((item) => (
-              <button key={item.providerId} type="button" className="lite-card lite-card-button" onClick={() => setPreviewItem(item)}>
+              <button key={item.providerId} type="button" className="lite-card lite-card-button" onClick={() => setPreviewReaderItem(item)}>
                 <span className="lite-cover">
                   {item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl ? (
                     <img src={item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl ?? ''} alt="" loading="lazy" />
@@ -260,6 +262,16 @@ export default function SimpleHomePage() {
         rootFolders={rootFolders}
         onClose={() => setPreviewItem(null)}
       />
+      {previewReaderItem && (
+        <PreviewRailReader
+          item={previewReaderItem}
+          onClose={() => setPreviewReaderItem(null)}
+          onAdd={(item) => {
+            setPreviewReaderItem(null)
+            setPreviewItem(item)
+          }}
+        />
+      )}
     </div>
   )
 }

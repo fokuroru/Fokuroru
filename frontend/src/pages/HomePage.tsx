@@ -53,6 +53,7 @@ import { reconcileLayout, sectionVisible } from '../components/layout/pageLayout
 import { HOME_LAYOUT_CONFIG, HOME_SECTION_DEFS } from '../components/home/homeSectionDefs'
 import { useReadTracking } from '../api/reader'
 import { DiscoverDetailModal } from '../components/discover/DiscoverDetailModal'
+import { PreviewRailReader } from '../components/discover/PreviewRailReader'
 import { FollowingRail } from '../components/discover/FollowingRail'
 import { ContinueLead, CONTINUE_LEAD_MAX } from '../components/home/ContinueLead'
 import { ContinueRail } from '../components/home/ContinueRail'
@@ -147,6 +148,7 @@ export default function HomePage() {
 
   const seriesIdFor = useSeriesIdLookup()
   const [detailItem, setDetailItem] = useState<RecommendationItem | null>(null)
+  const [previewReaderItem, setPreviewReaderItem] = useState<RecommendationItem | null>(null)
   const navigate = useNavigate()
 
   const continueReading = reading?.continueReading ?? []
@@ -336,7 +338,7 @@ export default function HomePage() {
     ),
 
     previews: (
-      <PreviewsRail enabled={needsDiscover && on('previews')} seriesIdFor={seriesIdFor} onOpen={setDetailItem} />
+      <PreviewsRail enabled={needsDiscover && on('previews')} seriesIdFor={seriesIdFor} onOpen={setPreviewReaderItem} />
     ),
 
     jumpback: readingLoading ? (
@@ -449,6 +451,16 @@ export default function HomePage() {
         rootFolders={rootFolders}
         onClose={() => setDetailItem(null)}
       />
+      {previewReaderItem && (
+        <PreviewRailReader
+          item={previewReaderItem}
+          onClose={() => setPreviewReaderItem(null)}
+          onAdd={(item) => {
+            setPreviewReaderItem(null)
+            setDetailItem(item)
+          }}
+        />
+      )}
     </SurfaceFrame>
   )
 }
