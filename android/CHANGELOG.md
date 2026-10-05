@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.37 (65)
+- Fixed the end-of-preview buttons showing raw characters: their text was missing from the translation catalogs.
+
 ## 0.5.36 (64)
 - Rebuilt with everything since 0.5.31: hold a cover in the mobile view for Read, Download or desktop info; the library hides ongoing series that are fully read.
 

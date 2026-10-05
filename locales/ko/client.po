@@ -2211,6 +2211,7 @@ msgstr ""
 
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/DiscoverLibraryRail.tsx
+#: src/components/discover/SeriesPreviewReader.tsx
 #, fuzzy
 msgid "Add to library"
 msgstr "라이브러리에 추가"
@@ -2817,11 +2818,6 @@ msgstr "예술"
 msgid "Ask for this"
 msgstr "요청하기"
 
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Ask or suggest"
-#~ msgstr "요청 또는 제안"
-
 #: src/pages/ScrobblePage.tsx
 #, fuzzy
 msgid "Assign"
@@ -2974,6 +2970,10 @@ msgstr "다시 후보에 포함됨"
 #, fuzzy
 msgid "Back to Discover"
 msgstr "탐색으로 돌아가기"
+
+#: src/components/discover/SeriesPreviewReader.tsx
+msgid "Back to home"
+msgstr ""
 
 #: src/pages/reader/ReaderPage.tsx
 #: src/pages/SeriesDetailPage.tsx
@@ -3223,15 +3223,6 @@ msgstr ""
 msgid "Browse library"
 msgstr "라이브러리 탐색"
 
-#: src/pages/AddSeriesPage.tsx
-#, fuzzy
-#~ msgid "Browse or search MangaBaka and ask an admin for a title. You can ask for a chapter range too."
-#~ msgstr "MangaBaka를 탐색하거나 검색하여 제목을 관리자에게 요청하세요. 챕터 범위도 요청할 수 있습니다."
-
-#: src/pages/AddSeriesPage.tsx
-#~ msgid "Browse or search MangaBaka, pick a title, choose where it lives, and Fōkurōru handles the rest."
-#~ msgstr ""
-
 #: src/components/CatalogueRules.tsx
 #, fuzzy
 msgid "Browse tags"
@@ -3252,11 +3243,6 @@ msgstr "포함할 태그 둘러보기"
 #, fuzzy
 msgid "Browse the catalogue"
 msgstr "카탈로그 탐색"
-
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "Browse the MangaBaka catalogue, or get personalised picks from your library's feel."
-#~ msgstr "MangaBaka 카탈로그를 탐색하거나 라이브러리의 취향을 바탕으로 맞춤 추천을 받으세요."
 
 #: src/components/CatalogueBrowser.tsx
 #, fuzzy
@@ -5055,6 +5041,10 @@ msgstr "영구 삭제"
 msgid "Delete preset"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
+msgid "Delete preview"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #, fuzzy
@@ -5202,11 +5192,6 @@ msgstr "인구통계"
 #: src/pages/LibraryPage.tsx
 msgid "Density: {densityLabel}"
 msgstr ""
-
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "Describe what you're after, a title, or author:\"Junji Ito\""
-#~ msgstr "원하는 내용, 제목 또는 작가를 설명하세요:\"Junji Ito\""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Description"
@@ -5373,11 +5358,6 @@ msgstr "{until}까지 일시 숨김"
 #, fuzzy
 msgid "Display name"
 msgstr "표시 이름"
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Documentation"
-#~ msgstr "문서"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -6320,11 +6300,6 @@ msgstr "라이브러리 필터 중…"
 msgid "Filter saved"
 msgstr "필터 저장됨"
 
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "Filter the catalogue"
-#~ msgstr "카탈로그 필터링"
-
 #: src/components/CatalogueBrowser.tsx
 #: src/pages/CreatorPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -6724,10 +6699,6 @@ msgstr "전체 검토"
 msgid "Full screen"
 msgstr "전체 화면"
 
-#: src/pages/SimpleHomePage.tsx
-#~ msgid "Full version"
-#~ msgstr ""
-
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Fully read owned"
@@ -6778,11 +6749,6 @@ msgstr "MangaFire 같은 소스의 Cloudflare 확인을 통과합니다. 이 기
 #, fuzzy
 msgid "Girls Love"
 msgstr "백합"
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "GitHub Discussions."
-#~ msgstr "GitHub 토론."
 
 #: src/components/DiscoverPresets.tsx
 #: src/components/rails/CustomRailEditor.tsx
@@ -6999,11 +6965,6 @@ msgstr ""
 msgid "Held back for review, {file}: {reason}"
 msgstr ""
 
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Help & feedback"
-#~ msgstr "도움말 및 의견 보내기"
-
 #: src/components/SetupWizard.tsx
 msgid "Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and manual imports untouched. Fōkurōru's own downloads always get one."
 msgstr ""
@@ -7116,10 +7077,6 @@ msgstr "나와 비슷한 독자를 위해 더 높은 항목"
 #, fuzzy
 msgid "Higher numbers are more intrusive."
 msgstr "숫자가 높을수록 더 눈에 띕니다."
-
-#: src/components/settings/UpgradeProfilesSection.tsx
-#~ msgid "Highest priority first. Switch a tier off to never prefer or accept it."
-#~ msgstr ""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Highest priority first. Switch a tier off to never prefer or accept it. Grouped tiers rank the same, so the better scoring copy wins between them."
@@ -7797,10 +7754,6 @@ msgid "Keep the name, download into it too"
 msgstr "이름을 유지하고 해당 폴더에 다운로드"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
-#~ msgid "Keep upgrading past the cutoff tier until this score is reached. 0 ignores score entirely."
-#~ msgstr ""
-
-#: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Keeps taking better scoring copies until one scores {upgradeUntilScore}"
 msgstr ""
 
@@ -7819,6 +7772,7 @@ msgstr "기존 연결 유지"
 msgid "kept where it is"
 msgstr "그대로 유지됨"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -8641,12 +8595,6 @@ msgstr ""
 #, fuzzy
 msgid "Mark read"
 msgstr "읽음으로 표시"
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#, fuzzy
-#~ msgid "mark read in kavita, push to kavita, import read status, kavita progress"
-#~ msgstr "kavita에서 읽음으로 표시, kavita로 보내기, 읽기 상태 가져오기, kavita 진행률"
 
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
@@ -10459,10 +10407,6 @@ msgid "On your shelf, not used for ranking"
 msgstr "라이브러리에 있음, 순위 산정에 사용되지 않음"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
-#~ msgid "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise)."
-#~ msgstr ""
-
-#: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise). A grouped tier's cutoff is its whole group."
 msgstr ""
 
@@ -10674,11 +10618,6 @@ msgstr ""
 #, fuzzy
 msgid "Opens a deletion review. Nothing is removed until you confirm it there."
 msgstr "삭제 검토를 엽니다. 여기서 확인하기 전에는 아무것도 제거되지 않습니다."
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Opens a GitHub issue with the template."
-#~ msgstr "템플릿이 포함된 GitHub 이슈를 엽니다."
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -12051,11 +11990,6 @@ msgstr "내 시드와 관련됨"
 msgid "Release name matches (regex)"
 msgstr ""
 
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Release notes"
-#~ msgstr "릴리스 노트"
-
 #: src/api/upgrades.ts
 msgid "Release number may be a sequel, not a chapter"
 msgstr ""
@@ -12341,11 +12275,6 @@ msgstr "교체 항목 #{opId}"
 #, fuzzy
 msgid "replaces {replacedFileName}"
 msgstr "{replacedFileName}을(를) 교체함"
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Report a bug"
-#~ msgstr "버그 신고"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -13157,10 +13086,6 @@ msgstr "Scrobble 읽기"
 msgid "Scrobbling"
 msgstr "Scrobbling"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#~ msgid "Scroll"
-#~ msgstr ""
-
 #: src/components/ui/Rail.tsx
 msgid "Scroll back"
 msgstr ""
@@ -13278,18 +13203,10 @@ msgstr ""
 msgid "Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically."
 msgstr ""
 
-#: src/pages/DiscoverPage.tsx
-#~ msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
-#~ msgstr ""
-
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Search MangaBaka and start downloading."
 msgstr "MangaBaka를 검색하고 다운로드를 시작하세요."
-
-#: src/pages/DiscoverPage.tsx
-#~ msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
-#~ msgstr ""
 
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -13717,10 +13634,6 @@ msgid "Server {server}, up to date"
 msgstr ""
 
 #: src/pages/SimpleHomePage.tsx
-#~ msgid "Server is on {server}, this app needs {needed}"
-#~ msgstr ""
-
-#: src/pages/SimpleHomePage.tsx
 msgid "Server is on {server}, this screen is on {loaded}"
 msgstr ""
 
@@ -14070,10 +13983,6 @@ msgstr "시작점과의 유사도"
 #, fuzzy
 msgid "Simple"
 msgstr "간단히"
-
-#: src/App.tsx
-#~ msgid "Simple view"
-#~ msgstr ""
 
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
@@ -15058,6 +14967,14 @@ msgstr ""
 msgid "The page is shown as it would be held."
 msgstr ""
 
+#: src/components/discover/PreviewRailReader.tsx
+msgid "The preview could not be deleted."
+msgstr ""
+
+#: src/components/discover/PreviewRailReader.tsx
+msgid "The preview could not be opened."
+msgstr ""
+
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "The preview expired. Try again."
 msgstr ""
@@ -15171,11 +15088,6 @@ msgstr ""
 #: src/pages/SeriesDetailPage.tsx
 msgid "The upgrade scan could not run. The server log has the details."
 msgstr ""
-
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "The whole catalogue"
-#~ msgstr "전체 카탈로그"
 
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -15624,11 +15536,13 @@ msgstr "오늘"
 msgid "Toggle bookmark"
 msgstr "북마크 전환"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Toggle full screen"
 msgstr "전체 화면 전환"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Toggle page thumbnails"
@@ -16175,11 +16089,6 @@ msgstr ""
 #: src/pages/SeriesDetailPage.tsx
 msgid "Upgrade now"
 msgstr ""
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#~ msgid "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, allow replacing unknown, resolution weight, compression weight, measured quality"
-#~ msgstr ""
 
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
@@ -16806,11 +16715,6 @@ msgstr "읽은 내용"
 #: src/components/reader/TapZoneEditor.tsx
 msgid "What zone {0} does"
 msgstr ""
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "What's new in v{version}"
-#~ msgstr "v{version}의 새로운 기능"
 
 #: src/pages/ActivityPage.tsx
 #: src/pages/ScrobblePage.tsx

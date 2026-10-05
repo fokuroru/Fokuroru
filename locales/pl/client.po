@@ -2211,6 +2211,7 @@ msgstr ""
 
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/DiscoverLibraryRail.tsx
+#: src/components/discover/SeriesPreviewReader.tsx
 #, fuzzy
 msgid "Add to library"
 msgstr "Dodaj do biblioteki"
@@ -2817,11 +2818,6 @@ msgstr "Rysunek"
 msgid "Ask for this"
 msgstr "Poproś o tę serię"
 
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Ask or suggest"
-#~ msgstr "Zapytaj lub zasugeruj"
-
 #: src/pages/ScrobblePage.tsx
 #, fuzzy
 msgid "Assign"
@@ -2974,6 +2970,10 @@ msgstr "z powrotem w puli"
 #, fuzzy
 msgid "Back to Discover"
 msgstr "Wróć do Odkrywania"
+
+#: src/components/discover/SeriesPreviewReader.tsx
+msgid "Back to home"
+msgstr ""
 
 #: src/pages/reader/ReaderPage.tsx
 #: src/pages/SeriesDetailPage.tsx
@@ -3223,15 +3223,6 @@ msgstr ""
 msgid "Browse library"
 msgstr "Przeglądaj bibliotekę"
 
-#: src/pages/AddSeriesPage.tsx
-#, fuzzy
-#~ msgid "Browse or search MangaBaka and ask an admin for a title. You can ask for a chapter range too."
-#~ msgstr "Przeglądaj lub szukaj w MangaBaka i poproś administratora o tytuł. Możesz też podać zakres rozdziałów."
-
-#: src/pages/AddSeriesPage.tsx
-#~ msgid "Browse or search MangaBaka, pick a title, choose where it lives, and Fōkurōru handles the rest."
-#~ msgstr ""
-
 #: src/components/CatalogueRules.tsx
 #, fuzzy
 msgid "Browse tags"
@@ -3252,11 +3243,6 @@ msgstr "Przeglądaj tagi do uwzględnienia"
 #, fuzzy
 msgid "Browse the catalogue"
 msgstr "Przeglądaj katalog"
-
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "Browse the MangaBaka catalogue, or get personalised picks from your library's feel."
-#~ msgstr "Przeglądaj katalog MangaBaka albo otrzymaj spersonalizowane propozycje na podstawie klimatu Twojej biblioteki."
 
 #: src/components/CatalogueBrowser.tsx
 #, fuzzy
@@ -5055,6 +5041,10 @@ msgstr "Usuń trwale"
 msgid "Delete preset"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
+msgid "Delete preview"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #, fuzzy
@@ -5202,11 +5192,6 @@ msgstr "Demografia"
 #: src/pages/LibraryPage.tsx
 msgid "Density: {densityLabel}"
 msgstr ""
-
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "Describe what you're after, a title, or author:\"Junji Ito\""
-#~ msgstr "Opisz, czego szukasz, podaj tytuł lub author:\"Junji Ito\""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Description"
@@ -5373,11 +5358,6 @@ msgstr "Odrzucone do {until}"
 #, fuzzy
 msgid "Display name"
 msgstr "Nazwa wyświetlana"
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Documentation"
-#~ msgstr "Dokumentacja"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -6320,11 +6300,6 @@ msgstr "Filtruj bibliotekę…"
 msgid "Filter saved"
 msgstr "Filtr został zapisany"
 
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "Filter the catalogue"
-#~ msgstr "Filtruj katalog"
-
 #: src/components/CatalogueBrowser.tsx
 #: src/pages/CreatorPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -6724,10 +6699,6 @@ msgstr "Pełna recenzja"
 msgid "Full screen"
 msgstr "Pełny ekran"
 
-#: src/pages/SimpleHomePage.tsx
-#~ msgid "Full version"
-#~ msgstr ""
-
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
 msgid "Fully read owned"
@@ -6778,11 +6749,6 @@ msgstr "Omija Cloudflare dla źródeł takich jak MangaFire. Bez tego te źród�
 #, fuzzy
 msgid "Girls Love"
 msgstr "Girls Love"
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "GitHub Discussions."
-#~ msgstr "Dyskusje GitHub."
 
 #: src/components/DiscoverPresets.tsx
 #: src/components/rails/CustomRailEditor.tsx
@@ -6999,11 +6965,6 @@ msgstr ""
 msgid "Held back for review, {file}: {reason}"
 msgstr ""
 
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Help & feedback"
-#~ msgstr "Pomoc i opinie"
-
 #: src/components/SetupWizard.tsx
 msgid "Helps Kavita and other readers group and name chapters. Off leaves torrent grabs and manual imports untouched. Fōkurōru's own downloads always get one."
 msgstr ""
@@ -7116,10 +7077,6 @@ msgstr "Wyższa u czytelników podobnych do Ciebie"
 #, fuzzy
 msgid "Higher numbers are more intrusive."
 msgstr "Im wyższa liczba, tym bardziej natarczywe powiadomienie."
-
-#: src/components/settings/UpgradeProfilesSection.tsx
-#~ msgid "Highest priority first. Switch a tier off to never prefer or accept it."
-#~ msgstr ""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Highest priority first. Switch a tier off to never prefer or accept it. Grouped tiers rank the same, so the better scoring copy wins between them."
@@ -7797,10 +7754,6 @@ msgid "Keep the name, download into it too"
 msgstr "Zachowaj nazwę i pobieraj do tego folderu"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
-#~ msgid "Keep upgrading past the cutoff tier until this score is reached. 0 ignores score entirely."
-#~ msgstr ""
-
-#: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Keeps taking better scoring copies until one scores {upgradeUntilScore}"
 msgstr ""
 
@@ -7819,6 +7772,7 @@ msgstr "Pozostawiono dotychczasowe powiązanie"
 msgid "kept where it is"
 msgstr "pozostawiono na swoim miejscu"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -8641,12 +8595,6 @@ msgstr ""
 #, fuzzy
 msgid "Mark read"
 msgstr "Oznacz jako przeczytane"
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#, fuzzy
-#~ msgid "mark read in kavita, push to kavita, import read status, kavita progress"
-#~ msgstr "oznacz jako przeczytane w kavita, wyślij do kavita, importuj status czytania, postęp w kavita"
 
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
@@ -10459,10 +10407,6 @@ msgid "On your shelf, not used for ranking"
 msgstr "Na Twojej półce, nieużywane do rankingu"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
-#~ msgid "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise)."
-#~ msgstr ""
-
-#: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Once a file's tier reaches this, upgrading stops (unless upgrade until score says otherwise). A grouped tier's cutoff is its whole group."
 msgstr ""
 
@@ -10674,11 +10618,6 @@ msgstr ""
 #, fuzzy
 msgid "Opens a deletion review. Nothing is removed until you confirm it there."
 msgstr "Otwiera przegląd usunięcia. Nic nie zostaje usunięte, dopóki tam tego nie potwierdzisz."
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Opens a GitHub issue with the template."
-#~ msgstr "Otwiera zgłoszenie GitHub z gotowym szablonem."
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -12051,11 +11990,6 @@ msgstr "Powiązane z Twoimi tytułami bazowymi"
 msgid "Release name matches (regex)"
 msgstr ""
 
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Release notes"
-#~ msgstr "Informacje o wydaniu"
-
 #: src/api/upgrades.ts
 msgid "Release number may be a sequel, not a chapter"
 msgstr ""
@@ -12341,11 +12275,6 @@ msgstr "Zastąpienie #{opId}"
 #, fuzzy
 msgid "replaces {replacedFileName}"
 msgstr "zastępuje {replacedFileName}"
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "Report a bug"
-#~ msgstr "Zgłoś błąd"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -13157,10 +13086,6 @@ msgstr "Scrobbluj czytanie"
 msgid "Scrobbling"
 msgstr "Scrobblowanie"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#~ msgid "Scroll"
-#~ msgstr ""
-
 #: src/components/ui/Rail.tsx
 msgid "Scroll back"
 msgstr ""
@@ -13278,18 +13203,10 @@ msgstr ""
 msgid "Search MangaBaka and add your first series. Fōkurōru will monitor for new chapters and download them automatically."
 msgstr ""
 
-#: src/pages/DiscoverPage.tsx
-#~ msgid "Search MangaBaka and ask an admin for a title, or browse the catalogue and get picks from your library's feel."
-#~ msgstr ""
-
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Search MangaBaka and start downloading."
 msgstr "Wyszukaj w MangaBaka i rozpocznij pobieranie."
-
-#: src/pages/DiscoverPage.tsx
-#~ msgid "Search MangaBaka to add a series, or browse the catalogue and get picks from your library's feel."
-#~ msgstr ""
 
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -13717,10 +13634,6 @@ msgid "Server {server}, up to date"
 msgstr ""
 
 #: src/pages/SimpleHomePage.tsx
-#~ msgid "Server is on {server}, this app needs {needed}"
-#~ msgstr ""
-
-#: src/pages/SimpleHomePage.tsx
 msgid "Server is on {server}, this screen is on {loaded}"
 msgstr ""
 
@@ -14070,10 +13983,6 @@ msgstr "Podobieństwo do początku"
 #, fuzzy
 msgid "Simple"
 msgstr "Proste"
-
-#: src/App.tsx
-#~ msgid "Simple view"
-#~ msgstr ""
 
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
@@ -15058,6 +14967,14 @@ msgstr ""
 msgid "The page is shown as it would be held."
 msgstr ""
 
+#: src/components/discover/PreviewRailReader.tsx
+msgid "The preview could not be deleted."
+msgstr ""
+
+#: src/components/discover/PreviewRailReader.tsx
+msgid "The preview could not be opened."
+msgstr ""
+
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "The preview expired. Try again."
 msgstr ""
@@ -15171,11 +15088,6 @@ msgstr ""
 #: src/pages/SeriesDetailPage.tsx
 msgid "The upgrade scan could not run. The server log has the details."
 msgstr ""
-
-#: src/pages/DiscoverPage.tsx
-#, fuzzy
-#~ msgid "The whole catalogue"
-#~ msgstr "Cały katalog"
 
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -15624,11 +15536,13 @@ msgstr "Dziś"
 msgid "Toggle bookmark"
 msgstr "Przełącz zakładkę"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Toggle full screen"
 msgstr "Przełącz pełny ekran"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Toggle page thumbnails"
@@ -16175,11 +16089,6 @@ msgstr ""
 #: src/pages/SeriesDetailPage.tsx
 msgid "Upgrade now"
 msgstr ""
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#~ msgid "upgrade profile, quality profile, cutoff, tier, aggregator, scanlator, official, volume, upgrade until score, page tolerance, minimum score gain, allow replacing unknown, resolution weight, compression weight, measured quality"
-#~ msgstr ""
 
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
@@ -16806,11 +16715,6 @@ msgstr "Przeczytane przez Ciebie"
 #: src/components/reader/TapZoneEditor.tsx
 msgid "What zone {0} does"
 msgstr ""
-
-#: src/components/layout/SidebarFooter.tsx
-#, fuzzy
-#~ msgid "What's new in v{version}"
-#~ msgstr "Co nowego w wersji {version}"
 
 #: src/pages/ActivityPage.tsx
 #: src/pages/ScrobblePage.tsx
