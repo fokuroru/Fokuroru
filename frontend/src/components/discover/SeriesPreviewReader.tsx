@@ -12,7 +12,18 @@ import {
   Switch,
   Text,
 } from '@mantine/core'
-import { IconArrowLeft, IconHome, IconPlus, IconSettings, IconTrash, IconX } from '@tabler/icons-react'
+import {
+  IconArrowLeft,
+  IconHome,
+  IconKeyboard,
+  IconLayoutGrid,
+  IconMaximize,
+  IconMinimize,
+  IconPlus,
+  IconSettings,
+  IconTrash,
+  IconX,
+} from '@tabler/icons-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { previewPageUrl, useSeriesPreview } from '../../api/preview'
 import { useReaderSettings } from '../../api/reader'
@@ -29,9 +40,14 @@ import {
 import { usePreload } from '../../pages/reader/usePageUrls'
 import { spreadIndexOf, usePageAspects, useSpreads } from '../../pages/reader/useSpreads'
 import { useTapZones } from '../../api/tapZones'
-import { useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
+import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
 import { actionAt, layoutFor } from '../../lib/tapZones'
+import { useBackClosesOverlay } from '../../lib/useBackClosesOverlay'
+import { usePinchZoom } from '../../pages/reader/usePinchZoom'
 import TapZoneEditor from '../reader/TapZoneEditor'
+import TapZoneHint from '../reader/TapZoneHint'
+import PageStrip from '../../pages/reader/PageStrip'
+import ShortcutSheet from '../../pages/reader/ShortcutSheet'
 
 const ZOOM_STEP = 0.25
 const ZOOM_MAX = 4
@@ -64,6 +80,7 @@ export function SeriesPreviewReader({
   endActions?: { onHome: () => void; onDelete: () => void; onAdd: () => void }
 }) {
   const { t } = useLingui()
+  useBackClosesOverlay(onClose)
   const { data: preview, error: lostError } = useSeriesPreview(providerId, true)
 
   // What the user reads this type of series with elsewhere: their defaults, then the profile that
@@ -120,6 +137,10 @@ export function SeriesPreviewReader({
   const [chromeHeld, setChromeHeld] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [tapEditorOpen, setTapEditorOpen] = useState(false)
+  const [stripOpen, setStripOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [fullscreen, setFullscreen] = useState(false)
+  const noBookmarks = useMemo(() => new Set<number>(), [])
   const surfaceRef = useRef<HTMLDivElement>(null)
   const { wide, measure } = usePageAspects(urls)
   const spreads = useSpreads(urls.length, wide, mode === 'double')
@@ -160,6 +181,17 @@ export function SeriesPreviewReader({
   useEffect(() => {
     setZoom(1)
   }, [version])
+
+  useEffect(() => {
+    const onChange = () => setFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
+    else void document.documentElement.requestFullscreen().catch(() => {})
+  }, [])
 
   useEffect(() => {
     const el = surfaceRef.current
@@ -206,6 +238,15 @@ export function SeriesPreviewReader({
       const target = event.target as HTMLElement | null
       if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
       if (tapEditorOpen) return
+      // The sheet is read, not driven: while it is up the only keys that do anything close it.
+      if (shortcutsOpen) {
+        if (event.key === 'Escape' || event.key === '?') {
+          event.preventDefault()
+          event.stopPropagation()
+          setShortcutsOpen(false)
+        }
+        return
+      }
       const forwardKey = rtl ? 'ArrowLeft' : 'ArrowRight'
       const backKey = rtl ? 'ArrowRight' : 'ArrowLeft'
       switch (event.key) {
@@ -251,8 +292,13 @@ export function SeriesPreviewReader({
           seekToPage(Math.max(0, urls.length - 1))
           break
         case 'f':
-          if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
-          else void document.documentElement.requestFullscreen().catch(() => {})
+          toggleFullscreen()
+          break
+        case 't':
+          setStripOpen((open) => !open)
+          break
+        case '?':
+          setShortcutsOpen(true)
           break
         case 'd':
           update({ direction: rtl ? 'ltr' : 'rtl' })
@@ -291,14 +337,39 @@ export function SeriesPreviewReader({
     return () => window.removeEventListener('keydown', onKey)
   }, [
     rtl, mode, vertical, atEnd, next, previous, forward, backward, seekToPage, urls.length,
-    prefs.fit, prefs.scale, update, onClose, tapEditorOpen,
+    prefs.fit, prefs.scale, update, onClose, tapEditorOpen, shortcutsOpen, toggleFullscreen,
   ])
 
   // Volume keys, clickers and stylus buttons from the Android app, as in the real reader.
   useNativeTurn((direction) => {
-    if (tapEditorOpen) return
+    if (tapEditorOpen || shortcutsOpen) return
     if (direction === 'next') forward()
     else backward()
+  })
+
+  // The rest of the app's buttons. Chapter and bookmark actions have nothing to act on in a preview.
+  useNativeAction((action) => {
+    if (tapEditorOpen || shortcutsOpen) return
+    switch (action) {
+      case 'menu':
+        setChrome((visible) => !visible)
+        break
+      case 'zoomIn':
+        if (mode === 'vertical') update({ scale: Math.min(scaleMax(prefs.fit), prefs.scale + 10) })
+        else setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))
+        break
+      case 'zoomOut':
+        if (mode === 'vertical') update({ scale: Math.max(25, prefs.scale - 10) })
+        else setZoom((z) => Math.max(1, z - ZOOM_STEP))
+        break
+      case 'zoomReset':
+        if (mode === 'vertical') update({ scale: 100 })
+        else setZoom(1)
+        break
+      case 'close':
+        onClose()
+        break
+    }
   })
 
   const { data: tapDocument } = useTapZones()
@@ -307,7 +378,21 @@ export function SeriesPreviewReader({
     [tapDocument, vertical, prefs.direction],
   )
 
+  // Pinch zooms what the keyboard zooms: the scale in the continuous strip, the transient zoom
+  // in the paged layouts.
+  const pinchValue = useRef(1)
+  pinchValue.current = mode === 'vertical' ? prefs.scale : zoom
+  const justPinched = usePinchZoom(
+    surfaceRef,
+    () => pinchValue.current,
+    (value) => (mode === 'vertical' ? update({ scale: Math.round(value) }) : setZoom(value)),
+    mode === 'vertical' ? 25 : 1,
+    mode === 'vertical' ? scaleMax(prefs.fit) : ZOOM_MAX,
+    !atEnd,
+  )
+
   const onSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (justPinched.current) return
     if (!prefs.tapZones || zoom !== 1 || (mode === 'vertical' && !vertical)) {
       setChrome((visible) => !visible)
       return
@@ -389,7 +474,7 @@ export function SeriesPreviewReader({
                 </Button>
               </Group>
             ) : (
-                          <Group gap="xs" mt="md">
+              <Group gap="xs" mt="md">
                 <Button onClick={onClose} leftSection={<IconArrowLeft size={16} />}>
                   <Trans>Back to the series</Trans>
                 </Button>
@@ -501,7 +586,22 @@ export function SeriesPreviewReader({
           </Group>
         </div>
 
+        <TapZoneHint
+          zones={tapLayout}
+          active={prefs.tapZones && zoom === 1 && !(mode === 'vertical' && !vertical) && !atEnd && urls.length > 0 && !failure}
+        />
         <div className="reader-preview-body">{body}</div>
+        {stripOpen && urls.length > 0 && !failure && (
+          <div
+            className="reader-strip-wrap"
+            data-visible={chrome}
+            onClick={stop}
+            onMouseEnter={hold(true)}
+            onMouseLeave={hold(false)}
+          >
+            <PageStrip urls={urls} page={page} bookmarks={noBookmarks} onSelect={seekToPage} rtl={rtl} />
+          </div>
+        )}
 
         <div
           className="reader-bar reader-bar-bottom"
@@ -529,6 +629,14 @@ export function SeriesPreviewReader({
             >
               {pageNumber} / {pageCount}
             </Text>
+            <ActionIcon
+              variant={stripOpen ? 'light' : 'subtle'}
+              color="gray"
+              onClick={() => setStripOpen((open) => !open)}
+              aria-label={t`Toggle page thumbnails`}
+            >
+              <IconLayoutGrid size={18} />
+            </ActionIcon>
             <Popover
               width={280}
               position="top-end"
@@ -680,6 +788,23 @@ export function SeriesPreviewReader({
                 </Stack>
               </Popover.Dropdown>
             </Popover>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              className="reader-shortcuts-button"
+              onClick={() => setShortcutsOpen(true)}
+              aria-label={t`Keyboard shortcuts`}
+            >
+              <IconKeyboard size={18} />
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={toggleFullscreen}
+              aria-label={t`Toggle full screen`}
+            >
+              {fullscreen ? <IconMinimize size={18} /> : <IconMaximize size={18} />}
+            </ActionIcon>
           </Group>
         </div>
 
@@ -689,6 +814,7 @@ export function SeriesPreviewReader({
           </div>
         )}
 
+        {shortcutsOpen && <ShortcutSheet rtl={rtl} onClose={() => setShortcutsOpen(false)} />}
         <TapZoneEditor
           opened={tapEditorOpen}
           onClose={() => setTapEditorOpen(false)}
