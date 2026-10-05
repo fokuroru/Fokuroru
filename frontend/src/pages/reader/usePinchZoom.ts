@@ -22,8 +22,13 @@ export function usePinchZoom(
   latest.current = { get, set, min, max }
   const justPinched = useRef(false)
 
+  // Read during render on purpose: the surface mounts after the reader's loading screen and is
+  // replaced when the end-of-chapter prompt comes and goes, so the listeners must follow the
+  // element rather than attach once to whatever was there on the first render.
+  // eslint-disable-next-line react-hooks/refs
+  const el = target.current
+
   useEffect(() => {
-    const el = target.current
     if (!el || !enabled) return
 
     let startDistance = 0
@@ -64,7 +69,7 @@ export function usePinchZoom(
       el.removeEventListener('touchend', onEnd)
       el.removeEventListener('touchcancel', onEnd)
     }
-  }, [target, enabled])
+  }, [el, enabled])
 
   return justPinched
 }
