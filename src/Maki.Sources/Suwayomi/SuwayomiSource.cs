@@ -27,6 +27,12 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
     public const string HttpClientName = "source-suwayomi";
     public const string BaseUrlVariable = "MAKI_SOURCE_SUWAYOMI_BASEURL";
 
+    /// <summary>
+    /// Where a browser reaches Suwayomi's web UI. <see cref="BaseUrlVariable"/> is the address Maki
+    /// itself uses, usually a container name no browser can resolve, so links shown to people use this.
+    /// </summary>
+    public const string PublicUrlVariable = "MAKI_SOURCE_SUWAYOMI_PUBLICURL";
+
     /// <summary>Hits kept per extension, so a catalogue-wide search stays a handful of candidates.</summary>
     private const int ResultsPerExtension = 5;
 
@@ -37,7 +43,10 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
     public string Name => "suwayomi";
     public string DisplayName => "Suwayomi";
 
-    public string BaseUrl => Environment.GetEnvironmentVariable(BaseUrlVariable)?.TrimEnd('/') ?? "http://suwayomi:4567";
+    public string BaseUrl =>
+        Environment.GetEnvironmentVariable(PublicUrlVariable)?.TrimEnd('/') is { Length: > 0 } publicUrl
+            ? publicUrl
+            : Environment.GetEnvironmentVariable(BaseUrlVariable)?.TrimEnd('/') ?? "http://suwayomi:4567";
 
     private static bool Configured => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(BaseUrlVariable));
 
@@ -93,7 +102,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
                 """
                 mutation($source: LongString!, $query: String!) {
                   fetchSourceManga(input: { source: $source, type: SEARCH, query: $query, page: 1 }) {
-                    mangas { id title description }
+                    mangas { id title description realUrl }
                   }
                 }
                 """,
@@ -106,7 +115,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
                 hits.Add(new SourceSeriesResult(
                     id,
                     manga.GetProperty("title").GetString() ?? id,
-                    $"{BaseUrl}/manga/{id}",
+                    Text(manga, "realUrl") ?? $"{BaseUrl}/manga/{id}",
                     Description: Text(manga, "description")));
             }
 
@@ -124,14 +133,14 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
     public async Task<SourceSeriesDetail> GetSeriesAsync(string sourceSeriesId, CancellationToken ct = default)
     {
         var data = await PostAsync(
-            "query($id: Int!) { manga(id: $id) { id title description status thumbnailUrl } }",
+            "query($id: Int!) { manga(id: $id) { id title description status realUrl } }",
             new { id = Id(sourceSeriesId) }, ct);
         var manga = data.GetProperty("manga");
 
         return new SourceSeriesDetail(
             sourceSeriesId,
             manga.GetProperty("title").GetString() ?? sourceSeriesId,
-            $"{BaseUrl}/manga/{sourceSeriesId}",
+            Text(manga, "realUrl") ?? $"{BaseUrl}/manga/{sourceSeriesId}",
             Description: Text(manga, "description"),
             Status: StatusName(Text(manga, "status")));
     }
@@ -148,7 +157,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
             """
             mutation($id: Int!) {
               fetchChapters(input: { mangaId: $id }) {
-                chapters { id name chapterNumber uploadDate scanlator url }
+                chapters { id name chapterNumber uploadDate scanlator realUrl }
               }
             }
             """,
@@ -170,7 +179,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
                 name,
                 lang,
                 ReleaseDate(row),
-                $"{BaseUrl}/manga/{sourceSeriesId}/chapter/{chapterId}",
+                Text(row, "realUrl") ?? $"{BaseUrl}/manga/{sourceSeriesId}/chapter/{chapterId}",
                 Text(row, "scanlator")));
         }
 

@@ -9,8 +9,13 @@ namespace Maki.Sources.Tests;
 public class SuwayomiSourceTests : IDisposable
 {
     private readonly BaseUrlOverride _baseUrl = new(SuwayomiSource.BaseUrlVariable, "http://suwayomi.test:4567");
+    private readonly BaseUrlOverride _publicUrl = new(SuwayomiSource.PublicUrlVariable, "http://suwayomi.example:4568");
 
-    public void Dispose() => _baseUrl.Dispose();
+    public void Dispose()
+    {
+        _publicUrl.Dispose();
+        _baseUrl.Dispose();
+    }
 
     /// <summary>Answers GraphQL posts by what the query asks for, and page GETs by path.</summary>
     private sealed class FakeSuwayomi : IHttpClientFactory
@@ -39,7 +44,7 @@ public class SuwayomiSourceTests : IDisposable
                     _ when body.Contains("fetchSourceManga") && body.Contains("\"source\":\"22\"") =>
                         """{"data":null,"errors":[{"message":"java.io.IOException: timeout\nat x"}]}""",
                     _ when body.Contains("fetchSourceManga") =>
-                        """{"data":{"fetchSourceManga":{"mangas":[{"id":7,"title":"Solo Leveling","description":"Hunters"},{"id":8,"title":"Solo Leveling: Ragnarok","description":null}]}}}""",
+                        """{"data":{"fetchSourceManga":{"mangas":[{"id":7,"title":"Solo Leveling","description":"Hunters","realUrl":"https://site.test/solo-leveling"},{"id":8,"title":"Solo Leveling: Ragnarok","description":null,"realUrl":null}]}}}""",
                     _ when body.Contains("source { lang }") =>
                         """{"data":{"manga":{"source":{"lang":"all"}}}}""",
                     _ when body.Contains("fetchChapters") =>
@@ -68,7 +73,10 @@ public class SuwayomiSourceTests : IDisposable
 
         Assert.Equal(["7", "8"], results.Select(r => r.SourceSeriesId));
         Assert.Equal("Solo Leveling", results[0].Title);
-        Assert.Equal("http://suwayomi.test:4567/manga/7", results[0].Url);
+        // The site's own page when the extension knows it, else the Suwayomi page, under the public
+        // address a browser can reach rather than the internal one Maki talks to.
+        Assert.Equal("https://site.test/solo-leveling", results[0].Url);
+        Assert.Equal("http://suwayomi.example:4568/manga/8", results[1].Url);
         // The built-in local source is skipped; the two real extensions are searched.
         Assert.Equal(2, factory.Queries.Count(q => q.Contains("fetchSourceManga")));
     }
@@ -120,9 +128,9 @@ public class SuwayomiSourceTests : IDisposable
     }
 
     [Theory]
-    [InlineData("http://suwayomi.test:4567/manga/7", "7")]
-    [InlineData("http://suwayomi.test:4567/manga/7/chapter/101", "7")]
-    [InlineData("http://suwayomi.test:4567/manga/abc", null)]
+    [InlineData("http://suwayomi.example:4568/manga/7", "7")]
+    [InlineData("http://suwayomi.example:4568/manga/7/chapter/101", "7")]
+    [InlineData("http://suwayomi.example:4568/manga/abc", null)]
     [InlineData("http://elsewhere.test/manga/7", null)]
     public void ResolveSeriesIdFromUrl(string url, string? expected) =>
         Assert.Equal(expected, ((ISource)new SuwayomiSource(new FakeSuwayomi())).ResolveSeriesIdFromUrl(new Uri(url)));
