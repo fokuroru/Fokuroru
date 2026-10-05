@@ -75,7 +75,7 @@ already an upgrade. Sections 0 and 1.1 need `-Fresh`; everything else runs on th
 
 ## 0. Boot
 
-- [ ] **0.1** Container starts and stays up. `docker logs maki-test` shows migrations applied and no
+- [ ] **0.1** Container starts and stays up. `docker logs fokuroru` shows migrations applied and no
       exception.
 - [ ] **0.2** The sidebar footer shows the version being released (a `build-local.ps1` image
       shows `-nightly`, which is expected).

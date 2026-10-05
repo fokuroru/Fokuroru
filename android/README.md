@@ -129,4 +129,4 @@ type sizes from 700dp. `Layouts` has the rules and its tests.
 
 ## Offering the app from your server
 
-Run `scripts/android/publish-apk.sh` to build the app and place it at `android/fokuroru.apk` in the maki-test server's config folder (over the SMB mount, else SSH to zimaboard2). Pass a config folder to publish somewhere else. A browser on Android then sees "Get the Android app" at the bottom of the side menu. The file is a debug-signed build, so an install over an existing one needs the same signing key, which is whichever machine ran the script.
+Run `scripts/android/publish-apk.sh` to build the app and place it at `android/fokuroru.apk` in the fokuroru server's config folder (over the SMB mount, else SSH to zimaboard2). Pass a config folder to publish somewhere else. A browser on Android then sees "Get the Android app" at the bottom of the side menu. The file is a debug-signed build, so an install over an existing one needs the same signing key, which is whichever machine ran the script.
