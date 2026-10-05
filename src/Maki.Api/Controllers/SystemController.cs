@@ -66,7 +66,85 @@ public class SystemController(
             // Withheld from non-admins: it is an absolute path on the host, which tells a reader
             // account the deployment layout and nothing it has any use for.
             configDir = currentUser.Has(MakiPermission.Admin) ? paths.ConfigDir : null,
-            startTime = System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime()
+            startTime = System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime(),
+            uptimeSeconds = (long)(DateTime.UtcNow - System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalSeconds
+        });
+    }
+
+    /// <summary>
+    /// One-call server snapshot: uptime, process and disk figures, database reachability, scheduler
+    /// state and the open health issues counted by severity. <c>status</c> is "ok", "degraded" or
+    /// "down" so a monitor can alert on a single field.
+    /// </summary>
+    /// <remarks>
+    /// Admin-only for the same reason as <see cref="Memory"/>: it describes the host, not the
+    /// caller's library. Acknowledged checks are excluded, matching <see cref="Health"/>.
+    /// </remarks>
+    [Authorize(Policy = Policies.Admin)]
+    [HttpGet("server-health")]
+    public async Task<IActionResult> ServerHealth(CancellationToken ct)
+    {
+        var db = HttpContext.RequestServices.GetRequiredService<Maki.Data.MakiDbContext>();
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        var started = process.StartTime.ToUniversalTime();
+
+        var dbReachable = false;
+        Dictionary<string, int> issues = [];
+        try
+        {
+            dbReachable = await db.Database.CanConnectAsync(ct);
+            if (dbReachable)
+                issues = await db.HealthChecks.Where(HealthTransitions.Unattended)
+                    .GroupBy(i => i.Status).Select(g => new { g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(g => g.Key ?? "unknown", g => g.Count, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Server health could not query the database");
+        }
+
+        bool? schedulerRunning = null;
+        try
+        {
+            var scheduler = await schedulerFactory.GetScheduler(ct);
+            schedulerRunning = scheduler.IsStarted && !scheduler.InStandbyMode && !scheduler.IsShutdown;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Server health could not read the scheduler");
+        }
+
+        object? disk = null;
+        try
+        {
+            var drive = new DriveInfo(Path.GetFullPath(paths.ConfigDir));
+            disk = new { freeBytes = drive.AvailableFreeSpace, totalBytes = drive.TotalSize };
+        }
+        catch (Exception ex) when (ex is IOException or ArgumentException or UnauthorizedAccessException)
+        {
+            logger.LogDebug(ex, "Server health could not read disk space");
+        }
+
+        var problemCount = issues.Where(kv => !string.Equals(kv.Key, "ok", StringComparison.OrdinalIgnoreCase)).Sum(kv => kv.Value);
+        var status = !dbReachable || schedulerRunning == false ? "down" : problemCount > 0 ? "degraded" : "ok";
+
+        return Ok(new
+        {
+            status,
+            version = VersionInfo.Version,
+            startTime = started,
+            uptimeSeconds = (long)(DateTime.UtcNow - started).TotalSeconds,
+            database = new { reachable = dbReachable },
+            scheduler = new { running = schedulerRunning },
+            process = new
+            {
+                workingSetBytes = process.WorkingSet64,
+                managedBytes = GC.GetTotalMemory(false),
+                threads = process.Threads.Count,
+                cpuSeconds = process.TotalProcessorTime.TotalSeconds,
+            },
+            disk,
+            issues = new { total = problemCount, bySeverity = issues },
         });
     }
 
