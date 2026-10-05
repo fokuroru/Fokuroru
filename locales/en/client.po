@@ -6388,6 +6388,10 @@ msgstr "It may have been removed from the library."
 msgid "It needs a quality profile and downloaded chapters."
 msgstr "It needs a quality profile and downloaded chapters."
 
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "It will download by itself. You can keep browsing."
+msgstr "It will download by itself. You can keep browsing."
+
 #: src/components/SourceMappingsSection.tsx
 #: src/pages/SettingsPage.tsx
 msgid "Italian"
@@ -13950,6 +13954,14 @@ msgstr "vs {fromLabel} to {toLabel}"
 #: src/components/SourceMeasurePanel.tsx
 msgid "Waiting"
 msgstr "Waiting"
+
+#: src/components/discover/SeriesPreviewReader.tsx
+msgid "Waiting for other previews to finish…"
+msgstr "Waiting for other previews to finish…"
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Waiting for other previews…"
+msgstr "Waiting for other previews…"
 
 #: src/components/RecommendationModelSwitch.tsx
 msgid "Waiting for the MangaBaka snapshot to download first."

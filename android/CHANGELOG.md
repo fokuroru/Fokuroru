@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.40 (68)
+- Saved chapters is a grid of covers like the library, with the number of saved chapters on a badge. Tap a series for its chapters, hold it to delete everything saved for it. Covers are kept on the device, so they show offline.
+
 ## 0.5.39 (67)
 - Suwayomi sources show their extension's name while auto-matching instead of a long number.
 

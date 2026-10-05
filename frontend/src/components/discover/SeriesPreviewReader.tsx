@@ -498,7 +498,9 @@ export function SeriesPreviewReader({
         <Stack align="center" gap="md">
           <div className="reader-page-skeleton" aria-hidden />
           <Text fz="sm" c="rgba(255,255,255,0.6)" className="tnum">
-            {!source ? (
+            {preview?.status === 'queued' ? (
+              <Trans>Waiting for other previews to finish…</Trans>
+            ) : !source ? (
               <Trans>Looking for a source…</Trans>
             ) : pageCount > 0 ? (
               <Trans>

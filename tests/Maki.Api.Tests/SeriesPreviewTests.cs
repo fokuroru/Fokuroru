@@ -283,4 +283,75 @@ public class SeriesPreviewTests : IDisposable
             Assert.NotNull(service.Snapshot(id, id, new TestLocalizer()));
         }
     }
+
+    /// <summary>A source whose search stays open until <paramref name="gate"/> completes, to hold preview slots.</summary>
+    private static FakeSource Blocked(TaskCompletionSource gate) => new()
+    {
+        Name = "held",
+        OnSearchAsync = async (_, ct) =>
+        {
+            await gate.Task.WaitAsync(ct);
+            return [];
+        },
+    };
+
+    private static async Task<SeriesPreviewSnapshot> InState(
+        SeriesPreviewService service, long providerId, int userId, string status)
+    {
+        for (var i = 0; i < 500; i++)
+        {
+            if (service.Snapshot(providerId, userId, new TestLocalizer()) is { } snapshot && snapshot.Status == status)
+            {
+                return snapshot;
+            }
+
+            await Task.Delay(10);
+        }
+
+        throw new TimeoutException($"Preview never reached {status}");
+    }
+
+    [Fact]
+    public async Task A_preview_asked_for_while_the_slots_are_full_waits_and_runs_when_one_frees()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var service = Service(Blocked(gate));
+
+        service.Start(1, Ippo, 1, new TestLocalizer());
+        service.Start(2, Ippo, 1, new TestLocalizer());
+        var waiting = service.Start(3, Ippo, 1, new TestLocalizer());
+
+        // Not refused: it is queued, with nothing fetched yet.
+        Assert.Equal("queued", waiting.Status);
+        Assert.Null(waiting.SourceName);
+
+        gate.SetResult();
+        var settled = await Settled(service, 3, 1);
+
+        // It ran in turn (the held source found nothing, which is its own failure, not the queue's).
+        Assert.Equal("error.preview.noSource", settled.Error);
+    }
+
+    [Fact]
+    public async Task A_queued_preview_discarded_while_waiting_never_starts()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var held = Blocked(gate);
+        var service = Service(held);
+
+        service.Start(1, Ippo, 1, new TestLocalizer());
+        service.Start(2, Ippo, 1, new TestLocalizer());
+        service.Start(3, Ippo, 1, new TestLocalizer());
+        Assert.Equal("queued", (await InState(service, 3, 1, "queued")).Status);
+
+        service.Discard(3);
+        gate.SetResult();
+        await Settled(service, 1, 1);
+        await Settled(service, 2, 1);
+        await Task.Delay(100);
+
+        // Only the two that held slots ever searched.
+        Assert.Equal(2, held.SearchCalls);
+        Assert.Null(service.Snapshot(3, 1, new TestLocalizer()));
+    }
 }

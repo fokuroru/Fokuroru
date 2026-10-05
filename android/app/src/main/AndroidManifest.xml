@@ -61,6 +61,10 @@
             android:exported="false"
             android:theme="@style/Theme.Fokuroru.Downloads"
             android:label="@string/downloads_title" />
+        <activity
+            android:name=".ui.SeriesDownloadsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Fokuroru.Downloads" />
 
         <activity
             android:name=".ui.ControllerActivity"

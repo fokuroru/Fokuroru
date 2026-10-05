@@ -7604,6 +7604,10 @@ msgstr "Elle a peut-être été supprimée de la bibliothèque."
 msgid "It needs a quality profile and downloaded chapters."
 msgstr ""
 
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "It will download by itself. You can keep browsing."
+msgstr ""
+
 #: src/components/SourceMappingsSection.tsx
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -16543,6 +16547,14 @@ msgstr "contre {fromLabel}–{toLabel}"
 
 #: src/components/SourceMeasurePanel.tsx
 msgid "Waiting"
+msgstr ""
+
+#: src/components/discover/SeriesPreviewReader.tsx
+msgid "Waiting for other previews to finish…"
+msgstr ""
+
+#: src/components/discover/PreviewChapterButton.tsx
+msgid "Waiting for other previews…"
 msgstr ""
 
 #: src/components/RecommendationModelSwitch.tsx

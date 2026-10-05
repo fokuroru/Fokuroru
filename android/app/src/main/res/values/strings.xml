@@ -43,6 +43,19 @@
     <string name="downloads_state_queued">Waiting</string>
     <string name="downloads_state_downloading">Downloading %1$d of %2$d</string>
     <string name="downloads_state_failed">Failed</string>
+    <string name="downloads_series_unknown">Waiting to start</string>
+    <string name="downloads_note_downloading">%1$d downloading</string>
+    <string name="downloads_note_failed">%1$d failed</string>
+    <string name="downloads_series_delete">Delete all saved chapters</string>
+    <string name="downloads_series_delete_title">Delete saved chapters?</string>
+    <plurals name="downloads_saved_count">
+        <item quantity="one">%d saved chapter</item>
+        <item quantity="other">%d saved chapters</item>
+    </plurals>
+    <plurals name="downloads_series_delete_message">
+        <item quantity="one">This removes the saved chapter of %2$s from this device. It stays on the server.</item>
+        <item quantity="other">This removes %1$d saved chapters of %2$s from this device. They stay on the server.</item>
+    </plurals>
     <string name="downloads_signin">Sign in again in the app so downloads can continue.</string>
 
     <string name="tools_title">Reading tools</string>

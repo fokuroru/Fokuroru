@@ -59,10 +59,16 @@ public sealed class SeriesPreviewService(
     private readonly object _sync = new();
 
     /// <summary>
-    /// Starts a preview for <paramref name="providerId"/>, or joins the one already running or
-    /// finished for it. Completed previews are retained on disk for 30 days.
+    /// Previews asked for while <see cref="MaxConcurrentJobs"/> were already fetching, oldest first. A job
+    /// leaves when it starts, or is skipped if it was discarded while waiting. Guarded by <see cref="_sync"/>.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Too many previews already fetching.</exception>
+    private readonly Queue<(Job Job, Series Series)> _waiting = new();
+
+    /// <summary>
+    /// Starts a preview for <paramref name="providerId"/>, or joins the one already running or
+    /// finished for it. Completed previews are retained on disk for 30 days. When too many previews are
+    /// already fetching, this one waits its turn (status <c>queued</c>) and starts by itself when a slot frees.
+    /// </summary>
     public SeriesPreviewSnapshot Start(long providerId, Series series, int userId, ILocalizer localizer)
     {
         Job job;
@@ -85,18 +91,52 @@ public sealed class SeriesPreviewService(
                 Remove(providerId, existing);
             }
 
-            if (_jobs.Values.Count(j => !j.Finished) >= MaxConcurrentJobs)
-            {
-                throw new InvalidOperationException("Too many previews running");
-            }
-
             job = new Job(providerId);
             job.Viewers.Add(userId);
             _jobs[providerId] = job;
+
+            if (Running() >= MaxConcurrentJobs)
+            {
+                job.MarkQueued();
+                _waiting.Enqueue((job, series));
+                return Snapshot(job, localizer);
+            }
+
+            job.MarkStarted();
         }
 
         _ = Task.Run(() => RunAsync(job, series));
         return Snapshot(job, localizer);
+    }
+
+    /// <summary>Previews fetching right now. Queued ones are not: they hold no slot. Caller holds <see cref="_sync"/>.</summary>
+    private int Running() => _jobs.Values.Count(j => j.Started && !j.Finished);
+
+    /// <summary>Starts waiting previews while there are slots, skipping any discarded while they waited.</summary>
+    private void StartWaiting()
+    {
+        List<(Job Job, Series Series)> ready = [];
+        lock (_sync)
+        {
+            var slots = MaxConcurrentJobs - Running();
+            while (slots > 0 && _waiting.Count > 0)
+            {
+                var (job, series) = _waiting.Dequeue();
+                if (!_jobs.TryGetValue(job.ProviderId, out var current) || current != job)
+                {
+                    continue;
+                }
+
+                job.MarkStarted();
+                ready.Add((job, series));
+                slots--;
+            }
+        }
+
+        foreach (var (job, series) in ready)
+        {
+            _ = Task.Run(() => RunAsync(job, series));
+        }
     }
 
     /// <summary>
@@ -252,6 +292,7 @@ public sealed class SeriesPreviewService(
         finally
         {
             job.MarkFinished();
+            StartWaiting();
 
             if (job.Status == PreviewStatus.Ready && _jobs.TryGetValue(job.ProviderId, out var retained) && retained == job)
             {
@@ -514,6 +555,7 @@ public sealed class SeriesPreviewService(
 
     private static class PreviewStatus
     {
+        public const string Queued = "queued";
         public const string Searching = "searching";
         public const string Fetching = "fetching";
         public const string Ready = "ready";
@@ -525,7 +567,8 @@ public sealed class SeriesPreviewService(
         /// <summary>Guards the fields below: the run writes them while pollers read them.</summary>
         public readonly object Sync = new();
 
-        public readonly CancellationTokenSource Cts = new(JobDeadline);
+        /// <summary>The deadline runs from <see cref="MarkStarted"/>, not from creation: waiting is not fetching.</summary>
+        public readonly CancellationTokenSource Cts = new();
 
         public readonly string Token = token ?? Guid.NewGuid().ToString("N")[..8];
 
@@ -535,6 +578,9 @@ public sealed class SeriesPreviewService(
         public HashSet<int> Viewers { get; } = [];
 
         public string Status { get; private set; } = PreviewStatus.Searching;
+
+        /// <summary>False while waiting for a free slot, and for a preview restored from disk.</summary>
+        public bool Started { get; private set; }
         public string? ErrorKey { get; private set; }
         public string? SourceName { get; private set; }
         public string? SourceDisplayName { get; private set; }
@@ -555,6 +601,25 @@ public sealed class SeriesPreviewService(
                 var ticks = Interlocked.Read(ref _finishedAtTicks);
                 return ticks != 0 && DateTime.UtcNow.Ticks - ticks > KeepFinished.Ticks;
             }
+        }
+
+        public void MarkQueued()
+        {
+            lock (Sync)
+            {
+                Status = PreviewStatus.Queued;
+            }
+        }
+
+        public void MarkStarted()
+        {
+            lock (Sync)
+            {
+                Started = true;
+                Status = PreviewStatus.Searching;
+            }
+
+            Cts.CancelAfter(JobDeadline);
         }
 
         public void Serve(string sourceName, string displayName, string? chapterLabel, int pageCount, string dir)

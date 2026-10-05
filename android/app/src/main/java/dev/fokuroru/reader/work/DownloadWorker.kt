@@ -55,6 +55,8 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
             val series = manifest.optString("seriesTitle")
             val title = if (series.isNotEmpty()) "$series $label" else label
             store.setManifest(chapterId, manifest.getInt("seriesId"), series, label, pageCount, manifestText)
+            // Art for the saved-chapters grid; a missing cover is not worth failing a chapter over.
+            dev.fokuroru.reader.data.Covers.ensure(applicationContext, api, manifest.getInt("seriesId"))
             Events.downloadsChanged()
 
             val version = manifest.optString("pageVersion")

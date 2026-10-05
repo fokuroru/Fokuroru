@@ -5,7 +5,7 @@ import type { RecommendationItem } from './hooks'
 /** The first chapter of a series that is not in the library, fetched from whichever source has it. */
 export interface SeriesPreview {
   providerId: number
-  status: 'searching' | 'fetching' | 'ready' | 'failed'
+  status: 'queued' | 'searching' | 'fetching' | 'ready' | 'failed'
   error: string | null
   sourceName: string | null
   sourceDisplayName: string | null
@@ -68,7 +68,7 @@ export function useSeriesPreview(providerId: string, enabled: boolean) {
     retry: false,
     refetchInterval: (query) => {
       const status = query.state.data?.status
-      return status === 'searching' || status === 'fetching' ? 1000 : false
+      return status === 'queued' || status === 'searching' || status === 'fetching' ? 1000 : false
     },
   })
 }

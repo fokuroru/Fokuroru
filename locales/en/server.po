@@ -524,10 +524,6 @@ msgid "error.notifications.webhookUrlRequired"
 msgstr "Webhook URL is required"
 
 #: src/Maki.Api/Controllers/PreviewController.cs
-msgid "error.preview.busy"
-msgstr "Other previews are loading right now. Try again in a moment."
-
-#: src/Maki.Api/Controllers/PreviewController.cs
 msgid "error.preview.contentRating"
 msgstr "This series is above your content rating limit"
 

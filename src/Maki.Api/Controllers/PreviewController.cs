@@ -45,14 +45,7 @@ public class PreviewController(
             return this.Forbidden(localizer, "error.preview.contentRating");
         }
 
-        try
-        {
-            return Ok(previews.Start(providerId, SeriesMetadataMapper.NewFromMetadata(metadata), currentUser.UserId, localizer));
-        }
-        catch (InvalidOperationException)
-        {
-            return this.Conflict(localizer, "error.preview.busy");
-        }
+        return Ok(previews.Start(providerId, SeriesMetadataMapper.NewFromMetadata(metadata), currentUser.UserId, localizer));
     }
 
     /// <summary>

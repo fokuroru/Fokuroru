@@ -106,7 +106,8 @@ export function PreviewChapterButton({
   const source = preview?.sourceDisplayName ?? null
   const pageCount = preview?.pageCount ?? 0
   const donePages = preview?.ready.filter(Boolean).length ?? 0
-  const working = !failure && (status === 'starting' || status === 'searching' || status === 'fetching')
+  const working =
+    !failure && (status === 'starting' || status === 'queued' || status === 'searching' || status === 'fetching')
 
   let label: React.ReactNode
   let caption: React.ReactNode = null
@@ -125,6 +126,9 @@ export function PreviewChapterButton({
     )
     caption = source ? <Trans>From {source}. You can keep browsing while it downloads.</Trans> : null
     progress = donePages / pageCount
+  } else if (status === 'queued' && !failure) {
+    label = <Trans>Waiting for other previews…</Trans>
+    caption = <Trans>It will download by itself. You can keep browsing.</Trans>
   } else if (working) {
     label = <Trans>Finding a source…</Trans>
     caption = <Trans>You can keep browsing while it looks.</Trans>
