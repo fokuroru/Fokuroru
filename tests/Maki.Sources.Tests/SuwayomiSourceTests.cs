@@ -40,13 +40,15 @@ public class SuwayomiSourceTests : IDisposable
                 var json = body switch
                 {
                     _ when body.Contains("sources { nodes") =>
-                        """{"data":{"sources":{"nodes":[{"id":"0","name":"Local source","lang":"localsourcelang"},{"id":"11","name":"Alpha","lang":"en"},{"id":"22","name":"Broken","lang":"en"}]}}}""",
+                        """{"data":{"sources":{"nodes":[{"id":"0","name":"Local source","lang":"localsourcelang"},{"id":"11","name":"Alpha","lang":"en"},{"id":"22","name":"Broken","lang":"en"},{"id":"33","name":"Alpha","lang":"cs"}]}}}""",
                     _ when body.Contains("fetchSourceManga") && body.Contains("\"source\":\"22\"") =>
                         """{"data":null,"errors":[{"message":"java.io.IOException: timeout\nat x"}]}""",
                     _ when body.Contains("fetchSourceManga") =>
                         """{"data":{"fetchSourceManga":{"mangas":[{"id":7,"title":"Solo Leveling","description":"Hunters","realUrl":"https://site.test/solo-leveling"},{"id":8,"title":"Solo Leveling: Ragnarok","description":null,"realUrl":null}]}}}""",
                     _ when body.Contains("source { lang }") =>
                         """{"data":{"manga":{"source":{"lang":"all"}}}}""",
+                    _ when body.Contains("fetchChapters") && body.Contains("\"id\":8}") =>
+                        """{"data":null,"errors":[{"message":"Exception while fetching data (/fetchChapters) : No chapters found\r\n\r\njava.lang.Exception"}]}""",
                     _ when body.Contains("fetchChapters") =>
                         """{"data":{"fetchChapters":{"chapters":[{"id":101,"name":"Chapter 1","chapterNumber":1.0,"uploadDate":"1728103501630","scanlator":"Grp","url":"/a"},""" +
                         """{"id":102,"name":"Chapter 2.5","chapterNumber":2.5,"uploadDate":"0","scanlator":null,"url":"/b"},""" +
@@ -66,19 +68,36 @@ public class SuwayomiSourceTests : IDisposable
     }
 
     [Fact]
-    public async Task Search_asks_each_extension_and_survives_one_that_fails()
+    public async Task Search_asks_each_english_extension_and_survives_one_that_fails()
     {
         var factory = new FakeSuwayomi();
         var results = await new SuwayomiSource(factory).SearchAsync("solo leveling");
 
-        Assert.Equal(["7", "8"], results.Select(r => r.SourceSeriesId));
+        // 8 is a title its site lists but has no chapters for, so it is not offered.
+        Assert.Equal(["7"], results.Select(r => r.SourceSeriesId));
         Assert.Equal("Solo Leveling", results[0].Title);
         // The site's own page when the extension knows it, else the Suwayomi page, under the public
         // address a browser can reach rather than the internal one Maki talks to.
         Assert.Equal("https://site.test/solo-leveling", results[0].Url);
-        Assert.Equal("http://suwayomi.example:4568/manga/8", results[1].Url);
-        // The built-in local source is skipped; the two real extensions are searched.
+        // The built-in local source and the Czech edition are skipped; the two English ones are searched.
         Assert.Equal(2, factory.Queries.Count(q => q.Contains("fetchSourceManga")));
+    }
+
+    [Fact]
+    public async Task Search_covers_the_languages_asked_for()
+    {
+        using var czech = new BaseUrlOverride(SuwayomiSource.LanguagesVariable, "cs");
+        var factory = new FakeSuwayomi();
+
+        await new SuwayomiSource(factory).SearchAsync("solo leveling");
+
+        Assert.Equal(1, factory.Queries.Count(q => q.Contains("fetchSourceManga")));
+    }
+
+    [Fact]
+    public async Task ListChapters_is_empty_not_an_error_when_the_site_has_none()
+    {
+        Assert.Empty(await new SuwayomiSource(new FakeSuwayomi()).ListChaptersAsync("8"));
     }
 
     [Fact]

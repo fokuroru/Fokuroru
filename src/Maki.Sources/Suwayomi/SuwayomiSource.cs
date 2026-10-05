@@ -33,12 +33,23 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
     /// </summary>
     public const string PublicUrlVariable = "MAKI_SOURCE_SUWAYOMI_PUBLICURL";
 
+    /// <summary>
+    /// Comma-separated Suwayomi source languages to search, English when unset. One extension can
+    /// register a source per language (one installed here shows up ninety times), so searching them
+    /// all would be ninety site requests and would match whichever edition scored first. "all" is
+    /// opt-in because those sources mix languages and do not say which one a chapter is in.
+    /// </summary>
+    public const string LanguagesVariable = "MAKI_SOURCE_SUWAYOMI_LANGUAGES";
+
     /// <summary>Hits kept per extension, so a catalogue-wide search stays a handful of candidates.</summary>
     private const int ResultsPerExtension = 5;
 
     private const int SearchConcurrency = 4;
     private static readonly TimeSpan ExtensionSearchTimeout = TimeSpan.FromSeconds(25);
     private const int PageConcurrency = 3;
+
+    /// <summary>Hits per extension checked for chapters before they are offered, nearest first.</summary>
+    private const int ProbedPerExtension = 3;
 
     public string Name => "suwayomi";
     public string DisplayName => "Suwayomi";
@@ -68,10 +79,11 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
             return [];
         }
 
+        var languages = SourceLanguages.Parse(Environment.GetEnvironmentVariable(LanguagesVariable));
         var root = await PostAsync("{ sources { nodes { id name lang } } }", null, ct);
         var extensions = root.GetProperty("sources").GetProperty("nodes").EnumerateArray()
-            .Select(n => (Id: n.GetProperty("id").GetString()!, Name: n.GetProperty("name").GetString() ?? string.Empty))
-            .Where(s => s.Id != "0") // Suwayomi's built-in "Local source" reads its own folder, not a site
+            .Select(n => (Id: n.GetProperty("id").GetString()!, Lang: n.GetProperty("lang").GetString() ?? string.Empty))
+            .Where(s => s.Id != "0" && languages.Contains(s.Lang.ToLowerInvariant())) // "0" is the built-in local source, which reads a folder, not a site
             .ToList();
 
         var results = new List<SourceSeriesResult>[extensions.Count];
@@ -119,7 +131,12 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
                     Description: Text(manga, "description")));
             }
 
-            return hits;
+            // A site can list a title it has no chapters for (a stub, a taken-down series), and the
+            // auto-match would link it on title alone. Asking for the chapters of the nearest few
+            // drops those, and leaves Suwayomi holding the list the sync is about to ask for.
+            var probed = await Task.WhenAll(hits.Take(ProbedPerExtension).Select(hit => HasChaptersAsync(hit, timeout.Token)));
+            return hits.Take(ProbedPerExtension).Zip(probed).Where(p => p.Second).Select(p => p.First)
+                .Concat(hits.Skip(ProbedPerExtension)).ToList();
         }
         catch (Exception ex) when (ex is HttpRequestException or TimeoutException or InvalidOperationException or JsonException
                                        || (ex is OperationCanceledException && !ct.IsCancellationRequested))
@@ -129,6 +146,29 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
             return [];
         }
     }
+
+    /// <summary>False only when Suwayomi says the site has no chapters; any other failure keeps the hit.</summary>
+    private async Task<bool> HasChaptersAsync(SourceSeriesResult hit, CancellationToken ct)
+    {
+        try
+        {
+            await PostAsync(
+                "mutation($id: Int!) { fetchChapters(input: { mangaId: $id }) { chapters { id } } }",
+                new { id = Id(hit.SourceSeriesId) }, ct);
+            return true;
+        }
+        catch (InvalidOperationException ex) when (IsNoChapters(ex))
+        {
+            return false;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or JsonException or OperationCanceledException)
+        {
+            return true;
+        }
+    }
+
+    private static bool IsNoChapters(InvalidOperationException ex) =>
+        ex.Message.Contains("No chapters found", StringComparison.OrdinalIgnoreCase);
 
     public async Task<SourceSeriesDetail> GetSeriesAsync(string sourceSeriesId, CancellationToken ct = default)
     {
@@ -153,15 +193,25 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
 
         // fetchChapters asks the site again, which is what a sync wants: the cached list would hide
         // every chapter published since the series was first opened.
-        var data = await PostAsync(
-            """
-            mutation($id: Int!) {
-              fetchChapters(input: { mangaId: $id }) {
-                chapters { id name chapterNumber uploadDate scanlator realUrl }
-              }
-            }
-            """,
-            new { id }, ct);
+        JsonElement data;
+        try
+        {
+            data = await PostAsync(
+                """
+                mutation($id: Int!) {
+                  fetchChapters(input: { mangaId: $id }) {
+                    chapters { id name chapterNumber uploadDate scanlator realUrl }
+                  }
+                }
+                """,
+                new { id }, ct);
+        }
+        catch (InvalidOperationException ex) when (IsNoChapters(ex))
+        {
+            // Suwayomi reports an empty list as an error; for a series that just has none yet, an
+            // empty list is the honest answer, not a failed sync.
+            return [];
+        }
 
         var chapters = new List<SourceChapter>();
         foreach (var row in data.GetProperty("fetchChapters").GetProperty("chapters").EnumerateArray())
