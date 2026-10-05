@@ -209,6 +209,7 @@ public class SemanticSearcher(
             }
 
             var works = RankByPopularity(index, plan, limit);
+            works = await WithUnindexedWorksAsync(index, works, credits.SeriesIds, filters, limit, ct);
             return new SemanticSearchOutcome(await HydrateAsync(works, ct), null, credits.Credits);
         }
 
@@ -258,6 +259,7 @@ public class SemanticSearcher(
         // Fourth channel: the query may simply be somebody's name. Only when no explicit credit
         // term was given, since one of those has already narrowed everything above.
         var chips = credits.Credits;
+        var unindexedCreditWorks = new List<long>();
         if (!parsed.HasCredits && catalogue is not null)
         {
             var named = CreditChannel.Select(
@@ -272,7 +274,13 @@ public class SemanticSearcher(
                 var rank = 0;
                 foreach (var id in catalogue.Credits.WorksOf(creator.NameId, CreditRole.Creator))
                 {
-                    if (!index.TryGetRow(id, out var row) || !index.Matches(row, plan))
+                    if (!index.TryGetRow(id, out var row))
+                    {
+                        unindexedCreditWorks.Add(id);
+                        continue;
+                    }
+
+                    if (!index.Matches(row, plan))
                     {
                         continue;
                     }
@@ -304,11 +312,89 @@ public class SemanticSearcher(
         }
 
         var winners = RankCandidates(index, plan, fused, exactTitles, limit, nearTitles);
-        var results = await HydrateAsync(winners, ct);
+        var lead = await UnindexedLeadAsync(index, filters, exactTitles, nearTitles, lexical, unindexedCreditWorks, ct);
+        var results = await HydrateAsync(lead.Concat(winners).Distinct().Take(limit).ToList(), ct);
         logger.LogInformation(
             "Semantic search for {Length}-char query returned {Count} of {Pool} candidates in {Elapsed:F0}ms",
             text.Length, results.Count, fused.Count, (DateTime.UtcNow - started).TotalMilliseconds);
         return new SemanticSearchOutcome(results, corrected, chips);
+    }
+
+    /// <summary>How many series the index does not hold may lead one answer.</summary>
+    private const int MaxUnindexedLead = 10;
+
+    /// <summary>
+    /// Series the dump has but the vector index does not (anything newer than the embeddings) that this
+    /// query names: an exact or near title, a word-for-word title hit, or a work of the creator it
+    /// names. The vector side can never return these, so without them such a series cannot be found
+    /// at all. They lead the answer, since a title hit is the strongest signal there is.
+    /// <para>
+    /// Nothing is offered when the caller has a never-show list: its terms are tags, which an unindexed
+    /// series has no row to be tested against. Word hits and creator works also wait out any catalogue
+    /// preference filter (year, genre, tags and so on) for the same reason; an exact or near title
+    /// bypasses those by design, as it does for indexed series.
+    /// </para>
+    /// </summary>
+    private async Task<IReadOnlyList<long>> UnindexedLeadAsync(
+        VectorIndex index, RecommendationFilters? filters, IReadOnlySet<long> exactTitles,
+        IReadOnlyDictionary<long, int> nearTitles, IReadOnlyList<(long Id, int Rank)> lexical,
+        IReadOnlyList<long> creditWorks, CancellationToken ct)
+    {
+        if (filters?.Hidden is { Count: > 0 })
+        {
+            return [];
+        }
+
+        bool Unindexed(long id) => !index.TryGetRow(id, out _);
+
+        var candidates = new List<long>();
+        candidates.AddRange(exactTitles.Where(Unindexed));
+        candidates.AddRange(nearTitles.OrderBy(kv => kv.Value).Select(kv => kv.Key).Where(Unindexed));
+        if (!UnindexedHits.NarrowsByPreference(filters))
+        {
+            candidates.AddRange(lexical.Select(hit => hit.Id).Where(Unindexed));
+            candidates.AddRange(creditWorks);
+        }
+
+        if (candidates.Count == 0)
+        {
+            return [];
+        }
+
+        var visible = await UnindexedHits.VisibleAsync(
+            dumpOptions.DatabasePath, candidates, UnindexedHits.Ratings(filters), ct);
+        return visible.Take(MaxUnindexedLead).ToList();
+    }
+
+    /// <summary>
+    /// A creator-only query ranks the indexed works by popularity; the creator's works the index does
+    /// not hold join them, and the lot is ordered by popularity together.
+    /// </summary>
+    private async Task<IReadOnlyList<long>> WithUnindexedWorksAsync(
+        VectorIndex index, IReadOnlyList<long> indexedWorks, IReadOnlyCollection<long>? creatorWorks,
+        RecommendationFilters? filters, int limit, CancellationToken ct)
+    {
+        if (creatorWorks is not { Count: > 0 } || filters?.Hidden is { Count: > 0 } ||
+            UnindexedHits.NarrowsByPreference(filters))
+        {
+            return indexedWorks;
+        }
+
+        var unindexed = creatorWorks.Where(id => !index.TryGetRow(id, out _)).ToList();
+        if (unindexed.Count == 0)
+        {
+            return indexedWorks;
+        }
+
+        var visible = await UnindexedHits.VisibleAsync(
+            dumpOptions.DatabasePath, unindexed, UnindexedHits.Ratings(filters), ct);
+        if (visible.Count == 0)
+        {
+            return indexedWorks;
+        }
+
+        return await UnindexedHits.ByPopularityAsync(
+            dumpOptions.DatabasePath, indexedWorks.Concat(visible).ToList(), limit, ct);
     }
 
     /// <summary>
