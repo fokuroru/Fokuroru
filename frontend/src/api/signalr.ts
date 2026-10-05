@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import type { InboxPrefs, InboxPush } from './inbox'
-import type { SourceMatchProgress, SourceMatchState } from './hooks'
+import type { SourceInfo, SourceMatchProgress, SourceMatchState } from './hooks'
 import type { QueueHistoryDto, QueueItemDto } from './types'
 
 let connection: HubConnection | null = null
@@ -140,6 +140,14 @@ export function useLiveEvents() {
           sourceName: string
           state: SourceMatchState
         }) => {
+          // The source list is cached for the life of the page, but sources can appear while Maki
+          // runs (every extension installed in Suwayomi is one). A name the list has never seen
+          // would show as its raw key, so ask for the list again.
+          const known = queryClient.getQueryData<SourceInfo[]>(['sources'])
+          if (known && !known.some((s) => s.name === sourceName)) {
+            void queryClient.invalidateQueries({ queryKey: ['sources'] })
+          }
+
           queryClient.setQueryData<SourceMatchProgress>(
             ['sourcematch-progress', seriesId],
             (prev) => {

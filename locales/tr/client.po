@@ -14542,6 +14542,10 @@ msgstr "Üstü kapalı"
 msgid "Supernatural"
 msgstr "Doğaüstü"
 
+#: src/sourceLabels.ts
+msgid "Suwayomi source"
+msgstr ""
+
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Switch reading direction"

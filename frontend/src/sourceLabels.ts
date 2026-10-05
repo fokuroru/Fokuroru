@@ -19,10 +19,18 @@ const SPECIAL_SOURCE_LABELS: Record<string, MessageDescriptor> = {
 }
 
 /**
+ * A Suwayomi extension's name is `suwayomi-` and Suwayomi's own source id, a number that means
+ * nothing to anyone. The list normally has a proper name for it; this is for one that has since
+ * been uninstalled or not been listed yet.
+ */
+const SUWAYOMI_SOURCE_LABEL = msg`Suwayomi source`
+
+/**
  * Display name for a raw source/origin key, as it shows up on download-queue rows, the series
  * Sources table and the library's "Downloaded from" facet: a registered source's `displayName`,
  * one of the sentinels above, `<indexer> · Torrent` for a grabbed release, or the raw key itself
  * when nothing matches (a source since removed from the registry still has to show something).
+ * An uninstalled Suwayomi extension reads "Suwayomi source" rather than its numeric key.
  */
 export function useSourceLabel(): (key: string) => string {
   const { data: sources } = useSources()
@@ -36,6 +44,7 @@ export function useSourceLabel(): (key: string) => string {
         if (indexer) return renderLabel(msg`${indexer} · Torrent`)
         return renderLabel(SPECIAL_SOURCE_LABELS.torrent)
       }
+      if (/^suwayomi-/.test(key)) return renderLabel(SUWAYOMI_SOURCE_LABEL)
       return renderLabel(SPECIAL_SOURCE_LABELS[key] ?? key)
     }
   }, [sources, renderLabel])

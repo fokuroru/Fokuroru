@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.39 (67)
+- Suwayomi sources show their extension's name while auto-matching instead of a long number.
+
 ## 0.5.38 (66)
 - Adding a series after reading its preview marks that chapter read and unwanted.
 

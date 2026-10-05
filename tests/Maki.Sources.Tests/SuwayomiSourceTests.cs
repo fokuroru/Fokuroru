@@ -212,6 +212,8 @@ public class SuwayomiSourceTests : IDisposable
 
         // A mapping made earlier must keep working while Suwayomi is down or not read yet.
         Assert.Equal("suwayomi-123", provider.Find("suwayomi-123")?.Name);
+        // The id is a number nobody can read, so an unlisted source is never named by it.
+        Assert.Equal("Suwayomi source", provider.Find("suwayomi-123")?.DisplayName);
         Assert.Equal("suwayomi--45", provider.Find("suwayomi--45")?.Name);
         Assert.Null(provider.Find("mangadex"));
         Assert.Null(provider.Find("suwayomi-abc"));

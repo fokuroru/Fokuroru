@@ -36,7 +36,7 @@ public class SuwayomiSourceProvider(SuwayomiClient client, ILogger<SuwayomiSourc
         }
 
         return _unlisted.GetOrAdd(name, _ => new SuwayomiExtensionSource(
-            client, id.ToString(CultureInfo.InvariantCulture), $"Suwayomi source {id}", SourceLanguages.Default, nsfw: false));
+            client, id.ToString(CultureInfo.InvariantCulture), displayName: string.Empty, SourceLanguages.Default, nsfw: false));
     }
 
     /// <summary>Re-reads the installed extensions. A failure keeps the last list rather than emptying it.</summary>

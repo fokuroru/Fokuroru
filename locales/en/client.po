@@ -12245,6 +12245,10 @@ msgstr "Suggestive"
 msgid "Supernatural"
 msgstr "Supernatural"
 
+#: src/sourceLabels.ts
+msgid "Suwayomi source"
+msgstr "Suwayomi source"
+
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Switch reading direction"
 msgstr "Switch reading direction"

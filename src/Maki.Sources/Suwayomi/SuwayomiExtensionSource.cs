@@ -32,7 +32,7 @@ public class SuwayomiExtensionSource(
     private static readonly TimeSpan SearchTimeout = TimeSpan.FromSeconds(25);
 
     public string Name => NamePrefix + sourceId;
-    public string DisplayName => $"{displayName} via Suwayomi";
+    public string DisplayName => displayName.Length == 0 ? "Suwayomi source" : $"{displayName} via Suwayomi";
     public string BaseUrl => SuwayomiClient.PublicUrl;
     public SourceCapabilities Capabilities => SourceCapabilities.None;
     public SourceContent Content => SourceContent.Manga | SourceContent.Manhwa | SourceContent.Manhua | SourceContent.Webtoon;
