@@ -426,9 +426,9 @@ try
     // guard the page clients carry (it would refuse the very host this talks to). It fetches pages
     // from the real sites on demand, so the timeout is long. Unconfigured (no base URL) the source
     // returns nothing and never opens this client.
-    var suwayomiUrl = Environment.GetEnvironmentVariable(SuwayomiSource.BaseUrlVariable)?.TrimEnd('/')
+    var suwayomiUrl = Environment.GetEnvironmentVariable(SuwayomiClient.BaseUrlVariable)?.TrimEnd('/')
         ?? "http://suwayomi:4567";
-    builder.Services.AddHttpClient(SuwayomiSource.HttpClientName, client =>
+    builder.Services.AddHttpClient(SuwayomiClient.HttpClientName, client =>
     {
         client.BaseAddress = new Uri($"{suwayomiUrl}/");
         client.Timeout = TimeSpan.FromMinutes(3);
@@ -739,7 +739,11 @@ try
     builder.Services.AddSingleton<ISource, ManhwaWebSource>();
     builder.Services.AddSingleton<ISource, OlympusSource>();
     builder.Services.AddSingleton<ISource, ShinigamiSource>();
-    builder.Services.AddSingleton<ISource, SuwayomiSource>();
+    // Suwayomi's installed extensions are discovered at runtime, one Maki source each.
+    builder.Services.AddSingleton<SuwayomiClient>();
+    builder.Services.AddSingleton<SuwayomiSourceProvider>();
+    builder.Services.AddSingleton<IDynamicSourceProvider>(sp => sp.GetRequiredService<SuwayomiSourceProvider>());
+    builder.Services.AddHostedService<SuwayomiSourceRefresher>();
     builder.Services.AddSingleton<ISource, Manhwa18NetSource>();
     builder.Services.AddSingleton<ISource, CuuTruyenSource>();
     builder.Services.AddSingleton<ISource, MangaWorldSource>();

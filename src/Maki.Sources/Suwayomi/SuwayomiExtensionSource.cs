@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net.Http.Json;
 using System.Text.Json;
 using Maki.Core.Parsing;
 using Maki.Core.Sources;
@@ -7,110 +6,67 @@ using Maki.Core.Sources;
 namespace Maki.Sources.Suwayomi;
 
 /// <summary>
-/// A middleman to every site Maki has no scraper for: a self-hosted Suwayomi server runs Mihon
-/// extensions, and this source reads series, chapters and pages through its GraphQL API. A series
-/// id is Suwayomi's own manga id (stable while its database is kept), a chapter id is its chapter
-/// id. Search fans out over every installed extension, each capped and timed out on its own, so one
-/// dead site cannot stall or fail the rest.
-/// <para>
-/// Off unless <c>MAKI_SOURCE_SUWAYOMI_BASEURL</c> is set: with no server to ask, search returns
-/// nothing instead of failing every auto-match with a connection error.
-/// </para>
+/// One Suwayomi source (one installed extension, in one language) as a Maki source. Suwayomi runs
+/// Mihon extensions, and this reads series, chapters and pages through its GraphQL API, so sites
+/// Maki has no scraper for can supply series. A series id is Suwayomi's own manga id (stable while
+/// its database is kept), a chapter id its chapter id.
 /// <para>
 /// Pages are fetched inside <see cref="GetPagesAsync"/> and handed over as bytes. Suwayomi lives on
 /// the private network, which the downloader's address guard refuses to fetch from, and the bytes
 /// are what its page endpoint produces after pulling the image from the real site anyway.
 /// </para>
 /// </summary>
-public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
+public class SuwayomiExtensionSource(
+    SuwayomiClient client, string sourceId, string displayName, string language, bool nsfw) : ISource
 {
-    public const string HttpClientName = "source-suwayomi";
-    public const string BaseUrlVariable = "MAKI_SOURCE_SUWAYOMI_BASEURL";
+    /// <summary>Persisted in <c>SourceMapping.SourceName</c> ahead of Suwayomi's own source id.</summary>
+    public const string NamePrefix = "suwayomi-";
 
-    /// <summary>
-    /// Where a browser reaches Suwayomi's web UI. <see cref="BaseUrlVariable"/> is the address Maki
-    /// itself uses, usually a container name no browser can resolve, so links shown to people use this.
-    /// </summary>
-    public const string PublicUrlVariable = "MAKI_SOURCE_SUWAYOMI_PUBLICURL";
+    /// <summary>Hits kept per search, so a catalogue-wide search stays a handful of candidates.</summary>
+    private const int ResultsPerSearch = 5;
 
-    /// <summary>
-    /// Comma-separated Suwayomi source languages to search, English when unset. One extension can
-    /// register a source per language (one installed here shows up ninety times), so searching them
-    /// all would be ninety site requests and would match whichever edition scored first. "all" is
-    /// opt-in because those sources mix languages and do not say which one a chapter is in.
-    /// </summary>
-    public const string LanguagesVariable = "MAKI_SOURCE_SUWAYOMI_LANGUAGES";
+    /// <summary>Hits checked for chapters before they are offered, nearest first.</summary>
+    private const int ProbedHits = 3;
 
-    /// <summary>Hits kept per extension, so a catalogue-wide search stays a handful of candidates.</summary>
-    private const int ResultsPerExtension = 5;
-
-    private const int SearchConcurrency = 4;
-    private static readonly TimeSpan ExtensionSearchTimeout = TimeSpan.FromSeconds(25);
     private const int PageConcurrency = 3;
+    private static readonly TimeSpan SearchTimeout = TimeSpan.FromSeconds(25);
 
-    /// <summary>Hits per extension checked for chapters before they are offered, nearest first.</summary>
-    private const int ProbedPerExtension = 3;
-
-    public string Name => "suwayomi";
-    public string DisplayName => "Suwayomi";
-
-    public string BaseUrl =>
-        Environment.GetEnvironmentVariable(PublicUrlVariable)?.TrimEnd('/') is { Length: > 0 } publicUrl
-            ? publicUrl
-            : Environment.GetEnvironmentVariable(BaseUrlVariable)?.TrimEnd('/') ?? "http://suwayomi:4567";
-
-    private static bool Configured => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(BaseUrlVariable));
-
+    public string Name => NamePrefix + sourceId;
+    public string DisplayName => $"{displayName} via Suwayomi";
+    public string BaseUrl => SuwayomiClient.PublicUrl;
     public SourceCapabilities Capabilities => SourceCapabilities.None;
     public SourceContent Content => SourceContent.Manga | SourceContent.Manhwa | SourceContent.Manhua | SourceContent.Webtoon;
+    public SourceRating Rating => nsfw ? SourceRating.Adult : SourceRating.General;
+    public IReadOnlyList<string> SupportedLanguages => [language];
 
-    private HttpClient Client => httpClientFactory.CreateClient(HttpClientName);
-
-    public string? ResolveSeriesIdFromUrl(Uri url)
+    /// <summary>
+    /// A pasted Suwayomi manga link, when the manga is this source's. Several Suwayomi sources share
+    /// one web UI, so the id alone does not say whose it is.
+    /// </summary>
+    public async ValueTask<string?> ResolveSeriesIdFromUrlAsync(Uri url, CancellationToken ct = default)
     {
         var id = SourceUrl.PathTail(url, BaseUrl, "/manga/", firstSegmentOnly: true);
-        return id is not null && int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out _) ? id : null;
+        if (id is null || !int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out var mangaId))
+        {
+            return null;
+        }
+
+        var data = await client.PostAsync("query($id: Int!) { manga(id: $id) { sourceId } }", new { id = mangaId }, ct);
+        return data.GetProperty("manga").TryGetProperty("sourceId", out var owner) && owner.GetString() == sourceId ? id : null;
     }
 
     public async Task<IReadOnlyList<SourceSeriesResult>> SearchAsync(string title, CancellationToken ct = default)
     {
-        if (!Configured || string.IsNullOrWhiteSpace(title))
+        if (string.IsNullOrWhiteSpace(title))
         {
             return [];
         }
 
-        var languages = SourceLanguages.Parse(Environment.GetEnvironmentVariable(LanguagesVariable));
-        var root = await PostAsync("{ sources { nodes { id name lang } } }", null, ct);
-        var extensions = root.GetProperty("sources").GetProperty("nodes").EnumerateArray()
-            .Select(n => (Id: n.GetProperty("id").GetString()!, Lang: n.GetProperty("lang").GetString() ?? string.Empty))
-            .Where(s => s.Id != "0" && languages.Contains(s.Lang.ToLowerInvariant())) // "0" is the built-in local source, which reads a folder, not a site
-            .ToList();
-
-        var results = new List<SourceSeriesResult>[extensions.Count];
-        using var gate = new SemaphoreSlim(SearchConcurrency);
-        await Task.WhenAll(extensions.Select(async (extension, index) =>
-        {
-            await gate.WaitAsync(ct);
-            try
-            {
-                results[index] = await SearchExtensionAsync(extension.Id, title, ct);
-            }
-            finally
-            {
-                gate.Release();
-            }
-        }));
-
-        return results.SelectMany(r => r).ToList();
-    }
-
-    private async Task<List<SourceSeriesResult>> SearchExtensionAsync(string sourceId, string title, CancellationToken ct)
-    {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(ExtensionSearchTimeout);
+        timeout.CancelAfter(SearchTimeout);
         try
         {
-            var data = await PostAsync(
+            var data = await client.PostAsync(
                 """
                 mutation($source: LongString!, $query: String!) {
                   fetchSourceManga(input: { source: $source, type: SEARCH, query: $query, page: 1 }) {
@@ -121,7 +77,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
                 new { source = sourceId, query = title }, timeout.Token);
 
             var hits = new List<SourceSeriesResult>();
-            foreach (var manga in data.GetProperty("fetchSourceManga").GetProperty("mangas").EnumerateArray().Take(ResultsPerExtension))
+            foreach (var manga in data.GetProperty("fetchSourceManga").GetProperty("mangas").EnumerateArray().Take(ResultsPerSearch))
             {
                 var id = manga.GetProperty("id").GetInt32().ToString(CultureInfo.InvariantCulture);
                 hits.Add(new SourceSeriesResult(
@@ -134,15 +90,15 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
             // A site can list a title it has no chapters for (a stub, a taken-down series), and the
             // auto-match would link it on title alone. Asking for the chapters of the nearest few
             // drops those, and leaves Suwayomi holding the list the sync is about to ask for.
-            var probed = await Task.WhenAll(hits.Take(ProbedPerExtension).Select(hit => HasChaptersAsync(hit, timeout.Token)));
-            return hits.Take(ProbedPerExtension).Zip(probed).Where(p => p.Second).Select(p => p.First)
-                .Concat(hits.Skip(ProbedPerExtension)).ToList();
+            var probed = await Task.WhenAll(hits.Take(ProbedHits).Select(hit => HasChaptersAsync(hit, timeout.Token)));
+            return hits.Take(ProbedHits).Zip(probed).Where(p => p.Second).Select(p => p.First)
+                .Concat(hits.Skip(ProbedHits)).ToList();
         }
         catch (Exception ex) when (ex is HttpRequestException or TimeoutException or InvalidOperationException or JsonException
                                        || (ex is OperationCanceledException && !ct.IsCancellationRequested))
         {
-            // One site being down (or an extension that cannot search) is the normal case for an
-            // aggregator; it must not take the other extensions' hits down with it.
+            // One site being down is the normal case for an aggregator; the match service treats an
+            // empty result as "nothing here" and moves on to the next source.
             return [];
         }
     }
@@ -152,7 +108,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
     {
         try
         {
-            await PostAsync(
+            await client.PostAsync(
                 "mutation($id: Int!) { fetchChapters(input: { mangaId: $id }) { chapters { id } } }",
                 new { id = Id(hit.SourceSeriesId) }, ct);
             return true;
@@ -172,7 +128,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
 
     public async Task<SourceSeriesDetail> GetSeriesAsync(string sourceSeriesId, CancellationToken ct = default)
     {
-        var data = await PostAsync(
+        var data = await client.PostAsync(
             "query($id: Int!) { manga(id: $id) { id title description status realUrl } }",
             new { id = Id(sourceSeriesId) }, ct);
         var manga = data.GetProperty("manga");
@@ -196,7 +152,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
         JsonElement data;
         try
         {
-            data = await PostAsync(
+            data = await client.PostAsync(
                 """
                 mutation($id: Int!) {
                   fetchChapters(input: { mangaId: $id }) {
@@ -238,7 +194,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
 
     public async Task<ChapterPages> GetPagesAsync(SourceChapter chapter, CancellationToken ct = default)
     {
-        var data = await PostAsync(
+        var data = await client.PostAsync(
             "mutation($id: Int!) { fetchChapterPages(input: { chapterId: $id }) { pages } }",
             new { id = Id(chapter.SourceChapterId) }, ct);
 
@@ -257,7 +213,7 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
             await gate.WaitAsync(ct);
             try
             {
-                bytes[index] = await Client.GetByteArrayAsync(path.TrimStart('/'), ct);
+                bytes[index] = await client.GetPageAsync(path, ct);
             }
             finally
             {
@@ -268,12 +224,15 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
         return new ChapterPages(paths.Select((path, index) => new PageRequest($"{BaseUrl}{path}", Data: bytes[index])).ToList());
     }
 
+    /// <summary>
+    /// The language the series' own Suwayomi source publishes in, asked per series rather than taken
+    /// from this instance: a source rebuilt from a stored name alone does not know it.
+    /// </summary>
     private async Task<string> LanguageAsync(int mangaId, CancellationToken ct)
     {
-        var data = await PostAsync("query($id: Int!) { manga(id: $id) { source { lang } } }", new { id = mangaId }, ct);
-        var lang = data.GetProperty("manga").GetProperty("source").ValueKind == JsonValueKind.Object
-            ? Text(data.GetProperty("manga").GetProperty("source"), "lang")
-            : null;
+        var data = await client.PostAsync("query($id: Int!) { manga(id: $id) { source { lang } } }", new { id = mangaId }, ct);
+        var source = data.GetProperty("manga").GetProperty("source");
+        var lang = source.ValueKind == JsonValueKind.Object ? Text(source, "lang") : null;
 
         // "all"/"multi" extensions cover many languages and do not say which one a chapter is in.
         return string.IsNullOrWhiteSpace(lang) || lang is "all" or "multi" or "other" ? SourceLanguages.Default : lang.ToLowerInvariant();
@@ -316,20 +275,4 @@ public class SuwayomiSource(IHttpClientFactory httpClientFactory) : ISource
         int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed)
             ? parsed
             : throw new ArgumentException($"'{id}' is not a Suwayomi id", nameof(id));
-
-    /// <returns>The <c>data</c> object, after treating any GraphQL <c>errors</c> as a failure.</returns>
-    private async Task<JsonElement> PostAsync(string query, object? variables, CancellationToken ct)
-    {
-        using var response = await Client.PostAsJsonAsync("api/graphql", new { query, variables }, ct);
-        response.EnsureSuccessStatusCode();
-        var root = (await response.Content.ReadFromJsonAsync<JsonElement>(ct));
-
-        if (root.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Array && errors.GetArrayLength() > 0)
-        {
-            var message = errors[0].TryGetProperty("message", out var m) ? m.GetString() : "unknown error";
-            throw new InvalidOperationException($"Suwayomi: {message?.Split('\n')[0]}");
-        }
-
-        return root.GetProperty("data");
-    }
 }
