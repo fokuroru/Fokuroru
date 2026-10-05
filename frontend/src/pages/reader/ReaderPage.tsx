@@ -22,6 +22,7 @@ import PagedView from './PagedView'
 import PageStrip from './PageStrip'
 import ReaderToolbar from './ReaderToolbar'
 import { navigatesVertically, scaleMax, useReaderPrefs } from './prefs'
+import { usePinchZoom } from './usePinchZoom'
 import { usePageUrls, usePreload } from './usePageUrls'
 import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
@@ -530,8 +531,23 @@ export default function ReaderPage() {
     [tapDocument, vertical, prefs.direction],
   )
 
+  // Pinch zooms what the keyboard zooms: the saved scale in the continuous strip, the transient
+  // zoom in the paged layouts. The ref carries the live value so a gesture starts from it.
+  const continuous = prefs.mode === 'vertical'
+  const pinchValue = useRef(1)
+  pinchValue.current = continuous ? prefs.scale : zoom
+  const justPinched = usePinchZoom(
+    surfaceRef,
+    () => pinchValue.current,
+    (value) => (continuous ? update({ scale: Math.round(value) }) : setZoom(value)),
+    continuous ? 25 : 1,
+    continuous ? scaleMax(prefs.fit) : ZOOM_MAX,
+    !atEnd,
+  )
+
   /** Tap zones: the layout this person set up, which by default is the outer thirds paging and the middle toggling the chrome. */
   const onSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (justPinched.current) return
     if (!prefs.tapZones || zoom !== 1 || (prefs.mode === 'vertical' && !vertical)) {
       setChrome((visible) => !visible)
       return

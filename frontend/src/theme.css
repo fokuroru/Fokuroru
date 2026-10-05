@@ -5411,6 +5411,8 @@ body.reader-open {
   overflow: auto;
   /* Momentum scrolling in continuous mode without rubber-banding the page behind. */
   overscroll-behavior: contain;
+  /* Pinch is handled by the reader itself (usePinchZoom), so the browser must not zoom the page. */
+  touch-action: pan-x pan-y;
 }
 /* An unzoomed continuous strip has one axis and only one. Belt and braces on top of the width
    clamp below: `overflow-x` kills the scrollbar a sub-pixel-wide image would otherwise summon,
