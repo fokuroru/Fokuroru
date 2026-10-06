@@ -24,7 +24,7 @@ public class ShelfFigureException(string key, object? args = null) : Exception(k
 /// </summary>
 public partial class ShelfFigureStore(AppPaths paths, ICurrentUser user)
 {
-    public const long MaxBytes = 30L * 1024 * 1024;
+    public const long MaxBytes = 50L * 1024 * 1024;
     public const int MaxCount = 12;
 
     [GeneratedRegex("^[0-9a-f]{32}$")]
