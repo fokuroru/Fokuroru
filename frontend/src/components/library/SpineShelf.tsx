@@ -10,7 +10,7 @@ import '@fontsource/rubik-mono-one/latin-400.css'
 import '@fontsource/mochiy-pop-one/latin-400.css'
 import '@fontsource/potta-one/latin-400.css'
 import { api } from '../../api/client'
-import { useShelfFigures } from '../../api/hooks'
+import { useHomeReading, useShelfFigures } from '../../api/hooks'
 import { useShelfBanner } from '../../lib/shelfBanner'
 import { FIGURE_CHANCE, FIGURE_SCALE, useShelfFigurePrefs } from '../../lib/shelfFigurePrefs'
 import type { SeriesDto } from '../../api/types'
@@ -264,15 +264,24 @@ export function SpineShelf({ series, readTracking, board = null }: {
   // Only a failure to start WebGL (or to load its chunk) drops to the flat spines.
   const [flat, setFlat] = useState(false)
 
-  // Reading history decides, not files on disk: auto-delete removes read chapters' files, and a
-  // count of read files would drop to zero and hide a series someone is halfway through.
-  const reading = readTracking
-    ? series
-        .map((s) => ({ s, p: seriesProgressVisual(s, readTracking) }))
-        .filter(({ s }) => s.readingStatus === 'Reading')
-        .sort((a, b) => (b.s.lastReadAt ?? '').localeCompare(a.s.lastReadAt ?? ''))
-        .slice(0, MAX_SHELF_CANDIDATES)
-    : []
+  // The server's "continue reading" and "jump back in" lists: a chapter part-way through, or the next one to
+  // read, and only when its file is on the server. Last read comes first.
+  const home = useHomeReading(MAX_SHELF_CANDIDATES)
+  const reading = (() => {
+    if (!readTracking) return []
+    const byId = new Map(series.map((s) => [s.id, s]))
+    const items = [...(home.data?.continueReading ?? []), ...(home.data?.jumpBackIn ?? [])]
+      .sort((a, b) => b.lastReadAt.localeCompare(a.lastReadAt))
+    const seen = new Set<number>()
+    const out: Array<{ s: SeriesDto; p: ReturnType<typeof seriesProgressVisual> }> = []
+    for (const item of items) {
+      const s = byId.get(item.seriesId)
+      if (!s || seen.has(s.id)) continue
+      seen.add(s.id)
+      out.push({ s, p: seriesProgressVisual(s, readTracking) })
+    }
+    return out.slice(0, MAX_SHELF_CANDIDATES)
+  })()
   if (reading.length === 0 && !board) return null
 
   // `settle` gives the 3D shelf's pull-out animation time to play; the lookup runs alongside it.

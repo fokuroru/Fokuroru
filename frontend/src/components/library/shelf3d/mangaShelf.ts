@@ -330,6 +330,8 @@ export class MangaShelf {
   private renderedFigureUrl: string | null = null
   private figureProp: Prop | null = null
   private readonly spawnedBooks = new Set<number>()
+  /** Whether the shelf has stood books at least once, after which newcomers are dropped in rather than laid out. */
+  private stocked = false
   /** Decided once per page load too: how many sticks of chalk, usually none. */
   private readonly chalkCount = Math.random() < CHALK_CHANCE ? 1 + Math.floor(Math.random() * 3) : 0
   private selected: Item | null = null
@@ -1229,8 +1231,8 @@ export class MangaShelf {
         this.text(ctx, b.title, -titleH / 2, -(w - 6) / 2, titleH, w - 6, 24, look.font, look.fg, look.shadow)
         ctx.restore()
       }
-      this.text(ctx, b.author, 2, top ? h - 26 : h - 64, w - 4, 18, 6, "'Fira Sans', Arial, sans-serif", look.fg)
-      this.text(ctx, IMPRINTS[b.style % IMPRINTS.length], 2, top ? h - 17 : 3, w - 4, 18, 12, "'Gelasio', Georgia, serif", look.fg)
+      this.text(ctx, b.author, 2, top ? h - 42 : h - 64, w - 4, 18, 6, "'Fira Sans', Arial, sans-serif", look.fg)
+      this.text(ctx, IMPRINTS[b.style % IMPRINTS.length], 2, top ? h - 22 : 3, w - 4, 18, 12, "'Gelasio', Georgia, serif", look.fg)
       const shine = ctx.createLinearGradient(0, 0, w, 0)
       shine.addColorStop(0, '#ffffff35')
       shine.addColorStop(0.15, '#ffffff00')
@@ -3002,7 +3004,9 @@ export class MangaShelf {
       this.prank ? loadPrankFont().then((ready) => { this.prankFontReady = ready }) : Promise.resolve(),
     ])
     if (generation !== this.generation || this.abort.signal.aborted) return
-    if (this.rows.length) {
+    // A shelf that has no books yet is being filled for the first time (the library arrived after it was
+    // built), so it is laid out standing; only books added to a stocked shelf are dropped in from above.
+    if (this.rows.length && (this.stocked || this.books.length === 0)) {
       this.refreshBooks()
       if (this.renderedFigureUrl !== this.figureUrl) {
         const figure = this.figureRoll < this.figureChance ? await this.loadFigure() : null
@@ -3079,6 +3083,7 @@ export class MangaShelf {
       this.spawnedBooks.add(item.book.id)
     }
     for (const book of this.books) this.spawnedBooks.add(book.id)
+    if (this.items.length > 0) this.stocked = true
     this.syncBannerObject()
     // The chalk is thrown in once the books have had a moment on screen, and only once there are books to
     // put it beside: against an empty shelf it would land where the books are about to go.
