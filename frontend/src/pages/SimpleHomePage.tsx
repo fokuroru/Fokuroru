@@ -1,7 +1,7 @@
 import { ActionIcon, Alert, Button, Progress, SegmentedControl, Text, TextInput } from '@mantine/core'
 import { IconDeviceMobileDown, IconDeviceDesktop, IconSearch, IconSettings } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SpiceButton } from '../components/layout/SpiceButton'
@@ -55,8 +55,20 @@ export default function SimpleHomePage() {
   const { data: rootFolders } = useRootFolders()
   const seriesIdFor = useSeriesIdLookup()
 
-  const continuing = reading.data?.continueReading ?? []
-  const upNext = reading.data?.jumpBackIn ?? []
+  const readable = useMemo(
+    () => (library.data ? new Set(library.data.filter((s) => s.chapterFileCount > 0).map((s) => s.id)) : null),
+    [library.data],
+  )
+  const hasFiles = useCallback((seriesId: number) => !readable || readable.has(seriesId), [readable])
+
+  const continuing = useMemo(
+    () => (reading.data?.continueReading ?? []).filter((i) => hasFiles(i.seriesId)),
+    [reading.data, hasFiles],
+  )
+  const upNext = useMemo(
+    () => (reading.data?.jumpBackIn ?? []).filter((i) => hasFiles(i.seriesId)),
+    [reading.data, hasFiles],
+  )
   const tracking = useReadTracking()
 
   // The desktop shelf's order: series being read, most recently read first. Its first book is the
@@ -65,7 +77,7 @@ export default function SimpleHomePage() {
     () =>
       tracking
         ? (library.data ?? [])
-            .filter((s) => s.readingStatus === 'Reading')
+            .filter((s) => s.readingStatus === 'Reading' && s.chapterFileCount > 0)
             .sort((a, b) => (b.lastReadAt ?? '').localeCompare(a.lastReadAt ?? ''))
         : [],
     [library.data, tracking],
@@ -75,6 +87,7 @@ export default function SimpleHomePage() {
     for (const item of [...upNext, ...continuing]) items.set(item.seriesId, item)
     return items
   }, [continuing, upNext])
+  const freshItems = useMemo(() => (fresh.data ?? []).filter((f) => hasFiles(f.seriesId)), [fresh.data, hasFiles])
   const hero = (shelf[0] && itemFor.get(shelf[0].id)) ?? continuing[0] ?? upNext[0]
   const railItems = shelf.length > 0
     ? shelf.slice(1).map((s) => itemFor.get(s.id) ?? plainItem(s))
@@ -163,10 +176,10 @@ export default function SimpleHomePage() {
         )
       )}
 
-      {(fresh.data ?? []).length > 0 && (
+      {freshItems.length > 0 && (
         <Rail
           title={t`New chapters`}
-          items={(fresh.data ?? []).map((f) => ({
+          items={freshItems.map((f) => ({
             seriesId: f.seriesId,
             seriesTitle: f.seriesTitle,
             coverUrl: f.coverUrl,
