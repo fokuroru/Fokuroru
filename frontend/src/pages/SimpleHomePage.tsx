@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { SpiceButton } from '../components/layout/SpiceButton'
-import { useReadTracking } from '../api/reader'
 import {
   useAppVersion,
   useHomeFresh,
@@ -69,29 +68,15 @@ export default function SimpleHomePage() {
     () => (reading.data?.jumpBackIn ?? []).filter((i) => hasFiles(i.seriesId)),
     [reading.data, hasFiles],
   )
-  const tracking = useReadTracking()
-
-  // The desktop shelf's order: series being read, most recently read first. Its first book is the
-  // hero and the rest make up the one rail above the library.
-  const shelf = useMemo(
-    () =>
-      tracking
-        ? (library.data ?? [])
-            .filter((s) => s.readingStatus === 'Reading' && s.chapterFileCount > 0)
-            .sort((a, b) => (b.lastReadAt ?? '').localeCompare(a.lastReadAt ?? ''))
-        : [],
-    [library.data, tracking],
+  // The desktop shelf's list: a chapter part-way through or the next one to read, last read first. The
+  // first is the hero and the rest make up the one rail above the library.
+  const queue = useMemo(
+    () => [...continuing, ...upNext].sort((a, b) => b.lastReadAt.localeCompare(a.lastReadAt)),
+    [continuing, upNext],
   )
-  const itemFor = useMemo(() => {
-    const items = new Map<number, HomeReadingItem>()
-    for (const item of [...upNext, ...continuing]) items.set(item.seriesId, item)
-    return items
-  }, [continuing, upNext])
   const freshItems = useMemo(() => (fresh.data ?? []).filter((f) => hasFiles(f.seriesId)), [fresh.data, hasFiles])
-  const hero = (shelf[0] && itemFor.get(shelf[0].id)) ?? continuing[0] ?? upNext[0]
-  const railItems = shelf.length > 0
-    ? shelf.slice(1).map((s) => itemFor.get(s.id) ?? plainItem(s))
-    : [...continuing.slice(1), ...upNext].filter((item) => item.seriesId !== hero?.seriesId)
+  const hero = queue[0]
+  const railItems = queue.slice(1)
 
   const books = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -402,21 +387,6 @@ function Hero({ item, resuming, onHold }: { item: HomeReadingItem; resuming: boo
       </div>
     </section>
   )
-}
-
-/** A book on the shelf with nothing to say about where it was left: the cover and title are enough. */
-function plainItem(series: SeriesDto): HomeReadingItem {
-  return {
-    seriesId: series.id,
-    seriesTitle: series.displayTitle,
-    coverUrl: series.coverUrl,
-    chapterId: 0,
-    chapterLabel: '',
-    page: 0,
-    pageCount: 0,
-    lastReadAt: series.lastReadAt ?? '',
-    unreadChapters: 0,
-  }
 }
 
 function Rail({ title, items, onHold }: { title: string; items: HomeReadingItem[]; onHold: (s: SheetSeries) => void }) {
