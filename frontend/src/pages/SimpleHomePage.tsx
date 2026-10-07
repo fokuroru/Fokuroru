@@ -1,6 +1,7 @@
 import { ActionIcon, Alert, Button, Progress, SegmentedControl, Text, TextInput } from '@mantine/core'
 import { IconDeviceMobileDown, IconDeviceDesktop, IconSearch, IconSettings } from '@tabler/icons-react'
-import { useQuery } from '@tanstack/react-query'
+import { notifications } from '@mantine/notifications'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -15,7 +16,7 @@ import {
   type HomeReadingItem,
   type RecommendationItem,
 } from '../api/hooks'
-import { useCachedPreviews } from '../api/preview'
+import { deleteSeriesPreview, useCachedPreviews } from '../api/preview'
 import { PreviewRailReader } from '../components/discover/PreviewRailReader'
 import { DiscoverDetailModal } from '../components/discover/DiscoverDetailModal'
 import { useAuth } from '../auth/AuthProvider'
@@ -24,6 +25,8 @@ import { BrandWordmark, IconBrandMark } from '../components/IconBrandMark'
 import { nativeApp } from '../lib/nativeApp'
 import { setSimpleViewPreferred } from '../lib/simpleView'
 import { spineVars } from '../lib/spine'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
+import { PreviewSheet } from '../components/lite/PreviewSheet'
 import { SeriesSheet, type SheetSeries } from '../components/lite/SeriesSheet'
 import { useLongPress } from '../components/lite/useLongPress'
 
@@ -48,6 +51,11 @@ export default function SimpleHomePage() {
   const [sort, setSort] = useState<Sort>('recent')
   const [shown, setShown] = useState(PAGE)
   const [held, setHeld] = useState<SheetSeries | null>(null)
+  const [heldPreview, setHeldPreview] = useState<RecommendationItem | null>(null)
+  const [deleteItem, setDeleteItem] = useState<RecommendationItem | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const queryClient = useQueryClient()
+  const title = deleteItem?.title ?? ''
   const [previewItem, setPreviewItem] = useState<RecommendationItem | null>(null)
   const [previewReaderItem, setPreviewReaderItem] = useState<RecommendationItem | null>(null)
   const previews = useCachedPreviews(true)
@@ -188,7 +196,7 @@ export default function SimpleHomePage() {
           </h2>
           <div className="lite-rail">
             {(previews.data ?? []).map((item) => (
-              <button key={item.providerId} type="button" className="lite-card lite-card-button" onClick={() => setPreviewReaderItem(item)}>
+              <PreviewCard key={item.providerId} item={item} onOpen={setPreviewReaderItem} onHold={setHeldPreview}>
                 <span className="lite-cover">
                   {item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl ? (
                     <img src={item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl ?? ''} alt="" loading="lazy" />
@@ -197,7 +205,7 @@ export default function SimpleHomePage() {
                   )}
                 </span>
                 <span className="lite-card-title">{item.title}</span>
-              </button>
+              </PreviewCard>
             ))}
           </div>
         </section>
@@ -253,6 +261,37 @@ export default function SimpleHomePage() {
 
       <AppStatus offline={offline} />
       <SeriesSheet series={held} onClose={() => setHeld(null)} />
+      <PreviewSheet
+        item={heldPreview}
+        onClose={() => setHeldPreview(null)}
+        onAction={(action, item) => {
+          setHeldPreview(null)
+          if (action === 'delete') setDeleteItem(item)
+          else setPreviewItem(item)
+        }}
+      />
+      <ConfirmDialog
+        opened={deleteItem !== null}
+        onClose={() => setDeleteItem(null)}
+        title={t`Delete this preview?`}
+        confirmLabel={t`Delete preview`}
+        loading={deleting}
+        onConfirm={async () => {
+          if (!deleteItem) return
+          setDeleting(true)
+          try {
+            await deleteSeriesPreview(deleteItem.providerId)
+            await queryClient.invalidateQueries({ queryKey: ['series-previews', 'cached'] })
+            setDeleteItem(null)
+          } catch {
+            notifications.show({ color: 'red', message: t`The preview could not be deleted.` })
+          } finally {
+            setDeleting(false)
+          }
+        }}
+      >
+        <Trans>The downloaded first chapter of {title} is removed for everyone on this server. You can preview it again later.</Trans>
+      </ConfirmDialog>
       <DiscoverDetailModal
         item={previewItem}
         feedbackContext={{ surface: 'home' }}
@@ -423,6 +462,25 @@ function Book({ series, onHold }: { series: SeriesDto; onHold: (s: SheetSeries) 
 }
 
 /** A cover that opens the series on a tap and a menu on a hold. */
+function PreviewCard({
+  item,
+  onOpen,
+  onHold,
+  children,
+}: {
+  item: RecommendationItem
+  onOpen: (item: RecommendationItem) => void
+  onHold: (item: RecommendationItem) => void
+  children: ReactNode
+}) {
+  const press = useLongPress(() => onHold(item))
+  return (
+    <button type="button" className="lite-card lite-card-button" onClick={() => onOpen(item)} {...press}>
+      {children}
+    </button>
+  )
+}
+
 function HeldLink({ id, title, onHold, children }: { id: number; title: string; onHold: (s: SheetSeries) => void; children: ReactNode }) {
   const press = useLongPress(() => onHold({ id, title }))
   return (

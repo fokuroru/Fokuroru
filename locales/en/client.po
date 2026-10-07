@@ -4234,6 +4234,8 @@ msgid "Delete preset"
 msgstr "Delete preset"
 
 #: src/components/discover/SeriesPreviewReader.tsx
+#: src/components/lite/PreviewSheet.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Delete preview"
 msgstr "Delete preview"
 
@@ -4300,6 +4302,7 @@ msgid "Delete them, free {emptiedSize}"
 msgstr "Delete them, free {emptiedSize}"
 
 #: src/components/discover/PreviewChapterButton.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "Delete this preview?"
 msgstr "Delete this preview?"
 
@@ -11421,6 +11424,10 @@ msgstr "Series Folder Format"
 msgid "Series I'm reading"
 msgstr "Series I'm reading"
 
+#: src/components/lite/PreviewSheet.tsx
+msgid "Series info"
+msgstr "Series info"
+
 #: src/components/lite/SeriesSheet.tsx
 msgid "Series info (desktop view)"
 msgstr "Series info (desktop view)"
@@ -12227,6 +12234,10 @@ msgstr "Stuck downloads"
 msgid "Studio"
 msgstr "Studio"
 
+#: src/components/lite/PreviewSheet.tsx
+msgid "Subscribe"
+msgstr "Subscribe"
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 msgid "Subtle"
 msgstr "Subtle"
@@ -12508,6 +12519,7 @@ msgid "The download was cancelled."
 msgstr "The download was cancelled."
 
 #: src/components/discover/PreviewChapterButton.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "The downloaded first chapter of {title} is removed for everyone on this server. You can preview it again later."
 msgstr "The downloaded first chapter of {title} is removed for everyone on this server. You can preview it again later."
 
@@ -12613,6 +12625,7 @@ msgid "The page is shown as it would be held."
 msgstr "The page is shown as it would be held."
 
 #: src/components/discover/PreviewRailReader.tsx
+#: src/pages/SimpleHomePage.tsx
 msgid "The preview could not be deleted."
 msgstr "The preview could not be deleted."
 
