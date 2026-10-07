@@ -67,6 +67,14 @@ internal sealed class PreviewWantedStore(string path, TimeProvider time, ILogger
         }
     }
 
+    public IReadOnlyList<Entry> All()
+    {
+        lock (_sync)
+        {
+            return Load().Values.OrderBy(e => e.ProviderId).ToList();
+        }
+    }
+
     public Entry? Get(long providerId)
     {
         lock (_sync)

@@ -131,6 +131,27 @@ public sealed class SeriesPreviewService(
         }
     }
 
+    /// <summary>A preview somebody asked for that is not ready: what it is doing now and when it will next be tried.</summary>
+    public record PendingPreview(long ProviderId, string Status, int Attempts, DateTime? RetryAt);
+
+    /// <summary>
+    /// Every preview still being waited on: queued or fetching, failed and due again, or cut off by a restart
+    /// and about to start. <c>Status</c> is the job's, or <c>waiting</c> when nothing is running for it.
+    /// </summary>
+    public IReadOnlyList<PendingPreview> Pending()
+    {
+        lock (_sync)
+        {
+            return _wanted.All()
+                .Select(e => new PendingPreview(
+                    e.ProviderId,
+                    _jobs.TryGetValue(e.ProviderId, out var job) && !job.Expired ? job.Status : "waiting",
+                    e.Attempts,
+                    e.RetryAt))
+                .ToList();
+        }
+    }
+
     /// <summary>The caller found nothing to preview for this provider any more, so it stops being retried.</summary>
     internal void GiveUp(long providerId) => _wanted.Remove(providerId);
 

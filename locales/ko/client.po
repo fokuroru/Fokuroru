@@ -384,6 +384,10 @@ msgstr "{alt}, 페이지 {page}"
 msgid "{applied, plural, one {Imported # rating} other {Imported # ratings}}"
 msgstr "{applied, plural, other {평점 #개 가져옴}}"
 
+#: src/pages/RequestsPage.tsx
+msgid "{attempts, plural, one {Tried # time so far} other {Tried # times so far}}"
+msgstr ""
+
 #: src/pages/ActivityPage.tsx
 msgid "{beforeLabel} to {afterLabel}"
 msgstr ""
@@ -5527,6 +5531,7 @@ msgstr "사전 제작 인덱스 다운로드됨"
 
 #: src/components/ui/status.tsx
 #: src/pages/HealthPage.tsx
+#: src/pages/RequestsPage.tsx
 #, fuzzy
 msgid "Downloading"
 msgstr "다운로드 중"
@@ -6145,6 +6150,11 @@ msgstr "알림 업데이트 실패: {detail}"
 msgid "Failed to update tags: {detail}"
 msgstr "태그 업데이트 실패: {detail}"
 
+#. placeholder {0}: formatDateTime(retryAt)
+#: src/pages/RequestsPage.tsx
+msgid "Failed, trying again {0}"
+msgstr ""
+
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Fair quality"
 msgstr ""
@@ -6335,6 +6345,10 @@ msgstr ""
 msgid "Find more"
 msgstr "더 찾기"
 
+#: src/pages/RequestsPage.tsx
+msgid "Finding a source"
+msgstr ""
+
 #: src/components/discover/PreviewChapterButton.tsx
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Finding a source…"
@@ -6404,6 +6418,10 @@ msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "First chapter ready"
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
 msgstr ""
 
 #: src/pages/SettingsPage.tsx
@@ -11145,6 +11163,10 @@ msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "Preview first chapter"
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "Preview requests"
 msgstr ""
 
 #: src/api/hooks.ts
@@ -16562,6 +16584,10 @@ msgstr "{fromLabel}~{toLabel} 대비"
 msgid "Waiting"
 msgstr ""
 
+#: src/pages/RequestsPage.tsx
+msgid "Waiting for a free slot"
+msgstr ""
+
 #: src/components/discover/SeriesPreviewReader.tsx
 msgid "Waiting for other previews to finish…"
 msgstr ""
@@ -16586,6 +16612,10 @@ msgstr "읽기 대기 중"
 
 #: src/components/DeviceSaveButton.tsx
 msgid "Waiting to save to this device"
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "Waiting to start"
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx

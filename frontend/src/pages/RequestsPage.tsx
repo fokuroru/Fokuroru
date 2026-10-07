@@ -28,6 +28,7 @@ import { Trans, Plural, useLingui } from '@lingui/react/macro'
 import { t as now, plural, msg } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { useRootFolders } from '../api/hooks'
+import { usePendingPreviews, type PendingPreview } from '../api/preview'
 import {
   chapterRangeInline,
   chapterRangeLabel,
@@ -45,7 +46,7 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Panel } from '../components/ui/Panel'
 import { useLabel } from '../i18n-context'
-import { formatDate } from '../format'
+import { formatDate, formatDateTime } from '../format'
 import { SurfaceFrame } from '../components/ui/SurfaceFrame'
 
 const STATUS_COLOR: Record<SeriesRequest['status'], string> = {
@@ -72,6 +73,7 @@ export default function RequestsPage() {
   const [filter, setFilter] = useState<RequestFilter>('pending')
   const { data: requests, isPending } = useSeriesRequests(filter)
   const { data: rootFolders } = useRootFolders()
+  const { data: pendingPreviews } = usePendingPreviews()
 
   const approve = useApproveSeriesRequest()
   const reject = useRejectSeriesRequest()
@@ -203,6 +205,20 @@ export default function RequestsPage() {
           </Tabs.Tab>
         </Tabs.List>
       </Tabs>
+
+      {(pendingPreviews?.length ?? 0) > 0 && (
+        <Stack gap="xs" mb="md">
+          <Text fw={650}>
+            <Trans>Preview requests</Trans>
+          </Text>
+          <Text size="sm" c="var(--ink-3)">
+            <Trans>
+              First chapters waiting to download. One that fails is tried again the next day until it works.
+            </Trans>
+          </Text>
+          {pendingPreviews?.map((p) => <PendingPreviewRow key={p.item.providerId} pending={p} />)}
+        </Stack>
+      )}
 
       {(approve.isError || reject.isError || remove.isError || edit.isError) && (
         <Alert color="var(--danger)" variant="light" mb="md">
@@ -495,5 +511,48 @@ export default function RequestsPage() {
         <Trans>The request for {removingTitle} is removed. This can't be undone.</Trans>
       </ConfirmDialog>
     </SurfaceFrame>
+  )
+}
+
+function PendingPreviewRow({ pending }: { pending: PendingPreview }) {
+  const { t } = useLingui()
+  const { item, status, attempts, retryAt } = pending
+  const cover = item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl
+  const state =
+    status === 'queued'
+      ? t`Waiting for a free slot`
+      : status === 'searching'
+        ? t`Finding a source`
+        : status === 'fetching'
+          ? t`Downloading`
+          : retryAt
+            ? t`Failed, trying again ${formatDateTime(retryAt)}`
+            : t`Waiting to start`
+  return (
+    <Panel p="sm">
+      <div className="requests-row">
+        <div className="requests-row-cover">{cover && <Image src={cover} w={48} h={72} fit="cover" alt="" />}</div>
+        <div className="requests-row-main">
+          <Group gap="xs">
+            <Text fw={650} lineClamp={1}>
+              {item.title}
+            </Text>
+            {item.year && (
+              <Text size="sm" c="var(--ink-3)" className="tnum">
+                {item.year}
+              </Text>
+            )}
+            <Badge size="sm" variant="light" color={status === 'failed' ? 'var(--warn)' : 'var(--info)'}>
+              {state}
+            </Badge>
+          </Group>
+          {attempts > 0 && (
+            <Text size="sm" c="var(--ink-3)" mt={4}>
+              <Plural value={attempts} one="Tried # time so far" other="Tried # times so far" />
+            </Text>
+          )}
+        </div>
+      </div>
+    </Panel>
   )
 }

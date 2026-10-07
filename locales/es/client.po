@@ -384,6 +384,10 @@ msgstr "{alt}, página {page}"
 msgid "{applied, plural, one {Imported # rating} other {Imported # ratings}}"
 msgstr "{applied, plural, one {Importada # valoración} many {Importadas # valoraciones} other {Importadas # valoraciones}}"
 
+#: src/pages/RequestsPage.tsx
+msgid "{attempts, plural, one {Tried # time so far} other {Tried # times so far}}"
+msgstr ""
+
 #: src/pages/ActivityPage.tsx
 msgid "{beforeLabel} to {afterLabel}"
 msgstr ""
@@ -5527,6 +5531,7 @@ msgstr "Índice preconstruido descargado"
 
 #: src/components/ui/status.tsx
 #: src/pages/HealthPage.tsx
+#: src/pages/RequestsPage.tsx
 #, fuzzy
 msgid "Downloading"
 msgstr "Descargando"
@@ -6145,6 +6150,11 @@ msgstr "No se pudieron actualizar las notificaciones: {detail}"
 msgid "Failed to update tags: {detail}"
 msgstr "No se pudieron actualizar las etiquetas: {detail}"
 
+#. placeholder {0}: formatDateTime(retryAt)
+#: src/pages/RequestsPage.tsx
+msgid "Failed, trying again {0}"
+msgstr ""
+
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Fair quality"
 msgstr ""
@@ -6335,6 +6345,10 @@ msgstr ""
 msgid "Find more"
 msgstr "Buscar más"
 
+#: src/pages/RequestsPage.tsx
+msgid "Finding a source"
+msgstr ""
+
 #: src/components/discover/PreviewChapterButton.tsx
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Finding a source…"
@@ -6404,6 +6418,10 @@ msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "First chapter ready"
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
 msgstr ""
 
 #: src/pages/SettingsPage.tsx
@@ -11145,6 +11163,10 @@ msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "Preview first chapter"
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "Preview requests"
 msgstr ""
 
 #: src/api/hooks.ts
@@ -16562,6 +16584,10 @@ msgstr "frente a {fromLabel} y {toLabel}"
 msgid "Waiting"
 msgstr ""
 
+#: src/pages/RequestsPage.tsx
+msgid "Waiting for a free slot"
+msgstr ""
+
 #: src/components/discover/SeriesPreviewReader.tsx
 msgid "Waiting for other previews to finish…"
 msgstr ""
@@ -16586,6 +16612,10 @@ msgstr "Esperando para leer"
 
 #: src/components/DeviceSaveButton.tsx
 msgid "Waiting to save to this device"
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "Waiting to start"
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx

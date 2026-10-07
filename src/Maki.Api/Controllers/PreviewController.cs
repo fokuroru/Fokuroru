@@ -69,6 +69,34 @@ public class PreviewController(
         return Ok(await store.GetByIdsAsync(wanted, ContentRating.Allowed(currentUser.MaxContentRating), ct));
     }
 
+    public record PendingPreviewDto(MangaBakaRecommendation Item, string Status, int Attempts, DateTime? RetryAt);
+
+    /// <summary>
+    /// Every series with a preview request still waiting: queued, downloading, or failed and due to be tried
+    /// again the next day. Previews belong to the instance, so everyone sees the same list, held to their own
+    /// content ceiling. Series already in the library are left out.
+    /// </summary>
+    [HttpGet("pending")]
+    public async Task<IActionResult> Pending([FromServices] Maki.Data.MakiDbContext db, CancellationToken ct)
+    {
+        var pending = previews.Pending();
+        if (pending.Count == 0 || !await store.IsAvailableAsync(ct))
+        {
+            return Ok(Array.Empty<PendingPreviewDto>());
+        }
+
+        var owned = (await db.Series.AsNoTracking().Where(s => s.MangaBakaId != null)
+            .Select(s => (long)s.MangaBakaId!.Value).ToListAsync(ct)).ToHashSet();
+        var wanted = pending.Where(p => !owned.Contains(p.ProviderId)).ToList();
+        var cards = (await store.GetByIdsAsync(wanted.Select(p => p.ProviderId).ToList(),
+            ContentRating.Allowed(currentUser.MaxContentRating), ct)).ToDictionary(c => c.ProviderId);
+
+        return Ok(wanted
+            .Where(p => cards.ContainsKey(p.ProviderId.ToString(System.Globalization.CultureInfo.InvariantCulture)))
+            .Select(p => new PendingPreviewDto(
+                cards[p.ProviderId.ToString(System.Globalization.CultureInfo.InvariantCulture)], p.Status, p.Attempts, p.RetryAt)));
+    }
+
     public record PreviewReadRequest(decimal ChapterNumber);
 
     /// <summary>

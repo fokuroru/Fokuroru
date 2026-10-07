@@ -324,6 +324,10 @@ msgstr "{alt}, page {page}"
 msgid "{applied, plural, one {Imported # rating} other {Imported # ratings}}"
 msgstr "{applied, plural, one {Imported # rating} other {Imported # ratings}}"
 
+#: src/pages/RequestsPage.tsx
+msgid "{attempts, plural, one {Tried # time so far} other {Tried # times so far}}"
+msgstr "{attempts, plural, one {Tried # time so far} other {Tried # times so far}}"
+
 #: src/pages/ActivityPage.tsx
 msgid "{beforeLabel} to {afterLabel}"
 msgstr "{beforeLabel} to {afterLabel}"
@@ -4649,6 +4653,7 @@ msgstr "Downloaded the prebuilt index"
 
 #: src/components/ui/status.tsx
 #: src/pages/HealthPage.tsx
+#: src/pages/RequestsPage.tsx
 msgid "Downloading"
 msgstr "Downloading"
 
@@ -5167,6 +5172,11 @@ msgstr "Failed to update notifications: {detail}"
 msgid "Failed to update tags: {detail}"
 msgstr "Failed to update tags: {detail}"
 
+#. placeholder {0}: formatDateTime(retryAt)
+#: src/pages/RequestsPage.tsx
+msgid "Failed, trying again {0}"
+msgstr "Failed, trying again {0}"
+
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Fair quality"
 msgstr "Fair quality"
@@ -5329,6 +5339,10 @@ msgstr "Find chapter 1 on your sources"
 msgid "Find more"
 msgstr "Find more"
 
+#: src/pages/RequestsPage.tsx
+msgid "Finding a source"
+msgstr "Finding a source"
+
 #: src/components/discover/PreviewChapterButton.tsx
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Finding a source…"
@@ -5390,6 +5404,10 @@ msgstr "First chapter"
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "First chapter ready"
 msgstr "First chapter ready"
+
+#: src/pages/RequestsPage.tsx
+msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
+msgstr "First chapters waiting to download. One that fails is tried again the next day until it works."
 
 #: src/pages/SettingsPage.tsx
 msgid "First download in progress"
@@ -9367,6 +9385,10 @@ msgstr "Preview deleted"
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "Preview first chapter"
 msgstr "Preview first chapter"
+
+#: src/pages/RequestsPage.tsx
+msgid "Preview requests"
+msgstr "Preview requests"
 
 #: src/api/hooks.ts
 #: src/pages/HomePage.tsx
@@ -13968,6 +13990,10 @@ msgstr "vs {fromLabel} to {toLabel}"
 msgid "Waiting"
 msgstr "Waiting"
 
+#: src/pages/RequestsPage.tsx
+msgid "Waiting for a free slot"
+msgstr "Waiting for a free slot"
+
 #: src/components/discover/SeriesPreviewReader.tsx
 msgid "Waiting for other previews to finish…"
 msgstr "Waiting for other previews to finish…"
@@ -13991,6 +14017,10 @@ msgstr "Waiting to read"
 #: src/components/DeviceSaveButton.tsx
 msgid "Waiting to save to this device"
 msgstr "Waiting to save to this device"
+
+#: src/pages/RequestsPage.tsx
+msgid "Waiting to start"
+msgstr "Waiting to start"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Want"

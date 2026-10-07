@@ -97,3 +97,20 @@ export function useCachedPreviews(enabled: boolean) {
     staleTime: 60_000,
   })
 }
+
+/** A preview request that has not finished: queued, downloading, or failed and due again the next day. */
+export interface PendingPreview {
+  item: RecommendationItem
+  status: 'queued' | 'searching' | 'fetching' | 'failed' | 'waiting'
+  attempts: number
+  retryAt: string | null
+}
+
+/** Every series with a preview request still waiting. Previews belong to the instance, so this is not per user. */
+export function usePendingPreviews() {
+  return useQuery({
+    queryKey: ['series-previews', 'pending'],
+    queryFn: () => api<PendingPreview[]>('/preview/pending'),
+    refetchInterval: 20_000,
+  })
+}
