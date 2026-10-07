@@ -995,6 +995,11 @@ try
             .StartAt(DateTimeOffset.UtcNow.AddMinutes(15))
             .WithSimpleSchedule(s => s.WithIntervalInHours(24).RepeatForever()));
 
+        q.ScheduleJob<Maki.Api.Jobs.RetryPreviewsJob>(t => t
+            .WithIdentity("retry-previews")
+            .StartAt(DateTimeOffset.UtcNow.AddMinutes(3))
+            .WithSimpleSchedule(s => s.WithIntervalInHours(1).RepeatForever()));
+
         q.ScheduleJob<Maki.Api.Jobs.HousekeepingJob>(t => t
             .WithIdentity("housekeeping")
             .StartAt(DateTimeOffset.UtcNow.AddHours(1))

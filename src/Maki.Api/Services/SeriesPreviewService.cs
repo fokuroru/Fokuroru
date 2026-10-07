@@ -55,6 +55,9 @@ public sealed class SeriesPreviewService(
     /// <summary>Finished previews kept for a quick reopen. Each one holds a whole chapter on disk.</summary>
     internal const int MaxFinishedJobs = 6;
 
+    private readonly PreviewWantedStore _wanted = new(
+        Path.Combine(paths.SeriesPreviewDir, "wanted.json"), TimeProvider.System, logger);
+
     private readonly ConcurrentDictionary<long, Job> _jobs = new();
     private readonly object _sync = new();
 
@@ -69,7 +72,16 @@ public sealed class SeriesPreviewService(
     /// finished for it. Completed previews are retained on disk for 30 days. When too many previews are
     /// already fetching, this one waits its turn (status <c>queued</c>) and starts by itself when a slot frees.
     /// </summary>
-    public SeriesPreviewSnapshot Start(long providerId, Series series, int userId, ILocalizer localizer)
+    public SeriesPreviewSnapshot Start(long providerId, Series series, int userId, ILocalizer localizer) =>
+        Snapshot(StartCore(providerId, series, userId), localizer);
+
+    /// <summary>
+    /// Starts a preview nobody is watching, for the daily retry. Same rules as <see cref="Start"/>: it joins one
+    /// that is running or finished, and waits its turn when the slots are full.
+    /// </summary>
+    internal void Resume(long providerId, Series series) => StartCore(providerId, series, null);
+
+    private Job StartCore(long providerId, Series series, int? userId)
     {
         Job job;
         lock (_sync)
@@ -82,8 +94,8 @@ public sealed class SeriesPreviewService(
 
             if (_jobs.TryGetValue(providerId, out var existing) && existing.Status != PreviewStatus.Failed)
             {
-                existing.Viewers.Add(userId);
-                return Snapshot(existing, localizer);
+                if (userId is { } viewer) existing.Viewers.Add(viewer);
+                return existing;
             }
 
             if (existing is not null)
@@ -92,22 +104,35 @@ public sealed class SeriesPreviewService(
             }
 
             job = new Job(providerId);
-            job.Viewers.Add(userId);
+            if (userId is { } first) job.Viewers.Add(first);
             _jobs[providerId] = job;
+            _wanted.Want(providerId);
 
             if (Running() >= MaxConcurrentJobs)
             {
                 job.MarkQueued();
                 _waiting.Enqueue((job, series));
-                return Snapshot(job, localizer);
+                return job;
             }
 
             job.MarkStarted();
         }
 
         _ = Task.Run(() => RunAsync(job, series));
-        return Snapshot(job, localizer);
+        return job;
     }
+
+    /// <summary>Previews to start again: failed ones a day on, and ones a restart cut off.</summary>
+    internal IReadOnlyList<long> DueForRetry()
+    {
+        lock (_sync)
+        {
+            return _wanted.Due(id => _jobs.TryGetValue(id, out var job) && !job.Expired);
+        }
+    }
+
+    /// <summary>The caller found nothing to preview for this provider any more, so it stops being retried.</summary>
+    internal void GiveUp(long providerId) => _wanted.Remove(providerId);
 
     /// <summary>Previews fetching right now. Queued ones are not: they hold no slot. Caller holds <see cref="_sync"/>.</summary>
     private int Running() => _jobs.Values.Count(j => j.Started && !j.Finished);
@@ -163,6 +188,7 @@ public sealed class SeriesPreviewService(
     /// </summary>
     public void Discard(long providerId)
     {
+        _wanted.Remove(providerId);
         lock (_sync)
         {
             if (_jobs.TryRemove(providerId, out var job))
@@ -292,6 +318,8 @@ public sealed class SeriesPreviewService(
         finally
         {
             job.MarkFinished();
+            if (job.Status == PreviewStatus.Ready) _wanted.Remove(job.ProviderId);
+            else if (job.Status == PreviewStatus.Failed) _wanted.Failed(job.ProviderId);
             StartWaiting();
 
             if (job.Status == PreviewStatus.Ready && _jobs.TryGetValue(job.ProviderId, out var retained) && retained == job)
