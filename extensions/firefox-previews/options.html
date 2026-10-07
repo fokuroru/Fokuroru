@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fokuroru Previews</title>
+  <style>
+    body { font: 15px/1.5 system-ui, sans-serif; max-width: 520px; margin: 32px auto; padding: 0 16px; color: #222; }
+    label { display: block; margin-top: 16px; font-weight: 600; }
+    input { width: 100%; box-sizing: border-box; padding: 8px; margin-top: 4px; font: inherit; }
+    small { color: #666; display: block; margin-top: 4px; }
+    .row { display: flex; gap: 8px; margin-top: 20px; }
+    button { padding: 8px 14px; font: inherit; cursor: pointer; }
+    #status { margin-top: 16px; min-height: 1.5em; }
+    #status.bad { color: #a32b3b; }
+  </style>
+</head>
+<body>
+  <h1>Fokuroru Previews</h1>
+  <p>Adds a Preview button to MangaBaka series. It asks your Fokuroru server to download chapter 1.</p>
+  <label for="serverUrl">Fokuroru address</label>
+  <input id="serverUrl" type="url" placeholder="http://192.168.1.50:8990" autocomplete="off">
+  <label for="apiKey">API key</label>
+  <input id="apiKey" type="password" autocomplete="off">
+  <small>Create one in Fokuroru under your account settings. It is shown once.</small>
+  <div class="row">
+    <button id="save" type="button">Save</button>
+    <button id="test" type="button">Test connection</button>
+  </div>
+  <div id="status" role="status"></div>
+  <script src="options.js"></script>
+</body>
+</html>

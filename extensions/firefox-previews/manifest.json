@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Fokuroru Previews for MangaBaka",
+  "version": "1.0.0",
+  "description": "Adds a Preview button to MangaBaka series that downloads the first chapter into your Fokuroru server.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "fokuroru-previews@fokuroru.local",
+      "strict_min_version": "128.0"
+    }
+  },
+  "icons": { "48": "icon.svg", "96": "icon.svg" },
+  "permissions": ["storage"],
+  "host_permissions": ["https://mangabaka.org/*"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [
+    {
+      "matches": ["https://mangabaka.org/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_title": "Fokuroru Previews settings", "default_icon": "icon.svg" },
+  "options_ui": { "page": "options.html", "open_in_tab": true }
+}
