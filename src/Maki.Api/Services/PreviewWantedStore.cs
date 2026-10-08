@@ -5,11 +5,11 @@ namespace Maki.Api.Services;
 /// <summary>
 /// The previews somebody asked for that have not finished, kept in a file next to the preview folders so a
 /// restart does not lose the queue. An entry leaves when its preview is ready or is deleted. A preview that
-/// fails stays and is tried again a day later, as often as it takes.
+/// fails stays and is tried again half an hour later, as often as it takes.
 /// </summary>
 internal sealed class PreviewWantedStore(string path, TimeProvider time, ILogger? logger = null)
 {
-    internal static readonly TimeSpan RetryAfter = TimeSpan.FromDays(1);
+    internal static readonly TimeSpan RetryAfter = TimeSpan.FromMinutes(30);
 
     internal sealed record Entry(long ProviderId, int Attempts, DateTime? RetryAt);
 
@@ -38,7 +38,7 @@ internal sealed class PreviewWantedStore(string path, TimeProvider time, ILogger
         }
     }
 
-    /// <summary>A failed attempt: due again a day from now. Does nothing for a preview nobody wants any more.</summary>
+    /// <summary>A failed attempt: due again after <see cref="RetryAfter"/>. Does nothing for a preview nobody wants any more.</summary>
     public void Failed(long providerId)
     {
         lock (_sync)
@@ -55,6 +55,28 @@ internal sealed class PreviewWantedStore(string path, TimeProvider time, ILogger
     /// Previews to start again: those whose retry time has passed, and those with no retry time that nothing
     /// is running for, which is what a restart leaves behind.
     /// </summary>
+    /// <summary>Makes every failed entry due now, for a manual check. Returns how many were brought forward.</summary>
+    public int MakeDue()
+    {
+        lock (_sync)
+        {
+            var now = time.GetUtcNow().UtcDateTime;
+            var brought = 0;
+            foreach (var entry in Load().Values.Where(e => e.RetryAt > now).ToList())
+            {
+                _entries![entry.ProviderId] = entry with { RetryAt = now };
+                brought++;
+            }
+
+            if (brought > 0)
+            {
+                Save();
+            }
+
+            return brought;
+        }
+    }
+
     public IReadOnlyList<long> Due(Func<long, bool> isActive)
     {
         lock (_sync)
@@ -92,8 +114,12 @@ internal sealed class PreviewWantedStore(string path, TimeProvider time, ILogger
 
         try
         {
+            // An entry saved under the old one-day window would otherwise sit out the rest of it.
+            var latest = time.GetUtcNow().UtcDateTime + RetryAfter;
             _entries = File.Exists(path)
-                ? (JsonSerializer.Deserialize<List<Entry>>(File.ReadAllText(path)) ?? []).ToDictionary(e => e.ProviderId)
+                ? (JsonSerializer.Deserialize<List<Entry>>(File.ReadAllText(path)) ?? [])
+                    .Select(e => e.RetryAt > latest ? e with { RetryAt = latest } : e)
+                    .ToDictionary(e => e.ProviderId)
                 : [];
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)

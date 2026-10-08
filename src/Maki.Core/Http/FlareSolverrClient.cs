@@ -134,6 +134,45 @@ public class FlareSolverrClient(IHttpClientFactory httpClientFactory)
         }
     }
 
+    /// <summary>Whether FlareSolverr could start its browser, and what it said when it could not.</summary>
+    public record BrowserProbe(bool Ok, string? Error);
+
+    /// <summary>
+    /// Starts and drops a browser session. <see cref="PingAsync"/> only reads the landing page, which still
+    /// answers when Chrome inside the container can no longer start, and that is the failure that leaves every
+    /// solve hanging for over a minute before it errors. Creating a session is the cheapest call that needs one.
+    /// </summary>
+    public async Task<BrowserProbe> ProbeBrowserAsync(string flareSolverrUrl, CancellationToken ct = default)
+    {
+        var client = httpClientFactory.CreateClient(HttpClientName);
+        var endpoint = flareSolverrUrl.TrimEnd('/') + "/v1";
+        var session = "maki-probe-" + Guid.NewGuid().ToString("N");
+        try
+        {
+            using var created = await client.PostAsJsonAsync(endpoint, new { cmd = "sessions.create", session }, ct);
+            var body = await created.Content.ReadFromJsonAsync<FlareResponse>(ct);
+            if (!created.IsSuccessStatusCode || body?.Status != "ok")
+            {
+                return new BrowserProbe(false, body?.Message ?? $"HTTP {(int)created.StatusCode}");
+            }
+
+            try
+            {
+                using var _ = await client.PostAsJsonAsync(endpoint, new { cmd = "sessions.destroy", session }, ct);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                // The browser started, which is all the probe asks. A stray session is reaped by FlareSolverr.
+            }
+
+            return new BrowserProbe(true, null);
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested && ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
+        {
+            return new BrowserProbe(false, ex.Message);
+        }
+    }
+
     private class FlareResponse
     {
         [JsonPropertyName("status")]

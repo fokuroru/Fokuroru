@@ -98,7 +98,7 @@ export function useCachedPreviews(enabled: boolean) {
   })
 }
 
-/** A preview request that has not finished: queued, downloading, or failed and due again the next day. */
+/** A preview request that has not finished: queued, downloading, or failed and due again shortly. */
 export interface PendingPreview {
   item: RecommendationItem
   status: 'queued' | 'searching' | 'fetching' | 'failed' | 'waiting'
@@ -112,5 +112,34 @@ export function usePendingPreviews() {
     queryKey: ['series-previews', 'pending'],
     queryFn: () => api<PendingPreview[]>('/preview/pending'),
     refetchInterval: 20_000,
+  })
+}
+
+/** What the "check now" button did, or when it next works if it was pressed too soon. */
+export interface PreviewCheck {
+  started: boolean
+  restarted: number
+  nextCheckAt: string
+}
+
+const checkKey = ['series-previews', 'check']
+
+/** When the "check now" button next works. The limit is for the whole instance, not per user. */
+export function usePreviewCheckStatus() {
+  return useQuery({
+    queryKey: checkKey,
+    queryFn: () => api<{ nextCheckAt: string }>('/preview/pending/check'),
+  })
+}
+
+/** Tries every failed preview request again now. The server allows it once every few minutes. */
+export function useCheckPreviewsNow() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api<PreviewCheck>('/preview/pending/check', { method: 'POST' }),
+    onSuccess: (result) => {
+      queryClient.setQueryData(checkKey, { nextCheckAt: result.nextCheckAt })
+      queryClient.invalidateQueries({ queryKey: ['series-previews', 'pending'] })
+    },
   })
 }

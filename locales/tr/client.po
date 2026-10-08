@@ -303,6 +303,11 @@ msgstr "{0, plural, one {Tümünü göster: #} other {Tümünü göster: #}}"
 msgid "{0, plural, one {This will permanently delete # file from disk.} other {This will permanently delete # files from disk.}}"
 msgstr "{0, plural, one {# dosya diskten kalıcı olarak silinecek.} other {# dosya diskten kalıcı olarak silinecek.}}"
 
+#. placeholder {0}: checkNow.data.restarted
+#: src/pages/RequestsPage.tsx
+msgid "{0, plural, one {Trying # preview again} other {Trying # previews again}}"
+msgstr ""
+
 #. placeholder {0}: r.unlinked
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -2952,6 +2957,11 @@ msgstr ""
 msgid "Automation"
 msgstr "Otomasyon"
 
+#. placeholder {0}: formatDateTime(nextCheckAt)
+#: src/pages/RequestsPage.tsx
+msgid "Available again {0}"
+msgstr ""
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 #, fuzzy
 msgid "Avoided"
@@ -3884,6 +3894,7 @@ msgid "Check for updates"
 msgstr "Güncellemeleri kontrol et"
 
 #: src/pages/HealthPage.tsx
+#: src/pages/RequestsPage.tsx
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Check now"
@@ -6421,8 +6432,12 @@ msgid "First chapter ready"
 msgstr ""
 
 #: src/pages/RequestsPage.tsx
-msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
+msgid "First chapters waiting to download. One that fails is tried again every half hour until it works."
 msgstr ""
+
+#: src/pages/RequestsPage.tsx
+#~ msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
+#~ msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy

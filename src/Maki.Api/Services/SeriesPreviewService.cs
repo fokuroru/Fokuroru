@@ -131,6 +131,15 @@ public sealed class SeriesPreviewService(
         }
     }
 
+    /// <summary>Brings every failed preview's retry time forward to now. Running ones are left alone.</summary>
+    internal int MakeAllDue()
+    {
+        lock (_sync)
+        {
+            return _wanted.MakeDue();
+        }
+    }
+
     /// <summary>A preview somebody asked for that is not ready: what it is doing now and when it will next be tried.</summary>
     public record PendingPreview(long ProviderId, string Status, int Attempts, DateTime? RetryAt);
 

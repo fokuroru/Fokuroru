@@ -255,6 +255,11 @@ msgstr "{0, plural, one {Show all #} other {Show all #}}"
 msgid "{0, plural, one {This will permanently delete # file from disk.} other {This will permanently delete # files from disk.}}"
 msgstr "{0, plural, one {This will permanently delete # file from disk.} other {This will permanently delete # files from disk.}}"
 
+#. placeholder {0}: checkNow.data.restarted
+#: src/pages/RequestsPage.tsx
+msgid "{0, plural, one {Trying # preview again} other {Trying # previews again}}"
+msgstr "{0, plural, one {Trying # preview again} other {Trying # previews again}}"
+
 #. placeholder {0}: r.unlinked
 #: src/pages/SeriesDetailPage.tsx
 msgid "{0, plural, one {Unlinked # chapter} other {Unlinked # chapters}}"
@@ -2471,6 +2476,11 @@ msgstr "Automatic upgrades are off, needs your call"
 msgid "Automation"
 msgstr "Automation"
 
+#. placeholder {0}: formatDateTime(nextCheckAt)
+#: src/pages/RequestsPage.tsx
+msgid "Available again {0}"
+msgstr "Available again {0}"
+
 #: src/pages/discover/AnimeSignalsSection.tsx
 msgid "Avoided"
 msgstr "Avoided"
@@ -3250,6 +3260,7 @@ msgid "Check for updates"
 msgstr "Check for updates"
 
 #: src/pages/HealthPage.tsx
+#: src/pages/RequestsPage.tsx
 #: src/pages/SettingsPage.tsx
 msgid "Check now"
 msgstr "Check now"
@@ -5406,8 +5417,12 @@ msgid "First chapter ready"
 msgstr "First chapter ready"
 
 #: src/pages/RequestsPage.tsx
-msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
-msgstr "First chapters waiting to download. One that fails is tried again the next day until it works."
+msgid "First chapters waiting to download. One that fails is tried again every half hour until it works."
+msgstr "First chapters waiting to download. One that fails is tried again every half hour until it works."
+
+#: src/pages/RequestsPage.tsx
+#~ msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
+#~ msgstr "First chapters waiting to download. One that fails is tried again the next day until it works."
 
 #: src/pages/SettingsPage.tsx
 msgid "First download in progress"

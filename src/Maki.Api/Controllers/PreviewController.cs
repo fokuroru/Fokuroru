@@ -73,7 +73,7 @@ public class PreviewController(
 
     /// <summary>
     /// Every series with a preview request still waiting: queued, downloading, or failed and due to be tried
-    /// again the next day. Previews belong to the instance, so everyone sees the same list, held to their own
+    /// again shortly. Previews belong to the instance, so everyone sees the same list, held to their own
     /// content ceiling. Series already in the library are left out.
     /// </summary>
     [HttpGet("pending")]
@@ -96,6 +96,19 @@ public class PreviewController(
             .Select(p => new PendingPreviewDto(
                 cards[p.ProviderId.ToString(System.Globalization.CultureInfo.InvariantCulture)], p.Status, p.Attempts, p.RetryAt)));
     }
+
+    /// <summary>When the "check now" button next works. Until then it answers with this time and starts nothing.</summary>
+    [HttpGet("pending/check")]
+    public IActionResult CheckStatus([FromServices] PreviewRetryService retry) =>
+        Ok(new { nextCheckAt = retry.NextCheckAt });
+
+    /// <summary>
+    /// Tries every failed preview request again now instead of waiting for its turn. Limited to once every few
+    /// minutes for the whole instance, whoever presses it, so it cannot be used to hammer the sources.
+    /// </summary>
+    [HttpPost("pending/check")]
+    public async Task<IActionResult> CheckNow([FromServices] PreviewRetryService retry, CancellationToken ct) =>
+        Ok(await retry.CheckNowAsync(ct));
 
     public record PreviewReadRequest(decimal ChapterNumber);
 

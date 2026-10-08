@@ -825,6 +825,9 @@ try
     // Singleton because it owns detached jobs the request that started them no longer waits on.
     builder.Services.AddSingleton<SourceComparePreviewService>();
     builder.Services.AddSingleton<SeriesPreviewService>();
+    builder.Services.AddSingleton<PreviewRetryService>();
+    builder.Services.AddSingleton<FlareSolverrWatchdog>();
+    builder.Services.AddHttpClient(FlareSolverrWatchdog.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(60));
     builder.Services.AddHostedService<SourceMatchWorkerHostedService>();
     builder.Services.AddScoped<ChapterDownloadProcessor>();
     builder.Services.AddScoped<LibraryImportService>();
@@ -995,10 +998,15 @@ try
             .StartAt(DateTimeOffset.UtcNow.AddMinutes(15))
             .WithSimpleSchedule(s => s.WithIntervalInHours(24).RepeatForever()));
 
+        q.ScheduleJob<Maki.Api.Jobs.FlareSolverrWatchdogJob>(t => t
+            .WithIdentity("flaresolverr-watchdog")
+            .StartAt(DateTimeOffset.UtcNow.AddMinutes(4))
+            .WithSimpleSchedule(s => s.WithIntervalInMinutes(3).RepeatForever()));
+
         q.ScheduleJob<Maki.Api.Jobs.RetryPreviewsJob>(t => t
             .WithIdentity("retry-previews")
             .StartAt(DateTimeOffset.UtcNow.AddMinutes(3))
-            .WithSimpleSchedule(s => s.WithIntervalInHours(1).RepeatForever()));
+            .WithSimpleSchedule(s => s.WithIntervalInMinutes(5).RepeatForever()));
 
         q.ScheduleJob<Maki.Api.Jobs.HousekeepingJob>(t => t
             .WithIdentity("housekeeping")

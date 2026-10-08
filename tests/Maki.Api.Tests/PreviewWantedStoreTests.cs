@@ -3,7 +3,7 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace Maki.Api.Tests;
 
-/// <summary>A preview that fails is not dropped: it is tried again a day later and survives a restart.</summary>
+/// <summary>A preview that fails is not dropped: it is tried again half an hour later and survives a restart.</summary>
 public class PreviewWantedStoreTests : IDisposable
 {
     private readonly string _dir = Path.Combine(Path.GetTempPath(), "maki-wanted-tests", Guid.NewGuid().ToString("N"));
@@ -23,26 +23,26 @@ public class PreviewWantedStoreTests : IDisposable
     private PreviewWantedStore Store() => new(Path.Combine(_dir, "wanted.json"), _time);
 
     [Fact]
-    public void Failed_preview_is_due_a_day_later_and_not_before()
+    public void Failed_preview_is_due_half_an_hour_later_and_not_before()
     {
         var store = Store();
         store.Want(42);
         store.Failed(42);
 
         Assert.Empty(store.Due(_ => false));
-        _time.Advance(TimeSpan.FromHours(23));
+        _time.Advance(TimeSpan.FromMinutes(29));
         Assert.Empty(store.Due(_ => false));
-        _time.Advance(TimeSpan.FromHours(2));
+        _time.Advance(TimeSpan.FromMinutes(2));
         Assert.Equal([42L], store.Due(_ => false));
     }
 
     [Fact]
-    public void Failing_again_counts_the_attempt_and_waits_another_day()
+    public void Failing_again_counts_the_attempt_and_waits_another_window()
     {
         var store = Store();
         store.Want(42);
         store.Failed(42);
-        _time.Advance(TimeSpan.FromDays(1));
+        _time.Advance(TimeSpan.FromHours(1));
         store.Want(42);
         store.Failed(42);
 
@@ -71,5 +71,32 @@ public class PreviewWantedStoreTests : IDisposable
 
         Assert.Empty(store.Due(_ => false));
         Assert.Null(Store().Get(1));
+    }
+
+    [Fact]
+    public void MakeDue_brings_failed_previews_forward_and_leaves_the_rest()
+    {
+        var store = Store();
+        store.Want(1);
+        store.Failed(1);
+        store.Want(2);
+
+        Assert.Equal(1, store.MakeDue());
+        Assert.Equal([1L], store.Due(_ => true));
+        Assert.Equal(0, store.MakeDue());
+    }
+
+    [Fact]
+    public void An_entry_saved_under_the_old_one_day_window_is_not_left_waiting_for_it()
+    {
+        var retryAt = _time.GetUtcNow().UtcDateTime.AddHours(20).ToString("O");
+        File.WriteAllText(
+            Path.Combine(Directory.CreateDirectory(_dir).FullName, "wanted.json"),
+            "[{\"ProviderId\":9,\"Attempts\":2,\"RetryAt\":\"" + retryAt + "\"}]");
+
+        var store = Store();
+        Assert.Empty(store.Due(_ => false));
+        _time.Advance(PreviewWantedStore.RetryAfter + TimeSpan.FromMinutes(1));
+        Assert.Equal([9L], store.Due(_ => false));
     }
 }

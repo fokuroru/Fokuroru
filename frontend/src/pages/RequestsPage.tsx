@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ActionIcon,
@@ -21,6 +21,7 @@ import {
   IconCheck,
   IconExternalLink,
   IconPencil,
+  IconRefresh,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
@@ -28,7 +29,12 @@ import { Trans, Plural, useLingui } from '@lingui/react/macro'
 import { t as now, plural, msg } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { useRootFolders } from '../api/hooks'
-import { usePendingPreviews, type PendingPreview } from '../api/preview'
+import {
+  useCheckPreviewsNow,
+  usePendingPreviews,
+  usePreviewCheckStatus,
+  type PendingPreview,
+} from '../api/preview'
 import {
   chapterRangeInline,
   chapterRangeLabel,
@@ -74,6 +80,17 @@ export default function RequestsPage() {
   const { data: requests, isPending } = useSeriesRequests(filter)
   const { data: rootFolders } = useRootFolders()
   const { data: pendingPreviews } = usePendingPreviews()
+  const { data: checkStatus } = usePreviewCheckStatus()
+  const checkNow = useCheckPreviewsNow()
+  const nextCheckAt = checkStatus?.nextCheckAt ?? null
+  const cooldownEnds = nextCheckAt ? new Date(nextCheckAt).getTime() : 0
+  const [clock, setClock] = useState(() => Date.now())
+  useEffect(() => {
+    if (cooldownEnds <= Date.now()) return
+    const timer = window.setInterval(() => setClock(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [cooldownEnds])
+  const coolingDown = cooldownEnds > clock
 
   const approve = useApproveSeriesRequest()
   const reject = useRejectSeriesRequest()
@@ -213,9 +230,31 @@ export default function RequestsPage() {
           </Text>
           <Text size="sm" c="var(--ink-3)">
             <Trans>
-              First chapters waiting to download. One that fails is tried again the next day until it works.
+              First chapters waiting to download. One that fails is tried again every half hour until it works.
             </Trans>
           </Text>
+          <Group gap="sm">
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<IconRefresh size={14} />}
+              loading={checkNow.isPending}
+              disabled={coolingDown}
+              onClick={() => checkNow.mutate()}
+            >
+              <Trans>Check now</Trans>
+            </Button>
+            {coolingDown && nextCheckAt && (
+              <Text size="xs" c="var(--ink-3)">
+                <Trans>Available again {formatDateTime(nextCheckAt)}</Trans>
+              </Text>
+            )}
+            {checkNow.data?.started && (
+              <Text size="xs" c="var(--ink-3)">
+                <Plural value={checkNow.data.restarted} one="Trying # preview again" other="Trying # previews again" />
+              </Text>
+            )}
+          </Group>
           {pendingPreviews?.map((p) => <PendingPreviewRow key={p.item.providerId} pending={p} />)}
         </Stack>
       )}
