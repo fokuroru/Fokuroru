@@ -83,6 +83,18 @@ export async function deleteSeriesPreview(providerId: string) {
   await api(`/preview/${encodeURIComponent(providerId)}/files`, { method: 'DELETE' })
 }
 
+/** Drops a preview request for everyone: it stops being retried and its downloaded pages go. */
+export function useDeletePendingPreview() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (providerId: string) => deleteSeriesPreview(providerId),
+    onSuccess: (_, providerId) => {
+      queryClient.invalidateQueries({ queryKey: ['series-previews'] })
+      queryClient.removeQueries({ queryKey: key(providerId) })
+    },
+  })
+}
+
 export async function previewPageUrl(providerId: string, page: number, version: string): Promise<string> {
   const init = await getInitialize()
   return `${init.apiRoot}/preview/${encodeURIComponent(providerId)}/page/${page}?v=${encodeURIComponent(version)}`

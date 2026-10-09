@@ -5062,6 +5062,10 @@ msgstr ""
 msgid "Delete preview"
 msgstr ""
 
+#: src/pages/RequestsPage.tsx
+msgid "Delete preview request"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #, fuzzy
@@ -5133,6 +5137,10 @@ msgstr "¿Eliminar la fila «{railName}»? También se borrarán sus filtros."
 #, fuzzy
 msgid "Delete them, free {emptiedSize}"
 msgstr "Elimínalos para liberar {emptiedSize}"
+
+#: src/pages/RequestsPage.tsx
+msgid "Delete this preview request?"
+msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 #: src/pages/SimpleHomePage.tsx
@@ -15036,6 +15044,10 @@ msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "The preview expired. Try again."
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "The preview request for {deletingPreviewTitle} is removed for everyone and any pages already downloaded are deleted. It can be requested again later."
 msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx

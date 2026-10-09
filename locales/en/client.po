@@ -4254,6 +4254,10 @@ msgstr "Delete preset"
 msgid "Delete preview"
 msgstr "Delete preview"
 
+#: src/pages/RequestsPage.tsx
+msgid "Delete preview request"
+msgstr "Delete preview request"
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Delete profile"
@@ -4315,6 +4319,10 @@ msgstr "Delete the rail \"{railName}\"? Its filters go with it."
 #: src/components/RelinkFilesModal.tsx
 msgid "Delete them, free {emptiedSize}"
 msgstr "Delete them, free {emptiedSize}"
+
+#: src/pages/RequestsPage.tsx
+msgid "Delete this preview request?"
+msgstr "Delete this preview request?"
 
 #: src/components/discover/PreviewChapterButton.tsx
 #: src/pages/SimpleHomePage.tsx
@@ -12674,6 +12682,10 @@ msgstr "The preview could not be opened."
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "The preview expired. Try again."
 msgstr "The preview expired. Try again."
+
+#: src/pages/RequestsPage.tsx
+msgid "The preview request for {deletingPreviewTitle} is removed for everyone and any pages already downloaded are deleted. It can be requested again later."
+msgstr "The preview request for {deletingPreviewTitle} is removed for everyone and any pages already downloaded are deleted. It can be requested again later."
 
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "The profile and its reader settings are removed. This can't be undone."

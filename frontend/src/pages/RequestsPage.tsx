@@ -29,8 +29,10 @@ import { Trans, Plural, useLingui } from '@lingui/react/macro'
 import { t as now, plural, msg } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { useRootFolders } from '../api/hooks'
+import { previewCacheKey, writePreviewCache } from '../api/previewCache'
 import {
   useCheckPreviewsNow,
+  useDeletePendingPreview,
   usePendingPreviews,
   usePreviewCheckStatus,
   type PendingPreview,
@@ -71,7 +73,7 @@ const STATUS_LABEL: Record<SeriesRequest['status'], MessageDescriptor> = {
 }
 
 export default function RequestsPage() {
-  const { can } = useAuth()
+  const { can, me } = useAuth()
   const isAdmin = can('Admin')
   const { t } = useLingui()
   const renderLabel = useLabel()
@@ -82,6 +84,9 @@ export default function RequestsPage() {
   const { data: pendingPreviews } = usePendingPreviews()
   const { data: checkStatus } = usePreviewCheckStatus()
   const checkNow = useCheckPreviewsNow()
+  const deletePreview = useDeletePendingPreview()
+  const [deletingPreview, setDeletingPreview] = useState<PendingPreview | null>(null)
+  const deletingPreviewTitle = deletingPreview?.item.title ?? ''
   const nextCheckAt = checkStatus?.nextCheckAt ?? null
   const cooldownEnds = nextCheckAt ? new Date(nextCheckAt).getTime() : 0
   const [clock, setClock] = useState(() => Date.now())
@@ -255,7 +260,14 @@ export default function RequestsPage() {
               </Text>
             )}
           </Group>
-          {pendingPreviews?.map((p) => <PendingPreviewRow key={p.item.providerId} pending={p} />)}
+          {pendingPreviews?.map((p) => (
+            <PendingPreviewRow
+              key={p.item.providerId}
+              pending={p}
+              deleting={deletePreview.isPending && deletePreview.variables === p.item.providerId}
+              onDelete={() => setDeletingPreview(p)}
+            />
+          ))}
         </Stack>
       )}
 
@@ -549,11 +561,43 @@ export default function RequestsPage() {
       >
         <Trans>The request for {removingTitle} is removed. This can't be undone.</Trans>
       </ConfirmDialog>
+
+      <ConfirmDialog
+        opened={deletingPreview !== null}
+        onClose={() => setDeletingPreview(null)}
+        title={<Trans>Delete this preview request?</Trans>}
+        confirmLabel={t`Delete preview request`}
+        loading={deletePreview.isPending}
+        onConfirm={() =>
+          deletingPreview &&
+          deletePreview.mutate(deletingPreview.item.providerId, {
+            onSuccess: (_, providerId) => {
+              // The Discover card restarts a preview this browser asked for before; the card's own
+              // delete clears that, so this one has to as well.
+              writePreviewCache(previewCacheKey(me?.id, providerId, 'chapter-enabled'), false)
+              setDeletingPreview(null)
+            },
+          })
+        }
+      >
+        <Trans>
+          The preview request for {deletingPreviewTitle} is removed for everyone and any pages already downloaded are
+          deleted. It can be requested again later.
+        </Trans>
+      </ConfirmDialog>
     </SurfaceFrame>
   )
 }
 
-function PendingPreviewRow({ pending }: { pending: PendingPreview }) {
+function PendingPreviewRow({
+  pending,
+  deleting,
+  onDelete,
+}: {
+  pending: PendingPreview
+  deleting: boolean
+  onDelete: () => void
+}) {
   const { t } = useLingui()
   const { item, status, attempts, retryAt } = pending
   const cover = item.thumbUrlHiDpi ?? item.thumbUrl ?? item.coverUrl
@@ -590,6 +634,19 @@ function PendingPreviewRow({ pending }: { pending: PendingPreview }) {
               <Plural value={attempts} one="Tried # time so far" other="Tried # times so far" />
             </Text>
           )}
+        </div>
+        <div className="requests-row-actions">
+          <Tooltip label={t`Delete preview request`} withArrow>
+            <ActionIcon
+              variant="subtle"
+              color="var(--danger)"
+              aria-label={t`Delete preview request`}
+              onClick={onDelete}
+              loading={deleting}
+            >
+              <IconTrash size={17} />
+            </ActionIcon>
+          </Tooltip>
         </div>
       </div>
     </Panel>

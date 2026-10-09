@@ -5062,6 +5062,10 @@ msgstr ""
 msgid "Delete preview"
 msgstr ""
 
+#: src/pages/RequestsPage.tsx
+msgid "Delete preview request"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #, fuzzy
@@ -5133,6 +5137,10 @@ msgstr "删除推荐栏“{railName}”？其筛选条件也会一并删除。"
 #, fuzzy
 msgid "Delete them, free {emptiedSize}"
 msgstr "删除这些文件，释放 {emptiedSize}"
+
+#: src/pages/RequestsPage.tsx
+msgid "Delete this preview request?"
+msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 #: src/pages/SimpleHomePage.tsx
@@ -15036,6 +15044,10 @@ msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "The preview expired. Try again."
+msgstr ""
+
+#: src/pages/RequestsPage.tsx
+msgid "The preview request for {deletingPreviewTitle} is removed for everyone and any pages already downloaded are deleted. It can be requested again later."
 msgstr ""
 
 #: src/components/settings/ReadingProfilesSection.tsx

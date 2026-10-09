@@ -354,4 +354,36 @@ public class SeriesPreviewTests : IDisposable
         Assert.Equal(2, held.SearchCalls);
         Assert.Null(service.Snapshot(3, 1, new TestLocalizer()));
     }
+
+    [Fact]
+    public async Task A_failed_request_stays_wanted_until_it_is_discarded()
+    {
+        var service = Service();
+
+        service.Start(1, Ippo, 1, new TestLocalizer());
+        await Settled(service, 1, 1);
+        Assert.Equal([1L], service.Pending().Select(p => p.ProviderId));
+
+        service.Discard(1);
+
+        Assert.Empty(service.Pending());
+        Assert.Empty(service.DueForRetry());
+    }
+
+    [Fact]
+    public async Task A_request_discarded_while_it_runs_does_not_come_back_when_it_fails()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var service = Service(Blocked(gate));
+
+        service.Start(1, Ippo, 1, new TestLocalizer());
+        Assert.Equal([1L], service.Pending().Select(p => p.ProviderId));
+
+        service.Discard(1);
+        gate.SetResult();
+        await Task.Delay(300);
+
+        Assert.Empty(service.Pending());
+        Assert.Empty(service.DueForRetry());
+    }
 }
