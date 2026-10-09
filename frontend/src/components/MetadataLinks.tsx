@@ -2,6 +2,7 @@ import { ActionIcon, Button, Group, Tooltip } from '@mantine/core'
 import { IconExternalLink } from '@tabler/icons-react'
 import type { MouseEvent } from 'react'
 import { useLingui } from '@lingui/react/macro'
+import { useSources } from '../api/hooks'
 import type { MetadataLink } from '../api/types'
 import { MetadataSiteIcon } from './MetadataSiteIcon'
 
@@ -81,13 +82,25 @@ const SEARCH_SITES: { key: string; label: string; url: (query: string) => string
   { key: 'mangadot', label: 'MangaDot', url: (q) => `https://mangadot.net/search?search=${q}` },
 ]
 
-/** One button per site, each opening that site's search for the title in a new tab. */
+/**
+ * One button per site, each opening that site's search for the title in a new tab. Suwayomi's own
+ * all-sources search is added when Suwayomi is set up: its sources carry the address a browser
+ * reaches it on, so there is nothing to configure here.
+ */
 export function SearchOnLinks({ title }: { title: string }) {
   const { t } = useLingui()
+  const { data: sources } = useSources()
   const query = encodeURIComponent(title)
+  const suwayomi = sources?.find((source) => source.name.startsWith('suwayomi-'))?.baseUrl
+  const sites = suwayomi
+    ? [
+        ...SEARCH_SITES,
+        { key: 'suwayomi', label: 'Suwayomi', url: (q: string) => `${suwayomi}/sources/all/search?query=${q}` },
+      ]
+    : SEARCH_SITES
   return (
     <Group gap="xs" wrap="wrap">
-      {SEARCH_SITES.map((site) => {
+      {sites.map((site) => {
         const { label } = site
         return (
           <Button

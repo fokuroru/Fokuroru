@@ -45,6 +45,7 @@ import { DiscoverGlance } from './DiscoverGlance'
 import { DiscoverLibraryRail } from './DiscoverLibraryRail'
 import { DiscoverReviews } from './DiscoverReviews'
 import { RecommendationFeedbackMenu } from './RecommendationFeedbackMenu'
+import { SearchOnLinks } from '../MetadataLinks'
 import { PreviewChapterButton } from './PreviewChapterButton'
 import { SeriesPreviewReader } from './SeriesPreviewReader'
 import { DiscoverTags } from './DiscoverTags'
@@ -401,6 +402,14 @@ export function DiscoverDetailModal({
                       title={title}
                       onRead={() => setPreviewFor(item.providerId)}
                     />
+                  )}
+                  {inLibrarySeriesId == null && (
+                    <div>
+                      <Text size="xs" fw={700} c="var(--ink-3)" mb={6}>
+                        <Trans>Search on</Trans>
+                      </Text>
+                      <SearchOnLinks title={title} />
+                    </div>
                   )}
                   {feedbackContext && (
                     <RecommendationFeedbackMenu

@@ -98,9 +98,13 @@ public partial class SourceMatchService(
             return null;
         }
 
+        // Normalize keeps a-z and 0-9 only, so a title in another script comes out empty, and an empty
+        // string is a prefix of everything. Without the length check every Korean, Japanese or Chinese
+        // original was thrown away as "generic" and never reached the matcher.
         var normalizedOriginal = Normalize(series.OriginalTitle);
         var normalizedTitle = Normalize(series.Title);
-        var isGenericPrefix = normalizedOriginal.Length < normalizedTitle.Length
+        var isGenericPrefix = normalizedOriginal.Length > 0
+            && normalizedOriginal.Length < normalizedTitle.Length
             && normalizedTitle.StartsWith(normalizedOriginal, StringComparison.Ordinal);
 
         return isGenericPrefix ? null : series.OriginalTitle;
@@ -352,6 +356,11 @@ public partial class SourceMatchService(
     /// Searches one source and decides what it matched, touching nothing shared. Never throws: a
     /// site being down says nothing about the other twelve, and letting the exception out would
     /// cancel the whole fan-out rather than the one source that failed.
+    /// <para>
+    /// A search that finds nothing is tried once more with the native title (see
+    /// <see cref="NativeSearchTitle"/>): a site indexing a series under its own script never answers
+    /// to the English or romanized title the metadata leads with.
+    /// </para>
     /// </summary>
     private async Task<SourceOutcome> SearchOneAsync(
         ISource source,
@@ -360,47 +369,74 @@ public partial class SourceMatchService(
         IProgress<SourceMatchStep>? progress,
         CancellationToken ct)
     {
-        var nothing = new SourceOutcome(source, priority, null, SourceMappingOrigin.TitleSearch, null);
         try
         {
-            var results = await source.SearchAsync(target.Title, ct);
-            var verdict = await CrossIdPassAsync(source, target, results, ct);
-
-            if (verdict.Confirmed is not null)
+            var outcome = await MatchAsync(source, priority, target, target.Title, ct);
+            if (outcome.Match is null && NativeSearchTitle(source, target) is { } native)
             {
-                progress?.Report(new SourceMatchStep(source.Name, SourceMatchState.Matched));
-                return new SourceOutcome(
-                    source, priority, verdict.Confirmed, SourceMappingOrigin.CrossId, verdict.ConfirmedIds);
+                outcome = await MatchAsync(source, priority, target, native, ct);
             }
 
-            // A result the cross-id pass ruled out is a different work, whatever its title
-            // scores — which is the whole reason to run that pass before this one.
-            var usable = verdict.Rejected.Count == 0
-                ? results
-                : results.Where(r => !verdict.Rejected.Contains(r.SourceSeriesId)).ToList();
-
-            var candidates = usable
-                .Select(r => new ScrobbleCandidate(r.SourceSeriesId, r.Title, [], r.Url))
-                .ToList();
-            var best = ScrobbleMatching.BestCandidate(
-                target.Title, target.OriginalTitle, candidates, MatchThreshold);
-            if (best is null)
-            {
-                progress?.Report(new SourceMatchStep(source.Name, SourceMatchState.NoMatch));
-                return nothing;
-            }
-
-            progress?.Report(new SourceMatchStep(source.Name, SourceMatchState.Matched));
-            return new SourceOutcome(
-                source, priority, usable.First(r => r.SourceSeriesId == best.Id),
-                SourceMappingOrigin.TitleSearch, null);
+            progress?.Report(new SourceMatchStep(
+                source.Name, outcome.Match is null ? SourceMatchState.NoMatch : SourceMatchState.Matched));
+            return outcome;
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Source search failed on {Source} for {Title}", source.Name, target.Title);
             progress?.Report(new SourceMatchStep(source.Name, SourceMatchState.NoMatch));
-            return nothing with { Failed = true };
+            return new SourceOutcome(source, priority, null, SourceMappingOrigin.TitleSearch, null, Failed: true);
         }
+    }
+
+    private async Task<SourceOutcome> MatchAsync(
+        ISource source, int priority, MatchTarget target, string query, CancellationToken ct)
+    {
+        var results = await source.SearchAsync(query, ct);
+        var verdict = await CrossIdPassAsync(source, target, results, ct);
+
+        if (verdict.Confirmed is not null)
+        {
+            return new SourceOutcome(
+                source, priority, verdict.Confirmed, SourceMappingOrigin.CrossId, verdict.ConfirmedIds);
+        }
+
+        // A result the cross-id pass ruled out is a different work, whatever its title
+        // scores - which is the whole reason to run that pass before this one.
+        var usable = verdict.Rejected.Count == 0
+            ? results
+            : results.Where(r => !verdict.Rejected.Contains(r.SourceSeriesId)).ToList();
+
+        var candidates = usable
+            .Select(r => new ScrobbleCandidate(r.SourceSeriesId, r.Title, [], r.Url))
+            .ToList();
+        var best = ScrobbleMatching.BestCandidate(
+            target.Title, target.OriginalTitle, candidates, MatchThreshold);
+
+        return best is null
+            ? new SourceOutcome(source, priority, null, SourceMappingOrigin.TitleSearch, null)
+            : new SourceOutcome(
+                source, priority, usable.First(r => r.SourceSeriesId == best.Id),
+                SourceMappingOrigin.TitleSearch, null);
+    }
+
+    /// <summary>
+    /// The native title to search a source with when the first search found nothing, or null when a
+    /// second search would not be worth it: no native title, one that normalizes to the title already
+    /// searched, or a source behind FlareSolverr. Those are slow English aggregators (a challenge solve
+    /// is up to a minute, and a sick FlareSolverr makes each one longer), so repeating the search there
+    /// costs far more than the chance of a hit is worth.
+    /// </summary>
+    internal static string? NativeSearchTitle(ISource source, MatchTarget target)
+    {
+        if (string.IsNullOrWhiteSpace(target.OriginalTitle)
+            || source.Capabilities.HasFlag(SourceCapabilities.NeedsFlareSolverr)
+            || ScrobbleMatching.NormalizeTitle(target.OriginalTitle) == ScrobbleMatching.NormalizeTitle(target.Title))
+        {
+            return null;
+        }
+
+        return target.OriginalTitle;
     }
 
     /// <summary>Runs <paramref name="work"/> once the gate has room, and always gives the slot back.</summary>

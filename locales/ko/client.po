@@ -13257,6 +13257,7 @@ msgstr "MangaBaka를 검색하고 다운로드를 시작하세요."
 msgid "Search missing"
 msgstr "누락 검색"
 
+#: src/components/discover/DiscoverDetailModal.tsx
 #: src/pages/SeriesDetailPage.tsx
 msgid "Search on"
 msgstr ""

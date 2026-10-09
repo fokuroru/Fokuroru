@@ -151,6 +151,123 @@ public class SourceMatchServiceTests : IDisposable
         Assert.Empty(MappingsOf(seriesId));
     }
 
+    private async Task<List<SourceCandidate>> Candidates(Series series, params ISource[] sources)
+    {
+        var service = new SourceMatchService(
+            _db.NewContext(), new SourceRegistry(sources),
+            new FakeAppSettings().Set(SettingKeys.SourcePriorityOrder, string.Join(",", sources.Select(s => s.Name))),
+            Sources.AllEnabled, new SourceExternalIdCache(TimeProvider.System),
+            new SourceMatchSearchCache(TimeProvider.System), NullLogger<SourceMatchService>.Instance);
+        return await service.FindCandidatesAsync(series);
+    }
+
+    private static readonly Series Oppositely = new()
+    {
+        Title = "Oppositely Attracted",
+        OriginalTitle = "반대로 끌리는 사이",
+    };
+
+    [Fact]
+    public async Task A_source_that_only_knows_the_native_title_is_found_by_the_second_search()
+    {
+        // Naver indexes the series under its Korean title and answers the English one with nothing.
+        var queries = new List<string>();
+        var naver = new FakeSource
+        {
+            Name = "naver",
+            OnSearch = q =>
+            {
+                queries.Add(q);
+                return q == "반대로 끌리는 사이" ? [Hit("808454", "반대로 끌리는 사이")] : [];
+            }
+        };
+
+        var candidates = await Candidates(Oppositely, naver);
+
+        Assert.Equal(["808454"], candidates.Select(c => c.SourceSeriesId));
+        Assert.Equal(["Oppositely Attracted", "반대로 끌리는 사이"], queries);
+    }
+
+    [Fact]
+    public async Task A_native_title_in_another_script_is_kept_for_matching_and_a_bare_franchise_prefix_is_not()
+    {
+        // Normalize leaves nothing of a Korean title, and nothing is a prefix of everything.
+        var kept = new List<string>();
+        var native = new FakeSource { Name = "native", OnSearch = q => { kept.Add(q); return []; } };
+        await Candidates(Oppositely, native);
+        Assert.Contains("반대로 끌리는 사이", kept);
+
+        var queries = new List<string>();
+        var naruto = new FakeSource { Name = "naruto", OnSearch = q => { queries.Add(q); return []; } };
+        await Candidates(
+            new Series { Title = "Naruto: The Seventh Hokage and the Scarlet Spring", OriginalTitle = "NARUTO" }, naruto);
+        Assert.Equal(["Naruto: The Seventh Hokage and the Scarlet Spring"], queries);
+    }
+
+    [Fact]
+    public async Task A_source_that_matches_the_first_search_is_not_searched_again()
+    {
+        var queries = new List<string>();
+        var atsumaru = new FakeSource
+        {
+            Name = "atsumaru",
+            OnSearch = q => { queries.Add(q); return [Hit("a", "Oppositely Attracted")]; }
+        };
+
+        var candidates = await Candidates(Oppositely, atsumaru);
+
+        Assert.Single(candidates);
+        Assert.Equal(["Oppositely Attracted"], queries);
+    }
+
+    [Fact]
+    public async Task A_source_behind_FlareSolverr_is_not_searched_with_the_native_title()
+    {
+        var queries = new List<string>();
+        var slow = new FakeSource
+        {
+            Name = "slow",
+            Capabilities = SourceCapabilities.NeedsFlareSolverr,
+            OnSearch = q => { queries.Add(q); return []; }
+        };
+
+        var candidates = await Candidates(Oppositely, slow);
+
+        Assert.Empty(candidates);
+        Assert.Equal(["Oppositely Attracted"], queries);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("oppositely attracted")]
+    [InlineData("Oppositely  Attracted!")]
+    public async Task No_second_search_without_a_different_native_title(string? original)
+    {
+        var queries = new List<string>();
+        var source = new FakeSource { Name = "s", OnSearch = q => { queries.Add(q); return []; } };
+
+        await Candidates(new Series { Title = "Oppositely Attracted", OriginalTitle = original }, source);
+
+        Assert.Equal(["Oppositely Attracted"], queries);
+    }
+
+    [Fact]
+    public async Task A_failing_first_search_is_not_retried_with_the_native_title()
+    {
+        var queries = new List<string>();
+        var down = new FakeSource
+        {
+            Name = "down",
+            OnSearch = q => { queries.Add(q); throw new HttpRequestException("down"); }
+        };
+
+        var candidates = await Candidates(Oppositely, down);
+
+        Assert.Empty(candidates);
+        Assert.Equal(["Oppositely Attracted"], queries);
+    }
+
     [Fact]
     public async Task Adding_after_a_preview_reuses_its_searches_and_retries_only_failed_sources()
     {

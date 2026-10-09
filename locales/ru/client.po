@@ -13257,6 +13257,7 @@ msgstr "Найти в MangaBaka и начать загрузку."
 msgid "Search missing"
 msgstr "Поиск отсутствующих"
 
+#: src/components/discover/DiscoverDetailModal.tsx
 #: src/pages/SeriesDetailPage.tsx
 msgid "Search on"
 msgstr ""
