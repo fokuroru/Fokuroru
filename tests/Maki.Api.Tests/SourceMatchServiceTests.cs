@@ -1,4 +1,5 @@
-﻿using Maki.Api.Services;
+﻿using System.Threading.Channels;
+using Maki.Api.Services;
 using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Sources;
@@ -121,6 +122,13 @@ public class SourceMatchServiceTests : IDisposable
             series.AniListId = aniList;
         };
 
+    private static async Task<List<SourceCandidate>> Candidates(SourceMatchService service, Series series)
+    {
+        var found = Channel.CreateUnbounded<SourceCandidate>();
+        await service.FindCandidatesAsync(series, found.Writer);
+        return await found.Reader.ReadAllAsync().ToListAsync();
+    }
+
     private List<SourceMapping> MappingsOf(int seriesId)
     {
         using var db = _db.NewContext();
@@ -144,10 +152,13 @@ public class SourceMatchServiceTests : IDisposable
             new SourceExternalIdCache(TimeProvider.System), new SourceMatchSearchCache(TimeProvider.System),
             NullLogger<SourceMatchService>.Instance);
 
-        var candidates = await service.FindCandidatesAsync(new Series { Id = seriesId, Title = "Hajime no Ippo" });
+        var candidates = (await Candidates(service, new Series { Id = seriesId, Title = "Hajime no Ippo" }))
+            .OrderBy(c => c.Priority)
+            .ToList();
 
         Assert.Equal(["second", "first"], candidates.Select(c => c.Source.Name));
         Assert.Equal(["c", "a"], candidates.Select(c => c.SourceSeriesId));
+        Assert.Equal([1, 3], candidates.Select(c => c.Priority));
         Assert.Empty(MappingsOf(seriesId));
     }
 
@@ -158,7 +169,7 @@ public class SourceMatchServiceTests : IDisposable
             new FakeAppSettings().Set(SettingKeys.SourcePriorityOrder, string.Join(",", sources.Select(s => s.Name))),
             Sources.AllEnabled, new SourceExternalIdCache(TimeProvider.System),
             new SourceMatchSearchCache(TimeProvider.System), NullLogger<SourceMatchService>.Instance);
-        return await service.FindCandidatesAsync(series);
+        return (await Candidates(service, series)).OrderBy(c => c.Priority).ToList();
     }
 
     private static readonly Series Oppositely = new()
@@ -269,6 +280,37 @@ public class SourceMatchServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task FindCandidates_hands_over_each_source_as_soon_as_its_search_settles()
+    {
+        var release = new TaskCompletionSource();
+        var slow = new FakeSource
+        {
+            Name = "slow",
+            OnSearchAsync = async (_, ct) =>
+            {
+                await release.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
+                return [Hit("a", "Hajime no Ippo")];
+            }
+        };
+        var fast = new FakeSource { Name = "fast", OnSearch = _ => [Hit("b", "Hajime no Ippo")] };
+        var service = new SourceMatchService(
+            _db.NewContext(), new SourceRegistry([slow, fast]),
+            new FakeAppSettings().Set(SettingKeys.SourcePriorityOrder, "slow,fast"), Sources.AllEnabled,
+            new SourceExternalIdCache(TimeProvider.System), new SourceMatchSearchCache(TimeProvider.System),
+            NullLogger<SourceMatchService>.Instance);
+
+        var found = Channel.CreateUnbounded<SourceCandidate>();
+        var run = service.FindCandidatesAsync(new Series { Title = "Hajime no Ippo" }, found.Writer);
+
+        var first = await found.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal("fast", first.Source.Name);
+
+        release.SetResult();
+        await run;
+        Assert.Equal(["slow"], await found.Reader.ReadAllAsync().Select(c => c.Source.Name).ToListAsync());
+    }
+
+    [Fact]
     public async Task Adding_after_a_preview_reuses_its_searches_and_retries_only_failed_sources()
     {
         var seriesId = _db.SeedSeries("Hajime no Ippo", configure: s => s.MangaBakaId = 42);
@@ -299,8 +341,7 @@ public class SourceMatchServiceTests : IDisposable
             _db.NewContext(), sources, appSettings, Sources.AllEnabled,
             new SourceExternalIdCache(TimeProvider.System), searchCache, NullLogger<SourceMatchService>.Instance);
 
-        await NewService().FindCandidatesAsync(
-            new Series { Title = "Hajime no Ippo", MangaBakaId = 42 });
+        await Candidates(NewService(), new Series { Title = "Hajime no Ippo", MangaBakaId = 42 });
 
         var mapped = await NewService().AutoMatchAsync(await _db.NewContext().Series.FirstAsync(s => s.Id == seriesId));
 
