@@ -34,6 +34,8 @@ import type {
   LibraryFilterSpec,
   ImportDecision,
   ImportDecisionResultDto,
+  QueuePauseDto,
+  QueuePauseRequest,
   QueueHistoryDto,
   QueueSummaryDto,
   TorrentImportPlanDto,
@@ -2098,6 +2100,34 @@ export function useRemoveQueueItem() {
       void queryClient.invalidateQueries({ queryKey: ['queue'] })
       void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
     },
+  })
+}
+
+/** Pushed by `queuePauseChanged` (see `signalr.ts`), so the poll is only the fallback for a missed event. */
+export function useQueuePause() {
+  return useQuery({
+    queryKey: ['queue-pause'],
+    queryFn: ({ signal }) => api<QueuePauseDto>('/queue/pause', { signal }),
+    refetchInterval: 30_000,
+  })
+}
+
+export function usePauseQueue() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: QueuePauseRequest) =>
+      api<QueuePauseDto>('/queue/pause', { method: 'PUT', body: JSON.stringify(request) }),
+    onSuccess: (pause) => queryClient.setQueryData(['queue-pause'], pause),
+  })
+}
+
+/** Lifts the pause on one source, or the global one when no source is given. */
+export function useResumeQueue() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (source?: string) =>
+      api<QueuePauseDto>(`/queue/pause${source ? `?source=${encodeURIComponent(source)}` : ''}`, { method: 'DELETE' }),
+    onSuccess: (pause) => queryClient.setQueryData(['queue-pause'], pause),
   })
 }
 

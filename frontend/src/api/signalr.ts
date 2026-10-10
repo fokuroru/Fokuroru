@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import type { InboxPrefs, InboxPush } from './inbox'
 import type { SourceInfo, SourceMatchProgress, SourceMatchState } from './hooks'
-import type { QueueHistoryDto, QueueItemDto } from './types'
+import type { QueueHistoryDto, QueueItemDto, QueuePauseDto } from './types'
 
 let connection: HubConnection | null = null
 let connectionPromise: Promise<HubConnection> | null = null
@@ -97,6 +97,10 @@ export function useLiveEvents() {
             void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
           }, 1000)
         }
+      })
+
+      conn.on('queuePauseChanged', (pause: QueuePauseDto) => {
+        queryClient.setQueryData<QueuePauseDto>(['queue-pause'], pause)
       })
 
       conn.on('chapterImported', ({ seriesId }: { seriesId: number }) => {
@@ -206,6 +210,7 @@ export function useLiveEvents() {
       cancelled = true
       if (summaryTimer !== null) clearTimeout(summaryTimer)
       connection?.off('queueUpdated')
+      connection?.off('queuePauseChanged')
       connection?.off('chapterImported')
       connection?.off('readProgressChanged')
       connection?.off('sourceMatchFinished')

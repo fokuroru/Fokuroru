@@ -2,6 +2,7 @@ using Maki.Api.Controllers;
 using Maki.Api.Dtos;
 using Maki.Api.Services;
 using Maki.Core.Entities;
+using Maki.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -32,8 +33,8 @@ public class QueueControllerTests : IDisposable
 
     // importer/events are only reached by the import-decision endpoints, which have their own
     // tests; everything here settles before either is touched.
-    private QueueController Controller() => new(
-        new TestLocalizer(), _db.NewContext(), _queue, _batches, null!, null!, null!,
+    private QueueController Controller(MakiDbContext? db = null) => new(
+        new TestLocalizer(), db ?? _db.NewContext(), _queue, _batches, null!, null!, null!, null!, null!,
         NullLogger<QueueController>.Instance);
 
     private int SeedItem(QueueStatus status)

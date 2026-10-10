@@ -38,6 +38,7 @@ import {
   useClearQueue,
   useQueue,
   useQueueHistory,
+  useQueuePause,
   useRemoveQueueItem,
   useReorderQueue,
   useRetryQueueItem,
@@ -65,6 +66,7 @@ import type {
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { ImportReviewModal } from '../components/ImportReviewModal'
+import { QueuePauseBanner, QueuePauseButton } from '../components/QueuePause'
 import { FileQualityBadge } from '../components/series/FileQualityBadge'
 import { TorrentProposalCard } from '../components/upgrades/TorrentProposalCard'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -74,7 +76,7 @@ import { TableSkeleton } from '../components/ui/TableSkeleton'
 import { FigureStrip } from '../components/ui/FigureStrip'
 import { StatusDot } from '../components/ui/StatusDot'
 import { isQueueActive, needsImportReview, queueStatusVisual, statusToken } from '../components/ui/status'
-import { queueErrorMessage, queueItemLabel, queueOriginOrUnknown } from '../api/queue'
+import { isHeldByPause, queueErrorMessage, queueItemLabel, queueOriginOrUnknown } from '../api/queue'
 import { useLabel } from '../i18n-context'
 import { useSourceLabel } from '../sourceLabels'
 import { formatBytes, formatDate, formatDateTime, formatTime } from '../format'
@@ -183,6 +185,7 @@ export default function ActivityPage() {
   const renderLabel = useLabel()
   const sourceLabel = useSourceLabel()
   const { data: queue } = useQueue()
+  const queuePause = useQueuePause().data
   const retry = useRetryQueueItem()
   const remove = useRemoveQueueItem()
   const reorder = useReorderQueue()
@@ -360,10 +363,15 @@ export default function ActivityPage() {
         title={t`Activity`}
         description={t`Live download queue: pages are fetched, validated and packaged into CBZ files two at a time.`}
         actions={
-          canManageQueue && queue && queue.total > 0 ? (
-            <Button color="var(--danger)" variant="light" leftSection={<IconTrash size={16} />} onClick={() => setClearConfirmOpen(true)}>
-              <Trans>Clear queue</Trans>
-            </Button>
+          canManageQueue ? (
+            <Group gap="xs">
+              <QueuePauseButton />
+              {queue && queue.total > 0 && (
+                <Button color="var(--danger)" variant="light" leftSection={<IconTrash size={16} />} onClick={() => setClearConfirmOpen(true)}>
+                  <Trans>Clear queue</Trans>
+                </Button>
+              )}
+            </Group>
           ) : undefined
         }
       />
@@ -384,6 +392,7 @@ export default function ActivityPage() {
         </Tabs.List>
 
         <Tabs.Panel value="queue">
+      <QueuePauseBanner canManage={canManageQueue} />
       <FigureStrip
         loading={!queue}
         figures={[
@@ -430,6 +439,7 @@ export default function ActivityPage() {
               <Table.Tbody>
                 {queueItems.map((q, index) => {
                   const visual = queueStatusVisual(q.status)
+                  const held = (q.status === 'Queued' || q.status === 'RateLimited') && isHeldByPause(queuePause, q.sourceName)
                   const reorderable = q.status === 'Queued' || q.status === 'RateLimited'
                   const { retryCount, nextAttempt } = q
                   const nextAttemptTime = nextAttempt ? formatTime(nextAttempt) : null
@@ -514,8 +524,11 @@ export default function ActivityPage() {
                       </Table.Td>
                       <Table.Td>
                         <Tooltip label={tooltipLabel} withArrow disabled={!failure && !retryInfo || !!rejectionText}>
-                          <StatusDot tone={rejectionText ? 'warn' : statusToken(visual.color)} live={isQueueActive(q.status)}>
-                            {rejectionText ?? renderLabel(visual.label)}
+                          <StatusDot
+                            tone={rejectionText ? 'warn' : held ? 'neutral' : statusToken(visual.color)}
+                            live={isQueueActive(q.status)}
+                          >
+                            {rejectionText ?? (held ? t`Paused` : renderLabel(visual.label))}
                           </StatusDot>
                         </Tooltip>
                       </Table.Td>
