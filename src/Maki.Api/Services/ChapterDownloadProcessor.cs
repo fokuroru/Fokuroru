@@ -289,6 +289,8 @@ public class ChapterDownloadProcessor(
                 chapterFile.Size = new FileInfo(finalPath).Length;
                 chapterFile.SourceName = mapping.SourceName;
                 chapterFile.DateAdded = DateTime.UtcNow;
+                // A replacement, not new content: keeps the Home "recently added" rail from offering the series.
+                chapterFile.ReplacedAtUtc = chapterFile.DateAdded;
 
                 // New bytes, so nothing about the old rip carries over: Stamp never downgrades a
                 // tier or group it finds already set, and a failed measure must leave this unmeasured.

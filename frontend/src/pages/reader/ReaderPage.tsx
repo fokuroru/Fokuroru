@@ -36,6 +36,7 @@ import { actionAt, layoutFor } from '../../lib/tapZones'
 const ZOOM_STEP = 0.25
 const ZOOM_MAX = 4
 const CHROME_HIDE_MS = 4000
+const CHAPTER_ADVANCE_COOLDOWN_MS = 800
 
 /**
  * The chromeless reader. Rendered outside the AppShell (see App.tsx) so it owns the whole
@@ -80,6 +81,7 @@ export default function ReaderPage() {
   // Set just before navigating to a *previous* chapter: stepping backward off page 1 should land
   // on that chapter's last page, not wherever it was last resumed (page 1 for a completed one).
   const enterAtEndRef = useRef(false)
+  const lastTransitionRef = useRef(0)
   const leavingRef = useRef(false)
   // The chrome starts hidden and is summoned by a tap in the middle of the page: the art gets
   // the whole viewport until you ask for controls.
@@ -183,6 +185,7 @@ export default function ReaderPage() {
     setAtEnd(false)
     setFinishedFor(null)
     leavingRef.current = false
+    lastTransitionRef.current = Date.now()
   }, [manifest, isFetching, resumedFor, seekToPage])
 
   // Own the viewport: no page scrolling behind the reader, and always-dark chrome.
@@ -262,13 +265,21 @@ export default function ReaderPage() {
   )
 
   const reachEnd = useCallback(() => {
+    lastTransitionRef.current = Date.now()
     setAtEnd(true)
     if (manifest && tracking) setFinishedFor(manifest.chapterId)
   }, [manifest, tracking])
 
+  // A double tap or a fling must not carry through a chapter boundary and straight out the other side.
+  const settling = useCallback(
+    () => Date.now() - lastTransitionRef.current < CHAPTER_ADVANCE_COOLDOWN_MS,
+    [],
+  )
+
   const next = useCallback(() => {
     // On the end screen the forward key is the "second press" it asks for.
     if (atEnd) {
+      if (settling()) return
       if (manifest?.nextChapterId != null) void goToChapter(manifest.nextChapterId, true)
       return
     }
@@ -284,20 +295,22 @@ export default function ReaderPage() {
     // Auto-advance means what it says: the page turn off the last page lands in the next chapter.
     // With it off, an interstitial instead: the chapter ends where you asked it to, and the jump
     // is a deliberate second press.
+    if (settling()) return
     if (prefs.autoNextChapter) void goToChapter(manifest.nextChapterId, true)
     else reachEnd()
-  }, [atEnd, spreads, spreadIndex, manifest, prefs.autoNextChapter, goToChapter, seekToPage, reachEnd])
+  }, [atEnd, spreads, spreadIndex, manifest, prefs.autoNextChapter, goToChapter, seekToPage, reachEnd, settling])
 
   /** Continuous mode's equivalent of `next()` hitting the chapter boundary: no spreads to check,
    *  the strip only ever has one more chapter to reach for. */
   const continuousPastEnd = useCallback(() => {
+    if (settling()) return
     if (manifest?.nextChapterId == null) {
       reachEnd()
       return
     }
     if (prefs.autoNextChapter) void goToChapter(manifest.nextChapterId, true)
     else reachEnd()
-  }, [manifest, prefs.autoNextChapter, goToChapter, reachEnd])
+  }, [manifest, prefs.autoNextChapter, goToChapter, reachEnd, settling])
 
   const previous = useCallback(() => {
     if (atEnd) {

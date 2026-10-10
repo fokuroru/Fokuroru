@@ -149,7 +149,10 @@ export default function ContinuousView({
     const target = sentinel.current
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) onPageChange(urls.length - 1)
+        // Unloaded images have no height, so the sentinel sits in view before anything is scrolled.
+        if (entries[0]?.isIntersecting && (container.current?.parentElement?.scrollTop ?? 0) > 0) {
+          onPageChange(urls.length - 1)
+        }
       },
       { threshold: 0 },
     )

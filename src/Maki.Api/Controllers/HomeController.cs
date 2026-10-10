@@ -313,8 +313,11 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
     {
         limit = Math.Clamp(limit, 1, 40);
 
+        // Relinks adopt files that were already on disk, and a re-download or repair restamps
+        // DateAdded with ReplacedAtUtc set to the same moment: none of those is new content.
         var recentFiles = await db.ChapterFiles
             .AsNoTracking()
+            .Where(f => f.SourceName != "relink" && (f.ReplacedAtUtc == null || f.ReplacedAtUtc < f.DateAdded))
             .OrderByDescending(f => f.DateAdded)
             .Take(RecentFileScan)
             .Select(f => new { f.Id, f.SeriesId, f.DateAdded })

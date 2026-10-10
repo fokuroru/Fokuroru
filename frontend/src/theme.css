@@ -4082,6 +4082,64 @@ a.empty-shelf-slot:hover .empty-shelf-cover {
   }
 }
 
+/* The Discover detail modal on screens between a phone and a laptop: a foldable's inner display
+   (roughly 700-900px either way) and a tablet held upright. The stacked layout starts at 900px, so
+   the band holds the poster, the title and the add panel one above the other, and with the band and
+   the body splitting the height the body was left a sliver. Below the two-column width the card
+   scrolls as one, the way a phone does. */
+@media (max-width: 56.25em) {
+  .discover-modal-root {
+    display: block;
+  }
+  .discover-body {
+    flex: none;
+    overflow-y: visible;
+  }
+  .discover-modal-root .series-hero[data-compact] .series-hero-poster {
+    width: 132px;
+    height: 198px;
+  }
+  .discover-modal-root .discover-poster-skeleton {
+    width: 132px !important;
+    height: 198px !important;
+  }
+  .discover-modal-root .series-hero[data-compact] .series-hero-body {
+    padding-top: 42px;
+  }
+}
+
+/* Short windows at any width: a tablet or foldable in landscape, a phone on its side. The poster and
+   the band's padding give back what the body needs. */
+@media (max-height: 760px) and (min-width: 48em) {
+  .discover-modal-root .series-hero[data-compact] {
+    min-height: 0;
+  }
+  .discover-modal-root .series-hero[data-compact] .series-hero-poster {
+    width: 112px;
+    height: 168px;
+  }
+  .discover-modal-root .discover-poster-skeleton {
+    width: 112px !important;
+    height: 168px !important;
+  }
+  .discover-modal-root .series-hero[data-compact] .series-hero-body {
+    padding-top: 36px;
+    padding-bottom: 18px;
+  }
+  .discover-modal-root .series-hero[data-compact] .series-hero-title {
+    font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+  }
+}
+@media (max-height: 520px) {
+  .discover-modal-root .series-hero[data-compact] {
+    min-height: 0;
+  }
+  .discover-modal-root .series-hero[data-compact] .series-hero-poster,
+  .discover-modal-root .discover-poster-skeleton {
+    display: none;
+  }
+}
+
 /* --- Tables inside a panel ------------------------------------------------ */
 /* A table in a panel has no border of its own: the panel is the edge. The header is a band a
    step lighter than the surface, rows are separated by hairlines rather than borders, and the
