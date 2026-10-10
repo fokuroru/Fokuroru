@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.41 (69)
+- Fixed previews opening on the last page and a double tap skipping two chapters. Previews start from the first source that has chapter 1. The info page when adding a series fits foldable inner screens and tablets in landscape. Downloads can be paused and resumed from Activity. Recently added no longer lists series whose files were only re-downloaded.
+
 ## 0.5.40 (68)
 - Saved chapters is a grid of covers like the library, with the number of saved chapters on a badge. Tap a series for its chapters, hold it to delete everything saved for it. Covers are kept on the device, so they show offline.
 
