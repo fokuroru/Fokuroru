@@ -69,18 +69,22 @@ rest:
           - generatedAt
 ```
 
-A dashboard card that shows the covers:
+A dashboard card that shows the covers (tested on Home Assistant 2026.10). Use an address your browser
+can load covers from. `https://comics.grum.us` works at home and away and avoids the mixed-content block
+you get when a page served over HTTPS loads an `http://` image:
 
 ```yaml
 type: markdown
-title: Latest chapters
 content: >
-  {% set base = 'http://192.168.1.107:8991' %}
-  {% for i in state_attr('sensor.fokuroru_latest_chapters', 'items') or [] %}
-  {% if i.cover %}<img src="{{ base }}{{ i.cover }}" width="60" align="left">{% endif %}
-  **{{ i.seriesTitle }}**<br>{{ i.chapter }}{% if i.newChapters > 1 %} (+{{ i.newChapters - 1 }} more){% endif %}<br><br clear="left">
+  {% set items = state_attr('sensor.fokuroru_latest_chapters', 'items') or [] %}
+  | | Latest chapters |
+  |---|---|
+  {% for i in items[:6] %}| {% if i.cover %}<img src="https://comics.grum.us{{ i.cover }}" width="56">{% endif %} | **{{ i.seriesTitle }}**<br>{{ i.chapter }}{% if i.newChapters > 1 %} · +{{ i.newChapters - 1 }} more{% endif %} · {{ relative_time(as_datetime(i.addedAt)) }} ago |
   {% endfor %}
 ```
+
+The card above needs real line breaks between the table rows, so paste it into the card's YAML editor
+as written rather than folding it onto one line.
 
 The newest cover as an `image` entity, for picture cards and automations:
 
