@@ -434,6 +434,41 @@ public sealed class OpdsCatalogTests : IDisposable
         Assert.Equal("A", Assert.Single(feed.Items).SeriesTitle);
     }
 
+    [Fact]
+    public async Task LibraryTotalsCountDownloadedChaptersAndSumPagesPerFile()
+    {
+        // One volume file backing two chapters: its pages must count once, not twice.
+        var (volumeId, _) = SeedSeriesWithChapters("Volume", "vol.cbz", ["001.jpg", "002.jpg"], [1m, 2m]);
+        var (singleId, _) = SeedSeriesWithChapters("Single", "single.cbz", ["001.jpg"], [1m]);
+        _db.SeedSeries("Tracked Only");
+        using (var db = _db.NewContext())
+        {
+            foreach (var file in db.ChapterFiles.Where(f => f.SeriesId == volumeId))
+            {
+                file.PageCount = 40;
+                file.Size = 1000;
+            }
+
+            foreach (var file in db.ChapterFiles.Where(f => f.SeriesId == singleId))
+            {
+                file.PageCount = 12;
+                file.Size = 500;
+            }
+
+            db.Chapters.Add(new Chapter { SeriesId = singleId, Number = 99m, Language = "en", Wanted = true });
+            db.SaveChanges();
+        }
+
+        var totals = await Catalog().LibraryTotalsAsync(CancellationToken.None);
+
+        Assert.Equal(3, totals.Series);
+        Assert.Equal(3, totals.Chapters);
+        Assert.Equal(4, totals.ChaptersTracked);
+        Assert.Equal(2, totals.Files);
+        Assert.Equal(52, totals.Pages);
+        Assert.Equal(1500, totals.Bytes);
+    }
+
     // ---- seeding ----
 
     private int SeedMultiLanguage(

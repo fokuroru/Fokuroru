@@ -55,6 +55,21 @@ GET {base}/api/v1/opds/{token}/recent.json?limit=10&groupBySeries=true
 Re-downloads, repairs and relinked files are not counted as new chapters. A wrong or revoked token, or
 a disabled catalogue, answers 404.
 
+### Library totals
+
+```
+GET {base}/api/v1/opds/{token}/stats.json
+```
+
+```json
+{ "generatedAt": "2026-10-11T05:10:00Z", "series": 90, "chapters": 896, "chaptersTracked": 9032,
+  "files": 762, "pages": 30729, "bytes": 11680976830 }
+```
+
+`chapters` counts chapters that have a file, the same "downloaded" figure the Stats page shows.
+`chaptersTracked` also counts chapters a source lists that are not downloaded. `pages` is summed per file,
+so a volume file holding several chapters counts once. A wrong token answers 404.
+
 ## 3. Home Assistant configuration
 
 ```yaml
@@ -67,6 +82,27 @@ rest:
         json_attributes:
           - items
           - generatedAt
+```
+
+The totals as two sensors, from one request. Add the second URL to `secrets.yaml` as
+`fokuroru_stats_url` (`{base}/api/v1/opds/{token}/stats.json`):
+
+```yaml
+rest:
+  - resource: !secret fokuroru_stats_url
+    scan_interval: 3600
+    sensor:
+      - name: Fokuroru chapters
+        unique_id: fokuroru_chapters
+        value_template: "{{ value_json.chapters }}"
+        unit_of_measurement: chapters
+        state_class: total
+        json_attributes: [series, chaptersTracked, files, bytes, generatedAt]
+      - name: Fokuroru pages
+        unique_id: fokuroru_pages
+        value_template: "{{ value_json.pages }}"
+        unit_of_measurement: pages
+        state_class: total
 ```
 
 A dashboard card that shows the covers, with the cover and title each linking to the series page in Fokuroru (tested on Home Assistant 2026.10). Use an address your browser

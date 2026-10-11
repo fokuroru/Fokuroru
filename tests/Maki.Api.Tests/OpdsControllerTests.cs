@@ -80,6 +80,8 @@ public sealed class OpdsControllerTests : IDisposable
         // before any query could run.
         Assert.IsType<NotFoundResult>(await Controller().RecentJson("not-a-token", 10, true, default));
         Assert.IsType<NotFoundResult>(await Controller().RecentJson(fullKey, 10, true, default));
+        Assert.IsType<NotFoundResult>(await Controller().StatsJson("not-a-token", default));
+        Assert.IsType<NotFoundResult>(await Controller().StatsJson(fullKey, default));
     }
 
     /// <summary>

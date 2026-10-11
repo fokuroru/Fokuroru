@@ -184,6 +184,16 @@ public class OpdsController(
             ? NotFound()
             : Ok(await catalog.LatestChaptersAsync(Context(token), limit, groupBySeries, ct));
 
+    /// <summary>
+    /// Library totals (series, downloaded chapters, files, pages, bytes) as JSON for a dashboard. Same
+    /// token and the same 404 for a wrong one as the feeds around it.
+    /// </summary>
+    [HttpGet("stats.json")]
+    public async Task<IActionResult> StatsJson(string token, CancellationToken ct) =>
+        await AuthorizeAsync(token, ct) is null
+            ? NotFound()
+            : Ok(await catalog.LibraryTotalsAsync(ct));
+
     [HttpGet("on-deck")]
     public async Task<IActionResult> OnDeck(string token, CancellationToken ct) =>
         await AuthorizeAsync(token, ct) is null

@@ -40,6 +40,14 @@ public record LatestChapterItem(
 public record LatestChaptersFeed(DateTime GeneratedAt, int Count, IReadOnlyList<LatestChapterItem> Items);
 
 /// <summary>
+/// What the server holds, for dashboards. <c>Chapters</c> counts chapters that have a file, the same
+/// "downloaded" figure the Stats page shows; <c>ChaptersTracked</c> also counts ones only listed by a
+/// source. <c>Pages</c> sums per file, not per chapter, because one volume file backs several chapters.
+/// </summary>
+public record LibraryTotalsFeed(
+    DateTime GeneratedAt, int Series, int Chapters, int ChaptersTracked, int Files, long Pages, long Bytes);
+
+/// <summary>
 /// Builds the OPDS catalogue's feeds. Deliberately separate from the controller: these are plain
 /// model objects, so the feed shape can be tested without an HTTP host.
 /// </summary>
@@ -376,6 +384,24 @@ public class OpdsCatalogService(
             .ToList();
 
         return new LatestChaptersFeed(DateTime.UtcNow, items.Count, items);
+    }
+
+    /// <summary>
+    /// Library totals as JSON. Runs with the global filters on, so a token whose owner holds only some
+    /// root folders gets the numbers for those folders and nothing else.
+    /// </summary>
+    public async Task<LibraryTotalsFeed> LibraryTotalsAsync(CancellationToken ct)
+    {
+        var files = db.ChapterFiles.AsNoTracking();
+        return new LibraryTotalsFeed(
+            DateTime.UtcNow,
+            await db.Series.AsNoTracking().CountAsync(ct),
+            await db.Chapters.AsNoTracking().CountAsync(c => c.ChapterFileId != null, ct),
+            await db.Chapters.AsNoTracking().CountAsync(ct),
+            await files.CountAsync(ct),
+            // Sum over an empty table is NULL in SQL, hence the nullable projection.
+            await files.SumAsync(f => (long?)f.PageCount, ct) ?? 0,
+            await files.SumAsync(f => (long?)f.Size, ct) ?? 0);
     }
 
     /// <summary>
