@@ -69,6 +69,19 @@ public sealed class OpdsControllerTests : IDisposable
         Assert.IsType<PhysicalFileResult>(await Controller().Cover(token, ungranted, default));
     }
 
+    [Fact]
+    public async Task RefusesTheLatestChaptersFeedForAnUnknownOrWrongScopedToken()
+    {
+        var admin = _db.SeedUser("admin", MakiPermission.Admin, allRootFolders: true);
+        var fullKey = _db.SeedApiKey(admin, UserApiKeyScope.Full);
+        EnableCatalogue(admin);
+
+        // The catalogue is null on this controller: both answers have to come from the token check,
+        // before any query could run.
+        Assert.IsType<NotFoundResult>(await Controller().RecentJson("not-a-token", 10, true, default));
+        Assert.IsType<NotFoundResult>(await Controller().RecentJson(fullKey, 10, true, default));
+    }
+
     /// <summary>
     /// Two series in two root folders with a cover file each, plus an OPDS token belonging to a
     /// reader granted only the first. <c>SeedSeries</c> creates a root folder per call, so the two

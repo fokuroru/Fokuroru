@@ -172,6 +172,18 @@ public class OpdsController(
             ? NotFound()
             : Feed(await catalog.RecentFeedAsync(Context(token), ct));
 
+    /// <summary>
+    /// The latest downloaded chapters as JSON, for a dashboard such as Home Assistant. Same token and
+    /// same 404 behaviour as the feeds above; <c>cover</c> on each item is a path under this token, so
+    /// the client prefixes the base URL it reached Maki on and needs no header to load the image.
+    /// </summary>
+    [HttpGet("recent.json")]
+    public async Task<IActionResult> RecentJson(
+        string token, [FromQuery] int limit = 10, [FromQuery] bool groupBySeries = true, CancellationToken ct = default) =>
+        await AuthorizeAsync(token, ct) is null
+            ? NotFound()
+            : Ok(await catalog.LatestChaptersAsync(Context(token), limit, groupBySeries, ct));
+
     [HttpGet("on-deck")]
     public async Task<IActionResult> OnDeck(string token, CancellationToken ct) =>
         await AuthorizeAsync(token, ct) is null

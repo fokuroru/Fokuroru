@@ -378,6 +378,62 @@ public sealed class OpdsCatalogTests : IDisposable
         Assert.Equal(["New — Ch.1", "Old — Ch.1"], feed.Entries.Select(e => e.Title));
     }
 
+    [Fact]
+    public async Task LatestChaptersListsTheNewestFirstWithACoverPathUnderTheToken()
+    {
+        var (oldId, _) = SeedSeriesWithChapters("Old", "old.cbz", ["001.jpg"], [1m], addedAt: new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        var (newId, _) = SeedSeriesWithChapters("New", "new.cbz", ["001.jpg"], [4m], addedAt: new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        using (var db = _db.NewContext())
+        {
+            db.Series.First(s => s.Id == newId).CoverPath = "cover.jpg";
+            db.SaveChanges();
+        }
+
+        var feed = await Catalog().LatestChaptersAsync(Ctx, 10, groupBySeries: true, CancellationToken.None);
+
+        Assert.Equal(2, feed.Count);
+        Assert.Equal(["New", "Old"], feed.Items.Select(i => i.SeriesTitle));
+        Assert.Equal("Ch.4", feed.Items[0].Chapter);
+        Assert.Equal($"/api/v1/opds/tok3n/cover/{newId}", feed.Items[0].Cover);
+        Assert.Null(feed.Items[1].Cover);
+        Assert.Equal(oldId, feed.Items[1].SeriesId);
+    }
+
+    [Fact]
+    public async Task LatestChaptersFoldsASeriesIntoOneEntryUnlessAskedNotTo()
+    {
+        SeedSeriesWithChapters("Busy", "busy.cbz", ["001.jpg", "002.jpg"], [1m, 2m]);
+        SeedSeriesWithChapters("Quiet", "quiet.cbz", ["001.jpg"], [1m], addedAt: new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var grouped = await Catalog().LatestChaptersAsync(Ctx, 10, groupBySeries: true, CancellationToken.None);
+        var flat = await Catalog().LatestChaptersAsync(Ctx, 10, groupBySeries: false, CancellationToken.None);
+
+        Assert.Equal(["Busy", "Quiet"], grouped.Items.Select(i => i.SeriesTitle));
+        Assert.Equal(2, grouped.Items[0].NewChapters);
+        Assert.Equal(3, flat.Count);
+    }
+
+    [Fact]
+    public async Task LatestChaptersHonoursTheLimitAndIgnoresReplacedFiles()
+    {
+        SeedSeriesWithChapters("A", "a.cbz", ["001.jpg"], [1m], addedAt: new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc));
+        SeedSeriesWithChapters("B", "b.cbz", ["001.jpg"], [1m], addedAt: new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc));
+        SeedSeriesWithChapters("Redownloaded", "r.cbz", ["001.jpg"], [1m], addedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc));
+        using (var db = _db.NewContext())
+        {
+            foreach (var file in db.ChapterFiles.Where(f => f.RelativePath.Contains("r.cbz")))
+            {
+                file.ReplacedAtUtc = file.DateAdded;
+            }
+
+            db.SaveChanges();
+        }
+
+        var feed = await Catalog().LatestChaptersAsync(Ctx, 1, groupBySeries: true, CancellationToken.None);
+
+        Assert.Equal("A", Assert.Single(feed.Items).SeriesTitle);
+    }
+
     // ---- seeding ----
 
     private int SeedMultiLanguage(

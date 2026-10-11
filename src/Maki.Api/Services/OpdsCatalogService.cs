@@ -30,6 +30,15 @@ public record OpdsContext(string PathBase, string Token)
     public string Cover(int seriesId) => $"{Base}/cover/{seriesId}";
 }
 
+/// <summary>One entry of the latest-chapters JSON feed.</summary>
+/// <param name="Cover">Path (under the same token) of the series poster, or null when it has none. Relative, so the client prefixes whatever base URL it reaches Maki on.</param>
+/// <param name="NewChapters">How many of the series' recently added chapters the feed folded into this entry; 1 when not grouped.</param>
+public record LatestChapterItem(
+    int SeriesId, string SeriesTitle, int ChapterId, string Chapter, decimal? Number, int? Volume,
+    string Language, DateTime AddedAt, int NewChapters, string? Cover);
+
+public record LatestChaptersFeed(DateTime GeneratedAt, int Count, IReadOnlyList<LatestChapterItem> Items);
+
 /// <summary>
 /// Builds the OPDS catalogue's feeds. Deliberately separate from the controller: these are plain
 /// model objects, so the feed shape can be tested without an HTTP host.
@@ -64,6 +73,9 @@ public class OpdsCatalogService(
     /// so a dormant library still has a shelf.
     /// </summary>
     private const int RecentFileScan = 500;
+
+    /// <summary>The most entries the latest-chapters JSON feed will return in one answer.</summary>
+    public const int MaxLatest = 50;
 
     /// <summary>Newest progress rows scanned to decide which series are "on deck".</summary>
     private const int RecentProgressScan = 2000;
@@ -295,6 +307,75 @@ public class OpdsCatalogService(
             .ToList();
 
         return await ShelfAsync(ctx, "recent", localizer.Get("opds.recent.title"), ordered, ct);
+    }
+
+    /// <summary>
+    /// The chapters that arrived most recently as plain JSON, for dashboards (Home Assistant) that
+    /// cannot read Atom. With <paramref name="groupBySeries"/> each series appears once, at its newest
+    /// chapter, so one big download does not push every other series off a short list.
+    /// <para>
+    /// Re-downloads, repairs and relinked files are left out for the same reason the Home rail leaves
+    /// them out: they restamp <c>DateAdded</c> without bringing anything new.
+    /// </para>
+    /// </summary>
+    public async Task<LatestChaptersFeed> LatestChaptersAsync(
+        OpdsContext ctx, int limit, bool groupBySeries, CancellationToken ct)
+    {
+        limit = Math.Clamp(limit, 1, MaxLatest);
+
+        var recentFiles = await db.ChapterFiles
+            .AsNoTracking()
+            .Where(f => f.SourceName != "relink" && (f.ReplacedAtUtc == null || f.ReplacedAtUtc < f.DateAdded))
+            .OrderByDescending(f => f.DateAdded)
+            .Take(RecentFileScan)
+            .Select(f => f.Id)
+            .ToListAsync(ct);
+
+        var rows = await db.Chapters
+            .AsNoTracking()
+            .Where(c => c.ChapterFileId != null && recentFiles.Contains(c.ChapterFileId!.Value))
+            .Select(c => new ChapterRow(
+                c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, c.Language,
+                c.ChapterFile!.DateAdded))
+            .ToListAsync(ct);
+
+        var ordered = rows
+            .OrderByDescending(c => c.Updated)
+            .ThenByDescending(c => c.Number ?? 0m)
+            .ThenByDescending(c => c.Id)
+            .ToList();
+
+        var picked = groupBySeries
+            ? ordered.GroupBy(c => c.SeriesId)
+                .Select(g => (Row: g.First(), Count: g.Count()))
+                .OrderByDescending(x => x.Row.Updated)
+                .Take(limit)
+                .ToList()
+            : ordered.Take(limit).Select(c => (Row: c, Count: 1)).ToList();
+
+        var seriesIds = picked.Select(p => p.Row.SeriesId).Distinct().ToList();
+        var series = await db.Series
+            .AsNoTracking()
+            .Where(s => seriesIds.Contains(s.Id))
+            .Select(s => new { s.Id, s.Title, s.CoverPath })
+            .ToDictionaryAsync(s => s.Id, ct);
+
+        var items = picked
+            .Where(p => series.ContainsKey(p.Row.SeriesId))
+            .Select(p =>
+            {
+                var row = p.Row;
+                var owner = series[row.SeriesId];
+                return new LatestChapterItem(
+                    row.SeriesId, owner.Title, row.Id,
+                    ChapterLabel.For(row.Number, row.Volume, row.Title, row.IsOneShot),
+                    row.Number, row.Volume, row.Language,
+                    DateTime.SpecifyKind(row.Updated, DateTimeKind.Utc), p.Count,
+                    owner.CoverPath is null ? null : ctx.Cover(owner.Id));
+            })
+            .ToList();
+
+        return new LatestChaptersFeed(DateTime.UtcNow, items.Count, items);
     }
 
     /// <summary>
