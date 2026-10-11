@@ -59,7 +59,7 @@ a disabled catalogue, answers 404.
 
 ```yaml
 rest:
-  - resource: !secret fokuroru_latest_url   # {base}/api/v1/opds/{token}/recent.json?limit=6
+  - resource: !secret fokuroru_latest_url   # {base}/api/v1/opds/{token}/recent.json?limit=10
     scan_interval: 600
     sensor:
       - name: Fokuroru latest chapters
@@ -79,7 +79,7 @@ content: |
   {% set items = state_attr('sensor.fokuroru_latest_chapters', 'items') or [] %}
   | | Latest chapters |
   |---|---|
-  {% for i in items[:6] %}{% set link = 'https://comics.grum.us/series/' ~ i.seriesId %}| {% if i.cover %}<a href="{{ link }}" target="_blank" rel="noopener"><img src="https://comics.grum.us{{ i.cover }}" width="56"></a>{% endif %} | <a href="{{ link }}" target="_blank" rel="noopener"><b>{{ i.seriesTitle }}</b></a><br>{{ i.chapter }}{% if i.newChapters > 1 %} · +{{ i.newChapters - 1 }} more{% endif %} · {{ relative_time(as_datetime(i.addedAt)) }} ago |
+  {% for i in items[:10] %}{% set link = 'https://comics.grum.us/series/' ~ i.seriesId %}| {% if i.cover %}<a href="{{ link }}" target="_blank" rel="noopener"><img src="https://comics.grum.us{{ i.cover }}" width="56"></a>{% endif %} | <a href="{{ link }}" target="_blank" rel="noopener"><b>{{ i.seriesTitle }}</b></a><br>{{ i.chapter }}{% if i.newChapters > 1 %} · +{{ i.newChapters - 1 }} more{% endif %} · {{ relative_time(as_datetime(i.addedAt)) }} ago |
   {% endfor %}
 ```
 
