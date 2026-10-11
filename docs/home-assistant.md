@@ -75,16 +75,13 @@ you get when a page served over HTTPS loads an `http://` image:
 
 ```yaml
 type: markdown
-content: >
+content: |
   {% set items = state_attr('sensor.fokuroru_latest_chapters', 'items') or [] %}
   | | Latest chapters |
   |---|---|
   {% for i in items[:6] %}| {% if i.cover %}<img src="https://comics.grum.us{{ i.cover }}" width="56">{% endif %} | **{{ i.seriesTitle }}**<br>{{ i.chapter }}{% if i.newChapters > 1 %} · +{{ i.newChapters - 1 }} more{% endif %} · {{ relative_time(as_datetime(i.addedAt)) }} ago |
   {% endfor %}
 ```
-
-The card above needs real line breaks between the table rows, so paste it into the card's YAML editor
-as written rather than folding it onto one line.
 
 The newest cover as an `image` entity, for picture cards and automations:
 
