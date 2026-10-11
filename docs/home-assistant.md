@@ -69,7 +69,7 @@ rest:
           - generatedAt
 ```
 
-A dashboard card that shows the covers (tested on Home Assistant 2026.10). Use an address your browser
+A dashboard card that shows the covers, with the cover and title each linking to the series page in Fokuroru (tested on Home Assistant 2026.10). Use an address your browser
 can load covers from. `https://comics.grum.us` works at home and away and avoids the mixed-content block
 you get when a page served over HTTPS loads an `http://` image:
 
@@ -79,7 +79,7 @@ content: |
   {% set items = state_attr('sensor.fokuroru_latest_chapters', 'items') or [] %}
   | | Latest chapters |
   |---|---|
-  {% for i in items[:6] %}| {% if i.cover %}<img src="https://comics.grum.us{{ i.cover }}" width="56">{% endif %} | **{{ i.seriesTitle }}**<br>{{ i.chapter }}{% if i.newChapters > 1 %} · +{{ i.newChapters - 1 }} more{% endif %} · {{ relative_time(as_datetime(i.addedAt)) }} ago |
+  {% for i in items[:6] %}{% set link = 'https://comics.grum.us/series/' ~ i.seriesId %}| {% if i.cover %}<a href="{{ link }}" target="_blank" rel="noopener"><img src="https://comics.grum.us{{ i.cover }}" width="56"></a>{% endif %} | <a href="{{ link }}" target="_blank" rel="noopener"><b>{{ i.seriesTitle }}</b></a><br>{{ i.chapter }}{% if i.newChapters > 1 %} · +{{ i.newChapters - 1 }} more{% endif %} · {{ relative_time(as_datetime(i.addedAt)) }} ago |
   {% endfor %}
 ```
 
