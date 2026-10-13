@@ -5278,6 +5278,9 @@ msgstr "Fetch a sample of the same chapter from each source and rank them by sca
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "Fetch new chapters as they land"
 msgstr "Fetch new chapters as they land"
+#: src/pages/settings/DownloadCards.tsx
+msgid "Fetch more when unread chapters drop to"
+msgstr "Fetch more when unread chapters drop to"
 
 #: src/components/ui/status.tsx
 msgid "Fetching"
@@ -7591,6 +7594,10 @@ msgstr "Monitor catches"
 #: src/components/ImportListsSection.tsx
 msgid "Monitor for new chapters"
 msgstr "Monitor for new chapters"
+
+#: src/components/discover/DiscoverLibraryRail.tsx
+msgid "Monitor: {mode}"
+msgstr "Monitor: {mode}"
 
 #: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
@@ -14320,6 +14327,13 @@ msgstr "Which languages Fōkurōru looks for, and which chapters it leaves alone
 #: src/pages/SettingsPage.tsx
 msgid "Which page Fōkurōru opens on, on every device."
 msgstr "Which page Fōkurōru opens on, on every device."
+#: src/components/discover/DiscoverLibraryRail.tsx
+msgid "Which new chapters get fetched as they land"
+msgstr "Which new chapters get fetched as they land"
+
+#: src/pages/settings/PreferenceCards.tsx
+msgid "Which page Maki opens on, and whether the Home page exists at all."
+msgstr "Which page Maki opens on, and whether the Home page exists at all."
 
 #: src/pages/SettingsPage.tsx
 msgid "Which rails appear below the chapter list. Turning one off also stops it being fetched."

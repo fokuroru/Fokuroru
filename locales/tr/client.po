@@ -6267,6 +6267,9 @@ msgstr "Her kaynaktan aynı bölümün bir örneğini getir ve tarama kalitesine
 #, fuzzy
 msgid "Fetch new chapters as they land"
 msgstr "Yeni bölümleri yayımlanır yayımlanmaz getirir."
+#: src/pages/settings/DownloadCards.tsx
+msgid "Fetch more when unread chapters drop to"
+msgstr ""
 
 #: src/components/ui/status.tsx
 #, fuzzy
@@ -9012,6 +9015,10 @@ msgstr "İzleyicinin buldukları"
 #, fuzzy
 msgid "Monitor for new chapters"
 msgstr "Yeni bölümleri izle"
+
+#: src/components/discover/DiscoverLibraryRail.tsx
+msgid "Monitor: {mode}"
+msgstr ""
 
 #: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
@@ -16951,6 +16958,16 @@ msgstr "Meta veri sağlayıcısının bir tanesi olduğu yerde, seri başlıklar
 
 #: src/components/SetupWizard.tsx
 msgid "Which languages Fōkurōru looks for, and which chapters it leaves alone."
+#, fuzzy
+msgid "Which languages Maki looks for, and which chapters it leaves alone."
+msgstr "Maki'nin hangi dilleri arayacağını ve hangi bölümleri olduğu gibi bırakacağını belirler."
+
+#: src/components/discover/DiscoverLibraryRail.tsx
+msgid "Which new chapters get fetched as they land"
+msgstr ""
+
+#: src/pages/settings/PreferenceCards.tsx
+msgid "Which page Maki opens on, and whether the Home page exists at all."
 msgstr ""
 
 #: src/pages/SettingsPage.tsx
