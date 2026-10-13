@@ -650,6 +650,168 @@ msgstr ""
 msgid "error.libraryImport.tooManyItems"
 msgstr "한 요청에 항목이 너무 많습니다({count}). {max}개 이하로 나누어 가져오세요"
 
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: This import was already undone
+#, fuzzy
+msgid "error.libraryImport.undoAlreadyDone"
+msgstr "이 가져오기는 이미 되돌렸습니다"
+
+#. {folder} is a folder name, not translated.
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Not everything in "{folder}" could be put back. Undo it again once the folder is free to retry.
+#, fuzzy
+msgid "error.libraryImport.undoDiskPending"
+msgstr "“{folder}”의 모든 항목을 원래대로 돌리지 못했습니다. 폴더가 비면 다시 되돌리세요."
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Chapters were downloaded into this series since the import. Delete those files first, or keep the import.
+#, fuzzy
+msgid "error.libraryImport.undoDownloadedSince"
+msgstr "가져온 뒤 이 시리즈에 챕터가 다운로드되었습니다. 먼저 그 파일을 삭제하거나 가져오기를 유지하세요."
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: A download for this series is in progress. Try again once it finishes.
+#, fuzzy
+msgid "error.libraryImport.undoDownloading"
+msgstr "이 시리즈의 다운로드가 진행 중입니다. 끝난 뒤 다시 시도하세요."
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Undo failed. Details are in the server log.
+#, fuzzy
+msgid "error.libraryImport.undoFailed"
+msgstr "되돌리기에 실패했습니다. 자세한 내용은 서버 로그에 있습니다."
+
+#. {name} is a file name; {folder} is a folder name. Neither is translated.
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: {name} could not be moved back and is still in "{folder}"
+#, fuzzy
+msgid "error.libraryImport.undoFileNotMoved"
+msgstr "{name}을(를) 원래대로 옮기지 못했고, 아직 “{folder}”에 있습니다"
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Files of this series were renamed or moved since the import, so undo cannot tell where they are. Rename them back first, or keep the import.
+#, fuzzy
+msgid "error.libraryImport.undoFilesRenamed"
+msgstr "가져온 뒤 이 시리즈의 파일 이름이 바뀌거나 옮겨져서, 되돌리기가 파일 위치를 알 수 없습니다. 먼저 원래 이름으로 돌리거나 가져오기를 유지하세요."
+
+#. {folder} is the folder the import left the files in, not translated.
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: The folder "{folder}" is no longer there, so the import cannot be undone
+#, fuzzy
+msgid "error.libraryImport.undoFolderGone"
+msgstr "“{folder}” 폴더가 없어서 가져오기를 되돌릴 수 없습니다"
+
+#. {name} is the folder's name before the import; {folder} is its name now. Neither is translated.
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: The folder could not be renamed back to "{name}". Its files are safe in "{folder}".
+#, fuzzy
+msgid "error.libraryImport.undoFolderNotMoved"
+msgstr "폴더 이름을 “{name}”(으)로 되돌리지 못했습니다. 파일은 “{folder}”에 안전하게 있습니다."
+
+#. {name} is the folder's name before the import, not translated.
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Cannot rename the folder back: "{name}" already exists in the root folder
+#, fuzzy
+msgid "error.libraryImport.undoFolderTaken"
+msgstr "폴더 이름을 되돌릴 수 없습니다. 루트 폴더에 “{name}”이(가) 이미 있습니다"
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Someone has read this series since the import. Undoing would remove the series and its reading progress, so remove it from the series page instead if that is what you want.
+#, fuzzy
+msgid "error.libraryImport.undoHasProgress"
+msgstr "가져온 뒤 누군가 이 시리즈를 읽었습니다. 되돌리면 시리즈와 읽기 진행 상황이 제거되므로, 그래도 제거하려면 시리즈 페이지에서 직접 제거하세요."
+
+#. {name} is a file name, not translated.
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: {name} was kept: Maki built it, but the original it came from is no longer there
+#, fuzzy
+msgid "error.libraryImport.undoKeptBuilt"
+msgstr "{name}은(는) 유지되었습니다. Maki가 만든 파일이지만, 원본은 더 이상 없습니다"
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: cover.jpg was kept: Maki could not confirm it is the one it wrote, so it may be yours
+msgid "error.libraryImport.undoKeptCover"
+msgstr ""
+
+#. {name} is a file name, not translated.
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: {name} was kept: it changed after the import, so it is not the file Maki built
+msgid "error.libraryImport.undoKeptReplaced"
+msgstr ""
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Sources are still being searched for this series. Try again in a minute.
+#, fuzzy
+msgid "error.libraryImport.undoMatchRunning"
+msgstr "이 시리즈의 소스를 아직 검색하는 중입니다. 잠시 후 다시 시도하세요."
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: Undoing this import removes a series. That needs the Delete series permission, unless you ran the import yourself.
+#, fuzzy
+msgid "error.libraryImport.undoNeedsDeleteSeries"
+msgstr "이 가져오기를 되돌리면 시리즈가 제거됩니다. 직접 가져오기를 실행한 경우가 아니라면 시리즈 삭제 권한이 필요합니다."
+
+#: src/Maki.Api/Services/LibraryImportUndoService.cs
+#. English: The series was removed from the library since the import, so there is nothing to undo
+#, fuzzy
+msgid "error.libraryImport.undoSeriesGone"
+msgstr "가져온 뒤 라이브러리에서 시리즈가 제거되어 되돌릴 것이 없습니다"
+
+#: src/Maki.Api/Controllers/MediaCoverController.cs
+#. English: That file is not an image Maki can use. Upload a JPEG, PNG, GIF or WebP no larger than {pixels} pixels on either side.
+#, fuzzy
+msgid "error.metadata.coverInvalid"
+msgstr "Maki가 사용할 수 없는 이미지 파일입니다. 가로나 세로가 {pixels}픽셀을 넘지 않는 JPEG, PNG, GIF 또는 WebP를 업로드하세요."
+
+#: src/Maki.Api/Controllers/MediaCoverController.cs
+#. English: Choose an image to upload.
+#, fuzzy
+msgid "error.metadata.coverMissing"
+msgstr "업로드할 이미지를 고르세요."
+
+#: src/Maki.Api/Controllers/MediaCoverController.cs
+#. English: The image is larger than {megabytes} MB.
+#, fuzzy
+msgid "error.metadata.coverTooLarge"
+msgstr "이미지가 {megabytes}MB보다 큽니다."
+
+#: src/Maki.Api/Controllers/SeriesMetadataController.cs
+#. English: Chapter and volume counts must be between 0 and {max}.
+#, fuzzy
+msgid "error.metadata.invalidCount"
+msgstr "챕터와 권 수는 0부터 {max}까지여야 합니다."
+
+#: src/Maki.Api/Controllers/SeriesMetadataController.cs
+#. English: Unknown status.
+#, fuzzy
+msgid "error.metadata.invalidStatus"
+msgstr "알 수 없는 상태입니다."
+
+#: src/Maki.Api/Controllers/SeriesMetadataController.cs
+#. English: Choose at least one field.
+#, fuzzy
+msgid "error.metadata.noFields"
+msgstr "항목을 하나 이상 고르세요."
+
+#: src/Maki.Api/Controllers/SeriesMetadataController.cs
+#. English: The title can't be empty.
+#, fuzzy
+msgid "error.metadata.titleRequired"
+msgstr "제목은 비울 수 없습니다."
+
+#. Shared by the title, the synopsis and the genre list.
+#: src/Maki.Api/Controllers/SeriesMetadataController.cs
+#. English: That value is too long.
+#, fuzzy
+msgid "error.metadata.tooLong"
+msgstr "값이 너무 깁니다."
+
+#: src/Maki.Api/Controllers/SeriesMetadataController.cs
+#. English: Unknown metadata field.
+#, fuzzy
+msgid "error.metadata.unknownField"
+msgstr "알 수 없는 메타데이터 항목입니다."
+
 #: src/Maki.Core/Notifications/AppriseNotificationProvider.cs
 #. English: Set a config key or at least one notification URL.
 #, fuzzy
