@@ -18,8 +18,8 @@ public sealed class SeriesAddRootFolderScopeTests : IDisposable
     public void Dispose() => _db.Dispose();
 
     private SeriesController Series(ICurrentUser user) =>
-        new(new TestLocalizer(), _db.NewContext(), null!, null!, null!, null!, null!, null!, null!, null!, null!,
-            null!, null!, null!, null!, null!, null!, null!, null!, null!, null!, currentUser: user, null!, null!,
+        new(new TestLocalizer(), _db.NewContext(), null!, null!, null!, null!, null!, null!, null!, null!, null!, null!, null!,
+            null!, null!, null!, null!, null!, null!, null!, null!, null!, currentUser: user, null!, null!,
             null!, null!);
 
     private int SeedFolder()
