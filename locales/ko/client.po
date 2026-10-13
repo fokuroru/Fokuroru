@@ -2811,6 +2811,10 @@ msgstr "시청한 애니메이션"
 msgid "Another upgrade scan was already running, so this one did not run. Try again once it finishes."
 msgstr ""
 
+#: src/pages/stats/sections/ProgressSection.tsx
+msgid "Another user"
+msgstr ""
+
 #: src/components/CatalogueFilters.tsx
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
