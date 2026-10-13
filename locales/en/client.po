@@ -2163,6 +2163,10 @@ msgstr "Alt titles"
 msgid "Ambiguous names"
 msgstr "Ambiguous names"
 
+#: src/api/ssoErrors.ts
+msgid "An account with that username already exists"
+msgstr "An account with that username already exists"
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "An admin decides where it lands and what gets downloaded."
 msgstr "An admin decides where it lands and what gets downloaded."

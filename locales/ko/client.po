@@ -2580,6 +2580,11 @@ msgstr "대체 제목"
 msgid "Ambiguous names"
 msgstr "모호한 이름"
 
+#: src/api/ssoErrors.ts
+#, fuzzy
+msgid "An account with that username already exists"
+msgstr "해당 사용자 이름의 계정이 이미 있습니다"
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
 msgid "An admin decides where it lands and what gets downloaded."

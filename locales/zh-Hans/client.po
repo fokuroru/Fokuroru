@@ -2580,6 +2580,11 @@ msgstr "别名标题"
 msgid "Ambiguous names"
 msgstr "名称有歧义"
 
+#: src/api/ssoErrors.ts
+#, fuzzy
+msgid "An account with that username already exists"
+msgstr "已存在使用该用户名的账户"
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
 msgid "An admin decides where it lands and what gets downloaded."
