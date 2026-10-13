@@ -408,6 +408,9 @@ public class LibraryImportService(
 
         // Smart honours monitoring.unmonitorspecials itself (Chapter.WantedUnder), so no MainOnly swap.
         series.MonitorNewItems = NewChapterMonitorMode.Smart;
+        // Same per-rating default as the add path. An imported pornographic title would otherwise
+        // start public and be scrobbled before anyone looked at it.
+        series.Incognito = await IncognitoRatingRules.ResolveAsync(appSettings, series.ContentRating, ct);
         series.RootFolderId = rootFolder.Id;
         series.FolderName = seriesFolderName;
         db.Series.Add(series);
