@@ -2586,6 +2586,10 @@ msgid "An account with that username already exists"
 msgstr "そのユーザー名のアカウントは既に存在します"
 
 #: src/components/discover/DiscoverLibraryRail.tsx
+msgid "An admin approved your request."
+msgstr ""
+
+#: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
 msgid "An admin decides where it lands and what gets downloaded."
 msgstr "管理者が追加先とダウンロード対象を決めます。"
@@ -2813,6 +2817,7 @@ msgstr "承認してキューに追加"
 msgid "Approve request"
 msgstr "リクエストを承認"
 
+#: src/components/discover/DiscoverLibraryRail.tsx
 #: src/pages/RequestsPage.tsx
 #, fuzzy
 msgid "Approved"
@@ -17271,6 +17276,14 @@ msgstr "最も忙しかった月"
 
 #: src/components/SetupWizard.tsx
 msgid "Your folder is left alone. New chapters go into a folder Fōkurōru names."
+msgstr ""
+
+#: src/components/discover/DiscoverLibraryRail.tsx
+msgid "Your last request was rejected: {resolutionNote}"
+msgstr ""
+
+#: src/components/discover/DiscoverLibraryRail.tsx
+msgid "Your last request was rejected."
 msgstr ""
 
 #: src/api/customRails.ts
