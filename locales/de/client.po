@@ -166,6 +166,7 @@ msgstr "{0, plural, one {# ausgewählt} other {# ausgewählt}}"
 #. placeholder {0}: active.items.length
 #. placeholder {0}: items.length
 #: src/components/discover/DiscoverCatalogue.tsx
+#: src/components/home/AnimeResumeRail.tsx
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
 msgid "{0, plural, one {# title} other {# titles}}"
@@ -4460,6 +4461,7 @@ msgid "Continue {seriesTitle}"
 msgstr ""
 
 #: src/api/hooks.ts
+#: src/components/home/AnimeResumeRail.tsx
 #: src/pages/HomePage.tsx
 #, fuzzy
 msgid "Continue from the anime"
@@ -4672,6 +4674,19 @@ msgstr ""
 msgid "Couldn't load notification connections"
 msgstr "Benachrichtigungsverbindungen konnten nicht geladen werden"
 
+#: src/pages/RequestsPage.tsx
+msgid "Couldn't load requests"
+msgstr ""
+
+#: src/pages/ScrobblePage.tsx
+msgid "Couldn't load scrobbling"
+msgstr ""
+
+#: src/components/discover/DiscoverDetailModal.tsx
+msgid "Couldn't load the details for this title."
+msgstr ""
+
+#: src/components/home/AnimeResumeRail.tsx
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
 msgid "Couldn't load this rail"
@@ -12621,6 +12636,7 @@ msgid "Retried {retryCount}x - next attempt {nextAttemptTime}"
 msgstr "{retryCount}x wiederholt - nächster Versuch {nextAttemptTime}"
 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
+#: src/components/home/AnimeResumeRail.tsx
 #: src/components/ImportListsSection.tsx
 #: src/components/NotificationsSection.tsx
 #: src/components/rails/CustomRailSection.tsx
@@ -13935,6 +13951,7 @@ msgstr "Weniger anzeigen"
 #: src/components/rails/CustomRailSection.tsx
 #: src/pages/DiscoverPage.tsx
 #: src/pages/SimpleHomePage.tsx
+#: src/pages/HomePage.tsx
 #, fuzzy
 msgid "Show more"
 msgstr "Mehr anzeigen"

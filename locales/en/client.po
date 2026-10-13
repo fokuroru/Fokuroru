@@ -141,6 +141,7 @@ msgstr "{0, plural, one {# selected} other {# selected}}"
 #. placeholder {0}: active.items.length
 #. placeholder {0}: items.length
 #: src/components/discover/DiscoverCatalogue.tsx
+#: src/components/home/AnimeResumeRail.tsx
 #: src/pages/DiscoverPage.tsx
 msgid "{0, plural, one {# title} other {# titles}}"
 msgstr "{0, plural, one {# title} other {# titles}}"
@@ -3742,6 +3743,7 @@ msgid "Continue {seriesTitle}"
 msgstr "Continue {seriesTitle}"
 
 #: src/api/hooks.ts
+#: src/components/home/AnimeResumeRail.tsx
 #: src/pages/HomePage.tsx
 msgid "Continue from the anime"
 msgstr "Continue from the anime"
@@ -3922,6 +3924,19 @@ msgstr "Couldn't be measured"
 msgid "Couldn't load notification connections"
 msgstr "Couldn't load notification connections"
 
+#: src/pages/RequestsPage.tsx
+msgid "Couldn't load requests"
+msgstr "Couldn't load requests"
+
+#: src/pages/ScrobblePage.tsx
+msgid "Couldn't load scrobbling"
+msgstr "Couldn't load scrobbling"
+
+#: src/components/discover/DiscoverDetailModal.tsx
+msgid "Couldn't load the details for this title."
+msgstr "Couldn't load the details for this title."
+
+#: src/components/home/AnimeResumeRail.tsx
 #: src/components/rails/CustomRailSection.tsx
 msgid "Couldn't load this rail"
 msgstr "Couldn't load this rail"
@@ -10636,6 +10651,7 @@ msgid "Retried {retryCount}x - next attempt {nextAttemptTime}"
 msgstr "Retried {retryCount}x - next attempt {nextAttemptTime}"
 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
+#: src/components/home/AnimeResumeRail.tsx
 #: src/components/ImportListsSection.tsx
 #: src/components/NotificationsSection.tsx
 #: src/components/rails/CustomRailSection.tsx
@@ -11756,6 +11772,7 @@ msgstr "Show less"
 #: src/components/rails/CustomRailSection.tsx
 #: src/pages/DiscoverPage.tsx
 #: src/pages/SimpleHomePage.tsx
+#: src/pages/HomePage.tsx
 msgid "Show more"
 msgstr "Show more"
 
