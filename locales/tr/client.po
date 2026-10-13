@@ -16962,10 +16962,6 @@ msgid "Which languages Fōkurōru looks for, and which chapters it leaves alone.
 msgid "Which languages Maki looks for, and which chapters it leaves alone."
 msgstr "Maki'nin hangi dilleri arayacağını ve hangi bölümleri olduğu gibi bırakacağını belirler."
 
-#: src/components/discover/DiscoverLibraryRail.tsx
-msgid "Which new chapters get fetched as they land"
-msgstr ""
-
 #: src/pages/settings/PreferenceCards.tsx
 msgid "Which page Maki opens on, and whether the Home page exists at all."
 msgstr ""
