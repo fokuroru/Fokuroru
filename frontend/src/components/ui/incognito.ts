@@ -4,7 +4,7 @@ import { useLingui } from '@lingui/react'
 import type { MessageDescriptor } from '@lingui/core'
 
 /** Values of the backend's `IncognitoMode` enum, as they travel over the wire. */
-export type IncognitoMode = 'Off' | 'ScrobbleOnly' | 'Full'
+export type IncognitoMode = 'Off' | 'MangaBakaOnly' | 'ScrobbleOnly' | 'Full'
 
 /**
  * One label per mode, shared by the series page's switcher, the add-series form and the settings
@@ -16,6 +16,7 @@ export type IncognitoMode = 'Off' | 'ScrobbleOnly' | 'Full'
  */
 const INCOGNITO_MODES: { value: IncognitoMode; label: MessageDescriptor }[] = [
   { value: 'Off', label: msg`Off` },
+  { value: 'MangaBakaOnly', label: msg`MangaBaka only` },
   { value: 'ScrobbleOnly', label: msg`No scrobble` },
   { value: 'Full', label: msg`Full` },
 ]

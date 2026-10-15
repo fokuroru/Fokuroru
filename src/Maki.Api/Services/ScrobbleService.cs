@@ -525,9 +525,9 @@ public class ScrobbleService(
                 continue;
             }
 
-            // ScrobbleOnly/Full incognito: reading stats above (TrackKavitaAsync) already ran,
-            // this only withholds the tracker push.
-            if (localSeries is { Incognito: not IncognitoMode.Off })
+            // Incognito: reading stats above (TrackKavitaAsync) already ran, this only withholds
+            // the tracker push. MangaBakaOnly still reaches MangaBaka, filtered per tracker below.
+            if (localSeries is { Incognito: not (IncognitoMode.Off or IncognitoMode.MangaBakaOnly) })
             {
                 continue;
             }
@@ -537,6 +537,11 @@ public class ScrobbleService(
             var pending = new List<IScrobbleTracker>();
             foreach (var tracker in trackers)
             {
+                if (localSeries is { } incognitoSeries && !incognitoSeries.Incognito.AllowsTracker(tracker.Name))
+                {
+                    continue;
+                }
+
                 // Per-tracker "scrobble reading" toggle — skip pushing progress to a tracker the
                 // user turned reading off for (local Rewind stats above are unaffected).
                 if (!await SyncReadingEnabledAsync(userId, tracker.Name, ct))
@@ -668,10 +673,10 @@ public class ScrobbleService(
                 .Where(r => r.UserId == userId && r.SeriesId != null && r.MaxChapter > 0 &&
                     (!ownsKavita || r.KavitaSeriesId == null))
                 .Join(db.Series, r => r.SeriesId, s => s.Id, (r, s) => new { r, s })
-                .Where(x => x.s.Incognito == IncognitoMode.Off)
+                .Where(x => x.s.Incognito == IncognitoMode.Off || x.s.Incognito == IncognitoMode.MangaBakaOnly)
                 .Select(x => new NativeProgress(
                     x.s.Id, x.s.Title, x.r.MaxChapter, x.r.MaxVolume,
-                    x.s.MalId, x.s.AniListId, x.s.MangaBakaId, x.s.KitsuId))
+                    x.s.MalId, x.s.AniListId, x.s.MangaBakaId, x.s.KitsuId, x.s.Incognito))
                 .ToListAsync(ct);
 
             // Series a tracker has never heard of yet — no ReadingState row at all, or one still at
@@ -688,10 +693,10 @@ public class ScrobbleService(
                 : [];
 
             zeroProgress = await db.Series
-                .Where(s => s.Incognito == IncognitoMode.Off &&
+                .Where(s => (s.Incognito == IncognitoMode.Off || s.Incognito == IncognitoMode.MangaBakaOnly) &&
                     (s.MalId != null || s.AniListId != null || s.MangaBakaId != null || s.KitsuId != null))
                 .Select(s => new NativeProgress(
-                    s.Id, s.Title, 0, 0, s.MalId, s.AniListId, s.MangaBakaId, s.KitsuId))
+                    s.Id, s.Title, 0, 0, s.MalId, s.AniListId, s.MangaBakaId, s.KitsuId, s.Incognito))
                 .ToListAsync(ct);
             zeroProgress = zeroProgress
                 .Where(s => !trackedSeriesIds.Contains(s.SeriesId) && !kavitaTrackedSeriesIds.Contains(s.SeriesId))
@@ -747,7 +752,7 @@ public class ScrobbleService(
     {
         foreach (var tracker in trackers)
         {
-            if (!await SyncReadingEnabledAsync(userId, tracker.Name, ct))
+            if (!row.Incognito.AllowsTracker(tracker.Name) || !await SyncReadingEnabledAsync(userId, tracker.Name, ct))
             {
                 continue;
             }
@@ -798,7 +803,7 @@ public class ScrobbleService(
 
     private sealed record NativeProgress(
         int SeriesId, string Title, double MaxChapter, double MaxVolume,
-        int? MalId, int? AniListId, int? MangaBakaId, int? KitsuId);
+        int? MalId, int? AniListId, int? MangaBakaId, int? KitsuId, IncognitoMode Incognito);
 
     /// <summary>
     /// Where a push records its result. A Kavita-driven push writes the Kavita-keyed
@@ -878,7 +883,7 @@ public class ScrobbleService(
     /// </summary>
     public void QueueRatingPush(int userId, Series series, int score)
     {
-        if (series.Incognito != IncognitoMode.Off)
+        if (series.Incognito is not (IncognitoMode.Off or IncognitoMode.MangaBakaOnly))
         {
             return;
         }
@@ -893,6 +898,7 @@ public class ScrobbleService(
             AniListId = series.AniListId,
             MangaBakaId = series.MangaBakaId,
             KitsuId = series.KitsuId,
+            Incognito = series.Incognito,
         };
         _ = Task.Run(async () =>
         {
@@ -920,7 +926,7 @@ public class ScrobbleService(
         foreach (var tracker in await ActiveTrackersAsync(userId, ct))
         {
             // Per-tracker "sync ratings" toggle.
-            if (!await SyncRatingsEnabledAsync(userId, tracker.Name, ct))
+            if (!series.Incognito.AllowsTracker(tracker.Name) || !await SyncRatingsEnabledAsync(userId, tracker.Name, ct))
             {
                 continue;
             }

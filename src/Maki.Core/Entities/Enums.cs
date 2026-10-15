@@ -59,7 +59,24 @@ public enum IncognitoMode
     ScrobbleOnly = 1,
 
     /// <summary>Excluded from scrobbling, Rewind stats, and reading history entirely.</summary>
-    Full = 2
+    Full = 2,
+
+    /// <summary>
+    /// Scrobbles to MangaBaka only, as a private reading history. Withheld from AniList, MAL and
+    /// Kitsu. Still counted in Rewind and read history. Appended last: stored as an int.
+    /// </summary>
+    MangaBakaOnly = 3
+}
+
+public static class IncognitoModeExtensions
+{
+    /// <summary>Whether a series in this mode may be pushed to the named tracker.</summary>
+    public static bool AllowsTracker(this IncognitoMode mode, string trackerName) => mode switch
+    {
+        IncognitoMode.Off => true,
+        IncognitoMode.MangaBakaOnly => trackerName == "mangabaka",
+        _ => false,
+    };
 }
 
 /// <summary>

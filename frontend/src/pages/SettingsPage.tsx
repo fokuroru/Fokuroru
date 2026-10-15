@@ -12,6 +12,7 @@ import { plural, t as now } from '@lingui/core/macro'
 import {
   ActionIcon,
   Alert,
+  Anchor,
   Badge,
   Button,
   Checkbox,
@@ -2159,9 +2160,14 @@ function ScrobbleSection() {
       }
     >
       <Stack gap="xs">
-        <Text size="sm" fw={600}>
-          AniList
-        </Text>
+        <Group gap="xs" align="baseline">
+          <Text size="sm" fw={600}>
+            AniList
+          </Text>
+          <Anchor size="xs" href="https://anilist.co" target="_blank" rel="noopener noreferrer">
+            anilist.co
+          </Anchor>
+        </Group>
         {isAdmin && (
           <>
             <Text size="xs" c="var(--ink-3)">
@@ -2187,9 +2193,14 @@ function ScrobbleSection() {
         )}
         <TrackerSyncControls service="anilist" label="AniList" connection={conn('anilist')} />
 
-        <Text size="sm" fw={600} mt="xs">
-          MyAnimeList
-        </Text>
+        <Group gap="xs" align="baseline" mt="xs">
+          <Text size="sm" fw={600}>
+            MyAnimeList
+          </Text>
+          <Anchor size="xs" href="https://myanimelist.net" target="_blank" rel="noopener noreferrer">
+            myanimelist.net
+          </Anchor>
+        </Group>
         {isAdmin && (
           <>
             <SettingsHelp>
@@ -2217,9 +2228,14 @@ function ScrobbleSection() {
         )}
         <TrackerSyncControls service="mal" label="MyAnimeList" connection={conn('mal')} />
 
-        <Text size="sm" fw={600} mt="xs">
-          MangaBaka
-        </Text>
+        <Group gap="xs" align="baseline" mt="xs">
+          <Text size="sm" fw={600}>
+            MangaBaka
+          </Text>
+          <Anchor size="xs" href="https://mangabaka.org" target="_blank" rel="noopener noreferrer">
+            mangabaka.org
+          </Anchor>
+        </Group>
         <TextInput
           label={t`Personal Access Token`}
           description={t`From your MangaBaka settings. No OAuth needed.`}
@@ -2230,9 +2246,14 @@ function ScrobbleSection() {
         />
         <TrackerSyncControls service="mangabaka" label="MangaBaka" connection={conn('mangabaka')} />
 
-        <Text size="sm" fw={600} mt="xs">
-          Kitsu
-        </Text>
+        <Group gap="xs" align="baseline" mt="xs">
+          <Text size="sm" fw={600}>
+            Kitsu
+          </Text>
+          <Anchor size="xs" href="https://kitsu.app" target="_blank" rel="noopener noreferrer">
+            kitsu.app
+          </Anchor>
+        </Group>
         <Group grow>
           <TextInput
             label={t`Email`}

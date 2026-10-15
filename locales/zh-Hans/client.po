@@ -952,6 +952,14 @@ msgstr "{name}（已在 Prowlarr 中禁用）"
 msgid "{name} {year}"
 msgstr "{name} {year}"
 
+#: src/components/QueuePause.tsx
+msgid "{name} paused"
+msgstr ""
+
+#: src/components/QueuePause.tsx
+msgid "{name} paused until {time}"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "{name}: {ok}/{total} succeeded"
@@ -2448,6 +2456,7 @@ msgstr "所有根目录"
 msgid "All series"
 msgstr "所有系列"
 
+#: src/components/QueuePause.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
 msgid "All sources"
@@ -2583,8 +2592,8 @@ msgstr "名称有歧义"
 
 #: src/api/ssoErrors.ts
 #, fuzzy
-msgid "An account with that username already exists"
-msgstr "已存在使用该用户名的账户"
+#~ msgid "An account with that username already exists"
+#~ msgstr "已存在使用该用户名的账户"
 
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "An admin approved your request."
@@ -3379,6 +3388,7 @@ msgstr "无法读取此下载"
 #: src/components/LinkChaptersModal.tsx
 #: src/components/LinkFileToChaptersModal.tsx
 #: src/components/NotificationsSection.tsx
+#: src/components/QueuePause.tsx
 #: src/components/rails/CustomRailEditor.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/RatingImportModal.tsx
@@ -3839,6 +3849,10 @@ msgstr ""
 #, fuzzy
 msgid "Chapters {winnerDisplayName} doesn't carry are left alone, as are files imported from disk."
 msgstr "{winnerDisplayName} 没有的章节会保持不变，从磁盘导入的文件也一样。"
+
+#: src/components/QueuePause.tsx
+msgid "Chapters already downloading finish. Torrents already handed to qBittorrent keep downloading."
+msgstr ""
 
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/pages/LibraryPage.tsx
@@ -4675,16 +4689,16 @@ msgid "Couldn't load notification connections"
 msgstr "无法加载通知连接"
 
 #: src/pages/RequestsPage.tsx
-msgid "Couldn't load requests"
-msgstr ""
+#~ msgid "Couldn't load requests"
+#~ msgstr ""
 
 #: src/pages/ScrobblePage.tsx
-msgid "Couldn't load scrobbling"
-msgstr ""
+#~ msgid "Couldn't load scrobbling"
+#~ msgstr ""
 
 #: src/components/discover/DiscoverDetailModal.tsx
-msgid "Couldn't load the details for this title."
-msgstr ""
+#~ msgid "Couldn't load the details for this title."
+#~ msgstr ""
 
 #: src/components/home/AnimeResumeRail.tsx
 #: src/components/rails/CustomRailSection.tsx
@@ -4707,10 +4721,18 @@ msgstr "无法加载你的通知"
 msgid "Couldn't load your reading progress"
 msgstr "无法加载你的阅读进度"
 
+#: src/components/QueuePause.tsx
+msgid "Couldn't pause the downloads"
+msgstr ""
+
 #: src/components/RatingImportModal.tsx
 #, fuzzy
 msgid "Couldn't reach {label}."
 msgstr "无法连接到 {label}。"
+
+#: src/components/QueuePause.tsx
+msgid "Couldn't resume the downloads"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Couldn't run the scan"
@@ -5663,6 +5685,14 @@ msgstr "下载"
 msgid "Downloads now try {bestName} first."
 msgstr ""
 
+#: src/components/QueuePause.tsx
+msgid "Downloads paused"
+msgstr ""
+
+#: src/components/QueuePause.tsx
+msgid "Downloads paused until {time}"
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 msgid "Downloads the next chapters of a series when you're down to a few unread, starting with the first batch as soon as a series is set to Smart. Checks every five minutes against progress from Kavita or the built-in reader. Turn it on per series in its monitoring options."
 msgstr ""
@@ -6283,13 +6313,14 @@ msgstr "感觉像你的种子"
 msgid "Fetch a sample of the same chapter from each source and rank them by scan quality."
 msgstr "从每个来源获取同一章节的样本，并按扫描质量排序。"
 
+#: src/pages/settings/DownloadCards.tsx
+#~ msgid "Fetch more when unread chapters drop to"
+#~ msgstr ""
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
-msgid "Fetch new chapters as they land"
-msgstr "新章节一发布就获取。"
-#: src/pages/settings/DownloadCards.tsx
-msgid "Fetch more when unread chapters drop to"
-msgstr ""
+#~ msgid "Fetch new chapters as they land"
+#~ msgstr "新章节一发布就获取。"
 
 #: src/components/ui/status.tsx
 #, fuzzy
@@ -6668,6 +6699,10 @@ msgstr "已关注"
 #, fuzzy
 msgid "Follows the default on your notification settings."
 msgstr "遵循通知设置中的默认值。"
+
+#: src/components/QueuePause.tsx
+msgid "For 1 hour"
+msgstr ""
 
 #: src/components/SetupWizard.tsx
 #, fuzzy
@@ -8578,6 +8613,10 @@ msgstr "主流"
 msgid "Make a new code"
 msgstr ""
 
+#: src/components/QueuePause.tsx
+msgid "Maki stops starting new downloads. Chapters already downloading finish, and nothing is removed from the queue. Torrents already handed to qBittorrent keep downloading."
+msgstr ""
+
 #: src/components/discover/FollowingRail.tsx
 #, fuzzy
 msgid "Manage"
@@ -8629,6 +8668,10 @@ msgstr ""
 #, fuzzy
 msgid "MangaBaka aggregate score"
 msgstr "MangaBaka 综合评分"
+
+#: src/components/ui/incognito.ts
+msgid "MangaBaka only"
+msgstr ""
 
 #. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
 #: src/pages/settings/registry.ts
@@ -9550,14 +9593,16 @@ msgstr "尚无更改"
 msgid "No chapter here carries a reading time, so there is no pace to report."
 msgstr "这里没有章节记录阅读时间，因此无法报告阅读速度。"
 
-#: src/components/lite/SeriesSheet.tsx
-msgid "No chapters are on the server for this series."
 #: src/pages/ImportPage.tsx
 msgid "no chapter or volume number in the name"
 msgstr ""
 
 #: src/pages/ImportPage.tsx
 msgid "no chapter with this number in the series"
+msgstr ""
+
+#: src/components/lite/SeriesSheet.tsx
+msgid "No chapters are on the server for this series."
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
@@ -11020,7 +11065,16 @@ msgstr "路径映射 - Kavita 端"
 msgid "Path mapping - qBittorrent side"
 msgstr "路径映射 - qBittorrent 端"
 
+#: src/components/QueuePause.tsx
+msgid "Pause"
+msgstr ""
+
+#: src/components/QueuePause.tsx
+msgid "Pause downloads"
+msgstr ""
+
 #: src/components/discover/DiscoverHero.tsx
+#: src/pages/ActivityPage.tsx
 #, fuzzy
 msgid "Paused"
 msgstr "已暂停"
@@ -11085,6 +11139,10 @@ msgstr ""
 #, fuzzy
 msgid "Pick a root folder"
 msgstr "选择根文件夹"
+
+#: src/components/QueuePause.tsx
+msgid "Pick a time in the future"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Pick the dark theme, the light theme, or match your system's light or dark mode. Remembered on this device."
@@ -11635,7 +11693,6 @@ msgstr "已读"
 
 #: src/components/discover/SourcePreviewPanel.tsx
 #: src/components/home/FreshChaptersRail.tsx
-#: src/components/home/RecentlyAddedRail.tsx
 #: src/components/lite/SeriesSheet.tsx
 #: src/components/ui/SeriesRow.tsx
 #: src/pages/discover/FeedbackLab.tsx
@@ -12614,6 +12671,7 @@ msgstr "将发布内容搜索限制为指定的索引器和 Torznab 类别。未
 
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
+#: src/components/QueuePause.tsx
 #: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
@@ -12624,6 +12682,10 @@ msgstr "继续阅读"
 #, fuzzy
 msgid "Resume {seriesTitle}, {chapterLabel}"
 msgstr "继续阅读 {seriesTitle}，{chapterLabel}"
+
+#: src/components/QueuePause.tsx
+msgid "Resume at"
+msgstr ""
 
 #: src/pages/ActivityPage.tsx
 #, fuzzy
@@ -13950,8 +14012,8 @@ msgstr "显示更少"
 #: src/components/discover/FollowingRail.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/pages/DiscoverPage.tsx
-#: src/pages/SimpleHomePage.tsx
 #: src/pages/HomePage.tsx
+#: src/pages/SimpleHomePage.tsx
 #, fuzzy
 msgid "Show more"
 msgstr "显示更多"
@@ -15187,12 +15249,12 @@ msgstr "服务器日志会说明原因。"
 msgid "The single biggest improvement if Fōkurōru is reachable from the internet."
 msgstr ""
 
-#: src/pages/reader/DownloadSplash.tsx
-msgid "The source asked us to slow down. Waiting to try again…"
-msgstr ""
-
 #: src/api/queue.ts
 msgid "The source answered with an error"
+msgstr ""
+
+#: src/pages/reader/DownloadSplash.tsx
+msgid "The source asked us to slow down. Waiting to try again…"
 msgstr ""
 
 #: src/api/queue.ts
@@ -16168,10 +16230,22 @@ msgstr "未指定"
 msgid "Unsupported file type"
 msgstr ""
 
+#: src/components/QueuePause.tsx
+msgid "Until a time I choose"
+msgstr ""
+
+#: src/components/QueuePause.tsx
+msgid "Until I resume"
+msgstr ""
+
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "Until it is built, the badges compare against your own library only."
 msgstr "在建立之前，徽章只会与你自己的资料库进行比较。"
+
+#: src/components/QueuePause.tsx
+msgid "Until tomorrow morning"
+msgstr ""
 
 #: src/components/AnimeCoverageBar.tsx
 #, fuzzy
@@ -16880,6 +16954,10 @@ msgstr "哪些因素影响你的推荐"
 msgid "What to download"
 msgstr "下载哪些内容"
 
+#: src/components/QueuePause.tsx
+msgid "What to pause"
+msgstr ""
+
 #: src/pages/stats/sections/ReadingSection.tsx
 #, fuzzy
 msgid "What you read"
@@ -16980,17 +17058,23 @@ msgstr "系列标题显示时使用的语言，前提是元数据提供方有该
 
 #: src/components/SetupWizard.tsx
 msgid "Which languages Fōkurōru looks for, and which chapters it leaves alone."
-#, fuzzy
-msgid "Which languages Maki looks for, and which chapters it leaves alone."
-msgstr "Maki 要查找哪些语言的章节，以及要跳过哪些章节。"
+msgstr ""
 
-#: src/pages/settings/PreferenceCards.tsx
-msgid "Which page Maki opens on, and whether the Home page exists at all."
+#, fuzzy
+#~ msgid "Which languages Maki looks for, and which chapters it leaves alone."
+#~ msgstr "Maki 要查找哪些语言的章节，以及要跳过哪些章节。"
+
+#: src/components/discover/DiscoverLibraryRail.tsx
+msgid "Which new chapters get fetched as they land"
 msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Which page Fōkurōru opens on, on every device."
 msgstr ""
+
+#: src/pages/settings/PreferenceCards.tsx
+#~ msgid "Which page Maki opens on, and whether the Home page exists at all."
+#~ msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy

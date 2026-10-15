@@ -97,7 +97,7 @@ export interface SeriesDto {
    */
   sourceMatchPending: boolean
   /**
-   * "Off" | "ScrobbleOnly" | "Full". ScrobbleOnly withholds tracker pushes only; Full also
+   * "Off" | "MangaBakaOnly" | "ScrobbleOnly" | "Full". ScrobbleOnly withholds tracker pushes only; Full also
    * withholds it from Rewind/reading-history stats.
    */
   incognito: string
@@ -574,7 +574,7 @@ export interface AddSeriesRequest {
   monitored: boolean
   monitorNewItems: string
   /**
-   * "Off" | "ScrobbleOnly" | "Full". Omitted means "let the server pick from the content rating"
+   * "Off" | "MangaBakaOnly" | "ScrobbleOnly" | "Full". Omitted means "let the server pick from the content rating"
    * (Settings → Library incognito rules), which is what happens on any add form that doesn't ask.
    */
   incognito?: string

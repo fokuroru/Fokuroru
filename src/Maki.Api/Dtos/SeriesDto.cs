@@ -318,7 +318,7 @@ public record SeriesDto(
 }
 
 /// <param name="Incognito">
-/// "Off" | "ScrobbleOnly" | "Full", or null to let the per-content-rating rules
+/// "Off" | "MangaBakaOnly" | "ScrobbleOnly" | "Full", or null to let the per-content-rating rules
 /// (<see cref="IncognitoRatingRules"/>) pick. Null is what an older client sends, so the rules have
 /// to be the fallback rather than a hardcoded Off.
 /// </param>

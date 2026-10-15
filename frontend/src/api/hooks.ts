@@ -2227,7 +2227,7 @@ export interface SetIncognitoResult {
   incognito: string
 }
 
-/** "Off" | "ScrobbleOnly" | "Full" — see SeriesDto.incognito. */
+/** "Off" | "MangaBakaOnly" | "ScrobbleOnly" | "Full" — see SeriesDto.incognito. */
 export function useSetIncognito() {
   const queryClient = useQueryClient()
   return useMutation({
