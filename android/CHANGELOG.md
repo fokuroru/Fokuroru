@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.42 (70)
+- Saving the next chapters automatically now offers the next 5, the next 10, or all chapters on the server. The chapter table can mark an undownloaded chapter read, Download & read only offers wanted chapters, and series that are up to date show a badge.
+
 ## 0.5.41 (69)
 - Fixed previews opening on the last page and a double tap skipping two chapters. Previews start from the first source that has chapter 1. The info page when adding a series fits foldable inner screens and tablets in landscape. Downloads can be paused and resumed from Activity. Recently added no longer lists series whose files were only re-downloaded.
 
