@@ -38,12 +38,9 @@ public class ContinueReadingService(MakiDbContext db)
     /// </summary>
     /// <param name="includeMissing">
     /// Also consider chapters that are not downloaded yet, for a caller that can fetch one before
-    /// opening it (the series page's "Download &amp; read"). A main (whole-numbered) chapter counts
-    /// wanted or not: a series that only kept its newest chapters wanted would otherwise jump to the
-    /// latest download over dozens of unread ones. A special or one-shot that is neither wanted nor
-    /// on disk does not: those are optional extras someone chose to skip, and counting them had Read
-    /// offer an unwanted one-shot listed after the last chapter. Rails leave this off: they can only
-    /// offer what opens straight away.
+    /// opening it (the series page's "Download &amp; read"). Only a wanted chapter counts: one marked
+    /// as not wanted was skipped on purpose and must not be offered for download. Rails leave this
+    /// off: they can only offer what opens straight away.
     /// </param>
     public async Task<Dictionary<int, NextChapter>> NextForAsync(
         IReadOnlyCollection<int> seriesIds, CancellationToken ct, bool includeMissing = false)
@@ -73,7 +70,7 @@ public class ContinueReadingService(MakiDbContext db)
         {
             var ordered = ChapterOrder.Sort(group, c => c.Number, c => c.Volume, c => c.Id);
             bool Candidate(bool hasFile, bool wanted, decimal? number) =>
-                hasFile || (includeMissing && (wanted || ReadingStatuses.IsMain(number)));
+                hasFile || (includeMissing && wanted);
             var unread = ordered.Where(c => Candidate(c.HasFile, c.Wanted, c.Number) && !completed.Contains(c.Id)).ToList();
             if (unread.Count == 0)
             {

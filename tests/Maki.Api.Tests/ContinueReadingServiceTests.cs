@@ -77,7 +77,7 @@ public class ContinueReadingServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Missing_chapters_before_the_latest_download_are_next_even_when_unwanted()
+    public async Task Unwanted_missing_chapters_are_not_offered_for_download()
     {
         var seriesId = _db.SeedSeries();
         var first = Seed(seriesId, 1, null, downloaded: false);
@@ -86,13 +86,13 @@ public class ContinueReadingServiceTests : IDisposable
             db.Chapters.Single(c => c.Id == first).Wanted = false;
             db.SaveChanges();
         }
-        Seed(seriesId, 2, null, downloaded: false);
+        var second = Seed(seriesId, 2, null, downloaded: false);
         var latest = Seed(seriesId, 50, null);
 
         var withMissing = await new ContinueReadingService(_db.NewContext())
             .NextForAsync(seriesId, CancellationToken.None, includeMissing: true);
 
-        Assert.Equal(first, withMissing!.ChapterId);
+        Assert.Equal(second, withMissing!.ChapterId);
         Assert.False(withMissing.Downloaded);
         Assert.Equal(latest, await Next(seriesId));
     }
