@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Anchor,
   AppShell,
   Badge,
   Box,
@@ -25,6 +26,7 @@ import {
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
+  useAcknowledgeAllHealth,
   useHealth,
   useMetadataSettings,
   useQueueSummary,
@@ -160,6 +162,7 @@ function NavLinks({
 function HealthButton() {
   const { t } = useLingui()
   const { data: health } = useHealth()
+  const acknowledgeAll = useAcknowledgeAllHealth()
   if (!health || health.length === 0) return null
   const hasError = health.some((h) => h.severity === 'error')
   return (
@@ -191,6 +194,16 @@ function HealthButton() {
           <Text component={Link} to="/health" size="sm">
             <Trans>Open Health</Trans>
           </Text>
+          <Anchor
+            component="button"
+            type="button"
+            size="sm"
+            ml="auto"
+            disabled={acknowledgeAll.isPending}
+            onClick={() => acknowledgeAll.mutate()}
+          >
+            <Trans>Mark all as acknowledged</Trans>
+          </Anchor>
         </Group>
         <Stack gap="xs">
           {health.map((issue, i) => (

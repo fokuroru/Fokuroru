@@ -2456,6 +2456,17 @@ export function useHealth() {
   })
 }
 
+export function useAcknowledgeAllHealth() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api<{ acknowledged: number }>('/health/checks/acknowledge-all', { method: 'POST' }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['health'] })
+      void queryClient.invalidateQueries({ queryKey: ['health-workspace'] })
+    },
+  })
+}
+
 /** Cached, instant: reflects the last CheckForUpdatesJob run (or a manual check-now). */
 export function useUpdateStatus() {
   return useQuery({

@@ -170,6 +170,16 @@ public class HealthController(MakiDbContext db, HealthMonitor monitor, HealthOpe
     }
     public record CheckReview(string Id, bool Acknowledged);
 
+    /// <summary>Acknowledges every check the header badge is counting, in one go.</summary>
+    [HttpPost("checks/acknowledge-all")]
+    public async Task<IActionResult> AcknowledgeAll(CancellationToken ct)
+    {
+        var rows = await db.HealthChecks.Where(HealthTransitions.Unattended).ToListAsync(ct);
+        foreach (var row in rows) row.Acknowledged = true;
+        await db.SaveChangesAsync(ct);
+        return Ok(new { acknowledged = rows.Count });
+    }
+
     /// <summary>The series behind a grouped source warning, and how far a refresh of them has got.</summary>
     [HttpGet("sources/{name}")]
     public async Task<IActionResult> SourceFailures(string name, CancellationToken ct)
