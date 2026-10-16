@@ -51,7 +51,10 @@ class Prefs(context: Context) {
 
     val wifiOnly get() = sp.getBoolean("wifi_only", true)
     val chargingOnly get() = sp.getBoolean("charging_only", false)
-    val autoDownloadNext get() = sp.getString("auto_download_next", "0")?.toIntOrNull() ?: 0
+    val autoDownloadNext get() = when (val v = sp.getString("auto_download_next", "0")) {
+        "all" -> ALL_CHAPTERS
+        else -> v?.toIntOrNull() ?: 0
+    }
     val deleteRead get() = sp.getBoolean("delete_read", false)
     val keepLastRead get() = sp.getBoolean("keep_last_read", true)
 
@@ -75,5 +78,6 @@ class Prefs(context: Context) {
 
     companion object {
         const val SERVER = "server_url"
+        const val ALL_CHAPTERS = 100_000
     }
 }

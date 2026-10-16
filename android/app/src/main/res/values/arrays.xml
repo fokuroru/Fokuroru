@@ -14,15 +14,15 @@
     </string-array>
     <string-array name="auto_download_entries">
         <item>Off</item>
-        <item>Next chapter</item>
-        <item>Next 3 chapters</item>
         <item>Next 5 chapters</item>
+        <item>Next 10 chapters</item>
+        <item>All chapters on the server</item>
     </string-array>
     <string-array name="auto_download_values">
         <item>0</item>
-        <item>1</item>
-        <item>3</item>
         <item>5</item>
+        <item>10</item>
+        <item>all</item>
     </string-array>
     <string-array name="sync_entries">
         <item>Off</item>
