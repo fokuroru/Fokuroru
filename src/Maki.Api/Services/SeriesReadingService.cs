@@ -51,19 +51,22 @@ public static class SeriesReadingService
         var readIds = read.Keys.ToList();
         var listed = (await db.Chapters
                 .Where(c => c.Number != null && readIds.Contains(c.SeriesId))
-                .Select(c => new { c.SeriesId, c.Number })
+                .Select(c => new { c.SeriesId, c.Number, c.Wanted })
                 .ToListAsync(ct))
             .Where(x => ReadingStatuses.IsMain(x.Number))
             .GroupBy(x => x.SeriesId)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Number!.Value).ToHashSet());
+            .ToDictionary(
+                g => g.Key,
+                g => (All: g.Select(x => x.Number!.Value).ToHashSet(),
+                      Wanted: g.Where(x => x.Wanted).Select(x => x.Number!.Value).ToHashSet()));
 
         return read.ToDictionary(
             r => r.Key,
             r =>
             {
-                var main = listed.GetValueOrDefault(r.Key) ?? [];
+                var (main, wanted) = listed.GetValueOrDefault(r.Key, ([], []));
                 return new SeriesReading(
-                    ReadingStatuses.For(statuses[r.Key], main, r.Value),
+                    ReadingStatuses.For(statuses[r.Key], wanted, r.Value),
                     r.Value.Count(main.Contains),
                     main.Count);
             });

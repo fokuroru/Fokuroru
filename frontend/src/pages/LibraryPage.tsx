@@ -206,6 +206,7 @@ const DEFAULT_SPEC: LibraryFilterSpec = {
   fileSources: [],
   fileSourceMatch: 'any',
   qualityProfile: 'all',
+  readingStatus: 'all',
 }
 
 /** Quality profile filter value for series with no pin of their own. */
@@ -333,6 +334,7 @@ export default function LibraryPage() {
   const [fileSourceFilter, setFileSourceFilter] = usePageState<string[]>(`${MEM}:file-sources`, [])
   const [fileSourceMatch, setFileSourceMatch] = usePageState(`${MEM}:file-source-match`, 'any')
   const [qualityProfileFilter, setQualityProfileFilter] = usePageState(`${MEM}:quality-profile`, 'all')
+  const [readingStatusFilter, setReadingStatusFilter] = usePageState(`${MEM}:reading-status`, 'all')
   const [activeFilterId, setActiveFilterId] = usePageState<number | null>(`${MEM}:saved-filter`, null)
   const [saveFilterOpen, setSaveFilterOpen] = useState(false)
   const [filterName, setFilterName] = useState('')
@@ -396,6 +398,7 @@ export default function LibraryPage() {
           : String(s.upgradeProfileId) === qualityProfileFilter,
       )
     }
+    if (readingStatusFilter === 'upToDate') list = list.filter((s) => s.readingStatus === 'UpToDate')
     if (completeness !== 'all') {
       list = list.filter((s) => (completeness === 'behind' ? missingCount(s) > 0 : missingCount(s) <= 0))
     }
@@ -441,7 +444,7 @@ export default function LibraryPage() {
     series, debouncedQuery, statusFilter, typeFilter, tagFilter, tagMatch, genreFilter, genreMatch,
     metaTagFilter, metaTagMatch, monitoredFilter, completeness, readRange, sort, contentRatingFilter,
     sourceFilter, sourceMatch, sourceState, fileSourceFilter, fileSourceMatch,
-    chapterMin, chapterMax, chapterMode, qualityProfileFilter,
+    chapterMin, chapterMax, chapterMode, qualityProfileFilter, readingStatusFilter,
   ])
 
   const statusOptions = useMemo(() => {
@@ -537,6 +540,7 @@ export default function LibraryPage() {
     fileSources: fileSourceFilter,
     fileSourceMatch,
     qualityProfile: qualityProfileFilter,
+    readingStatus: readingStatusFilter,
   })
 
   const applySpec = (spec: LibraryFilterSpec, id: number | null) => {
@@ -567,6 +571,7 @@ export default function LibraryPage() {
     setFileSourceFilter(merged.fileSources ?? [])
     setFileSourceMatch(merged.fileSourceMatch)
     setQualityProfileFilter(merged.qualityProfile ?? 'all')
+    setReadingStatusFilter(merged.readingStatus ?? 'all')
     setSort(merged.sort)
     setActiveFilterId(id)
   }
@@ -586,7 +591,8 @@ export default function LibraryPage() {
     (sourceFilter.length > 0 ? 1 : 0) +
     (sourceState !== 'all' ? 1 : 0) +
     (fileSourceFilter.length > 0 ? 1 : 0) +
-    (qualityProfileFilter !== 'all' ? 1 : 0)
+    (qualityProfileFilter !== 'all' ? 1 : 0) +
+    (readingStatusFilter !== 'all' ? 1 : 0)
 
   const filtersActive = query.trim() !== '' || activeFilterCount > 0
 
@@ -1209,6 +1215,16 @@ export default function LibraryPage() {
             ]}
             value={qualityProfileFilter}
             onChange={(v) => setQualityProfileFilter(v ?? 'all')}
+            comboboxProps={{ withinPortal: true }}
+          />
+          <Select
+            label={t`Reading status`}
+            data={[
+              { value: 'all', label: t`Any` },
+              { value: 'upToDate', label: t`Up to date` },
+            ]}
+            value={readingStatusFilter}
+            onChange={(v) => setReadingStatusFilter(v ?? 'all')}
             comboboxProps={{ withinPortal: true }}
           />
           <Select

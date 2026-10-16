@@ -220,6 +220,8 @@ export interface LibraryFilterSpec {
   fileSourceMatch: string
   /** "all", "default" (no pin of its own), or a quality profile id as a string. Absent on older presets. */
   qualityProfile?: string
+  /** "all" | "upToDate". Absent on older presets. */
+  readingStatus?: string
 }
 
 export interface SavedFilterDto {

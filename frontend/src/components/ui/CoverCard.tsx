@@ -2,6 +2,7 @@ import { memo } from 'react'
 import {
   IconBellOff,
   IconCheck,
+  IconCircleCheck,
   IconClock,
   IconDownload,
   IconEye,
@@ -116,6 +117,18 @@ export const CoverCard = memo(function CoverCard({
                 style={{ '--ring-pct': `${readPct}%` } as React.CSSProperties}
               >
                 {readPct === 100 && <IconCheck size={14} stroke={2.2} className="cover-ring-check" />}
+              </span>
+            )}
+            {series.readingStatus === 'UpToDate' && (
+              <span
+                className="cover-state"
+                data-tone="status"
+                data-tip={t`Up to date: every wanted chapter read`}
+                role="img"
+                aria-label={t`Up to date`}
+                style={{ '--tone': 'var(--ok)' } as React.CSSProperties}
+              >
+                <IconCircleCheck size={13} stroke={2} />
               </span>
             )}
             {downloadTip && (
