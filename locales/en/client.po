@@ -2741,6 +2741,14 @@ msgstr "Bottom"
 msgid "Boys Love"
 msgstr "Boys Love"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Bring back"
+msgstr "Bring back"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Bring it back"
+msgstr "Bring it back"
+
 #. placeholder {0}: index + 1
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Bring zone {0} to the top of the list"
@@ -3430,6 +3438,10 @@ msgstr "Clearing cached images..."
 #: src/pages/SettingsPage.tsx
 msgid "Clears reader thumbnails and source-comparison samples, removes posters of deleted series, and re-downloads posters. Thumbnails regenerate the next time a chapter opens."
 msgstr "Clears reader thumbnails and source-comparison samples, removes posters of deleted series, and re-downloads posters. Thumbnails regenerate the next time a chapter opens."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgstr "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
 
 #: src/components/CatalogueRules.tsx
 msgid "Click a genre once to require it, twice to exclude it."
@@ -4436,6 +4448,10 @@ msgstr "Deleted the file for {0}"
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes all downloaded files, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
+msgstr "Deletes all downloaded files, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
+
 #. placeholder {0}: deleteFileChapter?.label
 #: src/pages/SeriesDetailPage.tsx
 msgid "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
@@ -5397,6 +5413,10 @@ msgstr "file on disk, not linked"
 msgid "Files"
 msgstr "Files"
 
+#: src/components/series/SeriesHero.tsx
+msgid "Files deleted, monitoring off, on hold on trackers"
+msgstr "Files deleted, monitoring off, on hold on trackers"
+
 #: src/pages/ActivityPage.tsx
 msgid "Files replaced by the automatic upgrader show up here."
 msgstr "Files replaced by the automatic upgrader show up here."
@@ -6064,6 +6084,10 @@ msgstr "Hide everywhere on Discover"
 #: src/pages/ActivityPage.tsx
 msgid "Hide replaced files"
 msgstr "Hide replaced files"
+
+#: src/pages/LibraryPage.tsx
+msgid "Hide retired"
+msgstr "Hide retired"
 
 #: src/components/SourceCompareModal.tsx
 msgid "Hide source names"
@@ -8969,6 +8993,10 @@ msgstr "Only needed for protected topics."
 msgid "Only notify services with this tag."
 msgstr "Only notify services with this tag."
 
+#: src/pages/LibraryPage.tsx
+msgid "Only retired"
+msgstr "Only retired"
+
 #: src/components/ContentRatingCards.tsx
 msgid "Only safe titles"
 msgstr "Only safe titles"
@@ -10357,6 +10385,10 @@ msgstr "Remove condition"
 msgid "Remove from Continue reading"
 msgstr "Remove from Continue reading"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Remove from Fōkurōru"
+msgstr "Remove from Fōkurōru"
+
 #: src/components/home/ReadingCardMenu.tsx
 msgid "Remove from Jump back in"
 msgstr "Remove from Jump back in"
@@ -10440,6 +10472,10 @@ msgstr "Removed from every profile that scores it. This can't be undone."
 #: src/components/discover/RecommendationFeedbackMenu.tsx
 msgid "Removed from recommendations. Only this title: its genres and author are unaffected."
 msgstr "Removed from recommendations. Only this title: its genres and author are unaffected."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Removes \"{seriesTitle}\" and its chapters. This cannot be undone."
+msgstr "Removes \"{seriesTitle}\" and its chapters. This cannot be undone."
 
 #: src/components/RenameSeriesModal.tsx
 msgid "Rename"
@@ -10714,6 +10750,19 @@ msgstr "Resume {seriesTitle}, {chapterLabel}"
 #: src/components/QueuePause.tsx
 msgid "Resume at"
 msgstr "Resume at"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Retire"
+msgstr "Retire"
+
+#: src/components/series/SeriesHero.tsx
+#: src/pages/LibraryPage.tsx
+msgid "Retired"
+msgstr "Retired"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Retired series"
+msgstr "Retired series"
 
 #: src/pages/ActivityPage.tsx
 msgid "Retried {retryCount}x"
@@ -11600,6 +11649,10 @@ msgstr "Series already in the destination root folder are skipped."
 msgid "Series and chapters you have asked an admin for."
 msgstr "Series and chapters you have asked an admin for."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Series brought back"
+msgstr "Series brought back"
+
 #: src/components/series/SeriesHero.tsx
 msgid "Series completion"
 msgstr "Series completion"
@@ -11662,6 +11715,10 @@ msgstr "Series pinned to this profile fall back to the instance default. This ca
 #: src/pages/SeriesDetailPage.tsx
 msgid "Series removed"
 msgstr "Series removed"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Series retired"
+msgstr "Series retired"
 
 #: src/components/home/homeSectionDefs.ts
 msgid "Series whose anime you finished, starting after the last adapted chapter."
@@ -11879,6 +11936,10 @@ msgstr "Show reading streaks"
 #: src/pages/ActivityPage.tsx
 msgid "Show replaced files"
 msgstr "Show replaced files"
+
+#: src/pages/LibraryPage.tsx
+msgid "Show retired"
+msgstr "Show retired"
 
 #: src/components/AnimeCoverageBar.tsx
 msgid "Show source text"
@@ -13001,7 +13062,6 @@ msgstr "This account has no password login for two-factor to protect."
 
 #: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
-#: src/pages/SeriesDetailPage.tsx
 msgid "This action cannot be undone."
 msgstr "This action cannot be undone."
 
@@ -13099,8 +13159,8 @@ msgid "This re-downloads the poster for all {seriesTotalLabel} series, one metad
 msgstr "This re-downloads the poster for all {seriesTotalLabel} series, one metadata lookup and one image each. On a large library it runs for several minutes. Use \"Rebuild missing\" instead if you are only fixing covers that fail to load."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
-msgstr "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
+#~ msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
+#~ msgstr "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
 
 #: src/components/SourceMappingsSection.tsx
 msgid "This removes only the source mapping. Existing chapter rows and files will stay exactly as they are and may need manual cleanup later."

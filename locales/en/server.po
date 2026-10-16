@@ -825,6 +825,10 @@ msgid "error.series.activeDownloadDelete"
 msgstr "Series has a download in progress. Wait for it to finish before deleting."
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+msgid "error.series.activeDownloadRetire"
+msgstr "Series has a download in progress. Wait for it to finish before retiring it."
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 msgid "error.series.activeDownloadMove"
 msgstr "Series has an active download - wait for it to finish before moving"
 
@@ -2544,6 +2548,15 @@ msgstr "Pushed chapter {chapter} as {status}"
 #: src/Maki.Api/Services/ScrobbleService.cs
 msgid "scrobble.log.pushedWithVolume"
 msgstr "Pushed volume {volume}, chapter {chapter} as {status}"
+
+#: src/Maki.Api/Services/ScrobbleService.cs
+msgid "scrobble.log.onHold"
+msgstr "Put on hold"
+
+#. {detail} is the tracker's own error text and is not translated.
+#: src/Maki.Api/Services/ScrobbleService.cs
+msgid "scrobble.log.onHoldFailed"
+msgstr "Could not put on hold: {detail}"
 
 #. {score} is out of ten, which is the scale every supported tracker stores.
 #: src/Maki.Api/Services/ScrobbleService.cs

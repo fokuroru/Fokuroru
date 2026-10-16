@@ -3265,6 +3265,14 @@ msgstr "Alt"
 msgid "Boys Love"
 msgstr "Boys Love"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Bring back"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Bring it back"
+msgstr ""
+
 #. placeholder {0}: index + 1
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Bring zone {0} to the top of the list"
@@ -4090,6 +4098,10 @@ msgstr "Önbelleğe alınan görüntüler temizleniyor..."
 #, fuzzy
 msgid "Clears reader thumbnails and source-comparison samples, removes posters of deleted series, and re-downloads posters. Thumbnails regenerate the next time a chapter opens."
 msgstr "Okuyucu küçük resimlerini ve kaynak karşılaştırma örneklerini temizler, silinen serilerin posterlerini kaldırır ve posterleri yeniden indirir. Küçük resimler bir bölüm açıldığında yeniden oluşturulur."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgstr ""
 
 #: src/components/CatalogueRules.tsx
 #, fuzzy
@@ -5258,6 +5270,10 @@ msgstr ""
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr ""
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes all downloaded files, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
+msgstr ""
+
 #. placeholder {0}: deleteFileChapter?.label
 #: src/pages/SeriesDetailPage.tsx
 msgid "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
@@ -6394,6 +6410,10 @@ msgstr "diskteki dosya, bağlı değil"
 msgid "Files"
 msgstr "Dosyalar"
 
+#: src/components/series/SeriesHero.tsx
+msgid "Files deleted, monitoring off, on hold on trackers"
+msgstr ""
+
 #: src/pages/ActivityPage.tsx
 msgid "Files replaced by the automatic upgrader show up here."
 msgstr ""
@@ -7187,6 +7207,10 @@ msgstr "Keşfet'te her yerde gizle"
 
 #: src/pages/ActivityPage.tsx
 msgid "Hide replaced files"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Hide retired"
 msgstr ""
 
 #: src/components/SourceCompareModal.tsx
@@ -10644,6 +10668,10 @@ msgstr "Yalnızca korumalı konular için gerekli."
 msgid "Only notify services with this tag."
 msgstr "Yalnızca bu etikete sahip hizmetlere bildirim gönder."
 
+#: src/pages/LibraryPage.tsx
+msgid "Only retired"
+msgstr ""
+
 #: src/components/ContentRatingCards.tsx
 #, fuzzy
 msgid "Only safe titles"
@@ -12270,6 +12298,10 @@ msgstr ""
 msgid "Remove from Continue reading"
 msgstr "Okumaya Devam Et bölümünden kaldır"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Remove from Fōkurōru"
+msgstr ""
+
 #: src/components/home/ReadingCardMenu.tsx
 #, fuzzy
 msgid "Remove from Jump back in"
@@ -12372,6 +12404,10 @@ msgstr ""
 #, fuzzy
 msgid "Removed from recommendations. Only this title: its genres and author are unaffected."
 msgstr "Önerilerden kaldırıldı. Yalnızca bu başlık etkilenir, türleri ve yazarı değişmez."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Removes \"{seriesTitle}\" and its chapters. This cannot be undone."
+msgstr ""
 
 #: src/components/RenameSeriesModal.tsx
 #, fuzzy
@@ -12697,6 +12733,19 @@ msgstr "{seriesTitle}, {chapterLabel} konumundan devam et"
 
 #: src/components/QueuePause.tsx
 msgid "Resume at"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Retire"
+msgstr ""
+
+#: src/components/series/SeriesHero.tsx
+#: src/pages/LibraryPage.tsx
+msgid "Retired"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Retired series"
 msgstr ""
 
 #: src/pages/ActivityPage.tsx
@@ -13736,6 +13785,10 @@ msgstr "Zaten hedef kök klasörde olan seriler atlanır."
 msgid "Series and chapters you have asked an admin for."
 msgstr "Bir yöneticiden istediğiniz seriler ve bölümler."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Series brought back"
+msgstr ""
+
 #: src/components/series/SeriesHero.tsx
 msgid "Series completion"
 msgstr ""
@@ -13806,6 +13859,10 @@ msgstr ""
 #, fuzzy
 msgid "Series removed"
 msgstr "Seri kaldırıldı"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Series retired"
+msgstr ""
 
 #: src/components/home/homeSectionDefs.ts
 #, fuzzy
@@ -14064,6 +14121,10 @@ msgstr "Okuma zincirlerini göster"
 
 #: src/pages/ActivityPage.tsx
 msgid "Show replaced files"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Show retired"
 msgstr ""
 
 #: src/components/AnimeCoverageBar.tsx
@@ -15390,7 +15451,6 @@ msgstr "Bu hesabın iki adımlı doğrulamanın koruyacağı bir parola girişi 
 
 #: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
-#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "This action cannot be undone."
 msgstr "Bu işlem geri alınamaz."
@@ -15505,8 +15565,8 @@ msgid "This re-downloads the poster for all {seriesTotalLabel} series, one metad
 msgstr "Bu, tüm {seriesTotalLabel} seri için posteri, her biri için bir meta veri araması ve bir görüntü olacak şekilde yeniden indirir. Büyük bir kitaplıkta birkaç dakika çalışır. Yalnızca yüklenemeyen kapakları düzeltiyorsanız bunun yerine \"Eksikleri yeniden oluştur\"u kullanın."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
-msgstr ""
+#~ msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
+#~ msgstr ""
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy

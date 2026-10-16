@@ -3265,6 +3265,14 @@ msgstr "아래"
 msgid "Boys Love"
 msgstr "보이즈 러브"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Bring back"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Bring it back"
+msgstr ""
+
 #. placeholder {0}: index + 1
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Bring zone {0} to the top of the list"
@@ -4090,6 +4098,10 @@ msgstr "캐시된 이미지 지우는 중..."
 #, fuzzy
 msgid "Clears reader thumbnails and source-comparison samples, removes posters of deleted series, and re-downloads posters. Thumbnails regenerate the next time a chapter opens."
 msgstr "리더 썸네일과 소스 비교 샘플을 지우고 삭제된 시리즈의 포스터를 제거한 뒤 포스터를 다시 다운로드합니다. 챕터를 열면 썸네일이 다시 생성됩니다."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgstr ""
 
 #: src/components/CatalogueRules.tsx
 #, fuzzy
@@ -5258,6 +5270,10 @@ msgstr ""
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr ""
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Deletes all downloaded files, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
+msgstr ""
+
 #. placeholder {0}: deleteFileChapter?.label
 #: src/pages/SeriesDetailPage.tsx
 msgid "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
@@ -6394,6 +6410,10 @@ msgstr "디스크에 있는 미연결 파일"
 msgid "Files"
 msgstr "파일"
 
+#: src/components/series/SeriesHero.tsx
+msgid "Files deleted, monitoring off, on hold on trackers"
+msgstr ""
+
 #: src/pages/ActivityPage.tsx
 msgid "Files replaced by the automatic upgrader show up here."
 msgstr ""
@@ -7187,6 +7207,10 @@ msgstr "탐색의 모든 곳에서 숨기기"
 
 #: src/pages/ActivityPage.tsx
 msgid "Hide replaced files"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Hide retired"
 msgstr ""
 
 #: src/components/SourceCompareModal.tsx
@@ -10644,6 +10668,10 @@ msgstr "보호된 주제에만 필요합니다."
 msgid "Only notify services with this tag."
 msgstr "이 태그가 있는 서비스에만 알립니다."
 
+#: src/pages/LibraryPage.tsx
+msgid "Only retired"
+msgstr ""
+
 #: src/components/ContentRatingCards.tsx
 #, fuzzy
 msgid "Only safe titles"
@@ -12270,6 +12298,10 @@ msgstr ""
 msgid "Remove from Continue reading"
 msgstr "계속 읽기에서 제거"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Remove from Fōkurōru"
+msgstr ""
+
 #: src/components/home/ReadingCardMenu.tsx
 #, fuzzy
 msgid "Remove from Jump back in"
@@ -12372,6 +12404,10 @@ msgstr ""
 #, fuzzy
 msgid "Removed from recommendations. Only this title: its genres and author are unaffected."
 msgstr "추천에서 제외되었습니다. 이 작품에만 적용되며, 장르와 작가는 영향받지 않습니다."
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Removes \"{seriesTitle}\" and its chapters. This cannot be undone."
+msgstr ""
 
 #: src/components/RenameSeriesModal.tsx
 #, fuzzy
@@ -12697,6 +12733,19 @@ msgstr "{seriesTitle} 이어 읽기, {chapterLabel}"
 
 #: src/components/QueuePause.tsx
 msgid "Resume at"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Retire"
+msgstr ""
+
+#: src/components/series/SeriesHero.tsx
+#: src/pages/LibraryPage.tsx
+msgid "Retired"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Retired series"
 msgstr ""
 
 #: src/pages/ActivityPage.tsx
@@ -13736,6 +13785,10 @@ msgstr "대상 루트 폴더에 이미 있는 시리즈는 건너뜁니다."
 msgid "Series and chapters you have asked an admin for."
 msgstr "관리자에게 요청한 시리즈와 챕터입니다."
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Series brought back"
+msgstr ""
+
 #: src/components/series/SeriesHero.tsx
 msgid "Series completion"
 msgstr ""
@@ -13806,6 +13859,10 @@ msgstr ""
 #, fuzzy
 msgid "Series removed"
 msgstr "시리즈 제거됨"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Series retired"
+msgstr ""
 
 #: src/components/home/homeSectionDefs.ts
 #, fuzzy
@@ -14064,6 +14121,10 @@ msgstr "읽기 연속 기록 표시"
 
 #: src/pages/ActivityPage.tsx
 msgid "Show replaced files"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Show retired"
 msgstr ""
 
 #: src/components/AnimeCoverageBar.tsx
@@ -15390,7 +15451,6 @@ msgstr "이 계정에는 2단계 인증으로 보호할 비밀번호 로그인�
 
 #: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
-#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "This action cannot be undone."
 msgstr "이 작업은 취소할 수 없습니다."
@@ -15505,8 +15565,8 @@ msgid "This re-downloads the poster for all {seriesTotalLabel} series, one metad
 msgstr "모든 {seriesTotalLabel}개 시리즈의 포스터를 다시 다운로드합니다. 시리즈마다 메타데이터 조회 한 번과 이미지 한 번이 필요합니다. 큰 라이브러리에서는 몇 분 동안 실행됩니다. 로드에 실패한 표지만 수정하려면 \"Rebuild missing\"을 대신 사용하세요."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
-msgstr ""
+#~ msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
+#~ msgstr ""
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
