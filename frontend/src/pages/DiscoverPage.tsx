@@ -408,8 +408,8 @@ function RecommendedTab() {
 
   const { data, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useRecommendations(applied, hydrated)
-  const related = data?.pages[0]?.related ?? []
-  const similar = data?.pages.flatMap((p) => p.similar) ?? []
+  const relatedAll = data?.pages[0]?.related ?? []
+  const similarAll = data?.pages.flatMap((p) => p.similar) ?? []
 
   const currentFilters = () => {
     const filters: RecommendationFilters = {}
@@ -542,16 +542,18 @@ function RecommendedTab() {
   }, [library])
   const seriesIdFor = (item: RecommendationItem) =>
     seriesIdByMangaBaka.get(Number(item.providerId)) ?? null
+  const related = relatedAll.filter((item) => seriesIdFor(item) == null)
+  const similar = similarAll.filter((item) => seriesIdFor(item) == null)
 
   const luckyItems = useMemo(() => {
     const seen = new Set<string>()
     const pages = data?.pages ?? []
     return [...(pages[0]?.related ?? []), ...pages.flatMap((p) => p.similar)].filter((item) => {
-      if (seen.has(item.providerId)) return false
+      if (seen.has(item.providerId) || seriesIdFor(item) != null) return false
       seen.add(item.providerId)
       return true
     })
-  }, [data])
+  }, [data, seriesIdByMangaBaka])
   const luckyPool = useMemo(
     () =>
       luckyItems.map((item) => ({
@@ -986,7 +988,8 @@ function FeedExpandModal({
   // the empty state. Keyed on isSuccess because `data` is undefined in both the loading and the
   // never-ran cases.
   const cohortItems = cohortQuery.isSuccess ? (cohortQuery.data?.items ?? []) : undefined
-  const items = personalised ? recItems : cohort ? cohortItems : feedQuery.data
+  const allItems = personalised ? recItems : cohort ? cohortItems : feedQuery.data
+  const items = allItems?.filter((item) => seriesIdFor(item) == null)
   const isFetching = personalised
     ? recQuery.isFetching
     : cohort

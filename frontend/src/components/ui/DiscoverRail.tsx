@@ -405,9 +405,11 @@ export function EngineRailRow({
   seriesIdFor: (item: RecommendationItem) => number | null
   onOpen: (item: RecommendationItem) => void
 }) {
+  const unowned = items.filter((item) => seriesIdFor(item) == null)
+  if (unowned.length === 0) return null
   return (
     <Rail engine>
-      {items.map((item) => (
+      {unowned.map((item) => (
         <div key={item.providerId} className="discover-rail-item">
           <EngineCard item={item} inLibrarySeriesId={seriesIdFor(item)} onOpen={onOpen} />
         </div>
@@ -434,9 +436,11 @@ export function DiscoverRailRow({
    */
   showReason?: boolean
 }) {
+  const unowned = items.filter((item) => seriesIdFor(item) == null)
+  if (unowned.length === 0) return null
   return (
     <Rail>
-      {items.map((item) => (
+      {unowned.map((item) => (
         <div key={item.providerId} className="discover-rail-item">
           <RecommendationCard
             item={item}
