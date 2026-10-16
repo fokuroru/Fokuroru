@@ -2901,6 +2901,18 @@ function SeriesDetailBody() {
                                               </Tooltip>
                                             </>
                                         )}
+                                        {!c.hasFile && can('EditMetadata') && (
+                                            <Tooltip label={read ? t`Mark unread` : t`Mark read`} withArrow>
+                                              <ActionIcon
+                                                  variant={read ? 'light' : 'subtle'}
+                                                  color={read ? 'var(--ok)' : 'gray'}
+                                                  onClick={() => applyReadState([c.id], read ? 'unread' : 'read', undefined, !read)}
+                                                  aria-label={t`Toggle read state of ${chapterLbl}`}
+                                              >
+                                                {!read ? <IconEye size={17} /> : <IconEyeOff size={17} />}
+                                              </ActionIcon>
+                                            </Tooltip>
+                                        )}
                                         {can('EditMetadata') && chapterNumber !== null && previousChapters(c).length > 0 && (
                                             <Tooltip label={t`Mark previous chapters as read`} withArrow>
                                               <ActionIcon
