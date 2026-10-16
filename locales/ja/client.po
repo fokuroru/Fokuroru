@@ -6083,6 +6083,10 @@ msgstr ""
 msgid "Every wanted chapter is already on disk"
 msgstr "必要な章はすべてディスク上にあります"
 
+#: src/components/series/SeriesHero.tsx
+msgid "Every wanted chapter read"
+msgstr ""
+
 #: src/components/settings/ProgressSection.tsx
 #, fuzzy
 msgid "Every week"
@@ -8713,6 +8717,10 @@ msgstr ""
 #, fuzzy
 msgid "Mapped to"
 msgstr "マッピング先"
+
+#: src/App.tsx
+msgid "Mark all as acknowledged"
+msgstr ""
 
 #: src/components/NotificationBell.tsx
 #: src/pages/NotificationsPage.tsx
@@ -11891,6 +11899,10 @@ msgstr "Kavitaから読書進捗を取得中…"
 #, fuzzy
 msgid "Reading stats need Kavita"
 msgstr "読書統計には Kavita が必要です"
+
+#: src/pages/LibraryPage.tsx
+msgid "Reading status"
+msgstr ""
 
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
@@ -16278,7 +16290,10 @@ msgstr "第{end}章まで"
 msgid "Up to ch. {end}"
 msgstr "第{end}章まで"
 
+#: src/components/series/SeriesHero.tsx
+#: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
+#: src/pages/LibraryPage.tsx
 msgid "Up to date"
 msgstr ""
 
@@ -16289,6 +16304,10 @@ msgstr "最新です。最終確認：{checkedAtLabel}"
 
 #: src/components/ui/CoverCard.tsx
 msgid "Up to date: every chapter out so far read"
+msgstr ""
+
+#: src/components/ui/CoverCard.tsx
+msgid "Up to date: every wanted chapter read"
 msgstr ""
 
 #: src/components/layout/SidebarFooter.tsx

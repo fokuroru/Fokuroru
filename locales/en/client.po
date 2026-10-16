@@ -5136,6 +5136,10 @@ msgstr "Every time"
 msgid "Every wanted chapter is already on disk"
 msgstr "Every wanted chapter is already on disk"
 
+#: src/components/series/SeriesHero.tsx
+msgid "Every wanted chapter read"
+msgstr "Every wanted chapter read"
+
 #: src/components/settings/ProgressSection.tsx
 msgid "Every week"
 msgstr "Every week"
@@ -7344,6 +7348,10 @@ msgstr "Manual priority"
 #: src/components/SeriesFilesSection.tsx
 msgid "Mapped to"
 msgstr "Mapped to"
+
+#: src/App.tsx
+msgid "Mark all as acknowledged"
+msgstr "Mark all as acknowledged"
 
 #: src/components/NotificationBell.tsx
 #: src/pages/NotificationsPage.tsx
@@ -10038,6 +10046,10 @@ msgstr "Reading progress from Kavita…"
 #: src/pages/stats/sections/TasteSection.tsx
 msgid "Reading stats need Kavita"
 msgstr "Reading stats need Kavita"
+
+#: src/pages/LibraryPage.tsx
+msgid "Reading status"
+msgstr "Reading status"
 
 #: src/components/RelinkFilesModal.tsx
 msgid "Reading the folder and every volume archive…"
@@ -13746,7 +13758,10 @@ msgstr "up to ch. {end}"
 msgid "Up to ch. {end}"
 msgstr "Up to ch. {end}"
 
+#: src/components/series/SeriesHero.tsx
+#: src/components/ui/CoverCard.tsx
 #: src/components/ui/SeriesRow.tsx
+#: src/pages/LibraryPage.tsx
 msgid "Up to date"
 msgstr "Up to date"
 
@@ -13757,6 +13772,10 @@ msgstr "Up to date, last checked {checkedAtLabel}"
 #: src/components/ui/CoverCard.tsx
 msgid "Up to date: every chapter out so far read"
 msgstr "Up to date: every chapter out so far read"
+
+#: src/components/ui/CoverCard.tsx
+msgid "Up to date: every wanted chapter read"
+msgstr "Up to date: every wanted chapter read"
 
 #: src/components/layout/SidebarFooter.tsx
 msgid "Update {latestVersion} available"
