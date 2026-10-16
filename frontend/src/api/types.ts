@@ -222,10 +222,12 @@ export interface LibraryFilterSpec {
   fileSourceMatch: string
   /** "all", "default" (no pin of its own), or a quality profile id as a string. Absent on older presets. */
   qualityProfile?: string
-  /** "all" | "upToDate". Absent on older presets. */
+  /** "all" | "upToDate" | "hideUpToDate". Absent on older presets. */
   readingStatus?: string
   /** "all" | "hide" | "only". Absent on older presets. */
   retired?: string
+  /** "all" | "hide" | "only": series with no chapter files on disk. Absent on older presets. */
+  noFiles?: string
 }
 
 export interface SavedFilterDto {

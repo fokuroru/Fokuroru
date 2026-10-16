@@ -6414,6 +6414,10 @@ msgstr "Файлы"
 msgid "Files deleted, monitoring off, on hold on trackers"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
+msgid "Files on disk"
+msgstr ""
+
 #: src/pages/ActivityPage.tsx
 msgid "Files replaced by the automatic upgrader show up here."
 msgstr ""
@@ -7213,6 +7217,10 @@ msgstr ""
 msgid "Hide retired"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
+msgid "Hide series with no files"
+msgstr ""
+
 #: src/components/SourceCompareModal.tsx
 #, fuzzy
 msgid "Hide source names"
@@ -7232,6 +7240,10 @@ msgstr "Скрыть это и всю франшизу"
 #, fuzzy
 msgid "Hide this title"
 msgstr "Скрыть это название"
+
+#: src/pages/LibraryPage.tsx
+msgid "Hide up to date"
+msgstr ""
 
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "High quality"
@@ -10676,6 +10688,10 @@ msgstr ""
 #, fuzzy
 msgid "Only safe titles"
 msgstr "Только безопасные названия"
+
+#: src/pages/LibraryPage.tsx
+msgid "Only series with no files"
+msgstr ""
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy

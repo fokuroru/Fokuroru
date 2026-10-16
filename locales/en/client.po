@@ -5417,6 +5417,10 @@ msgstr "Files"
 msgid "Files deleted, monitoring off, on hold on trackers"
 msgstr "Files deleted, monitoring off, on hold on trackers"
 
+#: src/pages/LibraryPage.tsx
+msgid "Files on disk"
+msgstr "Files on disk"
+
 #: src/pages/ActivityPage.tsx
 msgid "Files replaced by the automatic upgrader show up here."
 msgstr "Files replaced by the automatic upgrader show up here."
@@ -6089,6 +6093,10 @@ msgstr "Hide replaced files"
 msgid "Hide retired"
 msgstr "Hide retired"
 
+#: src/pages/LibraryPage.tsx
+msgid "Hide series with no files"
+msgstr "Hide series with no files"
+
 #: src/components/SourceCompareModal.tsx
 msgid "Hide source names"
 msgstr "Hide source names"
@@ -6104,6 +6112,10 @@ msgstr "Hide this and its franchise"
 #: src/components/discover/RecommendationFeedbackMenu.tsx
 msgid "Hide this title"
 msgstr "Hide this title"
+
+#: src/pages/LibraryPage.tsx
+msgid "Hide up to date"
+msgstr "Hide up to date"
 
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "High quality"
@@ -9000,6 +9012,10 @@ msgstr "Only retired"
 #: src/components/ContentRatingCards.tsx
 msgid "Only safe titles"
 msgstr "Only safe titles"
+
+#: src/pages/LibraryPage.tsx
+msgid "Only series with no files"
+msgstr "Only series with no files"
 
 #: src/pages/discover/TasteTab.tsx
 msgid "Only the built-in reader records it."
