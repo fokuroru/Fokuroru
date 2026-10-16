@@ -78,7 +78,13 @@ public record LibraryFilterSpec(
     /// </summary>
     string QualityProfile = "all",
     /// <summary><see cref="Maki.Core.Entities.SeriesTypes"/> values to include, empty for "any".</summary>
-    List<string>? Types = null);
+    List<string>? Types = null,
+    /// <summary>"all", "upToDate" or "hideUpToDate".</summary>
+    string ReadingStatus = "all",
+    /// <summary>"all", "hide" or "only" for retired series.</summary>
+    string Retired = "all",
+    /// <summary>"all", "hide" or "only" for series with no chapter files on disk.</summary>
+    string NoFiles = "all");
 
 public record SavedFilterDto(int Id, string Name, LibraryFilterSpec Spec, int SortOrder);
 

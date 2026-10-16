@@ -85,6 +85,19 @@ public class LibraryFiltersControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Create_round_trips_the_status_filters()
+    {
+        var spec = new LibraryFilterSpec(ReadingStatus: "hideUpToDate", Retired: "hide", NoFiles: "only");
+
+        await Controller().Create(new SaveFilterRequest("Active", spec), CancellationToken.None);
+        var listed = Body<IEnumerable<SavedFilterDto>>(await Controller().List(CancellationToken.None)).Single();
+
+        Assert.Equal("hideUpToDate", listed.Spec.ReadingStatus);
+        Assert.Equal("hide", listed.Spec.Retired);
+        Assert.Equal("only", listed.Spec.NoFiles);
+    }
+
+    [Fact]
     public async Task Create_round_trips_the_chapter_window()
     {
         var spec = new LibraryFilterSpec(ChapterMin: 1, ChapterMax: 20, ChapterMode: "total");
