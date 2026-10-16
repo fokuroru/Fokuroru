@@ -826,6 +826,68 @@ public class ScrobbleService(
         return status is { } st && !ReadingStatuses.Ended(st);
     }
 
+    private async Task<bool> IsRetiredAsync(int seriesId, CancellationToken ct)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<MakiDbContext>();
+        return await db.Series.IgnoreQueryFilters().AnyAsync(s => s.Id == seriesId && s.Retired, ct);
+    }
+
+    /// <summary>
+    /// Puts the series on hold on every tracker the user has connected, keeping the progress already
+    /// there. A series that is not on the list, or is finished there, is left alone. Failures are
+    /// logged per tracker and skipped. Returns the labels of the trackers that accepted it.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> PushOnHoldAsync(int userId, Series series, CancellationToken ct = default)
+    {
+        var held = new List<string>();
+        foreach (var tracker in await ActiveTrackersAsync(userId, ct))
+        {
+            if (!series.Incognito.AllowsTracker(tracker.Name) || !await SyncReadingEnabledAsync(userId, tracker.Name, ct))
+            {
+                continue;
+            }
+
+            var remoteId = tracker.Name switch
+            {
+                "mal" => series.MalId?.ToString(),
+                "anilist" => series.AniListId?.ToString(),
+                "mangabaka" => series.MangaBakaId?.ToString(),
+                "kitsu" => series.KitsuId?.ToString(),
+                _ => null,
+            };
+            if (string.IsNullOrEmpty(remoteId))
+            {
+                continue;
+            }
+
+            try
+            {
+                var entry = await tracker.GetEntryAsync(userId, remoteId, ct);
+                if (entry.Status is null or ScrobbleStatus.Completed)
+                {
+                    continue;
+                }
+
+                await tracker.UpdateAsync(userId, remoteId, entry.ProgressChapter, entry.ProgressVolume,
+                    ScrobbleStatus.OnHold, ct);
+                held.Add(tracker.Label);
+                await AddKeyedLogAsync(userId, "info", tracker.Name, series.Title, "scrobble.log.onHold", new { }, ct);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning("On-hold push failed for '{Title}' on {Service}: {Error}",
+                    series.Title, tracker.Name, e.Message);
+                await AddKeyedLogAsync(userId, "error", tracker.Name, series.Title,
+                    "scrobble.log.onHoldFailed", new { detail = e.Message }, ct);
+            }
+
+            await Task.Delay(PaceFor(tracker), ct);
+        }
+
+        return held;
+    }
+
     /// <summary>Forward-only update of one tracker. Returns true when a write happened.</summary>
     private async Task<bool> PushAsync(
         int userId, IScrobbleTracker tracker, string remoteId, PushTarget target,
@@ -833,6 +895,11 @@ public class ScrobbleService(
         bool completedLocally = false)
     {
         var title = target.Title;
+        if (target.SeriesId is int retiredId && await IsRetiredAsync(retiredId, ct))
+        {
+            return false;
+        }
+
         var entry = await tracker.GetEntryAsync(userId, remoteId, ct);
         var stillRunning = target.SeriesId is int sid && await StillRunningAsync(sid, ct);
         var plan = ScrobblePlanner.Decide(

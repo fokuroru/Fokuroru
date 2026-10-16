@@ -38,6 +38,7 @@ public class MangaBakaTracker(
         [ScrobbleStatus.Reading] = "reading",
         [ScrobbleStatus.Completed] = "completed",
         [ScrobbleStatus.PlanToRead] = "plan_to_read",
+        [ScrobbleStatus.OnHold] = "paused",
     };
 
     /// <summary>

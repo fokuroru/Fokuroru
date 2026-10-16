@@ -43,6 +43,7 @@ public class KitsuTracker(
         [ScrobbleStatus.Reading] = "current",
         [ScrobbleStatus.Completed] = "completed",
         [ScrobbleStatus.PlanToRead] = "planned",
+        [ScrobbleStatus.OnHold] = "on_hold",
     };
 
     /// <summary>

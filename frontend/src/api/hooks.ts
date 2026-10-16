@@ -1609,6 +1609,20 @@ export function useDeleteSeries() {
   })
 }
 
+export function useRetireSeries() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, retire }: { id: number; retire: boolean }) =>
+      api<{ retired: boolean; filesDeleted?: number; onHold?: string[] }>(`/series/${id}/${retire ? 'retire' : 'unretire'}`, { method: 'POST' }),
+    onSuccess: (_data, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: ['series'] })
+      void queryClient.invalidateQueries({ queryKey: ['series', id] })
+      void queryClient.invalidateQueries({ queryKey: ['chapters', id] })
+      for (const key of affectedKeys) void queryClient.invalidateQueries({ queryKey: [key] })
+    },
+  })
+}
+
 export function useChapters(seriesId: number) {
   return useQuery({
     queryKey: ['chapters', seriesId],

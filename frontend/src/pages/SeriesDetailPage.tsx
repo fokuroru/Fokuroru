@@ -71,6 +71,7 @@ import {
   useSourceMappings,
   useSources,
   useDeleteSeries,
+  useRetireSeries,
   useMoveSeries,
   useRefreshMetadata,
   useRefreshSeries,
@@ -431,6 +432,7 @@ function SeriesDetailBody() {
       [readStateFor],
   )
   const deleteSeries = useDeleteSeries()
+  const retireSeries = useRetireSeries()
   const refresh = useRefreshSeries()
   const refreshMetadata = useRefreshMetadata()
   const rescan = useRescanSeries()
@@ -564,6 +566,7 @@ function SeriesDetailBody() {
   const [deleteFileChapter, setDeleteFileChapter] = useState<{ id: number; label: string } | null>(null)
   const [deleteSeriesModalOpen, setDeleteSeriesModalOpen] = useState(false)
   const [deleteSeriesFiles, setDeleteSeriesFiles] = useState(false)
+  const [removeMode, setRemoveMode] = useState<'retire' | 'remove' | 'restore'>('retire')
 
   // Without DownloadChapters the two buttons that queue downloads become one that asks an admin to.
   const { can } = useAuth()
@@ -1787,7 +1790,10 @@ function SeriesDetailBody() {
                     searchingVolumes={runVolumeSearch.isPending}
                     onSearchVolumes={searchSeriesVolumes}
                     canRemove={can('DeleteSeries')}
-                    onRemove={() => setDeleteSeriesModalOpen(true)}
+                    onRemove={() => {
+                      setRemoveMode(series.retired ? 'restore' : 'retire')
+                      setDeleteSeriesModalOpen(true)
+                    }}
                 />
               </>
             }
@@ -3109,43 +3115,80 @@ function SeriesDetailBody() {
         <Modal
             opened={deleteSeriesModalOpen}
             onClose={() => setDeleteSeriesModalOpen(false)}
-            title={t`Remove series?`}
+            title={series.retired ? t`Retired series` : t`Remove series?`}
             centered
         >
           <Stack gap="md">
-            <Text size="sm" c="var(--ink-3)">
-              <Trans>This removes "{seriesTitle}" and its chapters from Fōkurōru.</Trans>
-            </Text>
-            <Checkbox
-                label={t`Also delete files on disk`}
-                checked={deleteSeriesFiles}
-                onChange={(e) => setDeleteSeriesFiles(e.currentTarget.checked)}
-            />
-            <Text size="sm" c="var(--danger)">
-              <Trans>This action cannot be undone.</Trans>
-            </Text>
+            <Radio.Group value={removeMode} onChange={(v) => setRemoveMode(v as 'retire' | 'remove' | 'restore')}>
+              <Stack gap="xs">
+                {series.retired ? (
+                    <Radio
+                        value="restore"
+                        label={t`Bring it back`}
+                        description={t`Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on.`}
+                    />
+                ) : (
+                    <Radio
+                        value="retire"
+                        label={t`Retire`}
+                        description={t`Deletes all downloaded files, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept.`}
+                    />
+                )}
+                <Radio
+                    value="remove"
+                    label={t`Remove from Fōkurōru`}
+                    description={t`Removes "${seriesTitle}" and its chapters. This cannot be undone.`}
+                />
+              </Stack>
+            </Radio.Group>
+            {removeMode === 'remove' && (
+                <Checkbox
+                    label={t`Also delete files on disk`}
+                    checked={deleteSeriesFiles}
+                    onChange={(e) => setDeleteSeriesFiles(e.currentTarget.checked)}
+                />
+            )}
             <Group justify="flex-end">
               <Button variant="default" onClick={() => setDeleteSeriesModalOpen(false)}>
                 <Trans>Cancel</Trans>
               </Button>
-              <Button
-                  color="var(--danger-fill)"
-                  leftSection={<IconTrash size={16} />}
-                  loading={deleteSeries.isPending}
-                  onClick={() =>
-                      deleteSeries.mutate(
-                          { id: series.id, deleteFiles: deleteSeriesFiles },
-                          {
-                            onSuccess: () => {
-                              notify.ok(staticT`Series removed`)
-                              navigate('/library')
-                            },
-                          },
-                      )
-                  }
-              >
-                <Trans>Remove</Trans>
-              </Button>
+              {removeMode === 'remove' ? (
+                  <Button
+                      color="var(--danger-fill)"
+                      leftSection={<IconTrash size={16} />}
+                      loading={deleteSeries.isPending}
+                      onClick={() =>
+                          deleteSeries.mutate(
+                              { id: series.id, deleteFiles: deleteSeriesFiles },
+                              {
+                                onSuccess: () => {
+                                  notify.ok(staticT`Series removed`)
+                                  navigate('/library')
+                                },
+                              },
+                          )
+                      }
+                  >
+                    <Trans>Remove</Trans>
+                  </Button>
+              ) : (
+                  <Button
+                      loading={retireSeries.isPending}
+                      onClick={() =>
+                          retireSeries.mutate(
+                              { id: series.id, retire: removeMode === 'retire' },
+                              {
+                                onSuccess: () => {
+                                  notify.ok(removeMode === 'retire' ? staticT`Series retired` : staticT`Series brought back`)
+                                  setDeleteSeriesModalOpen(false)
+                                },
+                              },
+                          )
+                      }
+                  >
+                    {removeMode === 'retire' ? <Trans>Retire</Trans> : <Trans>Bring back</Trans>}
+                  </Button>
+              )}
             </Group>
           </Stack>
         </Modal>

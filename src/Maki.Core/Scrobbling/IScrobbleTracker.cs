@@ -8,6 +8,8 @@ public enum ScrobbleStatus
     Reading,
     Completed,
     PlanToRead,
+    /// <summary>Set aside on purpose. Only ever pushed explicitly, never chosen by the planner.</summary>
+    OnHold,
     /// <summary>A user-set status we never stomp implicitly (paused, dropped, ...).</summary>
     Other,
 }

@@ -1634,6 +1634,9 @@ namespace Maki.Data.Migrations
                     b.Property<string>("Publisher")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("Retired")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RootFolderId")
                         .HasColumnType("INTEGER");
 

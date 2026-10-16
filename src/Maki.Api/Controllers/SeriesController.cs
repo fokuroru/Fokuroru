@@ -1126,6 +1126,79 @@ public class SeriesController(
         return NoContent();
     }
 
+    /// <summary>
+    /// Sets the series aside instead of removing it: every downloaded file goes from disk, monitoring
+    /// stops, queued downloads are cancelled, and the user's trackers get it as on hold. The row, its
+    /// chapters and the reading history stay.
+    /// </summary>
+    [Authorize(Policy = Policies.DeleteSeries)]
+    [HttpPost("{id:int}/retire")]
+    public async Task<IActionResult> Retire(int id, CancellationToken ct)
+    {
+        var series = await db.Series.Include(s => s.RootFolder).FirstOrDefaultAsync(s => s.Id == id, ct);
+        if (series is null)
+        {
+            return NotFound();
+        }
+
+        using var seriesLock = await SeriesLocks.SeriesAsync(id, ct);
+
+        if (await SeriesLocks.InFlight(db.DownloadQueue).AnyAsync(q => q.SeriesId == id, ct))
+        {
+            return this.Conflict(localizer, "error.series.activeDownloadRetire");
+        }
+
+        var diskPlan = series.RootFolder is null ? null : await PlanSeriesDiskDeleteAsync(series, true, ct);
+
+        var files = await db.ChapterFiles.Where(f => f.SeriesId == id).ToListAsync(ct);
+        var linked = await db.Chapters.Where(c => c.SeriesId == id && c.ChapterFileId != null).ToListAsync(ct);
+        foreach (var chapter in linked)
+        {
+            chapter.ChapterFileId = null;
+        }
+
+        foreach (var file in files)
+        {
+            archives.Invalidate(file.Id);
+        }
+
+        db.ChapterFiles.RemoveRange(files);
+        var waiting = await db.DownloadQueue
+            .Where(q => q.SeriesId == id && (q.Status == QueueStatus.Queued || q.Status == QueueStatus.RateLimited))
+            .ToListAsync(ct);
+        foreach (var item in waiting)
+        {
+            item.Status = QueueStatus.Cancelled;
+        }
+
+        series.Retired = true;
+        series.MonitorNewItems = NewChapterMonitorMode.None;
+        await db.SaveChangesAsync(ct);
+        if (diskPlan is not null)
+        {
+            DeleteSeriesFromDisk(diskPlan, id);
+        }
+
+        var trackers = await scrobbler.PushOnHoldAsync(currentUser.UserId, series, ct);
+        return Ok(new { retired = true, filesDeleted = files.Count, onHold = trackers });
+    }
+
+    /// <summary>Brings a retired series back. Files are not restored and monitoring stays off until the user turns it on.</summary>
+    [Authorize(Policy = Policies.DeleteSeries)]
+    [HttpPost("{id:int}/unretire")]
+    public async Task<IActionResult> Unretire(int id, CancellationToken ct)
+    {
+        var series = await db.Series.FindAsync([id], ct);
+        if (series is null)
+        {
+            return NotFound();
+        }
+
+        series.Retired = false;
+        await db.SaveChangesAsync(ct);
+        return Ok(new { retired = false });
+    }
+
     /// <param name="Folder">The series' own folder, when it resolves without passing a link.</param>
     /// <param name="RemoveFolderWhole">Delete <paramref name="Folder"/> recursively.</param>
     /// <param name="Files">Single files to delete, for folders the series does not own outright.</param>

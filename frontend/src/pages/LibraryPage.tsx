@@ -207,6 +207,7 @@ const DEFAULT_SPEC: LibraryFilterSpec = {
   fileSourceMatch: 'any',
   qualityProfile: 'all',
   readingStatus: 'all',
+  retired: 'all',
 }
 
 /** Quality profile filter value for series with no pin of their own. */
@@ -335,6 +336,7 @@ export default function LibraryPage() {
   const [fileSourceMatch, setFileSourceMatch] = usePageState(`${MEM}:file-source-match`, 'any')
   const [qualityProfileFilter, setQualityProfileFilter] = usePageState(`${MEM}:quality-profile`, 'all')
   const [readingStatusFilter, setReadingStatusFilter] = usePageState(`${MEM}:reading-status`, 'all')
+  const [retiredFilter, setRetiredFilter] = usePageState(`${MEM}:retired`, 'all')
   const [activeFilterId, setActiveFilterId] = usePageState<number | null>(`${MEM}:saved-filter`, null)
   const [saveFilterOpen, setSaveFilterOpen] = useState(false)
   const [filterName, setFilterName] = useState('')
@@ -398,6 +400,8 @@ export default function LibraryPage() {
           : String(s.upgradeProfileId) === qualityProfileFilter,
       )
     }
+    if (retiredFilter === 'hide') list = list.filter((s) => !s.retired)
+    if (retiredFilter === 'only') list = list.filter((s) => s.retired)
     if (readingStatusFilter === 'upToDate') list = list.filter((s) => s.readingStatus === 'UpToDate')
     if (completeness !== 'all') {
       list = list.filter((s) => (completeness === 'behind' ? missingCount(s) > 0 : missingCount(s) <= 0))
@@ -444,7 +448,7 @@ export default function LibraryPage() {
     series, debouncedQuery, statusFilter, typeFilter, tagFilter, tagMatch, genreFilter, genreMatch,
     metaTagFilter, metaTagMatch, monitoredFilter, completeness, readRange, sort, contentRatingFilter,
     sourceFilter, sourceMatch, sourceState, fileSourceFilter, fileSourceMatch,
-    chapterMin, chapterMax, chapterMode, qualityProfileFilter, readingStatusFilter,
+    chapterMin, chapterMax, chapterMode, qualityProfileFilter, readingStatusFilter, retiredFilter,
   ])
 
   const statusOptions = useMemo(() => {
@@ -541,6 +545,7 @@ export default function LibraryPage() {
     fileSourceMatch,
     qualityProfile: qualityProfileFilter,
     readingStatus: readingStatusFilter,
+    retired: retiredFilter,
   })
 
   const applySpec = (spec: LibraryFilterSpec, id: number | null) => {
@@ -572,6 +577,7 @@ export default function LibraryPage() {
     setFileSourceMatch(merged.fileSourceMatch)
     setQualityProfileFilter(merged.qualityProfile ?? 'all')
     setReadingStatusFilter(merged.readingStatus ?? 'all')
+    setRetiredFilter(merged.retired ?? 'all')
     setSort(merged.sort)
     setActiveFilterId(id)
   }
@@ -592,7 +598,8 @@ export default function LibraryPage() {
     (sourceState !== 'all' ? 1 : 0) +
     (fileSourceFilter.length > 0 ? 1 : 0) +
     (qualityProfileFilter !== 'all' ? 1 : 0) +
-    (readingStatusFilter !== 'all' ? 1 : 0)
+    (readingStatusFilter !== 'all' ? 1 : 0) +
+    (retiredFilter !== 'all' ? 1 : 0)
 
   const filtersActive = query.trim() !== '' || activeFilterCount > 0
 
@@ -1215,6 +1222,17 @@ export default function LibraryPage() {
             ]}
             value={qualityProfileFilter}
             onChange={(v) => setQualityProfileFilter(v ?? 'all')}
+            comboboxProps={{ withinPortal: true }}
+          />
+          <Select
+            label={t`Retired`}
+            data={[
+              { value: 'all', label: t`Show retired` },
+              { value: 'hide', label: t`Hide retired` },
+              { value: 'only', label: t`Only retired` },
+            ]}
+            value={retiredFilter}
+            onChange={(v) => setRetiredFilter(v ?? 'all')}
             comboboxProps={{ withinPortal: true }}
           />
           <Select

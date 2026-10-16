@@ -14,7 +14,7 @@ import {
     Title,
     Tooltip
 } from '@mantine/core'
-import {IconAlertTriangle, IconArrowLeft, IconBook, IconCircleCheck, IconDownload, IconX} from '@tabler/icons-react'
+import {IconAlertTriangle, IconArrowLeft, IconArchive, IconBook, IconCircleCheck, IconDownload, IconX} from '@tabler/icons-react'
 import { Link } from 'react-router-dom'
 import { otherTitles, readableTitles } from '../../api/titles'
 import type { SeriesDto } from '../../api/types'
@@ -245,6 +245,15 @@ export function SeriesHero({
                   <status.Icon size={14} />
                     {label(status.label)}
                 </span>
+
+                                    {series.retired && (
+                                        <Tooltip label={t`Files deleted, monitoring off, on hold on trackers`} withArrow>
+                    <span className="series-hero-status" data-quiet>
+                      <IconArchive size={14} />
+                        <Trans>Retired</Trans>
+                    </span>
+                                        </Tooltip>
+                                    )}
 
                                     {series.readingStatus === 'UpToDate' && (
                                         <Tooltip label={t`Every wanted chapter read`} withArrow>

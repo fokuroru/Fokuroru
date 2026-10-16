@@ -114,6 +114,8 @@ export interface SeriesDto {
    * still coming out, `Completed` only once it has ended or is on hiatus. Null if nothing read.
    */
   readingStatus?: 'Reading' | 'UpToDate' | 'Completed' | null
+  /** Set aside: files deleted, monitoring off, on hold on the trackers. */
+  retired?: boolean
   /** When you last read any chapter of it, ISO. Null if never. */
   lastReadAt?: string | null
   /**
@@ -222,6 +224,8 @@ export interface LibraryFilterSpec {
   qualityProfile?: string
   /** "all" | "upToDate". Absent on older presets. */
   readingStatus?: string
+  /** "all" | "hide" | "only". Absent on older presets. */
+  retired?: string
 }
 
 export interface SavedFilterDto {

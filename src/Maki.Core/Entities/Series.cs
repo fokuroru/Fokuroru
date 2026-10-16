@@ -123,6 +123,13 @@ public class Series
     public bool SourceMatchPending { get; set; }
 
     /// <summary>
+    /// Set aside on purpose: files deleted from disk, monitoring off, and put on hold on the
+    /// trackers. The row, its chapters and the reading history stay, so the series can be brought
+    /// back with nothing lost but the files.
+    /// </summary>
+    public bool Retired { get; set; }
+
+    /// <summary>
     /// <see cref="IncognitoMode.ScrobbleOnly"/> excludes this series from scrobbling. <see
     /// cref="IncognitoMode.Full"/> also excludes it from Rewind/reading-history <c>StatsEvent</c>s.
     /// Gated at write time (<c>StatsEventService</c>, <c>ReadingProgressService</c>,

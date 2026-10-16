@@ -207,6 +207,8 @@ public record SeriesDto(
     /// <summary>The series' pending torrent volume proposal, filled only by the detail endpoint.</summary>
     public int? PendingProposalId { get; init; }
 
+    public bool Retired { get; init; }
+
     /// <summary>
     /// Where the UI fetches a series' poster. That route is one of the two API-key middleware
     /// carve-outs, so a plain <c>&lt;img src&gt;</c> loads it without a header.
@@ -292,6 +294,7 @@ public record SeriesDto(
         s.SpineColor)
     {
         UpgradeProfileId = s.UpgradeProfileId,
+        Retired = s.Retired,
         LastUpgradeScan = s.LastUpgradeScanUtc is { } at
             ? new LastUpgradeScanDto(at, s.LastUpgradeScanProbed ?? 0, s.LastUpgradeScanQueued ?? 0,
                 s.LastUpgradeScanChecked, LastUpgradeScanDto.ParseSkips(s.LastUpgradeScanSkipsJson))

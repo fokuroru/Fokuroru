@@ -38,6 +38,7 @@ public class MalTracker(
         [ScrobbleStatus.Reading] = "reading",
         [ScrobbleStatus.Completed] = "completed",
         [ScrobbleStatus.PlanToRead] = "plan_to_read",
+        [ScrobbleStatus.OnHold] = "on_hold",
     };
 
     public async Task<bool> ConfiguredAsync(CancellationToken ct = default) =>

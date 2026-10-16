@@ -38,6 +38,7 @@ public class AniListTracker(
         [ScrobbleStatus.Reading] = "CURRENT",
         [ScrobbleStatus.Completed] = "COMPLETED",
         [ScrobbleStatus.PlanToRead] = "PLANNING",
+        [ScrobbleStatus.OnHold] = "PAUSED",
     };
 
     public async Task<bool> ConfiguredAsync(CancellationToken ct = default) =>
