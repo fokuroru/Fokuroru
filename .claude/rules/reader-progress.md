@@ -20,6 +20,7 @@ paths:
   - "src/Maki.Api/Services/SeriesReading*.cs"
   - "src/Maki.Core/Entities/ReadingStatus.cs"
   - "frontend/src/components/library/SpineShelf.tsx"
+  - "src/Maki.Core/Mihon/**"
 ---
 
 # Reader and reading progress
