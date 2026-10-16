@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import {
   Badge,
   Button,
@@ -7,6 +7,7 @@ import {
   Image,
   Modal,
   Progress,
+  SegmentedControl,
   Select,
   Stack,
   Switch,
@@ -19,19 +20,19 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { msg, plural } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { useMutation } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { useLibrarySettings, useRootFolders } from '../api/hooks'
+import { useLibrarySettings, useMetadataSettings, useRootFolders } from '../api/hooks'
+import { IMPORT_BATCH_SIZE } from '../api/libraryImport'
 import { useHubEvent } from '../api/signalr'
 import { useLabel } from '../i18n-context'
 import { randomUUID } from '../lib/uuid'
 import type { MetadataSearchResult } from '../api/types'
+import { MihonImport } from '../components/import/MihonImport'
 import { EmptyState } from '../components/ui/EmptyState'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Panel } from '../components/ui/Panel'
 import { SurfaceFrame } from '../components/ui/SurfaceFrame'
-
-/** Must not exceed LibraryImportController.MaxItemsPerRequest. */
-const IMPORT_BATCH_SIZE = 50
 
 /**
  * Words the import stage keys the server sends (`Maki.Api.Services.ImportStage`). The broadcast
@@ -93,7 +94,53 @@ interface ImportProgressEvent {
   operationId?: string | null
 }
 
+const MIHON_MODE = 'mihon'
+
+/**
+ * The Mihon tab needs the local MangaBaka dump (matching reads it), so it follows the same gate
+ * as Discover. The chosen tab lives in `?mode=` so a refresh keeps it.
+ */
 export default function ImportPage() {
+  const { t } = useLingui()
+  const { data: metadata } = useMetadataSettings()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const mihonAvailable = Boolean(metadata?.useLocalDb && metadata?.dumpPresent)
+  const mihonMode = mihonAvailable && searchParams.get('mode') === MIHON_MODE
+
+  const modeSwitch = mihonAvailable ? (
+    <SegmentedControl
+      mb="lg"
+      value={mihonMode ? MIHON_MODE : 'folders'}
+      onChange={(v) => {
+        const next = new URLSearchParams(searchParams)
+        if (v === MIHON_MODE) next.set('mode', MIHON_MODE)
+        else next.delete('mode')
+        setSearchParams(next, { replace: true })
+      }}
+      data={[
+        { value: 'folders', label: t`Folders` },
+        { value: MIHON_MODE, label: t`Mihon backup` },
+      ]}
+    />
+  ) : null
+
+  if (mihonMode) {
+    return (
+      <SurfaceFrame className="import-surface" pageStyle="operational">
+        <PageHeader
+          compact
+          title={t`Import a Mihon backup`}
+          description={t`Adds the manga in your Mihon library to Maki. Each one is matched to MangaBaka, its categories can become tags, and chapters you have read can be marked as read.`}
+        />
+        {modeSwitch}
+        <MihonImport />
+      </SurfaceFrame>
+    )
+  }
+  return <FolderImport modeSwitch={modeSwitch} />
+}
+
+function FolderImport({ modeSwitch }: { modeSwitch: ReactNode }) {
   const { t } = useLingui()
   const label = useLabel()
   const { data: rootFolders } = useRootFolders()
@@ -235,6 +282,7 @@ export default function ImportPage() {
         title={t`Import library`}
         description={t`Scans a root folder for series Fōkurōru doesn't know yet, matches them to metadata, renames each folder to the English title, and links existing comic files to chapters. Files keep their original names; a PDF is kept as it is, never converted.`}
       />
+      {modeSwitch}
 
       <div className="import-workspace">
         <ol className="import-step-rail" aria-label={t`Import progress`}>
