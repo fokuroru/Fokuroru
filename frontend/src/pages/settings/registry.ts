@@ -367,7 +367,7 @@ export const SETTINGS_ENTRIES: SettingsEntry[] = [
     title: msg`Scrobbling`,
     permission: 'UseTrackers',
     keywords: msg({
-      message: `anilist, myanimelist, mal, mangabaka, kitsu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries`,
+      message: `anilist, myanimelist, mal, mangabaka, kitsu, mangaupdates, mu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries`,
       comment: `Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.`,
     }),
   },
@@ -377,7 +377,7 @@ export const SETTINGS_ENTRIES: SettingsEntry[] = [
     title: msg`Import lists`,
     permission: 'UseTrackers',
     keywords: msg({
-      message: `import list, anilist, mal, kitsu, tracker, auto add`,
+      message: `import list, anilist, mal, kitsu, mangaupdates, mu, tracker, auto add`,
       comment: `Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.`,
     }),
   },

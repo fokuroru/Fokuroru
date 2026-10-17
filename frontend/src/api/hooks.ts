@@ -3782,6 +3782,10 @@ export interface ScrobbleSettings {
   kitsuClientSecret: string | null
   kitsuEmail: string | null
   kitsuPassword: string | null
+  mangaUpdatesUsername: string | null
+  mangaUpdatesPassword: string | null
+  /** The server never echoes the password back; this says whether one is stored. */
+  mangaUpdatesPasswordSet: boolean
   intervalMinutes: number
   planToRead: boolean
   libraryIds: string | null

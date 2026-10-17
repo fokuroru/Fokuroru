@@ -163,7 +163,7 @@ function UnmatchedCard({ item }: { item: ScrobbleUnmatchedItem }) {
         <TextInput
           size="xs"
           style={{ flex: '1 1 12rem' }}
-          placeholder={t`Paste series URL or numeric id…`}
+          placeholder={t`Paste series URL or id…`}
           value={input}
           onChange={(e) => setInput(e.currentTarget.value)}
           onKeyDown={(e) => e.key === 'Enter' && assign(input)}

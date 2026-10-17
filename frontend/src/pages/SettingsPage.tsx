@@ -2269,6 +2269,31 @@ function ScrobbleSection() {
         </Group>
         <TrackerSyncControls service="kitsu" label="Kitsu" connection={conn('kitsu')} />
 
+        <Text size="sm" fw={600} mt="xs">
+          MangaUpdates
+        </Text>
+        <Group grow>
+          <TextInput
+            label={t`Username`}
+            autoComplete="off"
+            value={form?.mangaUpdatesUsername ?? ''}
+            onChange={(e) => set({ mangaUpdatesUsername: e.currentTarget.value })}
+          />
+          <TextInput
+            label={t`Password`}
+            type="password"
+            autoComplete="new-password"
+            placeholder={form?.mangaUpdatesPasswordSet ? t`Saved` : undefined}
+            value={form?.mangaUpdatesPassword ?? ''}
+            onChange={(e) => set({ mangaUpdatesPassword: e.currentTarget.value })}
+          />
+        </Group>
+        <TrackerSyncControls
+          service="mangaupdates"
+          label="MangaUpdates"
+          connection={conn('mangaupdates')}
+        />
+
         {isAdmin && (
           <Group grow mt="xs" align="flex-start">
             <NumberInput
