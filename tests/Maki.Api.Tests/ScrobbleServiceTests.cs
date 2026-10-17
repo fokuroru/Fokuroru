@@ -33,6 +33,7 @@ public class ScrobbleServiceTests
             mal: null!,
             mangaBaka: null!,
             kitsu: null!,
+            mangaUpdates: null!,
             logger: NullLogger<ScrobbleService>.Instance);
 
     /// <summary>
@@ -62,6 +63,8 @@ public class ScrobbleServiceTests
             mangaBaka: mangaBaka,
             kitsu: new KitsuTracker(
                 noopHttp, appSettings, userSettings, tokens, options, NullLogger<KitsuTracker>.Instance),
+            mangaUpdates: new MangaUpdatesTracker(
+                noopHttp, userSettings, tokens, options, NullLogger<MangaUpdatesTracker>.Instance),
             logger: NullLogger<ScrobbleService>.Instance);
     }
 
@@ -488,8 +491,9 @@ public class ScrobbleServiceTests
     {
         public List<(string RemoteId, int Chapter, int Volume, ScrobbleStatus Status)> Pushes { get; } = [];
         public RemoteEntry Entry { get; init; } = new();
+        public string TrackerName { get; init; } = "mangabaka";
 
-        public string Name => "mangabaka";
+        public string Name => TrackerName;
         public string Label => "MangaBaka";
         public bool UsesOAuth => false;
 

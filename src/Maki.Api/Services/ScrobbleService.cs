@@ -32,6 +32,7 @@ public class ScrobbleService(
     MalTracker mal,
     MangaBakaTracker mangaBaka,
     KitsuTracker kitsu,
+    MangaUpdatesTracker mangaUpdates,
     ILogger<ScrobbleService> logger)
 {
     public const int DefaultIntervalMinutes = 30;
@@ -45,7 +46,7 @@ public class ScrobbleService(
     private static TimeSpan PaceFor(IScrobbleTracker tracker) =>
         tracker is AniListTracker ? AniListPace : Pace;
 
-    private readonly IScrobbleTracker[] _trackers = [anilist, mal, mangaBaka, kitsu];
+    private readonly IScrobbleTracker[] _trackers = [anilist, mal, mangaBaka, kitsu, mangaUpdates];
     private readonly SemaphoreSlim _syncLock = new(1, 1);
     private (DateTime CheckedAt, bool Ok)? _kavitaPing;
 
@@ -70,6 +71,7 @@ public class ScrobbleService(
     public MalTracker Mal => mal;
     public MangaBakaTracker MangaBaka => mangaBaka;
     public KitsuTracker Kitsu => kitsu;
+    public MangaUpdatesTracker MangaUpdates => mangaUpdates;
     public IReadOnlyList<IScrobbleTracker> Trackers => _trackers;
 
     public IScrobbleTracker? FindTracker(string service) =>
@@ -203,7 +205,7 @@ public class ScrobbleService(
 
     /// <summary>
     /// Users who hold at least one tracker token, plus every user with per-user tracker credentials
-    /// that are exchanged lazily rather than stored (Kitsu's password grant, MangaBaka's PAT). One
+    /// that are exchanged lazily rather than stored (Kitsu's and MangaUpdates' password logins, MangaBaka's PAT). One
     /// query over the token table and one over the settings table, not a probe per user per tracker.
     /// </summary>
     private async Task<List<int>> ConnectedUserIdsAsync(CancellationToken ct)
@@ -212,7 +214,11 @@ public class ScrobbleService(
         var db = scope.ServiceProvider.GetRequiredService<MakiDbContext>();
 
         var fromTokens = await db.ScrobbleTokens.Select(t => t.UserId).Distinct().ToListAsync(ct);
-        var lazyKeys = new[] { SettingKeys.ScrobbleMangaBakaToken, SettingKeys.ScrobbleKitsuEmail };
+        var lazyKeys = new[]
+        {
+            SettingKeys.ScrobbleMangaBakaToken, SettingKeys.ScrobbleKitsuEmail,
+            SettingKeys.ScrobbleMangaUpdatesUsername,
+        };
         var fromSettings = await db.UserSettings
             .Where(x => lazyKeys.Contains(x.Key) && x.Value.Length > 0)
             .Select(x => x.UserId)
@@ -648,7 +654,7 @@ public class ScrobbleService(
     /// otherwise every row with progress is fair game here, adopted or not.
     /// </para>
     /// <para>
-    /// Remote ids come straight off the series' own MangaBaka/AniList/MAL/Kitsu columns, the same
+    /// Remote ids come straight off the series' own MangaBaka/AniList/MAL/Kitsu/MangaUpdates columns, the same
     /// resolution <see cref="PushRatingAsync"/> uses. There is deliberately no title-search
     /// fallback and no unmatched-review queue here: a series without cross-ids simply isn't
     /// pushed, and the user fixes that through the existing metadata match UI, which is where
@@ -676,7 +682,7 @@ public class ScrobbleService(
                 .Where(x => x.s.Incognito == IncognitoMode.Off || x.s.Incognito == IncognitoMode.MangaBakaOnly)
                 .Select(x => new NativeProgress(
                     x.s.Id, x.s.Title, x.r.MaxChapter, x.r.MaxVolume,
-                    x.s.MalId, x.s.AniListId, x.s.MangaBakaId, x.s.KitsuId, x.s.Incognito))
+                    x.s.MalId, x.s.AniListId, x.s.MangaBakaId, x.s.KitsuId, x.s.MangaUpdatesId, x.s.Incognito))
                 .ToListAsync(ct);
 
             // Series a tracker has never heard of yet — no ReadingState row at all, or one still at
@@ -694,9 +700,10 @@ public class ScrobbleService(
 
             zeroProgress = await db.Series
                 .Where(s => (s.Incognito == IncognitoMode.Off || s.Incognito == IncognitoMode.MangaBakaOnly) &&
-                    (s.MalId != null || s.AniListId != null || s.MangaBakaId != null || s.KitsuId != null))
+                    (s.MalId != null || s.AniListId != null || s.MangaBakaId != null || s.KitsuId != null ||
+                        s.MangaUpdatesId != null))
                 .Select(s => new NativeProgress(
-                    s.Id, s.Title, 0, 0, s.MalId, s.AniListId, s.MangaBakaId, s.KitsuId, s.Incognito))
+                    s.Id, s.Title, 0, 0, s.MalId, s.AniListId, s.MangaBakaId, s.KitsuId, s.MangaUpdatesId, s.Incognito))
                 .ToListAsync(ct);
             zeroProgress = zeroProgress
                 .Where(s => !trackedSeriesIds.Contains(s.SeriesId) && !kavitaTrackedSeriesIds.Contains(s.SeriesId))
@@ -763,6 +770,7 @@ public class ScrobbleService(
                 "anilist" => row.AniListId?.ToString(),
                 "mangabaka" => row.MangaBakaId?.ToString(),
                 "kitsu" => row.KitsuId?.ToString(),
+                "mangaupdates" => row.MangaUpdatesId,
                 _ => null,
             };
             if (string.IsNullOrEmpty(remoteId))
@@ -803,7 +811,8 @@ public class ScrobbleService(
 
     private sealed record NativeProgress(
         int SeriesId, string Title, double MaxChapter, double MaxVolume,
-        int? MalId, int? AniListId, int? MangaBakaId, int? KitsuId, IncognitoMode Incognito);
+        int? MalId, int? AniListId, int? MangaBakaId, int? KitsuId, string? MangaUpdatesId,
+        IncognitoMode Incognito);
 
     /// <summary>
     /// Where a push records its result. A Kavita-driven push writes the Kavita-keyed
@@ -965,6 +974,7 @@ public class ScrobbleService(
             AniListId = series.AniListId,
             MangaBakaId = series.MangaBakaId,
             KitsuId = series.KitsuId,
+            MangaUpdatesId = series.MangaUpdatesId,
             Incognito = series.Incognito,
         };
         _ = Task.Run(async () =>
@@ -1004,6 +1014,7 @@ public class ScrobbleService(
                 "anilist" => series.AniListId?.ToString(),
                 "mangabaka" => series.MangaBakaId?.ToString(),
                 "kitsu" => series.KitsuId?.ToString(),
+                "mangaupdates" => series.MangaUpdatesId,
                 _ => null,
             };
             if (string.IsNullOrEmpty(remoteId))
@@ -1177,6 +1188,7 @@ public class ScrobbleService(
                 s.AniListId,
                 s.MangaBakaId,
                 s.KitsuId,
+                s.MangaUpdatesId,
             })
             .ToListAsync(ct);
 
@@ -1187,6 +1199,7 @@ public class ScrobbleService(
                 "anilist" => s.AniListId?.ToString(),
                 "mangabaka" => s.MangaBakaId?.ToString(),
                 "kitsu" => s.KitsuId?.ToString(),
+                "mangaupdates" => s.MangaUpdatesId,
                 _ => null,
             }))
             .Where(x => !string.IsNullOrEmpty(x.RemoteId))
@@ -1198,7 +1211,8 @@ public class ScrobbleService(
 
     /// <summary>Cross-ids of one Maki library series, keyed for Kavita-name lookup.</summary>
     internal sealed record LibraryIds(
-        int Id, int? MangaBakaId, int? AniListId, int? MalId, int? KitsuId, IncognitoMode Incognito);
+        int Id, int? MangaBakaId, int? AniListId, int? MalId, int? KitsuId, string? MangaUpdatesId,
+        IncognitoMode Incognito);
 
     /// <summary>Looks up a user's root-folder grant, for callers that need <see cref="DataScope.SetUser"/>
     /// outside a request (background tick, no <see cref="Maki.Core.Security.ICurrentUser"/> to read).</summary>
@@ -1228,7 +1242,8 @@ public class ScrobbleService(
         var rows = await db.Series.AsNoTracking()
             .Select(s => new
             {
-                s.Id, s.Title, s.FolderName, s.MangaBakaId, s.AniListId, s.MalId, s.KitsuId, s.Incognito
+                s.Id, s.Title, s.FolderName, s.MangaBakaId, s.AniListId, s.MalId, s.KitsuId, s.MangaUpdatesId,
+                s.Incognito
             })
             .ToListAsync(ct);
 
@@ -1238,7 +1253,8 @@ public class ScrobbleService(
         var collisions = new HashSet<string>();
         foreach (var row in rows)
         {
-            var ids = new LibraryIds(row.Id, row.MangaBakaId, row.AniListId, row.MalId, row.KitsuId, row.Incognito);
+            var ids = new LibraryIds(
+                row.Id, row.MangaBakaId, row.AniListId, row.MalId, row.KitsuId, row.MangaUpdatesId, row.Incognito);
             foreach (var name in new[] { row.Title, row.FolderName })
             {
                 var key = ScrobbleMatching.NormalizeTitle(name ?? "");
@@ -1373,6 +1389,11 @@ public class ScrobbleService(
                     libraryIds.TryAdd("kitsu", kitsuId.ToString());
                 }
 
+                if (!string.IsNullOrEmpty(found.MangaUpdatesId))
+                {
+                    libraryIds.TryAdd("mangaupdates", found.MangaUpdatesId.ToLowerInvariant());
+                }
+
                 break;
             }
         }
@@ -1449,12 +1470,14 @@ public class ScrobbleService(
         // AniList or MAL id -> MangaBaka series (which lists all source ids)
         JsonElement? series = null;
         if (ids.ContainsKey("anilist") &&
-            (!ids.ContainsKey("mangabaka") || !ids.ContainsKey("mal") || !ids.ContainsKey("kitsu")))
+            (!ids.ContainsKey("mangabaka") || !ids.ContainsKey("mal") || !ids.ContainsKey("kitsu") ||
+             !ids.ContainsKey("mangaupdates")))
         {
             series = await mangaBaka.ResolveFromSourceAsync("anilist", ids["anilist"], ct);
         }
         else if (ids.ContainsKey("mal") &&
-                 (!ids.ContainsKey("mangabaka") || !ids.ContainsKey("anilist") || !ids.ContainsKey("kitsu")))
+                 (!ids.ContainsKey("mangabaka") || !ids.ContainsKey("anilist") || !ids.ContainsKey("kitsu") ||
+                  !ids.ContainsKey("mangaupdates")))
         {
             series = await mangaBaka.ResolveFromSourceAsync("my-anime-list", ids["mal"], ct);
         }
@@ -1481,6 +1504,11 @@ public class ScrobbleService(
                 if (SourceId(source, "kitsu") is { } kitsuId)
                 {
                     ids.TryAdd("kitsu", kitsuId);
+                }
+
+                if (SourceId(source, "manga_updates") is { Length: > 0 } mangaUpdatesId)
+                {
+                    ids.TryAdd("mangaupdates", mangaUpdatesId.ToLowerInvariant());
                 }
             }
         }

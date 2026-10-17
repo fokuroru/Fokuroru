@@ -75,7 +75,9 @@ public class SettingsController(
     KavitaLiveReadSync kavitaLive,
     ISchedulerFactory schedulerFactory,
     IServiceScopeFactory scopeFactory,
-    ILogger<SettingsController> logger) : ControllerBase
+    ILogger<SettingsController> logger,
+    Maki.Core.Scrobbling.IScrobbleTokenStore scrobbleTokens,
+    Maki.Core.Scrobbling.MangaUpdatesTracker mangaUpdates) : ControllerBase
 {
     public record FlareSolverrSettings(string? Url);
     public record ProwlarrSettings(string? Url, string? ApiKey);
@@ -2010,7 +2012,11 @@ public class SettingsController(
         /// Whether the caller may edit the instance half. The client uses it to disable those fields
         /// rather than showing a non-admin inputs whose writes will be dropped.
         /// </summary>
-        bool IsAdmin = false);
+        bool IsAdmin = false,
+        string? MangaUpdatesUsername = null,
+        /// <summary>Never sent back, unlike the older credentials; <c>MangaUpdatesPasswordSet</c> stands in for it.</summary>
+        string? MangaUpdatesPassword = null,
+        bool MangaUpdatesPasswordSet = false);
 
     /// <summary>
     /// Both halves of the scrobble configuration in one response, because one card in the UI shows
@@ -2033,6 +2039,8 @@ public class SettingsController(
                 SettingKeys.ScrobbleMangaBakaToken,
                 SettingKeys.ScrobbleKitsuEmail,
                 SettingKeys.ScrobbleKitsuPassword,
+                SettingKeys.ScrobbleMangaUpdatesUsername,
+                SettingKeys.ScrobbleMangaUpdatesPassword,
                 SettingKeys.ScrobblePlanToRead,
             ],
             ct);
@@ -2053,7 +2061,10 @@ public class SettingsController(
                 : Services.ScrobbleService.DefaultIntervalMinutes,
             mine.GetValueOrDefault(SettingKeys.ScrobblePlanToRead) == "true",
             admin ? await settings.GetAsync(SettingKeys.ScrobbleLibraryIds, ct) : null,
-            IsAdmin: admin));
+            IsAdmin: admin,
+            MangaUpdatesUsername: mine.GetValueOrDefault(SettingKeys.ScrobbleMangaUpdatesUsername),
+            MangaUpdatesPasswordSet:
+                !string.IsNullOrEmpty(mine.GetValueOrDefault(SettingKeys.ScrobbleMangaUpdatesPassword))));
     }
 
     [Authorize(Policy = Policies.UseTrackers)]
@@ -2064,6 +2075,7 @@ public class SettingsController(
         await userSettings.SetAsync(SettingKeys.ScrobbleMangaBakaToken, request.MangaBakaToken, ct);
         await userSettings.SetAsync(SettingKeys.ScrobbleKitsuEmail, request.KitsuEmail, ct);
         await userSettings.SetAsync(SettingKeys.ScrobbleKitsuPassword, request.KitsuPassword, ct);
+        await SaveMangaUpdatesCredentialsAsync(request, ct);
         await userSettings.SetAsync(
             SettingKeys.ScrobblePlanToRead, request.PlanToRead ? "true" : "false", ct);
 
@@ -2087,6 +2099,43 @@ public class SettingsController(
 
         await settings.SetAsync(SettingKeys.ScrobbleLibraryIds, request.LibraryIds, ct);
         return await GetScrobble(ct);
+    }
+
+    /// <summary>
+    /// Null leaves the username or password as it is, an empty string clears it. A real change also
+    /// drops the stored session token and the tracker's in-memory state for this user, since both
+    /// belong to the old account.
+    /// </summary>
+    private async Task SaveMangaUpdatesCredentialsAsync(ScrobbleSettings request, CancellationToken ct)
+    {
+        if (request.MangaUpdatesUsername is null && request.MangaUpdatesPassword is null)
+        {
+            return;
+        }
+
+        var stored = await userSettings.GetManyAsync(
+            [SettingKeys.ScrobbleMangaUpdatesUsername, SettingKeys.ScrobbleMangaUpdatesPassword], ct);
+        var changed = false;
+
+        if (request.MangaUpdatesUsername is not null)
+        {
+            changed |= request.MangaUpdatesUsername !=
+                stored.GetValueOrDefault(SettingKeys.ScrobbleMangaUpdatesUsername, "");
+            await userSettings.SetAsync(SettingKeys.ScrobbleMangaUpdatesUsername, request.MangaUpdatesUsername, ct);
+        }
+
+        if (request.MangaUpdatesPassword is not null)
+        {
+            changed |= request.MangaUpdatesPassword !=
+                stored.GetValueOrDefault(SettingKeys.ScrobbleMangaUpdatesPassword, "");
+            await userSettings.SetAsync(SettingKeys.ScrobbleMangaUpdatesPassword, request.MangaUpdatesPassword, ct);
+        }
+
+        if (changed)
+        {
+            await scrobbleTokens.DeleteAsync(currentUser.UserId, "mangaupdates", ct);
+            mangaUpdates.Forget(currentUser.UserId);
+        }
     }
 
     public record ImportListSettings(bool Enabled, int IntervalMinutes);
