@@ -25,7 +25,8 @@ public class ChapterSyncService(
     IAppSettings appSettings,
     ILogger<ChapterSyncService> logger,
     AnimeResumePendingService? animeResumePending = null,
-    PreviewReadPendingService? previewReadPending = null)
+    PreviewReadPendingService? previewReadPending = null,
+    PendingReadImportService? pendingReadImports = null)
 {
     /// <returns>Ids of newly discovered chapters.</returns>
     public Task<List<int>> SyncSeriesAsync(int seriesId, CancellationToken ct = default) =>
@@ -232,6 +233,11 @@ public class ChapterSyncService(
         if (newChapters.Count > 0 && previewReadPending is not null)
         {
             await previewReadPending.ApplyAsync(seriesId, ct);
+        }
+
+        if (newChapters.Count > 0 && pendingReadImports is not null)
+        {
+            await pendingReadImports.ApplyAsync(seriesId, ct);
         }
 
         return newChapters.Select(c => c.Id).ToList();
