@@ -2658,11 +2658,6 @@ msgstr "Альтернативные названия"
 msgid "Ambiguous names"
 msgstr "Неоднозначные названия"
 
-#: src/api/ssoErrors.ts
-#, fuzzy
-#~ msgid "An account with that username already exists"
-#~ msgstr "Аккаунт с таким именем уже существует"
-
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "An admin approved your request."
 msgstr ""
@@ -2725,12 +2720,6 @@ msgstr "AniList"
 #: src/pages/settings/registry.ts
 msgid "anilist, myanimelist, mal, mangabaka, kitsu, mangaupdates, mu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries"
 msgstr ""
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#, fuzzy
-#~ msgid "anilist, myanimelist, mal, mangabaka, kitsu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries"
-#~ msgstr "anilist, myanimelist, mal, mangabaka, kitsu, трекеры, oauth, клиентский id, секрет клиента, интервал синхронизации, читать позже, библиотеки kavita"
 
 #: src/pages/discover/ManageSignalsModal.tsx
 #, fuzzy
@@ -4460,13 +4449,6 @@ msgstr "Подключите трекер AniList или MyAnimeList, чтобы
 msgid "Connect an AniList or MyAnimeList tracker to use this. <0>Open tracker settings</0>"
 msgstr "Подключите трекер AniList или MyAnimeList, чтобы использовать это. <0>Открыть настройки трекеров</0>"
 
-#: src/pages/stats/sections/HabitsSection.tsx
-#: src/pages/stats/sections/ReadingSection.tsx
-#: src/pages/stats/sections/RhythmSection.tsx
-#: src/pages/stats/sections/TasteSection.tsx
-#~ msgid "Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way."
-#~ msgstr ""
-
 #: src/components/TrackerSyncControls.tsx
 #, fuzzy
 msgid "Connect on the Scrobble page to import."
@@ -4476,11 +4458,6 @@ msgstr "Подключитесь на странице Scrobble, чтобы им
 #, fuzzy
 msgid "Connect one on the Scrobble page."
 msgstr "Подключите его на странице Scrobble."
-
-#: src/components/settings/UsersSection.tsx
-#, fuzzy
-#~ msgid "Connect their own AniList, MAL or Kitsu account"
-#~ msgstr "Подключить собственный аккаунт AniList, MyAnimeList или Kitsu"
 
 #: src/components/settings/UsersSection.tsx
 msgid "Connect their own AniList, MAL, Kitsu or MangaUpdates account"
@@ -4799,18 +4776,6 @@ msgstr ""
 #, fuzzy
 msgid "Couldn't load notification connections"
 msgstr "Не удалось загрузить подключения уведомлений"
-
-#: src/pages/RequestsPage.tsx
-#~ msgid "Couldn't load requests"
-#~ msgstr ""
-
-#: src/pages/ScrobblePage.tsx
-#~ msgid "Couldn't load scrobbling"
-#~ msgstr ""
-
-#: src/components/discover/DiscoverDetailModal.tsx
-#~ msgid "Couldn't load the details for this title."
-#~ msgstr ""
 
 #: src/components/home/AnimeResumeRail.tsx
 #: src/components/rails/CustomRailSection.tsx
@@ -6437,15 +6402,6 @@ msgstr "Похоже на ваши начальные элементы"
 msgid "Fetch a sample of the same chapter from each source and rank them by scan quality."
 msgstr "Получите образец одной и той же главы из каждого источника и оцените их по качеству сканирования."
 
-#: src/pages/settings/DownloadCards.tsx
-#~ msgid "Fetch more when unread chapters drop to"
-#~ msgstr ""
-
-#: src/components/discover/DiscoverLibraryRail.tsx
-#, fuzzy
-#~ msgid "Fetch new chapters as they land"
-#~ msgstr "Получает новые главы, как только они выходят."
-
 #: src/components/ui/status.tsx
 #, fuzzy
 msgid "Fetching"
@@ -6683,10 +6639,6 @@ msgstr ""
 #: src/pages/RequestsPage.tsx
 msgid "First chapters waiting to download. One that fails is tried again every half hour until it works."
 msgstr ""
-
-#: src/pages/RequestsPage.tsx
-#~ msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
-#~ msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -7655,12 +7607,6 @@ msgstr "Импорт списка завершён"
 #: src/pages/settings/registry.ts
 msgid "import list, anilist, mal, kitsu, mangaupdates, mu, tracker, auto add"
 msgstr ""
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#, fuzzy
-#~ msgid "import list, anilist, mal, kitsu, tracker, auto add"
-#~ msgstr "список импорта, anilist, mal, kitsu, трекер, автоматическое добавление"
 
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
@@ -11329,11 +11275,6 @@ msgstr "Вставьте идентификатор или URL"
 msgid "Paste series URL or id…"
 msgstr ""
 
-#: src/pages/ScrobblePage.tsx
-#, fuzzy
-#~ msgid "Paste series URL or numeric id…"
-#~ msgstr "Вставьте URL серии или числовой идентификатор…"
-
 #: src/pages/HealthPage.tsx
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -11386,6 +11327,10 @@ msgstr "Ожидающие загрузки будут удалены. Уже в
 #, fuzzy
 msgid "per chapter"
 msgstr "на главу"
+
+#: src/pages/LibraryPage.tsx
+msgid "Percent read"
+msgstr ""
 
 #: src/components/NamingTokenModal.tsx
 #, fuzzy
@@ -12190,14 +12135,6 @@ msgstr "Прогресс чтения и закладки для удалённ�
 #, fuzzy
 msgid "Reading progress from Kavita…"
 msgstr "Прогресс чтения из Kavita…"
-
-#: src/pages/stats/sections/HabitsSection.tsx
-#: src/pages/stats/sections/ReadingSection.tsx
-#: src/pages/stats/sections/RhythmSection.tsx
-#: src/pages/stats/sections/TasteSection.tsx
-#, fuzzy
-#~ msgid "Reading stats need Kavita"
-#~ msgstr "Для статистики чтения нужна Kavita"
 
 #: src/pages/LibraryPage.tsx
 msgid "Reading status"
@@ -14003,11 +13940,6 @@ msgstr "Семантический поиск и рекомендации отк
 #, fuzzy
 msgid "Send events to chat apps, push services or a webhook. Each connection picks its own events."
 msgstr "Отправляй события в чаты, push-сервисы или webhook. Для каждого подключения можно выбрать свои события."
-
-#: src/components/SetupWizard.tsx
-#, fuzzy
-#~ msgid "Send reading progress to AniList, MyAnimeList, Kitsu or MangaBaka."
-#~ msgstr "Отправлять прогресс чтения в AniList, MyAnimeList, Kitsu или MangaBaka."
 
 #: src/components/SetupWizard.tsx
 msgid "Send reading progress to AniList, MyAnimeList, Kitsu, MangaBaka or MangaUpdates."
@@ -15862,10 +15794,6 @@ msgstr "Для этой подборки нужна локальная база 
 msgid "This re-downloads the poster for all {seriesTotalLabel} series, one metadata lookup and one image each. On a large library it runs for several minutes. Use \"Rebuild missing\" instead if you are only fixing covers that fail to load."
 msgstr "Это повторно загружает постер для всех {seriesTotalLabel} серий, по одному запросу метаданных и одному изображению на каждую. В большой библиотеке это займёт несколько минут. Используйте «Перестроить отсутствующие», если исправляете только обложки, которые не загружаются."
 
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
-#~ msgstr ""
-
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
 msgid "This removes only the source mapping. Existing chapter rows and files will stay exactly as they are and may need manual cleanup later."
@@ -17447,10 +17375,6 @@ msgstr "Язык отображения названий серий, если п
 msgid "Which languages Fōkurōru looks for, and which chapters it leaves alone."
 msgstr ""
 
-#, fuzzy
-#~ msgid "Which languages Maki looks for, and which chapters it leaves alone."
-#~ msgstr "На каких языках Maki ищет главы и какие пропускает."
-
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "Which new chapters get fetched as they land"
 msgstr ""
@@ -17458,10 +17382,6 @@ msgstr ""
 #: src/pages/SettingsPage.tsx
 msgid "Which page Fōkurōru opens on, on every device."
 msgstr ""
-
-#: src/pages/settings/PreferenceCards.tsx
-#~ msgid "Which page Maki opens on, and whether the Home page exists at all."
-#~ msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -17622,11 +17542,6 @@ msgstr "Вы прекращаете примерно на"
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "You can add series, but no root folder has been granted to you yet. Ask an admin to grant you one, or to add this title."
 msgstr ""
-
-#: src/components/discover/DiscoverLibraryRail.tsx
-#, fuzzy
-#~ msgid "You can add series, but only an admin can choose a root folder. Ask one to add this title, or to grant you admin."
-#~ msgstr "Вы можете добавлять серии, но выбрать корневую папку может только администратор. Попросите его добавить эту серию или предоставить вам права администратора."
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "You can keep browsing while it looks."

@@ -100,11 +100,12 @@ import { TagManagerModal } from '../components/TagManagerModal'
 import { POSTER_COLS_BY_DENSITY, useDensityOptions } from '../components/ui/viewPrefs'
 import { formatNumber } from '../format'
 
-const SORT_VALUES = ['added', 'lastRead', 'title', 'incomplete', 'status'] as const
+const SORT_VALUES = ['added', 'lastRead', 'readPercent', 'title', 'incomplete', 'status'] as const
 
 const SORT_LABELS: Record<string, MessageDescriptor> = {
   added: msg`Recently added`,
   lastRead: msg`Last read`,
+  readPercent: msg`Percent read`,
   title: msg`Title A–Z`,
   incomplete: msg`Most missing`,
   status: msg`Status`,
@@ -430,6 +431,8 @@ export default function LibraryPage() {
           return missingCount(b) - missingCount(a)
         case 'status':
           return a.status.localeCompare(b.status)
+        case 'readPercent':
+          return readPercent(b) - readPercent(a) || a.sortTitle.localeCompare(b.sortTitle)
         case 'lastRead':
           // Never-read series sink to the bottom, newest additions first among them.
           return (

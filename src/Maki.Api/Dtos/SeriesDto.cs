@@ -145,7 +145,7 @@ public record SeriesDto(
     /// <summary>
     /// <em>This user's</em> <see cref="Maki.Core.Entities.ReadingStatus"/> against the whole series:
     /// "Reading", "UpToDate" (every main release read, series still running) or "Completed" (every
-    /// main release read, series ended or on hiatus). Null when they have read nothing.
+    /// main release read, series ended; hiatus counts as up to date). Null when they have read nothing.
     /// </summary>
     string? ReadingStatus = null,
     /// <summary>When this user last touched a chapter of the series in any reader, for the "Last read" sort. Null if never.</summary>

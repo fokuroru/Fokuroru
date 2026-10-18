@@ -111,7 +111,7 @@ export interface SeriesDto {
   spineColor?: string | null
   /**
    * Where you stand against the whole series: `UpToDate` is every main chapter read while it is
-   * still coming out, `Completed` only once it has ended or is on hiatus. Null if nothing read.
+   * still coming out or on hiatus, `Completed` only once it has ended. Null if nothing read.
    */
   readingStatus?: 'Reading' | 'UpToDate' | 'Completed' | null
   /** Set aside: files deleted, monitoring off, on hold on the trackers. */

@@ -6,10 +6,10 @@ public enum ReadingStatus
     /// <summary>Main releases remain unread.</summary>
     Reading,
 
-    /// <summary>Every main release read, and the series is still coming out: more will follow.</summary>
+    /// <summary>Every main release read, and the series is still coming out or on hiatus: more may follow.</summary>
     UpToDate,
 
-    /// <summary>Every main release read, and the series has ended or is on hiatus.</summary>
+    /// <summary>Every main release read, and the series has ended (completed or cancelled).</summary>
     Completed,
 }
 
@@ -17,9 +17,10 @@ public static class ReadingStatuses
 {
     /// <summary>
     /// A series is completed only when the reader has read every main release <em>and</em> the series
-    /// is no longer running (completed, cancelled or on hiatus). Every main release read on an
-    /// ongoing series is up to date, never completed: trackers and the library used to call that
-    /// completed, because a tracker's chapter total for a running series is just today's count.
+    /// has ended (completed or cancelled). Every main release read on an ongoing or paused (hiatus)
+    /// series is up to date, never completed, because a hiatus can resume. Trackers and the library
+    /// used to call that completed, because a tracker's chapter total for a running series is just
+    /// today's count.
     /// <para>
     /// Judged per release, not by the highest number read: reading only the last chapter, or
     /// marking a middle one unread again, leaves the series reading. "Main" means whole-numbered
@@ -41,9 +42,9 @@ public static class ReadingStatuses
         return Ended(status) ? ReadingStatus.Completed : ReadingStatus.UpToDate;
     }
 
-    /// <summary>Completed, cancelled or on hiatus: nothing new is expected soon.</summary>
+    /// <summary>Completed or cancelled: nothing new will come. Hiatus is not ended, it can resume.</summary>
     public static bool Ended(SeriesStatus status) =>
-        status is SeriesStatus.Completed or SeriesStatus.Cancelled or SeriesStatus.Hiatus;
+        status is SeriesStatus.Completed or SeriesStatus.Cancelled;
 
     public static bool IsMain(decimal? number) => number is { } n && n > 0 && n % 1 == 0;
 }

@@ -11,13 +11,13 @@ public class ReadingStatusTests
     [Theory]
     [InlineData(SeriesStatus.Completed)]
     [InlineData(SeriesStatus.Cancelled)]
-    [InlineData(SeriesStatus.Hiatus)]
-    public void Every_main_release_read_on_an_ended_or_paused_series_is_completed(SeriesStatus status) =>
+    public void Every_main_release_read_on_an_ended_series_is_completed(SeriesStatus status) =>
         Assert.Equal(ReadingStatus.Completed, ReadingStatuses.For(status, Main(10), Read(Main(10))));
 
     [Theory]
     [InlineData(SeriesStatus.Ongoing)]
     [InlineData(SeriesStatus.Unknown)]
+    [InlineData(SeriesStatus.Hiatus)]
     public void Every_main_release_read_on_a_running_series_is_up_to_date_not_completed(SeriesStatus status) =>
         Assert.Equal(ReadingStatus.UpToDate, ReadingStatuses.For(status, Main(10), Read(Main(10))));
 

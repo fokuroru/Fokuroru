@@ -53,8 +53,8 @@ fork, are not documented here.
 ### Library and reading status
 
 - Added Last read sorting and separate Reading, Up to date and Completed states.
-  Completed requires every main chapter to be read and the series to be ended or on hiatus.
-  A running series with every main chapter read is Up to date.
+  Completed requires every main chapter to be read and the series to be ended.
+  A running or on-hiatus series with every main chapter read is Up to date.
 - Applied completion rules to tracker updates and retained reading history when files are removed.
 - Fixed mobile and foldable layouts, including the hero panel.
 - Added Hide and Delete buttons to every card in the layout editor.

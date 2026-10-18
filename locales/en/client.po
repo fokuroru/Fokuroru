@@ -2241,10 +2241,6 @@ msgstr "Alt titles"
 msgid "Ambiguous names"
 msgstr "Ambiguous names"
 
-#: src/api/ssoErrors.ts
-#~ msgid "An account with that username already exists"
-#~ msgstr "An account with that username already exists"
-
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "An admin approved your request."
 msgstr "An admin approved your request."
@@ -2299,11 +2295,6 @@ msgstr "AniList"
 #: src/pages/settings/registry.ts
 msgid "anilist, myanimelist, mal, mangabaka, kitsu, mangaupdates, mu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries"
 msgstr "anilist, myanimelist, mal, mangabaka, kitsu, mangaupdates, mu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries"
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#~ msgid "anilist, myanimelist, mal, mangabaka, kitsu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries"
-#~ msgstr "anilist, myanimelist, mal, mangabaka, kitsu, trackers, oauth, client id, client secret, sync interval, plan to read, kavita libraries"
 
 #: src/pages/discover/ManageSignalsModal.tsx
 msgid "anime"
@@ -3758,13 +3749,6 @@ msgstr "Connect an AniList or MyAnimeList tracker to use this."
 msgid "Connect an AniList or MyAnimeList tracker to use this. <0>Open tracker settings</0>"
 msgstr "Connect an AniList or MyAnimeList tracker to use this. <0>Open tracker settings</0>"
 
-#: src/pages/stats/sections/HabitsSection.tsx
-#: src/pages/stats/sections/ReadingSection.tsx
-#: src/pages/stats/sections/RhythmSection.tsx
-#: src/pages/stats/sections/TasteSection.tsx
-#~ msgid "Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way."
-#~ msgstr "Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way."
-
 #: src/components/TrackerSyncControls.tsx
 msgid "Connect on the Scrobble page to import."
 msgstr "Connect on the Scrobble page to import."
@@ -3772,10 +3756,6 @@ msgstr "Connect on the Scrobble page to import."
 #: src/components/SeriesScrobbleSection.tsx
 msgid "Connect one on the Scrobble page."
 msgstr "Connect one on the Scrobble page."
-
-#: src/components/settings/UsersSection.tsx
-#~ msgid "Connect their own AniList, MAL or Kitsu account"
-#~ msgstr "Connect their own AniList, MAL or Kitsu account"
 
 #: src/components/settings/UsersSection.tsx
 msgid "Connect their own AniList, MAL, Kitsu or MangaUpdates account"
@@ -4049,18 +4029,6 @@ msgstr "Couldn't be measured"
 #: src/components/NotificationsSection.tsx
 msgid "Couldn't load notification connections"
 msgstr "Couldn't load notification connections"
-
-#: src/pages/RequestsPage.tsx
-#~ msgid "Couldn't load requests"
-#~ msgstr "Couldn't load requests"
-
-#: src/pages/ScrobblePage.tsx
-#~ msgid "Couldn't load scrobbling"
-#~ msgstr "Couldn't load scrobbling"
-
-#: src/components/discover/DiscoverDetailModal.tsx
-#~ msgid "Couldn't load the details for this title."
-#~ msgstr "Couldn't load the details for this title."
 
 #: src/components/home/AnimeResumeRail.tsx
 #: src/components/rails/CustomRailSection.tsx
@@ -5449,14 +5417,6 @@ msgstr "Feels like your seeds"
 msgid "Fetch a sample of the same chapter from each source and rank them by scan quality."
 msgstr "Fetch a sample of the same chapter from each source and rank them by scan quality."
 
-#: src/pages/settings/DownloadCards.tsx
-#~ msgid "Fetch more when unread chapters drop to"
-#~ msgstr "Fetch more when unread chapters drop to"
-
-#: src/components/discover/DiscoverLibraryRail.tsx
-#~ msgid "Fetch new chapters as they land"
-#~ msgstr "Fetch new chapters as they land"
-
 #: src/components/ui/status.tsx
 msgid "Fetching"
 msgstr "Fetching"
@@ -5667,10 +5627,6 @@ msgstr "First chapter ready"
 #: src/pages/RequestsPage.tsx
 msgid "First chapters waiting to download. One that fails is tried again every half hour until it works."
 msgstr "First chapters waiting to download. One that fails is tried again every half hour until it works."
-
-#: src/pages/RequestsPage.tsx
-#~ msgid "First chapters waiting to download. One that fails is tried again the next day until it works."
-#~ msgstr "First chapters waiting to download. One that fails is tried again the next day until it works."
 
 #: src/pages/SettingsPage.tsx
 msgid "First download in progress"
@@ -6487,11 +6443,6 @@ msgstr "Import list finished"
 #: src/pages/settings/registry.ts
 msgid "import list, anilist, mal, kitsu, mangaupdates, mu, tracker, auto add"
 msgstr "import list, anilist, mal, kitsu, mangaupdates, mu, tracker, auto add"
-
-#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
-#: src/pages/settings/registry.ts
-#~ msgid "import list, anilist, mal, kitsu, tracker, auto add"
-#~ msgstr "import list, anilist, mal, kitsu, tracker, auto add"
 
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
@@ -9592,10 +9543,6 @@ msgstr "Paste id or URL"
 msgid "Paste series URL or id…"
 msgstr "Paste series URL or id…"
 
-#: src/pages/ScrobblePage.tsx
-#~ msgid "Paste series URL or numeric id…"
-#~ msgstr "Paste series URL or numeric id…"
-
 #: src/pages/HealthPage.tsx
 #: src/pages/SettingsPage.tsx
 msgid "Path"
@@ -9641,6 +9588,10 @@ msgstr "Pending downloads will be removed. Downloads already in progress will be
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "per chapter"
 msgstr "per chapter"
+
+#: src/pages/LibraryPage.tsx
+msgid "Percent read"
+msgstr "Percent read"
 
 #: src/components/NamingTokenModal.tsx
 msgid "Period (.)"
@@ -10338,13 +10289,6 @@ msgstr "Reading progress and bookmarks for removed chapter rows will also be del
 #: src/pages/SettingsPage.tsx
 msgid "Reading progress from Kavita…"
 msgstr "Reading progress from Kavita…"
-
-#: src/pages/stats/sections/HabitsSection.tsx
-#: src/pages/stats/sections/ReadingSection.tsx
-#: src/pages/stats/sections/RhythmSection.tsx
-#: src/pages/stats/sections/TasteSection.tsx
-#~ msgid "Reading stats need Kavita"
-#~ msgstr "Reading stats need Kavita"
 
 #: src/pages/LibraryPage.tsx
 msgid "Reading status"
@@ -11877,10 +11821,6 @@ msgstr "Semantic search and recommendations are off."
 #: src/components/NotificationsSection.tsx
 msgid "Send events to chat apps, push services or a webhook. Each connection picks its own events."
 msgstr "Send events to chat apps, push services or a webhook. Each connection picks its own events."
-
-#: src/components/SetupWizard.tsx
-#~ msgid "Send reading progress to AniList, MyAnimeList, Kitsu or MangaBaka."
-#~ msgstr "Send reading progress to AniList, MyAnimeList, Kitsu or MangaBaka."
 
 #: src/components/SetupWizard.tsx
 msgid "Send reading progress to AniList, MyAnimeList, Kitsu, MangaBaka or MangaUpdates."
@@ -13456,10 +13396,6 @@ msgstr "This rail needs the local MangaBaka database, which is switched off or s
 msgid "This re-downloads the poster for all {seriesTotalLabel} series, one metadata lookup and one image each. On a large library it runs for several minutes. Use \"Rebuild missing\" instead if you are only fixing covers that fail to load."
 msgstr "This re-downloads the poster for all {seriesTotalLabel} series, one metadata lookup and one image each. On a large library it runs for several minutes. Use \"Rebuild missing\" instead if you are only fixing covers that fail to load."
 
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
-#~ msgstr "This removes \"{seriesTitle}\" and its chapters from Fōkurōru."
-
 #: src/components/SourceMappingsSection.tsx
 msgid "This removes only the source mapping. Existing chapter rows and files will stay exactly as they are and may need manual cleanup later."
 msgstr "This removes only the source mapping. Existing chapter rows and files will stay exactly as they are and may need manual cleanup later."
@@ -14818,10 +14754,6 @@ msgstr "Which new chapters get fetched as they land"
 msgid "Which page Fōkurōru opens on, on every device."
 msgstr "Which page Fōkurōru opens on, on every device."
 
-#: src/pages/settings/PreferenceCards.tsx
-#~ msgid "Which page Maki opens on, and whether the Home page exists at all."
-#~ msgstr "Which page Maki opens on, and whether the Home page exists at all."
-
 #: src/pages/SettingsPage.tsx
 msgid "Which rails appear below the chapter list. Turning one off also stops it being fetched."
 msgstr "Which rails appear below the chapter list. Turning one off also stops it being fetched."
@@ -14958,10 +14890,6 @@ msgstr "You bail around"
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "You can add series, but no root folder has been granted to you yet. Ask an admin to grant you one, or to add this title."
 msgstr "You can add series, but no root folder has been granted to you yet. Ask an admin to grant you one, or to add this title."
-
-#: src/components/discover/DiscoverLibraryRail.tsx
-#~ msgid "You can add series, but only an admin can choose a root folder. Ask one to add this title, or to grant you admin."
-#~ msgstr "You can add series, but only an admin can choose a root folder. Ask one to add this title, or to grant you admin."
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "You can keep browsing while it looks."
