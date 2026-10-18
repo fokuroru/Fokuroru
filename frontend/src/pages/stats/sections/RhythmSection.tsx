@@ -67,8 +67,10 @@ export default function RhythmSection({ userId, range, windowLabel }: StatsSecti
     return (
       <EmptyState
         compact
-        title={t`Reading stats need Kavita`}
-        description={t`Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way.`}
+        title={t`No reading activity yet`}
+        description={t`Read chapters in Fōkurōru's built-in reader, or connect Kavita in Settings, to start tracking your reading.`}
+        actionLabel={t`Start reading`}
+        actionTo="/library"
       />
     )
   }

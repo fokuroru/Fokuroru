@@ -15,7 +15,7 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
+import { useDisclosure, useFocusReturn, useFocusTrap, useMediaQuery } from '@mantine/hooks'
 import {
   IconAlertTriangle,
   IconArrowLeft,
@@ -248,7 +248,7 @@ function SimpleViewButton() {
       <ActionIcon
         variant="subtle"
         color="gray"
-        hiddenFrom={nativeApp() ? undefined : 'sm'}
+        hiddenFrom={nativeApp() ? undefined : 'md'}
         aria-label={t`Mobile view`}
         onClick={open}
       >
@@ -262,7 +262,7 @@ function SimpleViewButton() {
 function SimpleViewLink({ onNavigate }: { onNavigate: () => void }) {
   const open = useOpenSimpleView()
   return (
-    <Box hiddenFrom={nativeApp() ? undefined : 'sm'} mb={18}>
+    <Box hiddenFrom={nativeApp() ? undefined : 'md'} mb={18}>
       <button
         type="button"
         className="nav-link nav-link-button"
@@ -419,6 +419,19 @@ function AppShellRoutes() {
   const location = useLocation()
   const navigate = useNavigate()
   const [opened, { toggle, close }] = useDisclosure()
+  const desktopNav = useMediaQuery('(min-width: 62em)', false, { getInitialValueInEffect: false })
+  const drawerOpen = opened && !desktopNav
+  const navFocusRef = useFocusTrap(drawerOpen)
+  useFocusReturn({ opened: drawerOpen })
+
+  useEffect(() => {
+    if (!drawerOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [drawerOpen, close])
   const { data: setup } = useSetupStatus()
   const { data: metadata } = useMetadataSettings()
   const { data: ui } = useUiSettings()
@@ -463,7 +476,7 @@ function AppShellRoutes() {
     <ShellTitleProvider>
     <AppShell
       header={{ height: 58 }}
-      navbar={{ width: 232, breakpoint: 'sm', collapsed: { mobile: !opened } }}
+      navbar={{ width: 232, breakpoint: 'md', collapsed: { mobile: !opened } }}
       padding="lg"
     >
       <AppShell.Header className="app-header">
@@ -472,11 +485,13 @@ function AppShellRoutes() {
             <Burger
               opened={opened}
               onClick={toggle}
-              hiddenFrom="sm"
+              hiddenFrom="md"
               size="sm"
-              aria-label={t`Open navigation`}
+              aria-label={opened ? t`Close navigation` : t`Open navigation`}
+              aria-expanded={drawerOpen}
+              aria-controls="app-navigation"
             />
-            <Group gap="sm" wrap="nowrap" hiddenFrom="sm">
+            <Group gap="sm" wrap="nowrap" hiddenFrom="md">
               <span className="brand-mark" role="img" aria-label={t`Manga manager`} title={t`Manga manager`}>
                 <IconBrandMark />
               </span>
@@ -498,9 +513,17 @@ function AppShellRoutes() {
           one there is nowhere to tap to dismiss it except the burger. `hiddenFrom` rather than a
           media query so it can never appear over the desktop layout, where the navbar is a
           column and nothing is covered. */}
-      {opened && <Box className="nav-scrim" hiddenFrom="sm" onClick={close} />}
+      {drawerOpen && <Box className="nav-scrim" hiddenFrom="md" onClick={close} aria-hidden />}
 
-      <AppShell.Navbar className="app-navbar" px={12} pt={16} pb={12}>
+      <AppShell.Navbar
+        id="app-navigation"
+        ref={navFocusRef}
+        className="app-navbar"
+        px={12} pt={16} pb={12}
+        inert={!desktopNav && !opened}
+        aria-hidden={!desktopNav && !opened ? true : undefined}
+        aria-label={t`Main navigation`}
+      >
         <Group gap={10} mb={18} px={4} wrap="nowrap">
           <span className="brand-mark" role="img" aria-label={t`Manga manager`} title={t`Manga manager`}>
             <IconBrandMark />

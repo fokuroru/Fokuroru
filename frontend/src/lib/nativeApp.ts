@@ -134,6 +134,7 @@ function onLayout(event: Event) {
 }
 
 function subscribeLayout(listener: () => void) {
+  window.addEventListener('resize', listener)
   if (layoutListeners.size === 0) {
     window.addEventListener('maki-native-layout', onLayout)
     layoutSnapshot = parse<NativeLayout>(nativeApp()?.layout(), { dual: false })
@@ -141,19 +142,24 @@ function subscribeLayout(listener: () => void) {
   layoutListeners.add(listener)
   return () => {
     layoutListeners.delete(listener)
+    window.removeEventListener('resize', listener)
     if (layoutListeners.size === 0) window.removeEventListener('maki-native-layout', onLayout)
   }
 }
 
-export function useNativeLayout(): NativeLayout {
-  return useSyncExternalStore(
-    subscribeLayout,
-    () => (nativeApp() ? layoutSnapshot : NO_LAYOUT),
-    () => NO_LAYOUT,
-  )
+/** Match Android's window-size rule, including near-square unfolded phones. */
+export function viewportSupportsSpreads(width: number, height: number): boolean {
+  return Math.min(width, height) >= 600 && (width >= 840 || width >= height * 0.85)
 }
 
-const NO_LAYOUT: NativeLayout = { dual: false }
+export function useNativeLayout(): NativeLayout {
+  const dual = useSyncExternalStore(
+    subscribeLayout,
+    () => nativeApp() ? layoutSnapshot.dual : viewportSupportsSpreads(window.innerWidth, window.innerHeight),
+    () => false,
+  )
+  return { dual }
+}
 
 export type NativeAction = 'nextChapter' | 'prevChapter' | 'menu' | 'bookmark' | 'zoomIn' | 'zoomOut' | 'zoomReset' | 'close'
 

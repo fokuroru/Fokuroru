@@ -415,7 +415,7 @@ export default function ActivityPage() {
       ) : (
         <Panel p={0} className="table-panel">
           <Table.ScrollContainer minWidth={720}>
-            <Table className="panel-table activity-queue-table" verticalSpacing="sm">
+            <Table role="table" className="panel-table activity-queue-table" verticalSpacing="sm">
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>
@@ -502,7 +502,7 @@ export default function ActivityPage() {
                           </Stack>
                         )}
                       </Table.Td>
-                      <Table.Td>
+                      <Table.Td data-empty={q.pagesTotal <= 0 || undefined}>
                         {q.pagesTotal > 0 ? (
                           <Group gap="xs" wrap="nowrap">
                             <Progress
@@ -532,7 +532,7 @@ export default function ActivityPage() {
                           </StatusDot>
                         </Tooltip>
                         {q.status === 'Failed' && failure && !rejectionText && (
-                          <Text size="xs" c="var(--ink-3)" lineClamp={2} maw={320}>
+                          <Text size="xs" c="var(--ink-3)" maw={320}>
                             {failure}
                           </Text>
                         )}
@@ -678,7 +678,7 @@ export default function ActivityPage() {
           <>
             <Panel p={0} className="table-panel">
               <Table.ScrollContainer minWidth={640}>
-                <Table className="panel-table activity-history-table" verticalSpacing="sm">
+                <Table role="table" className="panel-table activity-history-table" verticalSpacing="sm">
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th>

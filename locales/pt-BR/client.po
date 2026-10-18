@@ -4239,6 +4239,10 @@ msgstr "Segredo do cliente"
 msgid "Close"
 msgstr "Fechar"
 
+#: src/App.tsx
+msgid "Close navigation"
+msgstr ""
+
 #: src/components/discover/SeriesPreviewReader.tsx
 msgid "Close preview"
 msgstr ""
@@ -4460,8 +4464,8 @@ msgstr "Conecte um rastreador do AniList ou MyAnimeList para usar isso. <0>Abrir
 #: src/pages/stats/sections/ReadingSection.tsx
 #: src/pages/stats/sections/RhythmSection.tsx
 #: src/pages/stats/sections/TasteSection.tsx
-msgid "Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way."
-msgstr ""
+#~ msgid "Connect it in Settings and Fōkurōru will start tracking chapters you read. Downloads and library changes are tracked either way."
+#~ msgstr ""
 
 #: src/components/TrackerSyncControls.tsx
 #, fuzzy
@@ -6546,6 +6550,10 @@ msgstr ""
 #, fuzzy
 msgid "Filter chapters"
 msgstr "Filtrar capítulos"
+
+#: src/pages/LibraryPage.tsx
+msgid "Filter library"
+msgstr ""
 
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -8780,6 +8788,10 @@ msgstr "Principais ({visibleMainCount})"
 msgid "main (no specials)"
 msgstr "principal (sem especiais)"
 
+#: src/App.tsx
+msgid "Main navigation"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Main only"
@@ -10038,6 +10050,13 @@ msgstr ""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "No quality profiles yet. Series without one use whatever the instance default is set to."
+msgstr ""
+
+#: src/pages/stats/sections/HabitsSection.tsx
+#: src/pages/stats/sections/ReadingSection.tsx
+#: src/pages/stats/sections/RhythmSection.tsx
+#: src/pages/stats/sections/TasteSection.tsx
+msgid "No reading activity yet"
 msgstr ""
 
 #: src/pages/stats/sections/ReadingSection.tsx
@@ -12018,6 +12037,13 @@ msgstr ""
 msgid "Read ch. {resumeAt}"
 msgstr "Ler o cap. {resumeAt}"
 
+#: src/pages/stats/sections/HabitsSection.tsx
+#: src/pages/stats/sections/ReadingSection.tsx
+#: src/pages/stats/sections/RhythmSection.tsx
+#: src/pages/stats/sections/TasteSection.tsx
+msgid "Read chapters in Fōkurōru's built-in reader, or connect Kavita in Settings, to start tracking your reading."
+msgstr ""
+
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "Read first chapter"
 msgstr ""
@@ -12170,8 +12196,8 @@ msgstr "Progresso de leitura do Kavita…"
 #: src/pages/stats/sections/RhythmSection.tsx
 #: src/pages/stats/sections/TasteSection.tsx
 #, fuzzy
-msgid "Reading stats need Kavita"
-msgstr "As estatísticas de leitura precisam do Kavita"
+#~ msgid "Reading stats need Kavita"
+#~ msgstr "As estatísticas de leitura precisam do Kavita"
 
 #: src/pages/LibraryPage.tsx
 msgid "Reading status"
@@ -14713,6 +14739,7 @@ msgstr "Ordenar pelos mais recentes primeiro"
 msgid "Sort oldest first"
 msgstr "Ordenar pelos mais antigos primeiro"
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "Sort the library"
 msgstr ""
@@ -14925,6 +14952,10 @@ msgid "Start page"
 msgstr "Página inicial"
 
 #: src/pages/SimpleHomePage.tsx
+#: src/pages/stats/sections/HabitsSection.tsx
+#: src/pages/stats/sections/ReadingSection.tsx
+#: src/pages/stats/sections/RhythmSection.tsx
+#: src/pages/stats/sections/TasteSection.tsx
 msgid "Start reading"
 msgstr ""
 

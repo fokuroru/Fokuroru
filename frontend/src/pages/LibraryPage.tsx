@@ -73,6 +73,8 @@ import {
 } from '../api/hooks'
 import { useUpgradeProfiles } from '../api/upgrades'
 import { useReadTracking } from '../api/reader'
+import { matchesSeriesTitle } from '../api/titles'
+import { seriesProgressVisual } from '../components/ui/status'
 import { useAuth } from '../auth/AuthProvider'
 import { useLabel } from '../i18n-context'
 import { useSourceLabel } from '../sourceLabels'
@@ -128,15 +130,9 @@ function writeStored(key: string, value: string) {
   try { localStorage.setItem(key, value) } catch { /* noop */ }
 }
 
-/**
- * How much of the series has been read, 0–100. Kavita is the only source of read progress, so a
- * series it has never reported (`readChapterCount === null`) counts as 0% rather than being
- * dropped: the whole library would otherwise vanish the moment the slider left 0.
- */
+/** Same history-based completion as the cover ring, even after read files are removed. */
 function readPercent(s: SeriesDto): number {
-  const total = s.wantedChapterCount || s.knownChapterCount || 0
-  if (total <= 0) return 0
-  return Math.min(100, Math.round(((s.readChapterCount ?? 0) / total) * 100))
+  return Math.round(seriesProgressVisual(s, true).readPct ?? 0)
 }
 
 /**
@@ -369,11 +365,7 @@ export default function LibraryPage() {
     let list = [...(series ?? [])]
     const q = debouncedQuery.trim().toLowerCase()
     if (q) {
-      list = list.filter(
-        (s) =>
-          s.title.toLowerCase().includes(q) ||
-          (s.originalTitle?.toLowerCase().includes(q) ?? false),
-      )
+      list = list.filter((s) => matchesSeriesTitle(s, q))
     }
     if (statusFilter !== 'all') list = list.filter((s) => s.status === statusFilter)
     if (typeFilter.length > 0) list = list.filter((s) => s.type != null && typeFilter.includes(s.type))
@@ -991,6 +983,7 @@ export default function LibraryPage() {
                 <TextInput
                   className="library-search"
                   placeholder={t`Filter library…`}
+                  aria-label={t`Filter library`}
                   leftSection={<IconSearch size={16} />}
                   value={query}
                   onChange={(e) => setQuery(e.currentTarget.value)}
@@ -1040,6 +1033,7 @@ export default function LibraryPage() {
                 </Tooltip>
                 <Select
                   className="library-sort"
+                  aria-label={t`Sort the library`}
                   data={sortOptions}
                   value={sort}
                   onChange={(v) => setSort(v ?? 'added')}

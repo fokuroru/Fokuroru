@@ -1,5 +1,15 @@
 import type { LocalizedTitle } from './types'
 
+/** Search the same names readers see on cards and in a series' alternate-title list. */
+export function matchesSeriesTitle(
+  series: { title: string; displayTitle: string; originalTitle?: string | null; altTitles?: LocalizedTitle[] },
+  query: string,
+): boolean {
+  const needle = query.trim().toLowerCase()
+  return [series.title, series.displayTitle, series.originalTitle, ...(series.altTitles ?? []).map((alt) => alt.title)]
+    .some((title) => title?.toLowerCase().includes(needle))
+}
+
 /**
  * Display names for the language codes metadata providers actually use, so an alt-title line reads
  * "ベルセルク (Japanese)" rather than "(ja)". A code that isn't here falls back to itself — the list

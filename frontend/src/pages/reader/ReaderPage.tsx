@@ -59,8 +59,8 @@ export default function ReaderPage() {
     autoProfileId,
     profiles,
   } = useReaderPrefs(manifest)
-  // The Android app reports a wide window (tablet, unfolded foldable). Auto layout becomes
-  // a spread there without touching what is saved, so folding the device again brings it back.
+  // Auto follows the current window without changing the saved preference; Android also
+  // applies the app's dual-page toggle through its layout bridge.
   const { dual: wideWindow } = useNativeLayout()
   const prefs = useMemo(
     () => (savedPrefs.mode === 'auto' ? { ...savedPrefs, mode: wideWindow ? ('double' as const) : ('paged' as const) } : savedPrefs),

@@ -20,6 +20,7 @@ import { deleteSeriesPreview, useCachedPreviews } from '../api/preview'
 import { PreviewRailReader } from '../components/discover/PreviewRailReader'
 import { DiscoverDetailModal } from '../components/discover/DiscoverDetailModal'
 import { useAuth } from '../auth/AuthProvider'
+import { matchesSeriesTitle } from '../api/titles'
 import type { SeriesDto } from '../api/types'
 import { BrandWordmark, IconBrandMark } from '../components/IconBrandMark'
 import { nativeApp } from '../lib/nativeApp'
@@ -95,7 +96,7 @@ export default function SimpleHomePage() {
         s.chapterFileCount > 0 &&
         // Ongoing and caught up: nothing left to read until the next chapter arrives.
         s.readingStatus !== 'UpToDate' &&
-        (!needle || s.displayTitle.toLowerCase().includes(needle) || s.title.toLowerCase().includes(needle)),
+        matchesSeriesTitle(s, needle),
     )
     return list.sort((a, b) => {
       if (sort === 'recent') {

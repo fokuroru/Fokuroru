@@ -381,7 +381,7 @@ body::before {
      in App.tsx) taking the rest.
    - The see-through desktop sidebar only works because nothing ever sits behind it. Here the page
      does, and reading the nav through the library grid is the whole complaint. Opaque. */
-@media (max-width: 47.9375em) {
+@media (max-width: 61.9375em) {
   .mantine-AppShell-root {
     --app-shell-navbar-width: min(272px, 82vw);
   }
@@ -7074,11 +7074,11 @@ body.reader-open {
     gap: 0.5rem;
   }
   .library-toolbar-row {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
   .library-toolbar-row .library-search {
-    flex: 1 1 0;
+    flex: 1 0 100%;
     min-width: 0;
   }
   .library-toolbar-row .library-sort {
@@ -7798,7 +7798,7 @@ body.reader-open {
   width: 160px;
 }
 
-@media (max-width: 47.9375em) {
+@media (max-width: 61.9375em) {
   .activity-queue-table thead th,
   .activity-history-table thead th {
     width: auto;
@@ -7814,6 +7814,67 @@ body.reader-open {
   .activity-queue-table tbody td,
   .activity-history-table tbody td {
     padding-inline: 0.4rem;
+  }
+  .activity-queue-table,
+  .activity-history-table {
+    display: block;
+    width: 100%;
+  }
+  .activity-queue-table thead,
+  .activity-history-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .activity-queue-table tbody,
+  .activity-history-table tbody {
+    display: block;
+  }
+  .activity-queue-table tbody tr,
+  .activity-history-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.625rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-queue-table tbody tr:last-child,
+  .activity-history-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .surface-frame--operational .activity-queue-table tbody td,
+  .surface-frame--operational .activity-history-table tbody td {
+    display: block;
+    height: auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .activity-queue-table tbody td[data-priority='low'],
+  .activity-history-table tbody td[data-priority='low'] {
+    display: none;
+  }
+  .activity-queue-table tbody td[data-empty] {
+    display: none;
+  }
+  .activity-queue-table td:first-child a,
+  .activity-history-table td:first-child a {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+  .activity-queue-table td .status-dot,
+  .activity-history-table td .status-dot {
+    max-width: 100%;
+    white-space: normal;
+  }
+  .activity-queue-table td:last-child button,
+  .activity-history-table td:last-child button {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 

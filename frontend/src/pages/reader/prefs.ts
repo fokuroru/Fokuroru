@@ -3,7 +3,7 @@ import { api } from '../../api/client'
 import type { PrefsSource, ReaderManifest, ResolvedReaderPrefs } from '../../api/reader'
 import { useReadingProfiles, type ReadingProfile } from '../../api/readingProfiles'
 
-/** `auto` reads as a spread where the window is wide (tablet, unfolded foldable in the Android app) and a single page elsewhere. */
+/** `auto` uses spreads on desktop and near-square unfolded windows, and one page on phones. */
 export type ReaderMode = 'auto' | 'paged' | 'double' | 'vertical'
 export type ReaderDirection = 'ltr' | 'rtl'
 export type ReaderFit = 'width' | 'height' | 'screen' | 'original'

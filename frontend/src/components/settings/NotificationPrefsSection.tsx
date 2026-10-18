@@ -100,6 +100,7 @@ export function NotificationPrefsSection() {
                       )}
                     </div>
                     <Switch
+                      aria-label={renderLabel(INBOX_TYPE_LABELS[type])}
                       checked={prefs.types[type] ?? true}
                       onChange={(e) => setType(type, e.currentTarget.checked)}
                     />
