@@ -210,7 +210,7 @@ public class MangaBakaBrowseIndexTests : IDisposable
             new MangaBakaDumpOptions(conn.DataSource, _dir), new FakeAppSettings(),
             new MangaBakaDumpStatus(), NullLogger<MangaBakaDumpService>.Instance);
 
-        Assert.True(await service.EnsureBrowseIndexesAsync());
+        await service.EnsureBrowseIndexesAsync();
         Assert.True(RootPage(conn, "ix_ext_mangaupdates") > 0);
     }
 

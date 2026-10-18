@@ -74,8 +74,7 @@ public class MangaUpdatesTracker(
 
     /// <summary>
     /// The list each (user, series) was last seen on, or null when it was on none. Read by the write
-    /// that normally follows a <see cref="GetEntryAsync"/>, so it knows whether to add or update and,
-    /// with <c>keepStatus</c>, which list to leave it on.
+    /// that normally follows a <see cref="GetEntryAsync"/>, so it knows whether to add or update.
     /// </summary>
     private readonly ConcurrentDictionary<(int UserId, long SeriesId), int?> _listIds = new();
 
@@ -616,7 +615,7 @@ public class MangaUpdatesTracker(
 
     public async Task UpdateAsync(
         int userId, string remoteId, int chapter, int volume, ScrobbleStatus status,
-        CancellationToken ct = default, bool keepStatus = false)
+        CancellationToken ct = default)
     {
         var seriesId = SeriesIdOf(remoteId);
         var key = (userId, seriesId);
@@ -633,7 +632,7 @@ public class MangaUpdatesTracker(
             }
         }
 
-        var listId = keepStatus && currentList is { } kept ? kept : InternalToList[status];
+        var listId = InternalToList[status];
         var progress = new JsonObject { ["chapter"] = Math.Max(chapter, 0) };
         if (volume > 0)
         {

@@ -76,8 +76,8 @@ public class SettingsController(
     ISchedulerFactory schedulerFactory,
     IServiceScopeFactory scopeFactory,
     ILogger<SettingsController> logger,
-    Maki.Core.Scrobbling.IScrobbleTokenStore scrobbleTokens,
-    Maki.Core.Scrobbling.MangaUpdatesTracker mangaUpdates) : ControllerBase
+    Maki.Core.Scrobbling.IScrobbleTokenStore? scrobbleTokens = null,
+    Maki.Core.Scrobbling.MangaUpdatesTracker? mangaUpdates = null) : ControllerBase
 {
     public record FlareSolverrSettings(string? Url);
     public record ProwlarrSettings(string? Url, string? ApiKey);
@@ -2133,8 +2133,12 @@ public class SettingsController(
 
         if (changed)
         {
-            await scrobbleTokens.DeleteAsync(currentUser.UserId, "mangaupdates", ct);
-            mangaUpdates.Forget(currentUser.UserId);
+            if (scrobbleTokens is not null)
+            {
+                await scrobbleTokens.DeleteAsync(currentUser.UserId, "mangaupdates", ct);
+            }
+
+            mangaUpdates?.Forget(currentUser.UserId);
         }
     }
 

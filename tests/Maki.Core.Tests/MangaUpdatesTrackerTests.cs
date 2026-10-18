@@ -534,18 +534,6 @@ public class MangaUpdatesTrackerTests
     }
 
     [Fact]
-    public async Task KeepStatusLeavesTheEntryOnItsCurrentList()
-    {
-        var handler = Listed(4).On(HttpMethod.Post, "/lists/series/update", """{"status":"success"}""");
-        var tracker = (Build(handler)).Tracker;
-
-        await tracker.GetEntryAsync(UserId, OnePiece);
-        await tracker.UpdateAsync(UserId, OnePiece, 7, 0, ScrobbleStatus.Reading, keepStatus: true);
-
-        Assert.Contains("\"list_id\":4", Assert.Single(handler.To(HttpMethod.Post, "/lists/series/update")).Body);
-    }
-
-    [Fact]
     public async Task A412IsRetriedOnceAfterFiveSeconds()
     {
         var handler = Listed(0).On(HttpMethod.Post, "/lists/series/update",
