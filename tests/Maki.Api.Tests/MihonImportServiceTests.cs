@@ -73,7 +73,7 @@ public sealed class MihonImportServiceTests : IDisposable
             stats: null!, identity: null!, appSettings: new FakeAppSettings(),
             naming: new NamingService(new FakeAppSettings()),
             notifications: new RecordingNotifications(), locales: new TestUserLocaleResolver(),
-            catalog: new TestLocalizer(), localizer: new TestLocalizer(),
+            catalog: new TestLocalizer(),
             logger: NullLogger<SeriesCreationService>.Instance);
         var service = new MihonImportService(
             db, _store, [_metadata], creation, new TagService(db),

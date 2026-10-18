@@ -136,7 +136,6 @@ public class PendingReadImportService(IServiceScopeFactory scopes, ILogger<Pendi
                 PageIndex = 0,
                 PageCount = 0,
                 Completed = true,
-                BulkMarked = true,
                 External = true,
                 StartedAt = now,
                 UpdatedAt = now,

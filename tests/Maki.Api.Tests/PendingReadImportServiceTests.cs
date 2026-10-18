@@ -85,7 +85,6 @@ public sealed class PendingReadImportServiceTests : IDisposable
             Assert.Equal(user, r.UserId);
             Assert.Equal(seriesId, r.SeriesId);
             Assert.True(r.Completed);
-            Assert.True(r.BulkMarked);
             Assert.True(r.External);
             Assert.Equal(0, r.PageCount);
         });
@@ -130,7 +129,6 @@ public sealed class PendingReadImportServiceTests : IDisposable
         Assert.False(rows[ids[1]].Completed);
         Assert.Equal(unreadAt, rows[ids[1]].UnreadAt);
         Assert.False(rows[ids[2]].External);
-        Assert.False(rows[ids[2]].BulkMarked);
         Assert.Equal(10, rows[ids[2]].PageCount);
         Assert.True(rows[ids[3]].Completed);
         Assert.Equal(5, rows[ids[3]].PageIndex);

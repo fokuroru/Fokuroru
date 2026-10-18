@@ -190,7 +190,7 @@ public class MihonImportService(
                 names.AddRange(meta.AltTitles.Select(a => a.Title));
             }
 
-            scores.Add(names.Max(n => ScrobbleMatching.MatchScore([title], n)));
+            scores.Add(names.Max(n => ScrobbleMatching.TitleSimilarity(title, n)));
         }
 
         var best = scores.Max();
@@ -274,7 +274,6 @@ public class MihonImportService(
         var result = await creation.CreateAsync(
             item.ProviderId, request.RootFolderId, request.Monitored, request.MonitorNewItems, ct,
             deferSourceMatching: true,
-            matchLane: SourceMatchLane.Background,
             attributedUserId: currentUser.UserId,
             addedFrom: AddedFrom,
             clientMutationId: MutationId(currentUser.UserId, request.RunId, item.ProviderId));

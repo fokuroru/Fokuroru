@@ -34,6 +34,9 @@ export interface StatusVisual {
   Icon: Icon
 }
 
+/** `vars` for a filled `color="var(--ok)"` Button: autoContrast cannot read a var(), so its label would stay white. */
+export const okButtonVars = () => ({ root: { '--button-color': 'var(--ok-on)' } })
+
 /**
  * Library badge fills, in the design tokens rather than Mantine's stock palette, so a cover's
  * "Completed" is the same green as every other "ok" in the app and follows the light theme.
