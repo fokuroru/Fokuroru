@@ -352,8 +352,8 @@ export function SeriesHero({
                                     color="var(--spine-fg)"
                                     radius="xl"
                                 />
-                                <Group justify="space-between" mt={9}>
-                                    <Text size="sm" c="var(--ink-2)" className="tnum">
+                                <Group justify="space-between" align="flex-start" wrap="nowrap" mt={9}>
+                                    <Text size="sm" c="var(--ink-2)" className="tnum" style={{ flex: 1, minWidth: 0 }}>
                                         <Trans>
                                             {readCount} /{' '}
                                             <Plural value={mainCount} one="# main chapter" other="# main chapters" />
@@ -381,8 +381,8 @@ export function SeriesHero({
                                 color={sourceGap ? 'var(--warn)' : progress.complete ? 'var(--ok)' : 'var(--ink)'}
                                 radius="xl"
                             />
-                            <Group justify="space-between" mt={9}>
-                                <Text size="sm" c="var(--ink-2)" className="tnum">
+                            <Group justify="space-between" align="flex-start" wrap="nowrap" mt={9}>
+                                <Text size="sm" c="var(--ink-2)" className="tnum" style={{ flex: 1, minWidth: 0 }}>
                                     {/* Two whole messages rather than one with a clause appended: a
                                         fragment glued onto a translated sentence lands in the wrong place
                                         in any language that does not order it the way English does. */}
