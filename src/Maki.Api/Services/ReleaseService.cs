@@ -68,6 +68,8 @@ public partial class ReleaseService(
             var releases = await prowlarr.SearchAsync(url, apiKey, candidate, indexerIds, categories, ct);
             results = releases
                 .Where(r => r.Protocol.Equals("torrent", StringComparison.OrdinalIgnoreCase))
+                // Anime episodes and seasons come back for a series name too; none of them is a comic.
+                .Where(r => !Maki.Core.Parsing.VideoRelease.IsVideo(r.Title))
                 .OrderByDescending(r => r.Seeders ?? 0)
                 .Select(r => new ReleaseDto(
                     r.Guid, r.Title, r.Size, r.Indexer, r.Seeders, r.Leechers,

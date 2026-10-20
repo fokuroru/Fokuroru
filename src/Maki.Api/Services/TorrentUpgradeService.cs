@@ -425,11 +425,30 @@ public class TorrentUpgradeService(
     {
         var now = time.GetUtcNow().UtcDateTime;
         var cutoff = now.AddDays(-expiryDays);
-        return await db.TorrentProposals.IgnoreQueryFilters()
+        var expired = await db.TorrentProposals.IgnoreQueryFilters()
             .Where(p => p.Status == TorrentProposalStatus.Pending && p.CreatedAtUtc < cutoff)
             .ExecuteUpdateAsync(u => u
                 .SetProperty(p => p.Status, TorrentProposalStatus.Expired)
                 .SetProperty(p => p.ResolvedAtUtc, now), ct);
+
+        // A video release proposed before searches learned to leave them out is not a proposal any more.
+        var video = (await db.TorrentProposals.IgnoreQueryFilters()
+                .Where(p => p.Status == TorrentProposalStatus.Pending)
+                .Select(p => new { p.Id, p.Title })
+                .ToListAsync(ct))
+            .Where(p => Maki.Core.Parsing.VideoRelease.IsVideo(p.Title))
+            .Select(p => p.Id)
+            .ToList();
+        if (video.Count > 0)
+        {
+            expired += await db.TorrentProposals.IgnoreQueryFilters()
+                .Where(p => video.Contains(p.Id))
+                .ExecuteUpdateAsync(u => u
+                    .SetProperty(p => p.Status, TorrentProposalStatus.Expired)
+                    .SetProperty(p => p.ResolvedAtUtc, now), ct);
+        }
+
+        return expired;
     }
 
     /// <summary>
