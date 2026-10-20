@@ -4744,3 +4744,7 @@ msgstr ""
 #. English: Too many items in one request ({count}); send batches of {max} or fewer
 msgid "error.mihon.tooManyItems"
 msgstr ""
+
+#: src/Maki.Api/Controllers/SeriesProgressController.cs
+msgid "error.series.placeSharedFile"
+msgstr ""

@@ -3414,3 +3414,7 @@ msgstr "The backup is too large to import."
 #: src/Maki.Api/Controllers/MihonImportController.cs
 msgid "error.mihon.tooManyItems"
 msgstr "Too many items in one request ({count}); send batches of {max} or fewer"
+
+#: src/Maki.Api/Controllers/SeriesProgressController.cs
+msgid "error.series.placeSharedFile"
+msgstr "A volume backs several chapters, so place the chapters instead."

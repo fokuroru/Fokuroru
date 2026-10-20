@@ -53,6 +53,18 @@ public class Chapter
     /// </summary>
     public DateTime? BankReleasedAt { get; set; }
 
+    /// <summary>
+    /// The volume a user slotted this chapter (usually a bonus) into. Kept apart from <see cref="Volume"/>,
+    /// which sources and file names write, so a sync can never undo the choice.
+    /// </summary>
+    public int? PlacedVolume { get; set; }
+
+    /// <summary>
+    /// The whole chapter number a user slotted this one after, within <see cref="PlacedVolume"/>;
+    /// <c>-1</c> is the start of the volume and null the end.
+    /// </summary>
+    public decimal? PlacedAfter { get; set; }
+
     public int? ChapterFileId { get; set; }
     public ChapterFile? ChapterFile { get; set; }
 

@@ -133,6 +133,12 @@ namespace Maki.Data.Migrations
                     b.Property<string>("PageCountKey")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("PlacedAfter")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PlacedVolume")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("ReleaseDate")
                         .HasColumnType("TEXT");
 

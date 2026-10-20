@@ -140,6 +140,7 @@ import { RenameSeriesModal } from '../components/RenameSeriesModal'
 import { RequestForm } from '../components/RequestForm'
 import { AnimeResumeCallout } from '../components/series/AnimeResumeCallout'
 import { FileQualityBadge } from '../components/series/FileQualityBadge'
+import { SeriesProgress } from '../components/series/SeriesProgress'
 import { SeriesActionsMenu } from '../components/series/SeriesActionsMenu'
 import { UpgradeNowResultModal } from '../components/series/UpgradeNowResultModal'
 import { SeriesHero, SeriesHeroSkeleton } from '../components/series/SeriesHero'
@@ -181,7 +182,7 @@ function chapterLabel(c: ChapterDto): string {
 /** A special is a decimal-numbered chapter (10.5 omake etc.). */
 const isSpecial = (c: ChapterDto) => c.number !== null && c.number % 1 !== 0
 
-const TABS = ['details', 'chapters', 'files'] as const
+const TABS = ['progress', 'details', 'chapters', 'files'] as const
 type Tab = (typeof TABS)[number]
 
 const CHAPTER_PAGE_SIZE_STORAGE_KEY = 'series-chapter-page-size'
@@ -330,11 +331,11 @@ function SeriesDetailBody() {
   // Anything unrecognised falls back rather than rendering no panel at all, which is what a
   // bookmark of the old ?tab=sources would otherwise do now that sources lives under Progress.
   const requestedTab = searchParams.get('tab')
-  const tab = TABS.includes(requestedTab as Tab) ? (requestedTab as Tab) : 'details'
+  const tab = TABS.includes(requestedTab as Tab) ? (requestedTab as Tab) : 'progress'
   const changeTab = (value: string | null) => {
     if (!value) return
     const next = new URLSearchParams(searchParams)
-    if (value === 'details') next.delete('tab')
+    if (value === 'progress') next.delete('tab')
     else next.set('tab', value)
     setSearchParams(next, { replace: true })
   }
@@ -1799,6 +1800,7 @@ function SeriesDetailBody() {
             }
             tabs={
               <Tabs.List>
+                <Tabs.Tab value="progress"><Trans>Progress</Trans></Tabs.Tab>
                 <Tabs.Tab value="details"><Trans>Details</Trans></Tabs.Tab>
                 <Tabs.Tab value="chapters">
                   <Trans>Chapters</Trans>
@@ -1811,6 +1813,12 @@ function SeriesDetailBody() {
               </Tabs.List>
             }
         />
+
+        <Tabs.Panel value="progress">
+          <div className="series-detail-files">
+            <SeriesProgress seriesId={seriesId} onShowFiles={() => changeTab('files')} />
+          </div>
+        </Tabs.Panel>
 
         <Tabs.Panel value="details">
           <Stack className="series-detail-overview" gap="lg">
