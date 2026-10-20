@@ -81,7 +81,6 @@ export default function SeriesOpenPage() {
       chapterLabel={label}
       seriesTitle={series?.displayTitle ?? ''}
       coverUrl={series?.coverUrl ?? null}
-      confirm
       onClose={close}
     />
   )

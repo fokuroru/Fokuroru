@@ -552,6 +552,27 @@ public sealed class SeriesPreviewService(
     /// </summary>
     public IReadOnlyList<long> CachedProviders() => CachedProviders(paths.SeriesPreviewDir);
 
+    /// <summary>
+    /// Every provider with a preview running or kept on disk. Folder names only, so unlike
+    /// <see cref="CachedProviders()"/> it reads no files and is cheap enough for a request path.
+    /// </summary>
+    public IReadOnlySet<long> KnownProviders()
+    {
+        var ids = _jobs.Keys.ToHashSet();
+        if (Directory.Exists(paths.SeriesPreviewDir))
+        {
+            foreach (var dir in Directory.EnumerateDirectories(paths.SeriesPreviewDir))
+            {
+                if (long.TryParse(Path.GetFileName(dir), NumberStyles.None, CultureInfo.InvariantCulture, out var id))
+                {
+                    ids.Add(id);
+                }
+            }
+        }
+
+        return ids;
+    }
+
     internal static IReadOnlyList<long> CachedProviders(string previewDir)
     {
         if (!Directory.Exists(previewDir))

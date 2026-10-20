@@ -832,7 +832,7 @@ public class ReaderController(
     [Authorize(Policy = Policies.DownloadChapters)]
     [HttpPost("chapters/{chapterId:int}/prepare")]
     public async Task<IActionResult> Prepare(
-        int chapterId, [FromServices] DownloadQueueService queue, CancellationToken ct)
+        int chapterId, [FromServices] DownloadQueueService queue, [FromServices] SettingsService settings, CancellationToken ct)
     {
         var chapter = await db.Chapters.AsNoTracking()
             .Where(c => c.Id == chapterId)
@@ -848,6 +848,13 @@ public class ReaderController(
             try
             {
                 await queue.EnqueueChapterAsync(chapterId, ct, DownloadOrigin.Manual, currentUser.UserId);
+
+                // Reading ahead is what comes next, so queue the following wanted chapters too, within
+                // the Smart download batch size, rather than stalling again at the next one.
+                var batch = int.TryParse(await settings.GetAsync(SettingKeys.SmartDownloadChaptersCount, ct), out var n) && n > 0 ? n : 10;
+                var current = await db.Chapters.AsNoTracking().FirstAsync(c => c.Id == chapterId, ct);
+                var ahead = (await UnreadGapAsync(current, null, ct)).Take(batch - 1).ToList();
+                await queue.EnqueueChaptersAsync(ahead, DownloadOrigin.Manual, currentUser.UserId, ct);
             }
             catch (InvalidOperationException ex)
             {

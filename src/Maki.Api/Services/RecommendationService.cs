@@ -54,7 +54,8 @@ public class RecommendationService(
     SemanticRecommender semantic,
     SeedWeightService seedWeights,
     IAppSettings settings,
-    ILogger<RecommendationService> logger)
+    ILogger<RecommendationService> logger,
+    SeriesPreviewService? previews = null)
 {
     private const int PageSize = 40;
     private const int PoolSize = 200;
@@ -248,6 +249,13 @@ public class RecommendationService(
 
                 pool = new RecommendationsResult(related, similar, DateTime.UtcNow);
                 _pools.Store(key, pool, origin);
+            }
+
+            // A series someone has started previewing is already on their radar, so it stops being a pick.
+            // Applied here rather than to the cached pool, so it takes effect on the next request.
+            if (previews?.KnownProviders() is { Count: > 0 } previewed)
+            {
+                suppressed = [.. suppressed, .. previewed];
             }
 
             var version = $"{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key)))[..16]}:{feedbackRevision}:{nextDismissalExpiry}";
