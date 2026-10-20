@@ -81,7 +81,13 @@ public class SmartDownloadJob(
                 }
             }
 
-            await batches.QueuedAsync(series.Id, series.Title, queuedItemIds, DownloadOrigin.SmartDownload);
+            // A batch made only of new releases held back for a reader is not announced.
+            var held = await ChapterBanking.BankedForAnyoneAsync(db, settings, series.Id, missing, ct);
+            if (held.Count < missing.Count)
+            {
+                await batches.QueuedAsync(series.Id, series.Title, queuedItemIds, DownloadOrigin.SmartDownload);
+            }
+
             logger.LogInformation(
                 "Smart Download queued {Added} chapters for series {SeriesId}", queuedItemIds.Count, series.Id);
         }

@@ -2747,6 +2747,13 @@ function SeriesDetailBody() {
                                     </Table.Td>
                                     <Table.Td>
                                       <Text size="sm" c="var(--ink-3)" lineClamp={1}>
+                                        {c.banked && (
+                                          <Tooltip label={t`New, and held back until enough pages are waiting`}>
+                                            <Badge size="xs" variant="light" color="gray" mr={6}>
+                                              <Trans>Banked</Trans>
+                                            </Badge>
+                                          </Tooltip>
+                                        )}
                                         {c.title}
                                       </Text>
                                     </Table.Td>

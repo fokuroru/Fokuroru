@@ -3385,6 +3385,8 @@ export interface DownloadSettings {
   autoDeleteReadDays: number
   /** Keep the chapter each reader read most recently out of auto-delete. */
   autoDeleteKeepLast: boolean
+  /** Pages of new chapters that must be waiting before a caught-up reader sees them. 0 means off. */
+  bankPages: number
   /** Which source a series without its own setting downloads from first. */
   sourceOrder: SourceOrderMode
   /** Measure every linked source of a newly matched series before anything downloads. */

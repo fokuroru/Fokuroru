@@ -214,7 +214,7 @@ public class ReaderController(
     }
 
     [HttpGet("chapter/{id:int}")]
-    public async Task<IActionResult> Manifest(int id, [FromServices] DownloadQueueService queue, [FromServices] SettingsService settings, CancellationToken ct)
+    public async Task<IActionResult> Manifest(int id, [FromServices] DownloadQueueService queue, [FromServices] SettingsService settings, [FromServices] IAppSettings appSettings, CancellationToken ct)
     {
         var slice = await reader.SliceAsync(id, ct);
         if (slice is null)
@@ -236,6 +236,15 @@ public class ReaderController(
             await queue.EnqueueChaptersAsync(gap.Take(batch).ToList(), DownloadOrigin.Manual, currentUser.UserId, ct);
         }
 
+        // New releases held back for this reader are not somewhere the reader leads on to, and are not
+        // counted in the series totals below.
+        var banked = await ChapterBanking.BankedForCallerAsync(db, appSettings, [slice.Series.Id], ct);
+        var hidden = banked.GetValueOrDefault(slice.Series.Id) ?? [];
+        if (next is int upNext && hidden.Contains(upNext))
+        {
+            next = null;
+        }
+
         var saved = await reader.ProgressAsync(id, ct);
         var resolved = await profiles.ResolveAsync(slice.Series.Id, ct);
 
@@ -246,7 +255,7 @@ public class ReaderController(
         // stale within the chapter, which is exactly right: they only move when a chapter is
         // finished, and finishing one refetches this.
         var seriesChapterCount = await db.Chapters
-            .CountAsync(c => c.SeriesId == slice.Series.Id && c.ChapterFileId != null, ct);
+            .CountAsync(c => c.SeriesId == slice.Series.Id && c.ChapterFileId != null && !hidden.Contains(c.Id), ct);
         var seriesReadCount = await ReadCounts.Read(db)
             .CountAsync(p => p.SeriesId == slice.Series.Id, ct);
 
@@ -254,7 +263,7 @@ public class ReaderController(
         // rule the series page's denominator uses. The toolbar shows it as a trailing hint so
         // someone reading a series that downloads in batches can tell there is more coming.
         var seriesWantedCount = await db.Chapters
-            .CountAsync(c => c.SeriesId == slice.Series.Id && (c.Wanted || c.ChapterFileId != null), ct);
+            .CountAsync(c => c.SeriesId == slice.Series.Id && (c.Wanted || c.ChapterFileId != null) && !hidden.Contains(c.Id), ct);
 
         // Named on the end-of-chapter screen, and its number is how that screen tells a straight
         // continuation from a jump over chapters that were never downloaded.

@@ -287,6 +287,8 @@ export interface ChapterDto {
   releaseDate: string | null
   /** Whether the user wants this chapter. Nothing in the download pipeline writes it. */
   wanted: boolean
+  /** A new release held back until enough pages are waiting; shown only on the series page. */
+  banked?: boolean
   hasFile: boolean
   /** Pages in this chapter's file (its slice, for a volume archive). Null when there is no readable file. */
   pageCount: number | null

@@ -52,7 +52,8 @@ public class ChapterDownloadProcessor(
     ChapterFileQualityService quality,
     ILocalizer localizer,
     IUserLocaleResolver locales,
-    ILogger<ChapterDownloadProcessor> logger)
+    ILogger<ChapterDownloadProcessor> logger,
+    Maki.Core.Configuration.IAppSettings? appSettings = null)
 {
     /// <summary>A RateLimited row parked for a missing root folder, which no source's cooldown is about.</summary>
     public const string RootFolderUnavailableKey = "error.download.rootFolderUnavailable";
@@ -349,7 +350,9 @@ public class ChapterDownloadProcessor(
 
             // Part of a batch (series add, search-missing, refresh)? The batch sends one summary
             // when every chapter in it has settled, instead of a ping per chapter.
-            if (!await batches.CompletedAsync(series.Id, item.Id))
+            // A new release held back for a reader is not announced; the release job does that later.
+            var heldBack = (await ChapterBanking.BankedForAnyoneAsync(db, appSettings, series.Id, [chapter.Id], ct)).Count > 0;
+            if (!await batches.CompletedAsync(series.Id, item.Id) && !heldBack)
             {
                 var label = chapter.Number?.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)
                             ?? chapter.Title;

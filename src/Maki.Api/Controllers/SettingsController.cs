@@ -149,7 +149,7 @@ public class SettingsController(
         int ConcurrentChapters, bool RetryEnabled, int RetryMaxAttempts,
         int SmartDownloadChaptersLeft, int SmartDownloadChapters, int ItemTimeoutMinutes,
         bool UseHardlinks = true, int? BulkHoldThreshold = null, string? SourceOrder = null, bool? ScoutOnMatch = null,
-        int? AutoDeleteReadDays = null, bool? AutoDeleteKeepLast = null);
+        int? AutoDeleteReadDays = null, bool? AutoDeleteKeepLast = null, int? BankPages = null);
     /// <param name="Enabled">Turns the daily upgrade scan on.</param>
     /// <param name="DefaultProfileId">The upgrade profile a series without its own pin uses, or null for none.</param>
     /// <param name="MaxPerDay">0 means no cap.</param>
@@ -911,7 +911,8 @@ public class SettingsController(
         await SourceOrderNameAsync(ct),
         await settings.GetAsync(SettingKeys.SourcesScoutOnMatch, ct) == "true",
         await AutoDeleteReadChaptersJob.DaysAsync(settings, ct),
-        await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct)));
+        await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct),
+        await ChapterBanking.PagesAsync(settings, ct)));
 
     private async Task<string> SourceOrderNameAsync(CancellationToken ct) => SourceOrderService.Name(
         SourceOrderService.Parse(await settings.GetAsync(SettingKeys.DownloadSourceOrder, ct)) ?? SourceOrderMode.Manual);
@@ -946,6 +947,11 @@ public class SettingsController(
         if (request.AutoDeleteReadDays is < 0 or > AutoDeleteReadChaptersJob.MaxDays)
         {
             return this.Fail(localizer, "error.settings.autoDeleteReadRange", new { max = AutoDeleteReadChaptersJob.MaxDays });
+        }
+
+        if (request.BankPages is < 0 or > 10000)
+        {
+            return BadRequest();
         }
 
         var sourceOrder = SourceOrderService.Parse(request.SourceOrder);
@@ -986,6 +992,11 @@ public class SettingsController(
             await settings.SetAsync(SettingKeys.LibraryAutoDeleteKeepLast, keepLast ? "true" : "false", ct);
         }
 
+        if (request.BankPages is { } bankPages)
+        {
+            await settings.SetAsync(SettingKeys.ReadingBankPages, bankPages.ToString(CultureInfo.InvariantCulture), ct);
+        }
+
         if (sourceOrder is { } order)
         {
             await settings.SetAsync(SettingKeys.DownloadSourceOrder, SourceOrderService.Name(order), ct);
@@ -1002,7 +1013,8 @@ public class SettingsController(
             SourceOrder = await SourceOrderNameAsync(ct),
             ScoutOnMatch = await settings.GetAsync(SettingKeys.SourcesScoutOnMatch, ct) == "true",
             AutoDeleteReadDays = await AutoDeleteReadChaptersJob.DaysAsync(settings, ct),
-            AutoDeleteKeepLast = await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct)
+            AutoDeleteKeepLast = await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct),
+            BankPages = await ChapterBanking.PagesAsync(settings, ct),
         });
     }
 

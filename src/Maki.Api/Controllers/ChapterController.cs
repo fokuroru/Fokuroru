@@ -3,6 +3,7 @@ using Maki.Api.Auth;
 using Maki.Api.Dtos;
 using Maki.Api.Localization;
 using Maki.Api.Services;
+using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Parsing;
 using Maki.Core.Paths;
@@ -39,7 +40,8 @@ public class ChapterController(
     SourceChapterListCache chapterLists,
     DownloadBatchNotifier downloadBatches,
     ICurrentUser currentUser,
-    ILogger<ChapterController> logger) : ControllerBase
+    ILogger<ChapterController> logger,
+    IAppSettings? appSettings = null) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> List(
@@ -98,8 +100,12 @@ public class ChapterController(
         // volume so the UI can show "Vol.x Ch.y" even for scrape-source chapters that
         // carry no volume metadata (parsing can't run inside the EF query, so it's
         // done here in memory over the materialized rows).
+        var banked = await ChapterBanking.BankedForCallerAsync(db, appSettings, [seriesId], ct);
+        var hidden = banked.GetValueOrDefault(seriesId) ?? [];
         var chapters = ChapterOrder.Sort(rows, c => c.Number, c => c.Volume, c => c.Id).Select(c => new
         {
+            // New and held back until enough pages are waiting; the series page marks these.
+            Banked = hidden.Contains(c.Id),
             c.Id,
             c.SeriesId,
             c.Number,

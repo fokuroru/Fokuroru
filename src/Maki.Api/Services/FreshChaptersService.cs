@@ -29,7 +29,7 @@ public record HomeFreshItem(
 /// off the rail; once nothing fresh is left the series leaves too.
 /// </para>
 /// </summary>
-public class FreshChaptersService(MakiDbContext db)
+public class FreshChaptersService(MakiDbContext db, Maki.Core.Configuration.IAppSettings? settings = null)
 {
     public static readonly TimeSpan Window = TimeSpan.FromDays(7);
 
@@ -42,7 +42,11 @@ public class FreshChaptersService(MakiDbContext db)
             .Where(c => c.DiscoveredAt != null && c.DiscoveredAt >= cutoff && c.ChapterFileId != null)
             .Select(c => new { c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, DiscoveredAt = c.DiscoveredAt!.Value })
             .ToListAsync(ct);
-        fresh = fresh.Where(c => ReadingStatuses.IsMain(c.Number)).ToList();
+        // Held back until enough pages are waiting; the release job moves their discovery date when they come out.
+        var banked = await ChapterBanking.BankedForCallerAsync(db, settings, null, ct);
+        fresh = fresh
+            .Where(c => ReadingStatuses.IsMain(c.Number) && banked.GetValueOrDefault(c.SeriesId)?.Contains(c.Id) != true)
+            .ToList();
         if (fresh.Count == 0)
         {
             return [];

@@ -1258,6 +1258,7 @@ function DownloadSection() {
   const [bulkHoldThreshold, setBulkHoldThreshold] = useState<number | string>(5)
   const [autoDeleteReadDays, setAutoDeleteReadDays] = useState<number | string>(0)
   const [autoDeleteKeepLast, setAutoDeleteKeepLast] = useState(false)
+  const [bankPages, setBankPages] = useState<number | string>(100)
   const [sourceOrder, setSourceOrder] = useState<SourceOrderMode>('manual')
   const [scoutOnMatch, setScoutOnMatch] = useState(false)
   const [discarded, discard] = useReducer((n: number) => n + 1, 0)
@@ -1273,6 +1274,7 @@ function DownloadSection() {
       setBulkHoldThreshold(settings.bulkHoldThreshold)
       setAutoDeleteReadDays(settings.autoDeleteReadDays)
       setAutoDeleteKeepLast(settings.autoDeleteKeepLast)
+      setBankPages(settings.bankPages)
       setSourceOrder(settings.sourceOrder)
       setScoutOnMatch(settings.scoutOnMatch)
     }
@@ -1289,6 +1291,7 @@ function DownloadSection() {
       Number(bulkHoldThreshold) !== settings.bulkHoldThreshold ||
       Number(autoDeleteReadDays) !== settings.autoDeleteReadDays ||
       autoDeleteKeepLast !== settings.autoDeleteKeepLast ||
+      Number(bankPages) !== settings.bankPages ||
       sourceOrder !== settings.sourceOrder ||
       scoutOnMatch !== settings.scoutOnMatch)
 
@@ -1319,6 +1322,7 @@ function DownloadSection() {
             bulkHoldThreshold: Number(bulkHoldThreshold),
             autoDeleteReadDays: Number(autoDeleteReadDays),
             autoDeleteKeepLast,
+            bankPages: Number(bankPages),
             sourceOrder,
             scoutOnMatch,
           },
@@ -1444,6 +1448,26 @@ function DownloadSection() {
         checked={autoDeleteKeepLast}
         onChange={(e) => setAutoDeleteKeepLast(e.currentTarget.checked)}
         disabled={Number(autoDeleteReadDays) === 0}
+        mb="md"
+      />
+      <Text fw={500} size="sm" mb={4}>
+        <Trans>New chapters</Trans>
+      </Text>
+      <SettingsHelp mb="xs">
+        <Trans>
+          When you are up to date on a series, new chapters download but stay out of sight until this many pages are
+          waiting, so one short chapter is not read the moment it lands. They are listed as banked on the series page.
+          0 shows new chapters straight away.
+        </Trans>
+      </SettingsHelp>
+      <NumberInput
+        label={t`Pages to bank before showing new chapters`}
+        min={0}
+        max={10000}
+        clampBehavior="strict"
+        value={bankPages}
+        onChange={setBankPages}
+        w={220}
         mb="md"
       />
       <Text fw={500} size="sm" mb={4}>

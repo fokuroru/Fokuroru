@@ -30,7 +30,7 @@ public record NextChapter(int ChapterId, string Label, int UnreadChapters, bool 
 /// (two Kavita series can resolve to one local series), so a join would also multiply rows.
 /// </para>
 /// </summary>
-public class ContinueReadingService(MakiDbContext db)
+public class ContinueReadingService(MakiDbContext db, Maki.Core.Configuration.IAppSettings? settings = null)
 {
     /// <summary>
     /// The next unread downloaded chapter per series. Series with nothing left to read are absent
@@ -65,13 +65,17 @@ public class ContinueReadingService(MakiDbContext db)
             .Select(c => new { c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, c.Wanted, HasFile = c.ChapterFileId != null })
             .ToListAsync(ct);
 
+        // Chapters held back until enough pages have piled up are not "next" for anyone to read.
+        var banked = await ChapterBanking.BankedForCallerAsync(db, settings, seriesIds, ct);
+
         var result = new Dictionary<int, NextChapter>();
         foreach (var group in chapters.GroupBy(c => c.SeriesId))
         {
+            var hidden = banked.GetValueOrDefault(group.Key);
             var ordered = ChapterOrder.Sort(group, c => c.Number, c => c.Volume, c => c.Id);
             bool Candidate(bool hasFile, bool wanted, decimal? number) =>
                 hasFile || (includeMissing && wanted);
-            var unread = ordered.Where(c => Candidate(c.HasFile, c.Wanted, c.Number) && !completed.Contains(c.Id)).ToList();
+            var unread = ordered.Where(c => Candidate(c.HasFile, c.Wanted, c.Number) && !completed.Contains(c.Id) && hidden?.Contains(c.Id) != true).ToList();
             if (unread.Count == 0)
             {
                 continue;
@@ -83,7 +87,7 @@ public class ContinueReadingService(MakiDbContext db)
             var furthestRead = ordered.FindLastIndex(c => c.Number is not null && completed.Contains(c.Id));
             var furthestNumber = furthestRead < 0 ? null : ordered[furthestRead].Number;
             var next = ordered.Skip(furthestRead + 1)
-                           .FirstOrDefault(c => Candidate(c.HasFile, c.Wanted, c.Number) && !completed.Contains(c.Id) && (furthestRead < 0 || c.Number != furthestNumber))
+                           .FirstOrDefault(c => Candidate(c.HasFile, c.Wanted, c.Number) && !completed.Contains(c.Id) && hidden?.Contains(c.Id) != true && (furthestRead < 0 || c.Number != furthestNumber))
                        ?? unread[0];
 
             if (includeMissing)

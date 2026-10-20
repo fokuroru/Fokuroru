@@ -46,6 +46,13 @@ public class Chapter
     /// </summary>
     public bool Wanted { get; set; } = true;
 
+    /// <summary>
+    /// When a banked chapter was let out. New chapters for a reader who is up to date stay hidden
+    /// ("banked") until enough pages have piled up; stamping this is what ends that for the batch,
+    /// and it is never cleared, so reading part of a released batch cannot bank the rest again.
+    /// </summary>
+    public DateTime? BankReleasedAt { get; set; }
+
     public int? ChapterFileId { get; set; }
     public ChapterFile? ChapterFile { get; set; }
 

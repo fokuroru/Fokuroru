@@ -55,6 +55,36 @@ public class AutoDeleteReadChaptersJob(
         return ids.ToHashSet();
     }
 
+    internal async Task<List<int>> BankedLastReadIdsAsync(CancellationToken ct)
+    {
+        var pages = await ChapterBanking.PagesAsync(settings, ct);
+        if (pages <= 0)
+        {
+            return [];
+        }
+
+        var kept = new List<int>();
+        var userIds = await db.ChapterProgress.IgnoreQueryFilters()
+            .Where(p => p.Completed).Select(p => p.UserId).Distinct().ToListAsync(ct);
+        foreach (var userId in userIds)
+        {
+            var seriesIds = (await ChapterBanking.BankedAsync(db, userId, null, pages, ct)).Keys.ToList();
+            if (seriesIds.Count == 0)
+            {
+                continue;
+            }
+
+            var last = await db.ChapterProgress.IgnoreQueryFilters()
+                .Where(p => p.UserId == userId && p.Completed && p.CompletedAt != null && seriesIds.Contains(p.SeriesId))
+                .GroupBy(p => p.SeriesId)
+                .Select(g => g.OrderByDescending(p => p.CompletedAt).Select(p => p.ChapterId).First())
+                .ToListAsync(ct);
+            kept.AddRange(last);
+        }
+
+        return kept;
+    }
+
     public async Task Execute(IJobExecutionContext context)
     {
         var days = await DaysAsync(settings, context.CancellationToken);
@@ -71,6 +101,10 @@ public class AutoDeleteReadChaptersJob(
         var kept = await KeepLastAsync(settings, ct)
             ? (await LastReadChapterIdsAsync(db, ct)).ToList()
             : [];
+
+        // While new chapters are banked for a reader, the chapter they finished last stays: it is the
+        // only thing they can re-read or open the series from until the new ones come out.
+        kept.AddRange(await BankedLastReadIdsAsync(ct));
 
         var readChapterIds = db.ChapterProgress
             .Where(p => p.Completed && p.CompletedAt != null && p.CompletedAt <= cutoff && !kept.Contains(p.ChapterId))

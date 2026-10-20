@@ -1021,6 +1021,11 @@ try
             .StartAt(DateTimeOffset.UtcNow.AddHours(1))
             .WithSimpleSchedule(s => s.WithIntervalInHours(24).RepeatForever()));
 
+        q.ScheduleJob<Maki.Api.Jobs.BankReleaseJob>(t => t
+            .WithIdentity("bank-release")
+            .StartAt(DateTimeOffset.UtcNow.AddMinutes(2))
+            .WithSimpleSchedule(s => s.WithIntervalInMinutes(5).RepeatForever()));
+
         q.ScheduleJob<Maki.Api.Jobs.AutoDeleteReadChaptersJob>(t => t
             .WithIdentity("auto-delete-read")
             .StartAt(DateTimeOffset.UtcNow.AddMinutes(30))

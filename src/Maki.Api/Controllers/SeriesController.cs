@@ -313,7 +313,8 @@ public class SeriesController(
     public async Task<IActionResult> List(CancellationToken ct)
     {
         var series = await db.Series.AsNoTracking().OrderBy(s => s.SortTitle).ToListAsync(ct);
-        var chapterCounts = await ChapterTalliesAsync(db.Chapters, ct);
+        var banked = await ChapterBanking.BankedForCallerAsync(db, appSettings, null, ct);
+        var chapterCounts = await WithoutBankedAsync(await ChapterTalliesAsync(db.Chapters, ct), banked, ct);
 
         // Active download work per series, so cards can show "queued"/"downloading" at a glance.
         var queueCounts = await db.DownloadQueue
@@ -329,7 +330,7 @@ public class SeriesController(
             .ToDictionaryAsync(x => x.SeriesId, ct);
 
         var readCounts = await ReadChapterCountsBySeriesAsync(ct);
-        var readingStatuses = await SeriesReadingService.ForAsync(db, series.ToDictionary(s => s.Id, s => s.Status), ct);
+        var readingStatuses = await SeriesReadingService.ForAsync(db, series.ToDictionary(s => s.Id, s => s.Status), ct, banked);
         var lastRead = await db.ChapterProgress
             .Where(p => p.UnreadAt == null)
             .GroupBy(p => p.SeriesId)
@@ -410,6 +411,35 @@ public class SeriesController(
     }
 
     private sealed record ChapterTallies(int SeriesId, int Wanted, int WithFile, int Known);
+
+    /// <summary>Takes banked chapters out of the totals, so a held-back release does not show up as a count.</summary>
+    private async Task<Dictionary<int, ChapterTallies>> WithoutBankedAsync(
+        Dictionary<int, ChapterTallies> tallies, Dictionary<int, HashSet<int>> banked, CancellationToken ct)
+    {
+        if (banked.Count == 0)
+        {
+            return tallies;
+        }
+
+        var ids = banked.Values.SelectMany(x => x).ToList();
+        var flags = await db.Chapters.Where(c => ids.Contains(c.Id))
+            .Select(c => new { c.SeriesId, c.Wanted, HasFile = c.ChapterFileId != null })
+            .ToListAsync(ct);
+        foreach (var group in flags.GroupBy(f => f.SeriesId))
+        {
+            if (tallies.TryGetValue(group.Key, out var t))
+            {
+                tallies[group.Key] = t with
+                {
+                    Wanted = t.Wanted - group.Count(f => f.Wanted || f.HasFile),
+                    WithFile = t.WithFile - group.Count(f => f.HasFile),
+                    Known = t.Known - group.Count(),
+                };
+            }
+        }
+
+        return tallies;
+    }
 
     /// <summary>
     /// The three chapter counts every series surface reports, keyed by series id. The list and detail
@@ -949,7 +979,8 @@ public class SeriesController(
             return NotFound();
         }
 
-        var tallies = await ChapterTalliesAsync(db.Chapters.Where(c => c.SeriesId == id), ct);
+        var banked = await ChapterBanking.BankedForCallerAsync(db, appSettings, [id], ct);
+        var tallies = await WithoutBankedAsync(await ChapterTalliesAsync(db.Chapters.Where(c => c.SeriesId == id), ct), banked, ct);
         tallies.TryGetValue(id, out var counts);
         var (total, withFile, known) = (counts?.Wanted ?? 0, counts?.WithFile ?? 0, counts?.Known ?? 0);
         var active = await db.DownloadQueue
@@ -976,7 +1007,7 @@ public class SeriesController(
             id, estimateTotal, readRows, estimateMode, ct);
 
         var userState = await UserStateForAsync(id, ct);
-        var detailStatus = await SeriesReadingService.ForAsync(db, new Dictionary<int, SeriesStatus> { [id] = series.Status }, ct);
+        var detailStatus = await SeriesReadingService.ForAsync(db, new Dictionary<int, SeriesStatus> { [id] = series.Status }, ct, banked);
         var pendingProposalId = await db.TorrentProposals
             .Where(p => p.SeriesId == id && p.Status == TorrentProposalStatus.Pending)
             .OrderByDescending(p => p.CreatedAtUtc)

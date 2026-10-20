@@ -22,7 +22,8 @@ public static class SeriesReadingService
     /// built in memory over two narrow projections.
     /// </summary>
     public static async Task<Dictionary<int, SeriesReading>> ForAsync(
-        MakiDbContext db, Dictionary<int, SeriesStatus> statuses, CancellationToken ct)
+        MakiDbContext db, Dictionary<int, SeriesStatus> statuses, CancellationToken ct,
+        Dictionary<int, HashSet<int>>? banked = null)
     {
         var ids = statuses.Keys.ToList();
         var read = (await (from p in db.ChapterProgress
@@ -51,8 +52,10 @@ public static class SeriesReadingService
         var readIds = read.Keys.ToList();
         var listed = (await db.Chapters
                 .Where(c => c.Number != null && readIds.Contains(c.SeriesId))
-                .Select(c => new { c.SeriesId, c.Number, c.Wanted })
+                .Select(c => new { c.SeriesId, c.Id, c.Number, c.Wanted })
                 .ToListAsync(ct))
+            // A banked chapter is not part of the series yet as far as this reader can tell.
+            .Where(x => banked?.GetValueOrDefault(x.SeriesId)?.Contains(x.Id) != true)
             .Where(x => ReadingStatuses.IsMain(x.Number))
             .GroupBy(x => x.SeriesId)
             .ToDictionary(

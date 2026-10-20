@@ -88,6 +88,12 @@ public static class SettingKeys
     public const string LibraryAutoDeleteKeepLast = "library.autodeletekeeplast";
 
     /// <summary>
+    /// Pages of new chapters a reader who is up to date must have waiting before they are shown.
+    /// Until then they are downloaded and kept out of sight ("banked"). Default 100, 0 turns it off.
+    /// </summary>
+    public const string ReadingBankPages = "reading.bankpages";
+
+    /// <summary>
     /// "false" → don't rewrite ComicInfo.xml inside files Maki adopts from disk (torrent grabs,
     /// manual imports). Chapters Maki downloads itself from a source always get a fresh ComicInfo —
     /// that CBZ is built by Maki, not an existing file being modified. Default on.

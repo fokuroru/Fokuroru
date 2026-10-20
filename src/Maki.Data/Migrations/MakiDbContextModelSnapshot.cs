@@ -105,6 +105,9 @@ namespace Maki.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("BankReleasedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("ChapterFileId")
                         .HasColumnType("INTEGER");
 

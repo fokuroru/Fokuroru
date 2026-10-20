@@ -154,6 +154,21 @@ public class RefreshMonitoredSeriesJob(
         var locale = await locales.DefaultAsync();
         var title = series?.Title ?? localizer.GetFor(locale, "inbox.unknownSeries");
 
+        // New releases held back for a reader are not announced here: the release job does that, once,
+        // when enough pages have piled up. Downloads above were queued either way.
+        var banked = await ChapterBanking.BankedForAnyoneAsync(
+            db, scope.ServiceProvider.GetRequiredService<IAppSettings>(), seriesId, wanted, ct);
+        var announced = wanted.Count - banked.Count;
+        if (announced == 0)
+        {
+            if (queuedItemIds.Count > 0)
+            {
+                await batches.QueuedAsync(seriesId, title, queuedItemIds, DownloadOrigin.MonitorRefresh, announce: false);
+            }
+
+            return;
+        }
+
         // Two messages rather than one with a `select`, because "available" and "queued for
         // download" are different sentences, not two words in the same one.
         var bodyKey = held ? "notify.chapters.held.body"
@@ -162,7 +177,7 @@ public class RefreshMonitoredSeriesJob(
         notifications.Dispatch(NotificationEventType.NewChapterAvailable, new NotificationMessage(
             NotificationEventType.NewChapterAvailable,
             Title: localizer.GetFor(locale, "notify.chapters.available.title"),
-            Body: localizer.GetFor(locale, bodyKey, new { series = title, count = wanted.Count }),
+            Body: localizer.GetFor(locale, bodyKey, new { series = title, count = announced }),
             SeriesTitle: title,
             SeriesId: seriesId));
 
@@ -172,7 +187,7 @@ public class RefreshMonitoredSeriesJob(
             // whose ui.titlelanguage is Japanese reads the Japanese title in their bell.
             inbox.Raise(InboxEventType.NewChapterAvailable, new InboxMessage(
                     Key: held ? "inbox.chapters.held" : smart ? "inbox.chapters.available" : "inbox.chapters.queued",
-                    Params: InboxMessage.Args(new { count = wanted.Count }),
+                    Params: InboxMessage.Args(new { count = announced }),
                     SeriesId: seriesId,
                     Url: $"/series/{seriesId}"),
                 InboxAudience.SeriesTrackers(seriesId, series.RootFolderId));
