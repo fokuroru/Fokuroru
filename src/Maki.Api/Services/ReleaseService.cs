@@ -102,11 +102,11 @@ public partial class ReleaseService(
         var link = release.MagnetUrl ?? release.DownloadUrl
             ?? throw new InvalidOperationException("Release has no download link");
 
-        // A magnet goes straight to qBittorrent. Any other link is a Prowlarr URL, which qBittorrent (often behind a VPN
+        // A magnet goes straight to qBittorrent. Any other link (even one Prowlarr put in the magnet field) is a Prowlarr URL, which qBittorrent (often behind a VPN
         // container) cannot reach, so it is fetched here and the file handed over; its info-hash lets the completed-download
         // job find the torrent exactly.
         string? hash = null;
-        if (release.MagnetUrl is null)
+        if (!link.StartsWith("magnet:", StringComparison.OrdinalIgnoreCase))
         {
             var source = await prowlarr.FetchTorrentAsync(link, ct);
             if (source.Magnet is { } redirected)

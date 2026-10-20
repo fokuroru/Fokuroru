@@ -250,6 +250,19 @@ public class ReleaseServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task A_proxy_link_in_the_magnet_field_is_fetched_like_any_download_link()
+    {
+        var seriesId = _db.SeedSeries("Berserk");
+        await _settings.SetAsync(SettingKeys.QBittorrentUrl, "http://qbt.test");
+        var release = new ReleaseDto("g", "Berserk v01", 1000, "Nyaa", 10, 1, "torrent", null, "http://prowlarr:9696/18/download?x=1", null);
+
+        await Build(TinyTorrent).GrabAsync(seriesId, release, DownloadOrigin.Manual, null, null);
+
+        Assert.Null(_qbt.AddedLink);
+        Assert.NotNull(_qbt.AddedFile);
+    }
+
+    [Fact]
     public async Task A_download_link_that_redirects_to_a_magnet_is_added_as_that_magnet()
     {
         var seriesId = _db.SeedSeries("Berserk");
