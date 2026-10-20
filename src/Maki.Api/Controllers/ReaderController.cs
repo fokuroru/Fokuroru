@@ -183,8 +183,38 @@ public class ReaderController(
         return Ok(await profiles.ResolveAsync(seriesId, ct));
     }
 
+    /// <summary>
+    /// Wanted, undownloaded, unread chapters of the same language that sort after <paramref name="chapter"/>
+    /// and before <paramref name="nextOnDisk"/> (or anywhere after it when nothing further is on disk).
+    /// </summary>
+    private async Task<List<int>> UnreadGapAsync(Chapter chapter, int? nextOnDisk, CancellationToken ct)
+    {
+        var siblings = await db.Chapters.AsNoTracking()
+            .Where(c => c.SeriesId == chapter.SeriesId && c.Language == chapter.Language)
+            .Select(c => new { c.Id, c.Number, c.Volume, c.Wanted, HasFile = c.ChapterFileId != null })
+            .ToListAsync(ct);
+        var completed = (await db.ChapterProgress
+                .Where(p => p.SeriesId == chapter.SeriesId && p.Completed)
+                .Select(p => p.ChapterId)
+                .ToListAsync(ct))
+            .ToHashSet();
+
+        var ordered = ChapterOrder.Sort(siblings, c => c.Number, c => c.Volume, c => c.Id);
+        var from = ordered.FindIndex(c => c.Id == chapter.Id) + 1;
+        var to = nextOnDisk is int n ? ordered.FindIndex(c => c.Id == n) : ordered.Count;
+        if (from <= 0 || to < 0)
+        {
+            return [];
+        }
+
+        return ordered.Skip(from).Take(Math.Max(0, to - from))
+            .Where(c => !c.HasFile && c.Wanted && !completed.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToList();
+    }
+
     [HttpGet("chapter/{id:int}")]
-    public async Task<IActionResult> Manifest(int id, CancellationToken ct)
+    public async Task<IActionResult> Manifest(int id, [FromServices] DownloadQueueService queue, CancellationToken ct)
     {
         var slice = await reader.SliceAsync(id, ct);
         if (slice is null)
@@ -193,6 +223,17 @@ public class ReaderController(
         }
 
         var (previous, next) = await reader.NeighboursAsync(slice.Chapter, ct);
+
+        // Neighbours only sees chapters on disk, so a wanted chapter that hasn't downloaded yet would be
+        // jumped over (and its story spoiled). While one sits between here and the next downloaded
+        // chapter there is no "next": queue the gap and let the end screen say more is coming.
+        var gap = await UnreadGapAsync(slice.Chapter, next, ct);
+        if (gap.Count > 0)
+        {
+            next = null;
+            await queue.EnqueueChaptersAsync(gap, DownloadOrigin.Manual, currentUser.UserId, ct);
+        }
+
         var saved = await reader.ProgressAsync(id, ct);
         var resolved = await profiles.ResolveAsync(slice.Series.Id, ct);
 
