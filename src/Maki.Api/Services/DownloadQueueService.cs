@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Maki.Api.Dtos;
@@ -943,15 +944,18 @@ public class DownloadQueueService(
             var now = time.GetUtcNow().UtcDateTime;
             var cooling = CoolingDownSources();
             cooling.AddRange(pause.Sources.Keys);
-            var candidate = await db.DownloadQueue
+            var window = await db.DownloadQueue
                 .Where(q => q.Protocol == AcquisitionProtocol.Scraper &&
                             (q.Status == QueueStatus.Queued || q.Status == QueueStatus.RateLimited) &&
                             (q.NextAttempt == null || q.NextAttempt <= now) &&
                             (q.SourceMapping == null || !cooling.Contains(q.SourceMapping.SourceName)))
                 .OrderBy(q => q.SortOrder)
                 .ThenBy(q => q.QueuedAt)
-                .Select(q => new { q.Id })
-                .FirstOrDefaultAsync(ct);
+                .Take(FairnessWindow)
+                .Select(q => new ClaimCandidate(q.Id, q.SeriesId, q.SortOrder,
+                    q.Chapter == null ? null : q.Chapter.Number, q.Chapter == null ? null : q.Chapter.Volume))
+                .ToListAsync(ct);
+            var candidate = PickFairly(window, _lastClaimBySeries);
 
             if (candidate is null)
             {
@@ -984,6 +988,7 @@ public class DownloadQueueService(
 
             if (claimed == 1)
             {
+                _lastClaimBySeries[candidate.SeriesId] = Stopwatch.GetTimestamp();
                 return candidate.Id;
             }
 
@@ -994,6 +999,34 @@ public class DownloadQueueService(
 
         return null;
     }
+
+    /// <summary>How many of the top-priority claimable rows <see cref="PickFairly"/> chooses between.</summary>
+    private const int FairnessWindow = 500;
+
+    private readonly ConcurrentDictionary<int, long> _lastClaimBySeries = new();
+
+    internal sealed record ClaimCandidate(int Id, int SeriesId, int SortOrder, decimal? Number, int? Volume);
+
+    /// <summary>
+    /// Takes each series' earliest chapter and, of those, the series served longest ago, so a bulk
+    /// queue of one series cannot hold up another's next chapter and each series still goes in
+    /// chapter order. Series not claimed from since startup go first, in queue order.
+    /// shortcut: ignores a manual drag-reorder across series inside the window, upgrade if that matters.
+    /// </summary>
+    internal static ClaimCandidate? PickFairly(List<ClaimCandidate> window, ConcurrentDictionary<int, long> lastClaim) =>
+        window
+            .GroupBy(c => c.SeriesId)
+            .Select(g => g
+                .OrderBy(c => c.Number is null ? 1 : 0)
+                .ThenBy(c => c.Number ?? 0)
+                .ThenBy(c => c.Volume ?? 0)
+                .ThenBy(c => c.SortOrder)
+                .ThenBy(c => c.Id)
+                .First())
+            .OrderBy(c => lastClaim.GetValueOrDefault(c.SeriesId))
+            .ThenBy(c => c.SortOrder)
+            .ThenBy(c => c.Id)
+            .FirstOrDefault();
 
     /// <summary>
     /// Hands one claim on an item back once the worker is done with it, whatever the outcome. Must be
