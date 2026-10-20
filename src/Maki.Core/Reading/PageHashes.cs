@@ -22,6 +22,13 @@ public static class PageHashes
     /// <summary>Hamming distance at which two page hashes count as the same page.</summary>
     public const int MaxDistance = 8;
 
+    /// <summary>
+    /// Per-page cutoff for an unbroken run (see <see cref="AlignedCoverage"/>): in order and contiguous is strong
+    /// evidence on its own, so each page may differ a little more. Across every pair of files in a real series,
+    /// this found only genuine copies.
+    /// </summary>
+    public const int RunDistance = 12;
+
     /// <summary>Below this many informative pages a file is too short to judge by content.</summary>
     public const int MinPages = 3;
 
@@ -101,6 +108,38 @@ public static class PageHashes
 
         var hits = mine.Count(p => pool.Any(q => BitOperations.PopCount(p ^ q) <= MaxDistance));
         return hits / (double)mine.Count;
+    }
+
+    /// <summary>
+    /// For a short file: the best share of its informative pages that sit, in order and unbroken, at some
+    /// position of <paramref name="larger"/>. A few low-detail pages can each match some other page by chance,
+    /// but the same run of consecutive pages matching in the same order is a copy. 0 below <see cref="MinPages"/>.
+    /// </summary>
+    public static double AlignedCoverage(IReadOnlyList<ulong> small, IReadOnlyList<ulong> larger, int maxDistance = RunDistance)
+    {
+        var informative = small.Count(Informative);
+        if (informative < MinPages || larger.Count < small.Count)
+        {
+            return 0;
+        }
+
+        var best = 0;
+        for (var offset = 0; offset + small.Count <= larger.Count; offset++)
+        {
+            var hits = 0;
+            for (var i = 0; i < small.Count; i++)
+            {
+                if (Informative(small[i]) && Informative(larger[offset + i])
+                    && BitOperations.PopCount(small[i] ^ larger[offset + i]) <= maxDistance)
+                {
+                    hits++;
+                }
+            }
+
+            best = Math.Max(best, hits);
+        }
+
+        return best / (double)informative;
     }
 
     public static byte[] Pack(ulong[] hashes)

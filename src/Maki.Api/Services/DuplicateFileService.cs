@@ -85,11 +85,8 @@ public class DuplicateFileService(
             });
         }
 
-        // A file the user protected, or one that a wanted chapter could not be moved off, stays. So does a
-        // file too short to judge by its pages alone (a handful of low-detail pages can match by chance),
-        // unless a volume's own chapter markers name it.
-        var pinned = facts.Where(f => f.File.Trusted || (Informative(f) < MinJudgedPages && !NamedByAVolume(f, facts, chapters)))
-            .Select(f => f.File.Id).ToHashSet();
+        // A file the user protected, or one that a wanted chapter could not be moved off, stays.
+        var pinned = facts.Where(f => f.File.Trusted).Select(f => f.File.Id).ToHashSet();
         List<PlanRemoval> removals;
         Dictionary<int, List<(Chapter Chapter, int? Target)>> moves;
         while (true)
@@ -119,6 +116,34 @@ public class DuplicateFileService(
             }
 
             pinned.UnionWith(blocked);
+        }
+
+        // A loose file that is the same titled chapter as one inside a valid volume ("Rhythm A" listed as 0.5 by
+        // one source and as 0 by another) is the volume's chapter under another number, even when a different
+        // scan keeps its pages from matching. Only files nobody asked for, of about the same length.
+        var removedIds = removals.Select(r => r.FileId).ToHashSet();
+        var volumes = facts.Where(f => !removedIds.Contains(f.File.Id) && f.Plan.Class >= FileClass.Volume).ToList();
+        foreach (var f in facts.Where(f => !removedIds.Contains(f.File.Id) && !pinned.Contains(f.File.Id) && f.Plan.Class == FileClass.Loose))
+        {
+            var rows = chapters.Where(c => c.ChapterFileId == f.File.Id).ToList();
+            var twin = rows.Count == 0 || rows.Any(r => r.Wanted) ? null : volumes
+                .Select(v => (Volume: v, Rows: chapters.Where(c => c.ChapterFileId == v.File.Id).ToList()))
+                .FirstOrDefault(v => rows.All(r => ChapterSequence.TitleKey(r.Title) is { } key && r.Number is { } n
+                    && v.Rows.Any(o => ChapterSequence.TitleKey(o.Title) == key && o.Number is { } on && on != n && Math.Abs(on - n) < 1
+                                       && o.PageCount is { } pages && Math.Abs(pages - f.Hashes.Length) <= 2))).Volume;
+            if (twin is null)
+            {
+                continue;
+            }
+
+            var placed = Place(f, rows, [twin]);
+            if (placed is null)
+            {
+                continue;
+            }
+
+            removals.Add(new PlanRemoval(f.File.Id, 1.0, [twin.File.Id]));
+            moves[f.File.Id] = placed;
         }
 
         var report = removals.Select(r =>
@@ -178,18 +203,6 @@ public class DuplicateFileService(
         }
 
         return new DuplicateReport(report, trashed > 0, freed);
-    }
-
-    private const int MinJudgedPages = 6;
-
-    private static int Informative(Facts f) => f.Hashes.Count(PageHashes.Informative);
-
-    /// <summary>Every chapter the file backs is a whole-numbered one that some volume's page markers name.</summary>
-    private static bool NamedByAVolume(Facts file, IReadOnlyList<Facts> all, IReadOnlyList<Chapter> chapters)
-    {
-        var rows = chapters.Where(c => c.ChapterFileId == file.File.Id).ToList();
-        return rows.Count > 0 && rows.All(c => ChapterSequence.IsMain(c.Number)
-            && all.Any(v => v.File.Id != file.File.Id && v.Plan.Class == FileClass.MarkedVolume && v.Markers.Contains(c.Number!.Value)));
     }
 
     /// <summary>Duplicates need a volume or a volume-sized file to exist; a series of plain short chapters is skipped without hashing a page.</summary>

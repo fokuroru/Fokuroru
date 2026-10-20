@@ -27,6 +27,10 @@ public static partial class ChapterSequence
     [GeneratedRegex(@"^\s*(?:chapter|ch|vol(?:ume)?)\b\.?\s*[\d.\-]*\s*$", RegexOptions.IgnoreCase)]
     private static partial Regex GenericTitle();
 
+    /// <summary>A title that names a chapter ("Rhythm A"), lower-cased; null for none or a bare "Chapter 12".</summary>
+    public static string? TitleKey(string? title) =>
+        string.IsNullOrWhiteSpace(title) || GenericTitle().IsMatch(title) ? null : title.Trim().ToLowerInvariant();
+
     public static bool IsMain(decimal? number) => number is { } n && n >= 0 && n % 1 == 0;
 
     [GeneratedRegex(@"^\s*vol(?:ume|\.)?\s*\d+\s*$", RegexOptions.IgnoreCase)]

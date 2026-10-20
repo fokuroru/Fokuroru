@@ -113,4 +113,24 @@ public class DuplicatePlannerTests
         Assert.DoesNotContain(removed, r => r.FileId == 3);
         Assert.Contains(removed, r => r.FileId == 2);
     }
+
+    [Fact]
+    public void A_short_file_is_a_duplicate_only_as_an_unbroken_run_inside_one_other_file()
+    {
+        var volume = Pages(8, 0, 40);
+        var run = volume[10..14];            // chapter 3, four pages, as it sits in the volume
+        var scattered = new[] { volume[2], volume[20], volume[5], volume[33] }; // same pages, not in order
+
+        Assert.Equal([2], Removed(F(1, FileClass.MarkedVolume, volume), F(2, FileClass.Loose, Noisy(run))));
+        Assert.Empty(Removed(F(1, FileClass.MarkedVolume, volume), F(3, FileClass.Loose, scattered)));
+    }
+
+    [Fact]
+    public void Aligned_coverage_needs_the_run_in_order_and_ignores_flat_pages()
+    {
+        ulong[] large = [0x1111111111111110, 0xF0F0F0F0F0F0F0F0, 0x123456789ABCDEF0, 0x0FF00FF00FF00FF0, 0xAAAAAAAAAAAAAAAA];
+        Assert.Equal(1.0, PageHashes.AlignedCoverage(new ulong[] { large[1], large[2], large[3] }, large));
+        Assert.True(PageHashes.AlignedCoverage(new ulong[] { large[3], large[2], large[1] }, large) < 1.0);
+        Assert.Equal(0.0, PageHashes.AlignedCoverage(new ulong[] { large[1], large[2] }, large));
+    }
 }

@@ -102,4 +102,26 @@ public class ChapterSequenceRuleTests
         // Smart's window reached the volume row itself.
         Assert.Equal([3], ChapterSequence.PreferVolumes([900, 3], chapters, new HashSet<int>()));
     }
+
+    private static List<Chapter> Numbered(params (decimal Number, int Volume)[] rows) =>
+        rows.Select((r, i) => new Chapter { Id = i + 1, Number = r.Number, Volume = r.Volume }).ToList();
+
+    [Fact]
+    public void A_number_below_the_first_volume_belongs_to_it_when_the_series_numbers_straight_through()
+    {
+        var chapters = Numbered((1, 1), (2, 1), (37, 1), (38, 2), (72, 2), (73, 3), (112, 3));
+
+        Assert.Equal(1, ChapterSyncService.ContinuousVolumeOf(chapters, 0));
+        Assert.Equal(2, ChapterSyncService.ContinuousVolumeOf(chapters, 40));
+        Assert.Equal(3, ChapterSyncService.ContinuousVolumeOf(chapters, 200));
+    }
+
+    [Fact]
+    public void Per_volume_numbering_is_left_alone_and_a_number_between_volumes_is_not_guessed()
+    {
+        // Each volume restarts at 1: overlapping ranges, so a repeated number is a different chapter.
+        Assert.Null(ChapterSyncService.ContinuousVolumeOf(Numbered((1, 1), (9, 1), (1, 2), (9, 2)), 5));
+        // 37.5 would fall in the gap between volume 1 (to 37) and volume 2 (from 38).
+        Assert.Null(ChapterSyncService.ContinuousVolumeOf(Numbered((1, 1), (37, 1), (39, 2), (72, 2)), 38));
+    }
 }

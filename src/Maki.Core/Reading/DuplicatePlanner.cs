@@ -33,6 +33,17 @@ public static class DuplicatePlanner
 {
     public const double CoveredAt = 0.85;
 
+    /// <summary>Files with fewer informative pages than this are matched as an unbroken run inside one other file.</summary>
+    public const int ShortBelow = 6;
+
+    private static IEnumerable<PlanFile> StandInsFor(PlanFile file, IEnumerable<PlanFile> candidates) =>
+        candidates.Where(k => k.Id != file.Id && (file.Class == FileClass.Dump || k.Class >= file.Class));
+
+    private static double CoverageOf(PlanFile file, IReadOnlyList<PlanFile> standIns) =>
+        file.Hashes.Count(PageHashes.Informative) >= ShortBelow
+            ? PageHashes.Coverage(file.Hashes, standIns.Select(k => (IReadOnlyList<ulong>)k.Hashes))
+            : standIns.Select(k => PageHashes.AlignedCoverage(file.Hashes, k.Hashes)).DefaultIfEmpty(0).Max();
+
     /// <param name="pinned">Files that must stay, whatever their pages say.</param>
     public static List<PlanRemoval> Plan(IReadOnlyList<PlanFile> files, IReadOnlySet<int>? pinned = null)
     {
@@ -48,9 +59,7 @@ public static class DuplicatePlanner
             var finalKept = files.Where(f => !gone.Contains(f.Id)).ToList();
             var unsafeRemovals = removed
                 .Where(r => files.First(f => f.Id == r.FileId) is var file
-                    && PageHashes.Coverage(file.Hashes, finalKept
-                        .Where(k => file.Class == FileClass.Dump || k.Class >= file.Class)
-                        .Select(k => (IReadOnlyList<ulong>)k.Hashes)) < CoveredAt)
+                    && CoverageOf(file, StandInsFor(file, finalKept).ToList()) < CoveredAt)
                 .Select(r => r.FileId)
                 .ToList();
             if (unsafeRemovals.Count == 0)
@@ -80,22 +89,19 @@ public static class DuplicatePlanner
                 continue;
             }
 
-            var standIns = kept.Values.Where(k => k.Id != file.Id && (file.Class == FileClass.Dump || k.Class >= file.Class)).ToList();
+            var standIns = StandInsFor(file, kept.Values).ToList();
             if (standIns.Count == 0)
             {
                 continue;
             }
 
-            var coverage = PageHashes.Coverage(file.Hashes, standIns.Select(k => (IReadOnlyList<ulong>)k.Hashes));
+            var coverage = CoverageOf(file, standIns);
             if (coverage < CoveredAt)
             {
                 continue;
             }
 
-            var coveredBy = standIns
-                .Where(k => PageHashes.Coverage(file.Hashes, [k.Hashes]) > 0)
-                .Select(k => k.Id)
-                .ToList();
+            var coveredBy = standIns.Where(k => CoverageOf(file, [k]) > 0).Select(k => k.Id).ToList();
             removed.Add(new PlanRemoval(file.Id, coverage, coveredBy));
             kept.Remove(file.Id);
         }
