@@ -580,7 +580,6 @@ export default function LibraryPage() {
     setReadingStatusFilter(merged.readingStatus ?? 'all')
     setRetiredFilter(merged.retired ?? 'all')
     setNoFilesFilter(merged.noFiles ?? 'all')
-    setSort(merged.sort)
     setActiveFilterId(id)
   }
 

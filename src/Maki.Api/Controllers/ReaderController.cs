@@ -214,7 +214,7 @@ public class ReaderController(
     }
 
     [HttpGet("chapter/{id:int}")]
-    public async Task<IActionResult> Manifest(int id, [FromServices] DownloadQueueService queue, CancellationToken ct)
+    public async Task<IActionResult> Manifest(int id, [FromServices] DownloadQueueService queue, [FromServices] SettingsService settings, CancellationToken ct)
     {
         var slice = await reader.SliceAsync(id, ct);
         if (slice is null)
@@ -231,7 +231,9 @@ public class ReaderController(
         if (gap.Count > 0)
         {
             next = null;
-            await queue.EnqueueChaptersAsync(gap, DownloadOrigin.Manual, currentUser.UserId, ct);
+            // Same batch size Smart download uses; a long gap fills in ten at a time as they land.
+            var batch = int.TryParse(await settings.GetAsync(SettingKeys.SmartDownloadChaptersCount, ct), out var n) && n > 0 ? n : 10;
+            await queue.EnqueueChaptersAsync(gap.Take(batch).ToList(), DownloadOrigin.Manual, currentUser.UserId, ct);
         }
 
         var saved = await reader.ProgressAsync(id, ct);

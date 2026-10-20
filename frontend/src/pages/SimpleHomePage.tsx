@@ -94,8 +94,9 @@ export default function SimpleHomePage() {
     const list = (library.data ?? []).filter(
       (s) =>
         s.chapterFileCount > 0 &&
-        // Ongoing and caught up: nothing left to read until the next chapter arrives.
+        // Caught up on an ongoing series, or finished one that is fully read: nothing left to read.
         s.readingStatus !== 'UpToDate' &&
+        s.readingStatus !== 'Completed' &&
         matchesSeriesTitle(s, needle),
     )
     return list.sort((a, b) => {
