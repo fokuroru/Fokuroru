@@ -5,8 +5,9 @@ namespace Maki.Api.Tests;
 
 public class ChapterBankingTests
 {
-    private static ChapterBanking.Row C(int number, bool read = false, bool file = true, bool wanted = true, bool released = false) =>
-        new(number, number, null, wanted, file, released, read);
+    private static ChapterBanking.Row C(
+        int number, bool read = false, bool file = true, bool wanted = true, bool released = false, bool isNew = true) =>
+        new(number, number, null, wanted, file, released, read, isNew);
 
     private static List<int> Banked(params ChapterBanking.Row[] rows) => ChapterBanking.BankedIn(rows).Order().ToList();
 
@@ -14,6 +15,14 @@ public class ChapterBankingTests
     public void New_chapters_after_the_last_read_are_banked()
     {
         Assert.Equal([4, 5], Banked(C(1, true), C(2, true), C(3, true), C(4), C(5, file: false)));
+    }
+
+    [Fact]
+    public void A_backlog_of_older_unread_chapters_means_nothing_is_banked()
+    {
+        // Mid-series: the unread chapters ahead were never "new releases", so none is held back.
+        Assert.Empty(Banked(C(1, true), C(2, true), C(3, isNew: false), C(4, isNew: false)));
+        Assert.Empty(Banked(C(1, true), C(2, isNew: false), C(3)));
     }
 
     [Fact]

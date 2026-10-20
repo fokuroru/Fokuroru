@@ -11,9 +11,11 @@ namespace Maki.Api.Services;
 /// read the moment it lands. Nothing here is stored per chapter apart from the release stamp:
 /// whether a chapter is banked is worked out from the reader's history every time.
 /// <para>
-/// A series banks for a reader who has read something, has no unread wanted chapter behind their
-/// furthest read (they are not catching up on a backlog), and has no chapter ahead of them that was
-/// already released. Everything wanted or downloaded after their furthest read is the batch.
+/// A series banks for a reader who has read something and whose only unread chapters are new
+/// releases (<see cref="Maki.Core.Entities.Chapter.DiscoveredAt"/> set: sync first listed them after
+/// the series already had chapters), all after their furthest read, none already released. A backlog
+/// of older unread chapters means they are not caught up, and nothing is banked. The new releases
+/// wanted or downloaded are the batch.
 /// <see cref="BankReleaseService"/> stamps the batch once its pages add up.
 /// </para>
 /// </summary>
@@ -27,7 +29,8 @@ public static class ChapterBanking
             ? pages
             : DefaultPages;
 
-    public sealed record Row(int Id, decimal? Number, int? Volume, bool Wanted, bool HasFile, bool Released, bool Read);
+    public sealed record Row(
+        int Id, decimal? Number, int? Volume, bool Wanted, bool HasFile, bool Released, bool Read, bool IsNew = true);
 
     /// <summary>The banked chapter ids of one series for one reader, from all of the series' chapters.</summary>
     public static HashSet<int> BankedIn(IReadOnlyList<Row> chapters)
@@ -47,7 +50,7 @@ public static class ChapterBanking
             .Select((c, index) => (Chapter: c, Index: index))
             .Where(x => !IsRead(x.Chapter) && (x.Chapter.Wanted || x.Chapter.HasFile))
             .ToList();
-        if (unread.Count == 0 || unread.Any(x => x.Index < furthest || x.Chapter.Released))
+        if (unread.Count == 0 || unread.Any(x => x.Index < furthest || x.Chapter.Released || !x.Chapter.IsNew))
         {
             return [];
         }
@@ -84,6 +87,7 @@ public static class ChapterBanking
                 {
                     c.SeriesId, c.Id, c.Number, c.Volume, c.Wanted,
                     HasFile = c.ChapterFileId != null, Released = c.BankReleasedAt != null,
+                    IsNew = c.DiscoveredAt != null,
                 })
                 .ToListAsync(ct))
             .GroupBy(c => c.SeriesId);
@@ -93,7 +97,7 @@ public static class ChapterBanking
         {
             var read = readBySeries[series.Key];
             var banked = BankedIn(series
-                .Select(c => new Row(c.Id, c.Number, c.Volume, c.Wanted, c.HasFile, c.Released, read.Contains(c.Id)))
+                .Select(c => new Row(c.Id, c.Number, c.Volume, c.Wanted, c.HasFile, c.Released, read.Contains(c.Id), c.IsNew))
                 .ToList());
             if (banked.Count > 0)
             {
