@@ -6,15 +6,17 @@ import {
   IconLink,
   IconLock,
   IconLockOpen,
+  IconArrowsSort,
   IconRefresh,
   IconWand,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
-import { useSeriesFiles, useDeleteSeriesFiles } from '../api/hooks'
+import { useSeriesFiles, useDeleteSeriesFiles, useReverseSeriesFile } from '../api/hooks'
 import { useSetFileTrusted } from '../api/upgrades'
 import type { SeriesFileDto } from '../api/types'
+import { errorText } from '../api/errorText'
 import { formatBytes } from '../format'
 import { FileQualityBadge } from './series/FileQualityBadge'
 import { Trans, Plural, useLingui } from '@lingui/react/macro'
@@ -48,6 +50,8 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const { data: files, isLoading, isFetching, refetch } = useSeriesFiles(seriesId)
   const deleteFiles = useDeleteSeriesFiles(seriesId)
+  const reverseFile = useReverseSeriesFile(seriesId)
+  const [reverseTarget, setReverseTarget] = useState<SeriesFileDto | null>(null)
   const setFileTrusted = useSetFileTrusted()
 
   const problems = files?.filter((f) => f.status !== 'linked').length ?? 0
@@ -328,6 +332,19 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
                                 </ActionIcon>
                               </Tooltip>
                             )}
+                            {canLink && isPdfFile(f.fileName) && (
+                              <Tooltip label={t`Reverse page order`} withArrow>
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="gray"
+                                  disabled={!f.onDisk}
+                                  onClick={() => setReverseTarget(f)}
+                                  aria-label={t`Reverse the page order of ${fileName}`}
+                                >
+                                  <IconArrowsSort size={17} />
+                                </ActionIcon>
+                              </Tooltip>
+                            )}
                             {canDownload && f.quality && (
                               <Tooltip
                                 label={f.quality.trusted ? t`Allow upgrades` : t`Protect from upgrades`}
@@ -377,6 +394,42 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
               </Table>
             </Table.ScrollContainer>
           </Panel>
+
+          <Modal
+            opened={reverseTarget !== null}
+            onClose={() => setReverseTarget(null)}
+            title={t`Reverse page order?`}
+            centered
+          >
+            <Stack gap="md">
+              <Text size="sm" c="var(--ink-3)">
+                <Trans>
+                  This rewrites the PDF with its last page first. Use it when the file reads backwards. Saved reading
+                  positions in it will point at different pages.
+                </Trans>
+              </Text>
+              <Group justify="flex-end">
+                <Button variant="default" onClick={() => setReverseTarget(null)}>
+                  <Trans>Cancel</Trans>
+                </Button>
+                <Button
+                  loading={reverseFile.isPending}
+                  onClick={() => {
+                    if (!reverseTarget) return
+                    reverseFile.mutate(reverseTarget.relativePath, {
+                      onSuccess: () => {
+                        setReverseTarget(null)
+                        notifications.show({ color: 'green', message: t`Page order reversed` })
+                      },
+                      onError: (e) => notifications.show({ color: 'red', message: errorText(e) }),
+                    })
+                  }}
+                >
+                  <Trans>Reverse pages</Trans>
+                </Button>
+              </Group>
+            </Stack>
+          </Modal>
 
           <Modal
             opened={confirmOpen}

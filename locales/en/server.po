@@ -902,6 +902,14 @@ msgid "error.series.mutationIdReused"
 msgstr "That mutation ID was already used for a different add"
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+msgid "error.series.reverseFailed"
+msgstr "Could not reverse the pages of this PDF"
+
+#: src/Maki.Api/Controllers/SeriesController.cs
+msgid "error.series.reverseNotPdf"
+msgstr "Only a PDF on disk can have its pages reversed"
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 msgid "error.series.noFilesSelected"
 msgstr "No files selected"
 

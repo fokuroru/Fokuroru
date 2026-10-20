@@ -2039,6 +2039,17 @@ export function useDeleteSeriesFiles(seriesId: number) {
   })
 }
 
+export function useReverseSeriesFile(seriesId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (relativePath: string) =>
+      api<void>(`/series/${seriesId}/files/reverse`, { method: 'POST', body: JSON.stringify(relativePath) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['series-files', seriesId] })
+    },
+  })
+}
+
 /** The active queue. Paginated server-side; `total` tells you if the page is truncated. */
 export function useQueue(page = 1, pageSize = 200) {
   return useQuery({

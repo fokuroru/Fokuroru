@@ -71,13 +71,6 @@ msgstr ""
 msgid "{0, plural, one {# chapter moves onto a volume} other {# chapters move onto volumes}}"
 msgstr "{0, plural, one {# глава перемещается в том} few {# главы перемещаются в тома} many {# глав перемещаются в тома} other {# главы перемещаются в тома}}"
 
-#. placeholder {0}: n.count
-#. placeholder {1}: n.numbers.join(', ')
-#. placeholder {2}: n.numbers.join(', ')
-#: src/components/series/SeriesProgress.tsx
-#~ msgid "{0, plural, one {# chapter number appears twice ({1})} other {# chapter numbers appear twice ({2})}}"
-#~ msgstr ""
-
 #. placeholder {0}: row.labels.length
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
@@ -147,11 +140,6 @@ msgstr "{0, plural, one {# оставлено на месте} few {# остав
 #, fuzzy
 msgid "{0, plural, one {# kept} other {# kept}}"
 msgstr "{0, plural, one {# оставлено} few {# оставлены} many {# оставлены} other {# оставлены}}"
-
-#. placeholder {0}: n.count
-#: src/components/series/SeriesProgress.tsx
-#~ msgid "{0, plural, one {# listing from a source has no file and no volume} other {# listings from a source have no file and no volume}}"
-#~ msgstr ""
 
 #. placeholder {0}: rows.length
 #: src/components/import/MihonReview.tsx
@@ -378,11 +366,6 @@ msgstr "{0, plural, one {Файл тома для # главы} few {Файлы 
 #, fuzzy
 msgid "{0, plural, one {Want # chapter} other {Want # chapters}}"
 msgstr "{0, plural, one {Нужна # глава} few {Нужны # главы} many {Нужно # глав} other {Нужна # глава}}"
-
-#. placeholder {0}: position.inProgress ? 'Continue with' : 'Up next'
-#: src/components/series/SeriesProgress.tsx
-#~ msgid "{0}"
-#~ msgstr ""
 
 #. placeholder {0}: formatNumber(progress.level.intoLevel)
 #. placeholder {1}: formatNumber(progress.level.levelSpan)
@@ -11313,6 +11296,10 @@ msgstr "Зазор между страницами"
 msgid "Page not found"
 msgstr "Страница не найдена"
 
+#: src/components/SeriesFilesSection.tsx
+msgid "Page order reversed"
+msgstr ""
+
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -13206,6 +13193,22 @@ msgstr "Повторная попытка…"
 #, fuzzy
 msgid "Reusing the name of the active preset overwrites it."
 msgstr "Повторное использование имени активного пресета перезапишет его."
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse page order"
+msgstr ""
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse page order?"
+msgstr ""
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse pages"
+msgstr ""
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse the page order of {fileName}"
+msgstr ""
 
 #: src/pages/ActivityPage.tsx
 msgid "Revert this upgrade"
@@ -16024,6 +16027,10 @@ msgstr "Для исправления нужно выбрать источник
 
 #: src/pages/SettingsPage.tsx
 msgid "This replaces your current library and settings with <0>{backupName}</0>, then restarts Fōkurōru. The current data is not kept, so take a backup first if you want a way back. Docker and systemd bring Fōkurōru back up on their own; otherwise start it again yourself."
+msgstr ""
+
+#: src/components/SeriesFilesSection.tsx
+msgid "This rewrites the PDF with its last page first. Use it when the file reads backwards. Saved reading positions in it will point at different pages."
 msgstr ""
 
 #: src/components/LinkFileToChaptersModal.tsx

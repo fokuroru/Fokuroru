@@ -61,13 +61,6 @@ msgstr "{0, plural, one {# bonus} other {# bonus}}"
 msgid "{0, plural, one {# chapter moves onto a volume} other {# chapters move onto volumes}}"
 msgstr "{0, plural, one {# chapter moves onto a volume} other {# chapters move onto volumes}}"
 
-#. placeholder {0}: n.count
-#. placeholder {1}: n.numbers.join(', ')
-#. placeholder {2}: n.numbers.join(', ')
-#: src/components/series/SeriesProgress.tsx
-#~ msgid "{0, plural, one {# chapter number appears twice ({1})} other {# chapter numbers appear twice ({2})}}"
-#~ msgstr "{0, plural, one {# chapter number appears twice ({1})} other {# chapter numbers appear twice ({2})}}"
-
 #. placeholder {0}: row.labels.length
 #: src/components/RelinkFilesModal.tsx
 msgid "{0, plural, one {# chapter onto this volume} other {# chapters onto this volume}}"
@@ -127,11 +120,6 @@ msgstr "{0, plural, one {# kept where it is} other {# kept where they are}}"
 #: src/components/RelinkFilesModal.tsx
 msgid "{0, plural, one {# kept} other {# kept}}"
 msgstr "{0, plural, one {# kept} other {# kept}}"
-
-#. placeholder {0}: n.count
-#: src/components/series/SeriesProgress.tsx
-#~ msgid "{0, plural, one {# listing from a source has no file and no volume} other {# listings from a source have no file and no volume}}"
-#~ msgstr "{0, plural, one {# listing from a source has no file and no volume} other {# listings from a source have no file and no volume}}"
 
 #. placeholder {0}: rows.length
 #: src/components/import/MihonReview.tsx
@@ -327,11 +315,6 @@ msgstr "{0, plural, one {Volume file backing # chapter} other {Volume file backi
 #: src/pages/SeriesDetailPage.tsx
 msgid "{0, plural, one {Want # chapter} other {Want # chapters}}"
 msgstr "{0, plural, one {Want # chapter} other {Want # chapters}}"
-
-#. placeholder {0}: position.inProgress ? 'Continue with' : 'Up next'
-#: src/components/series/SeriesProgress.tsx
-#~ msgid "{0}"
-#~ msgstr "{0}"
 
 #. placeholder {0}: formatNumber(progress.level.intoLevel)
 #. placeholder {1}: formatNumber(progress.level.levelSpan)
@@ -9598,6 +9581,10 @@ msgstr "Page gap"
 msgid "Page not found"
 msgstr "Page not found"
 
+#: src/components/SeriesFilesSection.tsx
+msgid "Page order reversed"
+msgstr "Page order reversed"
+
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Page thumbnails"
@@ -11220,6 +11207,22 @@ msgstr "Retrying…"
 #: src/pages/LibraryPage.tsx
 msgid "Reusing the name of the active preset overwrites it."
 msgstr "Reusing the name of the active preset overwrites it."
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse page order"
+msgstr "Reverse page order"
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse page order?"
+msgstr "Reverse page order?"
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse pages"
+msgstr "Reverse pages"
+
+#: src/components/SeriesFilesSection.tsx
+msgid "Reverse the page order of {fileName}"
+msgstr "Reverse the page order of {fileName}"
 
 #: src/pages/ActivityPage.tsx
 msgid "Revert this upgrade"
@@ -13625,6 +13628,10 @@ msgstr "This repair needs a source chosen by hand"
 #: src/pages/SettingsPage.tsx
 msgid "This replaces your current library and settings with <0>{backupName}</0>, then restarts Fōkurōru. The current data is not kept, so take a backup first if you want a way back. Docker and systemd bring Fōkurōru back up on their own; otherwise start it again yourself."
 msgstr "This replaces your current library and settings with <0>{backupName}</0>, then restarts Fōkurōru. The current data is not kept, so take a backup first if you want a way back. Docker and systemd bring Fōkurōru back up on their own; otherwise start it again yourself."
+
+#: src/components/SeriesFilesSection.tsx
+msgid "This rewrites the PDF with its last page first. Use it when the file reads backwards. Saved reading positions in it will point at different pages."
+msgstr "This rewrites the PDF with its last page first. Use it when the file reads backwards. Saved reading positions in it will point at different pages."
 
 #: src/components/LinkFileToChaptersModal.tsx
 msgid "This series has no chapters yet. Add a source mapping first so Fōkurōru knows what to link."

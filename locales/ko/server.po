@@ -1273,6 +1273,16 @@ msgid "error.series.mutationIdReused"
 msgstr "이 변경 ID는 다른 추가 작업에 이미 사용되었습니다"
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+#. English: Could not reverse the pages of this PDF
+msgid "error.series.reverseFailed"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SeriesController.cs
+#. English: Only a PDF on disk can have its pages reversed
+msgid "error.series.reverseNotPdf"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 #. English: No files selected
 #, fuzzy
 msgid "error.series.noFilesSelected"
@@ -2994,6 +3004,7 @@ msgid "error.download.noPages"
 msgstr "소스가 페이지를 반환하지 않았습니다"
 
 #: src/Maki.Api/Services/ChapterDownloadProcessor.cs
+#. English: The volume's page count does not match its chapters
 msgid "error.download.volumeInvalid"
 msgstr ""
 
@@ -4746,5 +4757,6 @@ msgid "error.mihon.tooManyItems"
 msgstr ""
 
 #: src/Maki.Api/Controllers/SeriesProgressController.cs
+#. English: A volume backs several chapters, so place the chapters instead.
 msgid "error.series.placeSharedFile"
 msgstr ""

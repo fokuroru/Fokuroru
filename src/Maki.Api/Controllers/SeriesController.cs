@@ -640,6 +640,41 @@ public class SeriesController(
         return summary is null ? this.Fail(localizer, "error.series.noRootFolder") : Ok(summary);
     }
 
+    /// <summary>Reverses the page order of a PDF in the library, for one that was published back to front.</summary>
+    [Authorize(Policy = Policies.EditMetadata)]
+    [HttpPost("{id:int}/files/reverse")]
+    public async Task<IActionResult> ReverseFile(int id, [FromBody] string relativePath, CancellationToken ct)
+    {
+        var series = await db.Series.Include(s => s.RootFolder).FirstOrDefaultAsync(s => s.Id == id, ct);
+        if (series is null)
+            return NotFound();
+
+        if (series.RootFolder is null)
+            return this.Fail(localizer, "error.series.noRootFolder");
+
+        using var seriesLock = await SeriesLocks.SeriesAsync(id, ct);
+        var file = await db.ChapterFiles.FirstOrDefaultAsync(f => f.SeriesId == id && f.RelativePath == relativePath, ct);
+        var path = file is null ? null : LibraryPaths.ResolveNoLinks(series.RootFolder.Path, file.RelativePath);
+        if (file is null || path is null || !ComicFile.IsPdf(path) || !System.IO.File.Exists(path))
+            return this.Fail(localizer, "error.series.reverseNotPdf");
+
+        try
+        {
+            PdfOrientation.Reverse(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException
+                                       or PdfSharp.Pdf.IO.PdfReaderException)
+        {
+            logger.LogWarning(ex, "Could not reverse {File}", file.RelativePath);
+            return this.Fail(localizer, "error.series.reverseFailed");
+        }
+
+        file.Size = new FileInfo(path).Length;
+        await db.SaveChangesAsync(ct);
+        archives.Invalidate(file.Id);
+        return NoContent();
+    }
+
     /// <summary>
     /// Deletes the given CBZ files from disk, removes their ChapterFile records, and
     /// unlinks every chapter that shared each file (volume CBZs back several chapters).

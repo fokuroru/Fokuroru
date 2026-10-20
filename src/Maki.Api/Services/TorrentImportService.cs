@@ -9,6 +9,7 @@ using Maki.Core.Inbox;
 using Maki.Core.Parsing;
 using Maki.Core.Paths;
 using Maki.Core.Quality;
+using Maki.Core.Reading;
 using Maki.Core.Storage;
 using Maki.Data;
 using Microsoft.EntityFrameworkCore;
@@ -442,13 +443,22 @@ public class TorrentImportService(
                     // A CBZ or a zip under another name is placed as it is and can still be
                     // hardlinked; a RAR or a folder of loose pages is built into a new archive,
                     // which is a fresh copy however the setting reads.
-                    if (ComicSourceConverter.Materialize(source, target, useHardlinks)
-                        == FilePlacement.Hardlinked)
+                    var placement = ComicSourceConverter.Materialize(source, target, useHardlinks);
+                    if (placement == FilePlacement.Hardlinked)
                     {
                         hardlinked++;
                     }
                     else
                     {
+                        freshCopies++;
+                    }
+
+                    // Rewriting a hardlinked PDF swaps in a new file, so it stops sharing bytes with the seed.
+                    if (ComicFile.IsPdf(target)
+                        && StraightenPdf(target, ReplacedFilePath(wanted, source.Name, rootFolder.Path))
+                        && placement == FilePlacement.Hardlinked)
+                    {
+                        hardlinked--;
                         freshCopies++;
                     }
                 }
@@ -861,6 +871,32 @@ public class TorrentImportService(
         }
 
         return new UnattendedDecision(false, null, plan.SuggestedSkips.ToHashSet(StringComparer.Ordinal));
+    }
+
+    /// <summary>The one library file a download replaces, as a comparison for page order; null when it replaces none or several.</summary>
+    private static string? ReplacedFilePath(List<ImportPlanFile> wanted, string fileName, string rootPath)
+    {
+        var replaces = wanted.FirstOrDefault(f => f.FileName == fileName)?.Replaces;
+        if (replaces is not [{ } only]) return null;
+        var path = LibraryPaths.Resolve(rootPath, only.RelativePath);
+        return path is not null && File.Exists(path) ? path : null;
+    }
+
+    /// <summary>Reverses a PDF whose pages run last to first. Never fails the import: a PDF it cannot rewrite is imported as it is.</summary>
+    private bool StraightenPdf(string path, string? replaced)
+    {
+        try
+        {
+            if (!PdfOrientation.LooksReversed(path, replaced)) return false;
+            PdfOrientation.Reverse(path);
+            logger.LogInformation("Reversed the pages of {Path}, which were in reverse order", Path.GetFileName(path));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not check or reverse the page order of {Path}", Path.GetFileName(path));
+            return false;
+        }
     }
 
     private static IReadOnlyList<ComicSource> SourcesOf(TorrentImportPlan plan, string contentPath) =>

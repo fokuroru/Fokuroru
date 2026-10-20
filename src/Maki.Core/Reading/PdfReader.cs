@@ -92,6 +92,25 @@ public static class PdfReader
         }, ct);
     }
 
+    /// <summary>Text layer of one zero-based page, empty when it has none or the document will not open.</summary>
+    internal static string PageText(string path, int index)
+    {
+        try
+        {
+            lock (Pdfium)
+            {
+                using var doc = DocLib.Instance.GetDocReader(path, new PageDimensions(1));
+                if (index < 0 || index >= doc.GetPageCount()) return "";
+                using var page = doc.GetPageReader(index);
+                return page.GetText() ?? "";
+            }
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
     private readonly record struct RawPage(byte[] Bgra, int Width, int Height);
 
     private static RawPage Rasterize(string path, int index, int maxEdge)
