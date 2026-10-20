@@ -48,6 +48,7 @@ export function queueOriginOrUnknown(value: string): QueueOrigin {
  */
 const ERROR_LABELS: Record<string, MessageDescriptor> = {
   'error.download.noPages': msg`The source returned no pages`,
+  'error.download.volumeInvalid': msg`The volume's page count does not match its chapters`,
   'error.download.approvedSourceNoPages': msg`The approved source no longer has these pages`,
   'error.download.noMoreSources': msg`Every source failed for this chapter`,
   'error.download.unexpected': msg`Something went wrong, Fōkurōru will try again`,

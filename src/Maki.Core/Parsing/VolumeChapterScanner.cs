@@ -19,8 +19,16 @@ public static partial class VolumeChapterScanner
     // The page ("p113") and volume ("v05") markers start with other letters, so a
     // "c" not preceded by another letter and followed by digits is unambiguous; the
     // letter lookbehind keeps "Arc049"/"Comic" from reading as chapters.
-    [GeneratedRegex(@"(?<![a-z])c(?:h(?:apter)?)?\.?\s*(\d+(?:\.\d+)?)", RegexOptions.IgnoreCase)]
+    // A "#n" after the number ("c037#1") is the bonus section Yen Press files after chapter 37; it
+    // reads as 37.n so it is its own boundary rather than 23 more pages of chapter 37.
+    [GeneratedRegex(@"(?<![a-z])c(?:h(?:apter)?)?\.?\s*(\d+(?:\.\d+)?)(?:#(\d+))?", RegexOptions.IgnoreCase)]
     private static partial Regex ChapterMarker();
+
+    private static bool TryNumber(Match match, out decimal number)
+    {
+        var text = match.Groups[2].Success ? $"{match.Groups[1].Value.Split('.')[0]}.{match.Groups[2].Value}" : match.Groups[1].Value;
+        return decimal.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number);
+    }
 
     /// <summary>
     /// Distinct chapter numbers found in the image-file names of a CBZ, ascending.
@@ -49,8 +57,7 @@ public static partial class VolumeChapterScanner
         {
             foreach (Match match in ChapterMarker().Matches(name))
             {
-                if (decimal.TryParse(
-                        match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var number))
+                if (TryNumber(match, out var number))
                 {
                     found.Add(number);
                 }
@@ -91,9 +98,7 @@ public static partial class VolumeChapterScanner
         for (var i = 0; i < orderedImageNames.Count; i++)
         {
             var match = ChapterMarker().Match(orderedImageNames[i]);
-            if (!match.Success ||
-                !decimal.TryParse(
-                    match.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var number))
+            if (!match.Success || !TryNumber(match, out var number))
             {
                 continue;
             }

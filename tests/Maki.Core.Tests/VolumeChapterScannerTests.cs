@@ -183,4 +183,18 @@ public class VolumeChapterScannerTests
         Assert.Equal(0, totalPages);
         Assert.Empty(boundaries);
     }
+
+    [Fact]
+    public void A_hash_suffix_is_its_own_boundary_not_more_pages_of_the_chapter()
+    {
+        // Yen Press files the bonus after chapter 37 as "c037#1"; chapter 37 itself is 4 pages.
+        const string book = "The Guy - c{0} (v01) - p{1:000} [Yen Press] [Digital] [1r0n].jpg";
+        var names = new List<string>();
+        for (var i = 0; i < 4; i++) names.Add(string.Format(book, "036", 149 + i));
+        for (var i = 0; i < 4; i++) names.Add(string.Format(book, "037", 153 + i));
+        for (var i = 0; i < 6; i++) names.Add(string.Format(book, "037#1", 157 + i));
+
+        Assert.Equal([(36m, 0), (37m, 4), (37.1m, 8)], VolumeChapterScanner.BoundariesInNames(names));
+        Assert.Equal([36m, 37m, 37.1m], VolumeChapterScanner.ChaptersInNames(names));
+    }
 }

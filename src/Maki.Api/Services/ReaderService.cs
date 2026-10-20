@@ -259,8 +259,22 @@ public class ReaderService(
         var siblings = await db.Chapters
             .AsNoTracking()
             .Where(c => c.SeriesId == chapter.SeriesId && c.Language == chapter.Language && c.ChapterFileId != null)
-            .Select(c => new { c.Id, c.Number, c.Volume })
+            .Select(c => new { c.Id, c.Number, c.Volume, c.Wanted, c.PageCount, c.Title, c.Language, c.ChapterFileId })
             .ToListAsync(ct);
+
+        // Reading on leads through the series, not through its extras: duplicates, a whole volume filed
+        // under a fractional number and a chapter nobody wanted (while wanted ones exist) are skipped.
+        // The chapter being read is always kept, so an extra still has neighbours of its own.
+        var sharedFileIds = siblings.GroupBy(c => c.ChapterFileId!.Value).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        var filePages = sharedFileIds.Count == 0
+            ? new Dictionary<int, int?>()
+            : await db.ChapterFiles.AsNoTracking().Where(f => sharedFileIds.Contains(f.Id))
+                .Select(f => new { f.Id, f.PageCount }).ToDictionaryAsync(f => f.Id, f => f.PageCount, ct);
+        var skipped = ChapterSequence.Ignored(
+            siblings.Select(c => new ChapterSequence.Row(c.Id, c.Number, c.Language, c.Title, c.ChapterFileId, c.PageCount)).ToList(),
+            filePages);
+        var anyWanted = siblings.Any(c => c.Wanted);
+        siblings = siblings.Where(c => c.Id == chapter.Id || (!skipped.Contains(c.Id) && (c.Wanted || !anyWanted))).ToList();
 
         var ordered = ChapterOrder.Sort(siblings, c => c.Number, c => c.Volume, c => c.Id);
 

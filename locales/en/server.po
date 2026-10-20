@@ -2168,6 +2168,10 @@ msgid "error.download.noPages"
 msgstr "The source returned no pages"
 
 #: src/Maki.Api/Services/ChapterDownloadProcessor.cs
+msgid "error.download.volumeInvalid"
+msgstr "The volume's page count does not match its chapters"
+
+#: src/Maki.Api/Services/ChapterDownloadProcessor.cs
 msgid "error.download.approvedSourceNoPages"
 msgstr "The approved source no longer has these pages"
 

@@ -169,6 +169,24 @@ public class ChapterDownloadProcessor(
                 return DownloadOutcome.Settled;
             }
 
+            // A whole-volume entry whose page list does not fit the chapters it stands for is not worth
+            // downloading: the chapters come one by one instead (the failed row keeps it out of Smart's way).
+            if (ChapterSequence.IsVolumeRow(chapter.Number, chapter.Volume, chapter.Title))
+            {
+                var siblings = await db.Chapters.AsNoTracking()
+                    .Where(c => c.SeriesId == series.Id && c.Id != chapter.Id)
+                    .Select(c => new { c.Number, c.Volume, c.PageCount })
+                    .ToListAsync(ct);
+                var mains = siblings.Where(c => c.Volume == chapter.Volume && ChapterSequence.IsMain(c.Number))
+                    .Select(c => c.Number).Distinct().Count();
+                var typical = Maki.Core.Reading.VolumeValidity.TypicalPages(siblings.Select(c => c.PageCount));
+                if (!Maki.Core.Reading.VolumeValidity.IsGood(Maki.Core.Reading.VolumeValidity.Check(pageCount, mains, typical)))
+                {
+                    await FailAsync(item, "error.download.volumeInvalid", ct);
+                    return DownloadOutcome.Settled;
+                }
+            }
+
             item.PagesTotal = pageCount;
             await SetStatusAsync(item, QueueStatus.Downloading, ct);
 

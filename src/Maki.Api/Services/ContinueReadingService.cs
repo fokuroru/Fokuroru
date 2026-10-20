@@ -62,8 +62,16 @@ public class ContinueReadingService(MakiDbContext db, Maki.Core.Configuration.IA
         // its volume sits, and those chapters may not be on disk.
         var chapters = await db.Chapters
             .Where(c => seriesIds.Contains(c.SeriesId))
-            .Select(c => new { c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, c.Wanted, HasFile = c.ChapterFileId != null })
+            .Select(c => new { c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, c.Wanted, c.PageCount, c.Language, c.ChapterFileId, HasFile = c.ChapterFileId != null })
             .ToListAsync(ct);
+
+        // Pages of the archives several chapters share (volumes), to tell a volume that adds up from one that does not.
+        var sharedFileIds = chapters.Where(c => c.ChapterFileId != null)
+            .GroupBy(c => c.ChapterFileId!.Value).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        var filePages = sharedFileIds.Count == 0
+            ? new Dictionary<int, int?>()
+            : await db.ChapterFiles.Where(f => sharedFileIds.Contains(f.Id))
+                .Select(f => new { f.Id, f.PageCount }).ToDictionaryAsync(f => f.Id, f => f.PageCount, ct);
 
         // Chapters held back until enough pages have piled up are not "next" for anyone to read.
         var banked = await ChapterBanking.BankedForCallerAsync(db, settings, seriesIds, ct);
@@ -75,7 +83,30 @@ public class ContinueReadingService(MakiDbContext db, Maki.Core.Configuration.IA
             var ordered = ChapterOrder.Sort(group, c => c.Number, c => c.Volume, c => c.Id);
             bool Candidate(bool hasFile, bool wanted, decimal? number) =>
                 hasFile || (includeMissing && wanted);
-            var unread = ordered.Where(c => Candidate(c.HasFile, c.Wanted, c.Number) && !completed.Contains(c.Id) && hidden?.Contains(c.Id) != true).ToList();
+
+            // A release read under any row of its number is read: providers disagreeing on a volume
+            // leave two rows for one chapter, and reading one must not leave the other "next".
+            var readNumbers = ordered.Where(c => c.Number is not null && completed.Contains(c.Id))
+                .Select(c => c.Number).ToHashSet();
+            // Duplicates, volumes filed as chapters and rows of volumes that do not add up are not part of the sequence.
+            var skipped = ChapterSequence.Ignored(
+                ordered.Where(c => c.HasFile)
+                    .Select(c => new ChapterSequence.Row(c.Id, c.Number, c.Language, c.Title, c.ChapterFileId, c.PageCount))
+                    .ToList(),
+                filePages);
+            bool Unread(bool hasFile, bool wanted, decimal? number, int id) =>
+                Candidate(hasFile, wanted, number) && !completed.Contains(id) && hidden?.Contains(id) != true
+                && (number is null || !readNumbers.Contains(number)) && !skipped.Contains(id);
+
+            var everything = ordered.Where(c => Unread(c.HasFile, c.Wanted, c.Number, c.Id)).ToList();
+            // What the reader asked for comes before what merely happens to be on disk: a chapter
+            // marked unwanted (an extra, a duplicate rip) is offered only when nothing wanted is left.
+            var unread = everything.Where(c => c.Wanted).ToList();
+            if (unread.Count == 0)
+            {
+                unread = everything;
+            }
+
             if (unread.Count == 0)
             {
                 continue;
@@ -84,10 +115,12 @@ public class ContinueReadingService(MakiDbContext db, Maki.Core.Configuration.IA
             // The earliest unread chapter after the furthest one read, else the earliest unread
             // (everything past the furthest read is done, so offer what was skipped). Another
             // language's copy of the furthest chapter is not "next".
-            var furthestRead = ordered.FindLastIndex(c => c.Number is not null && completed.Contains(c.Id));
+            // Only whole-numbered chapters (the prologue included) move that place: a bonus read out of
+            // curiosity (0.1, 37.5) says nothing about the chapters around it being read.
+            var furthestRead = ordered.FindLastIndex(c => c.Number is { } n && n >= 0 && n % 1 == 0 && completed.Contains(c.Id));
             var furthestNumber = furthestRead < 0 ? null : ordered[furthestRead].Number;
             var next = ordered.Skip(furthestRead + 1)
-                           .FirstOrDefault(c => Candidate(c.HasFile, c.Wanted, c.Number) && !completed.Contains(c.Id) && hidden?.Contains(c.Id) != true && (furthestRead < 0 || c.Number != furthestNumber))
+                           .FirstOrDefault(c => unread.Contains(c) && (furthestRead < 0 || c.Number != furthestNumber))
                        ?? unread[0];
 
             if (includeMissing)
@@ -95,8 +128,6 @@ public class ContinueReadingService(MakiDbContext db, Maki.Core.Configuration.IA
                 // The series page offers the earliest chapter never read, so one stray read chapter
                 // (a mark from Kavita, a misclick) cannot hide dozens of unread ones before it. A
                 // chapter whose number was read in another language does not count as unread.
-                var readNumbers = ordered.Where(c => c.Number is not null && completed.Contains(c.Id))
-                    .Select(c => c.Number).ToHashSet();
                 next = unread.FirstOrDefault(c => c.Number is null || !readNumbers.Contains(c.Number)) ?? next;
             }
 

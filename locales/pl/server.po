@@ -2994,6 +2994,10 @@ msgid "error.download.noPages"
 msgstr "Źródło nie zwróciło żadnych stron"
 
 #: src/Maki.Api/Services/ChapterDownloadProcessor.cs
+msgid "error.download.volumeInvalid"
+msgstr ""
+
+#: src/Maki.Api/Services/ChapterDownloadProcessor.cs
 #. English: The approved source no longer has these pages
 #, fuzzy
 msgid "error.download.approvedSourceNoPages"

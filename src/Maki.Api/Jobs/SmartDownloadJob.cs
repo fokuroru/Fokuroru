@@ -60,7 +60,8 @@ public class SmartDownloadJob(
         {
             var chapters = await db.Chapters.Where(c => c.SeriesId == series.Id).ToListAsync(ct);
             var backingOff = await BackingOffAsync(db, chapters, maxAttempts, DateTime.UtcNow, ct);
-            var missing = Chapter.NextWanted(chapters, batchSize, backingOff, readMark);
+            var missing = ChapterSequence.PreferVolumes(
+                Chapter.NextWanted(chapters, batchSize, backingOff, readMark), chapters, backingOff);
             if (missing.Count == 0)
                 continue;
 

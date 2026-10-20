@@ -20,8 +20,18 @@ public static class ChapterOrder
             .GroupBy(c => volume(c)!.Value)
             .ToDictionary(g => g.Key, g => g.Min(c => number(c)!.Value));
 
+        // The volume chapter 1 sits in. A chapter 0 inside it is that volume's prologue and goes first;
+        // only a chapter 0 of some other volume is a volume-level entry.
+        var firstVolume = list
+            .Where(c => number(c) > 0 && volume(c) is not null)
+            .OrderBy(c => number(c))
+            .Select(c => volume(c))
+            .FirstOrDefault();
+
         decimal SortNumber(T c) =>
-            number(c) == 0 && volume(c) is { } v && volumeStart.TryGetValue(v, out var start) ? start : number(c)!.Value;
+            number(c) == 0 && volume(c) is { } v && v != firstVolume && volumeStart.TryGetValue(v, out var start)
+                ? start
+                : number(c)!.Value;
 
         return list
             .OrderBy(c => number(c) is null ? 1 : 0)
