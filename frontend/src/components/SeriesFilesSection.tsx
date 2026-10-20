@@ -13,8 +13,11 @@ import {
   IconX,
 } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
+import { useQuery } from '@tanstack/react-query'
+import { getInitialize } from '../api/client'
 import { useSeriesFiles, useDeleteSeriesFiles, useReverseSeriesFile } from '../api/hooks'
 import { useSetFileTrusted } from '../api/upgrades'
+import { filePreviewUrl } from '../api/progress'
 import type { SeriesFileDto } from '../api/types'
 import { errorText } from '../api/errorText'
 import { formatBytes } from '../format'
@@ -51,6 +54,7 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
   const { data: files, isLoading, isFetching, refetch } = useSeriesFiles(seriesId)
   const deleteFiles = useDeleteSeriesFiles(seriesId)
   const reverseFile = useReverseSeriesFile(seriesId)
+  const apiRoot = useQuery({ queryKey: ['api-root'], queryFn: getInitialize, staleTime: Infinity }).data?.apiRoot
   const [reverseTarget, setReverseTarget] = useState<SeriesFileDto | null>(null)
   const setFileTrusted = useSetFileTrusted()
 
@@ -408,6 +412,18 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
                   positions in it will point at different pages.
                 </Trans>
               </Text>
+              {apiRoot && reverseTarget?.quality && (
+                <Stack gap={4} align="center">
+                  <Text size="xs" c="dimmed">
+                    <Trans>Current first page</Trans>
+                  </Text>
+                  <img
+                    src={filePreviewUrl(apiRoot, seriesId, reverseTarget.quality.fileId, 0)}
+                    alt=""
+                    style={{ maxHeight: 320, maxWidth: '100%', objectFit: 'contain' }}
+                  />
+                </Stack>
+              )}
               <Group justify="flex-end">
                 <Button variant="default" onClick={() => setReverseTarget(null)}>
                   <Trans>Cancel</Trans>

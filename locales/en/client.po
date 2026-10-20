@@ -4279,6 +4279,10 @@ msgstr "Current copy"
 msgid "Current file"
 msgstr "Current file"
 
+#: src/components/SeriesFilesSection.tsx
+msgid "Current first page"
+msgstr "Current first page"
+
 #: src/components/SourceCompareModal.tsx
 msgid "Current: {tierLabel}"
 msgstr "Current: {tierLabel}"

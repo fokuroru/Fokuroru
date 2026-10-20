@@ -5056,6 +5056,10 @@ msgstr "Bieżąca kopia"
 msgid "Current file"
 msgstr ""
 
+#: src/components/SeriesFilesSection.tsx
+msgid "Current first page"
+msgstr ""
+
 #: src/components/SourceCompareModal.tsx
 msgid "Current: {tierLabel}"
 msgstr ""
