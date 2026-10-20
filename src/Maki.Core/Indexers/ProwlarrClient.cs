@@ -88,7 +88,12 @@ public class ProwlarrClient(IHttpClientFactory httpClientFactory)
                     return new TorrentSource(location.OriginalString, null, string.Empty);
                 }
 
-                url = location.IsAbsoluteUri ? location : new Uri(url, location);
+                if (!Uri.TryCreate(url, location, out var next) || !next.IsAbsoluteUri || next.Scheme is not ("http" or "https"))
+                {
+                    throw new InvalidOperationException($"Prowlarr's download link redirected to an address that cannot be fetched ({location.OriginalString})");
+                }
+
+                url = next;
                 continue;
             }
 

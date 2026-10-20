@@ -902,6 +902,8 @@ try
 
     builder.Services.AddHttpClient(Maki.Core.Indexers.ProwlarrClient.HttpClientName,
             client => client.Timeout = TimeSpan.FromSeconds(100)) // aggregated searches fan out to indexers
+        // FetchTorrentAsync follows redirects itself so a hop to a magnet link is seen rather than failing inside the handler.
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
         .AddHttpMessageHandler(() => new TransientRetryHandler());
     builder.Services.AddSingleton<Maki.Core.Indexers.ProwlarrClient>();
     builder.Services.AddSingleton<Maki.Core.Download.QBittorrentClient>();
