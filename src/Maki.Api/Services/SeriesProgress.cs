@@ -94,7 +94,7 @@ public static class SeriesProgressBuilder
         }
 
         int? VolumeOf(ProgChapter c) =>
-            c.PlacedVolume ?? c.Volume ?? (c.Number is { } n && IsMain(n) ? VolumeRanges.ContinuousVolumeOf(sourceVolumes, n) : null);
+            c.PlacedVolume ?? c.Volume ?? (c.Number is { } n && IsMain(n) ? VolumeRanges.ContinuousVolumeOf(sourceVolumes, n, fillGaps: true) : null);
 
         string State(ProgChapter c) =>
             c.Banked ? "banked"

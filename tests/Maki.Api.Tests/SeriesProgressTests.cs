@@ -44,6 +44,15 @@ public class SeriesProgressTests
     }
 
     [Fact]
+    public void A_chapter_numbered_between_two_volumes_joins_the_earlier_one_instead_of_no_volume()
+    {
+        var progress = SeriesProgressBuilder.Build(Series(C(10, file: 5)), Files);
+
+        Assert.Equal([1, 2], progress.Volumes.Select(v => v.Volume).ToList());
+        Assert.Contains(progress.Volumes[0].Rows, r => r.Number == "10");
+    }
+
+    [Fact]
     public void A_chapter_listed_under_two_volumes_is_one_chapter_and_is_called_out()
     {
         var progress = SeriesProgressBuilder.Build(Series(C(0, 2, file: 1, title: "Chapter 0")), Files);

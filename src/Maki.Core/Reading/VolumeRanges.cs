@@ -5,9 +5,11 @@ public static class VolumeRanges
 {
     /// <summary>
     /// The volume a number belongs to when the series numbers straight through its volumes (each volume's
-    /// chapters all above the previous volume's), else null. A number below the first volume belongs to it.
+    /// chapters all above the previous volume's), else null. A number below the first volume belongs to it; one between two volumes belongs to neither
+    /// unless <c>fillGaps</c> hands it to the earlier one.
     /// </summary>
-    public static int? ContinuousVolumeOf(IEnumerable<(int? Volume, decimal? Number)> chapters, decimal number)
+    public static int? ContinuousVolumeOf(
+        IEnumerable<(int? Volume, decimal? Number)> chapters, decimal number, bool fillGaps = false)
     {
         var ranges = chapters
             .Where(c => c.Volume is not null && c.Number is { } n && n > 0 && n % 1 == 0 && n != number)
@@ -38,6 +40,7 @@ public static class VolumeRanges
             }
         }
 
-        return null;
+        // Between two volumes, so no source assigned it: the earlier volume's run continues until the next begins.
+        return fillGaps ? ranges.Last(r => r.Max < number).Volume : null;
     }
 }
