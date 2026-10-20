@@ -65,6 +65,53 @@ public class ProwlarrClient(IHttpClientFactory httpClientFactory)
         return releases ?? [];
     }
 
+    /// <summary>What a Prowlarr download link turned out to be: a magnet it redirected to, or the .torrent itself.</summary>
+    public record TorrentSource(string? Magnet, byte[]? File, string FileName);
+
+    /// <summary>
+    /// Fetches a release's download link from here, where Prowlarr is reachable, rather than leaving it to qBittorrent.
+    /// A link that redirects to a magnet is returned as that magnet. Anything that is not a torrent file throws, with the
+    /// status, so the failure shows up on the grab instead of as a torrent that never appears.
+    /// </summary>
+    public async Task<TorrentSource> FetchTorrentAsync(string downloadUrl, CancellationToken ct = default)
+    {
+        var client = httpClientFactory.CreateClient(HttpClientName);
+        var url = new Uri(downloadUrl);
+        for (var hops = 0; hops < 5; hops++)
+        {
+            using var response = await client.GetAsync(url, ct);
+            var location = response.Headers.Location;
+            if ((int)response.StatusCode is >= 300 and < 400 && location is not null)
+            {
+                if (location.OriginalString.StartsWith("magnet:", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new TorrentSource(location.OriginalString, null, string.Empty);
+                }
+
+                url = location.IsAbsoluteUri ? location : new Uri(url, location);
+                continue;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException($"Prowlarr could not provide the torrent (HTTP {(int)response.StatusCode})");
+            }
+
+            var bytes = await response.Content.ReadAsByteArrayAsync(ct);
+            if (!Download.TorrentFile.TryInfoHash(bytes, out _))
+            {
+                throw new InvalidOperationException("Prowlarr's download link did not return a torrent file");
+            }
+
+            var name = response.Content.Headers.ContentDisposition?.FileNameStar
+                       ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+                       ?? Path.GetFileName(url.AbsolutePath);
+            return new TorrentSource(null, bytes, string.IsNullOrWhiteSpace(name) ? "release.torrent" : name);
+        }
+
+        throw new InvalidOperationException("Prowlarr's download link redirected too many times");
+    }
+
     /// <summary>All indexers configured in Prowlarr, including their category capabilities.</summary>
     public async Task<IReadOnlyList<ProwlarrIndexer>> GetIndexersAsync(
         string baseUrl, string apiKey, CancellationToken ct = default)

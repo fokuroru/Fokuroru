@@ -80,6 +80,46 @@ public class QBittorrentClient
         }
     }
 
+    /// <summary>
+    /// Adds a torrent by uploading the .torrent file itself. qBittorrent often runs behind a VPN container that cannot
+    /// resolve or reach the indexer proxy a download URL points at, in which case adding by URL "succeeds" and then
+    /// quietly never fetches anything. Uploading the bytes needs nothing from qBittorrent's network.
+    /// </summary>
+    public virtual async Task AddFileAsync(
+        string baseUrl, string username, string password,
+        byte[] torrent, string fileName, string category, CancellationToken ct = default)
+    {
+        await EnsureLoginAsync(baseUrl, username, password, force: false, ct);
+
+        async Task<HttpResponseMessage> Send()
+        {
+            var webUiRoot = new Uri(baseUrl.TrimEnd('/') + "/");
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(webUiRoot, "api/v2/torrents/add"));
+            request.Headers.Referrer = webUiRoot;
+            request.Headers.TryAddWithoutValidation("Origin", webUiRoot.GetLeftPart(UriPartial.Authority));
+            var form = new MultipartFormDataContent { { new StringContent(category), "category" } };
+            var file = new ByteArrayContent(torrent);
+            file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-bittorrent");
+            form.Add(file, "torrents", fileName);
+            request.Content = form;
+            return await Client.SendAsync(request, ct);
+        }
+
+        var response = await Send();
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+        {
+            await EnsureLoginAsync(baseUrl, username, password, force: true, ct);
+            response = await Send();
+        }
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadAsStringAsync(ct);
+        if (body.Contains("Fails", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("qBittorrent rejected the torrent");
+        }
+    }
+
     public async Task<IReadOnlyList<QbtTorrent>> ListAsync(
         string baseUrl, string username, string password, string category, CancellationToken ct = default)
     {

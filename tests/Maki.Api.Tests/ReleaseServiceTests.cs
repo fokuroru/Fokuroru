@@ -26,12 +26,43 @@ public class ReleaseServiceTests : IDisposable
     {
         public string? AddedLink { get; private set; }
 
+        public byte[]? AddedFile { get; private set; }
+        public string? AddedFileName { get; private set; }
+
         public override Task AddAsync(
             string baseUrl, string username, string password,
             string urlOrMagnet, string category, CancellationToken ct = default)
         {
             AddedLink = urlOrMagnet;
             return Task.CompletedTask;
+        }
+
+        public override Task AddFileAsync(
+            string baseUrl, string username, string password,
+            byte[] torrent, string fileName, string category, CancellationToken ct = default)
+        {
+            AddedFile = torrent;
+            AddedFileName = fileName;
+            return Task.CompletedTask;
+        }
+    }
+
+    // A real (tiny) torrent, ASCII only so a text stub can serve it. Its info-hash is f57885dd...b535.
+    private const string TinyTorrent =
+        "d8:announce3:foo4:infod6:lengthi3e4:name1:a12:piece lengthi16384e6:pieces20:aaaaaaaaaaaaaaaaaaaaee";
+
+    private sealed class RedirectingFactory(string location) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new(new Handler(location));
+
+        private sealed class Handler(string location) : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+            {
+                var response = new HttpResponseMessage(System.Net.HttpStatusCode.Redirect);
+                response.Headers.TryAddWithoutValidation("Location", location);
+                return Task.FromResult(response);
+            }
         }
     }
 
@@ -190,8 +221,8 @@ public class ReleaseServiceTests : IDisposable
         await _settings.SetAsync(SettingKeys.QBittorrentUrl, "http://qbt.test");
         var release = new ReleaseDto("g", "Berserk v01", 1000, "Nyaa", 10, 1, "torrent", "http://x/t.torrent", null, null);
 
-        var manual = await Build().GrabAsync(seriesId, release, DownloadOrigin.Manual, 7, null);
-        var upgrade = await Build().GrabAsync(seriesId, release, DownloadOrigin.Upgrade, null, "{\"kind\":\"torrent\"}");
+        var manual = await Build(TinyTorrent).GrabAsync(seriesId, release, DownloadOrigin.Manual, 7, null);
+        var upgrade = await Build(TinyTorrent).GrabAsync(seriesId, release, DownloadOrigin.Upgrade, null, "{\"kind\":\"torrent\"}");
 
         using var db = _db.NewContext();
         var manualRow = db.DownloadQueue.Single(q => q.Id == manual.Id);
@@ -202,6 +233,51 @@ public class ReleaseServiceTests : IDisposable
         Assert.Equal(DownloadOrigin.Upgrade, upgradeRow.Origin);
         Assert.Null(upgradeRow.QueuedByUserId);
         Assert.Equal("{\"kind\":\"torrent\"}", upgradeRow.UpgradeInfoJson);
+    }
+
+    [Fact]
+    public async Task A_download_link_is_fetched_here_and_the_file_is_uploaded_with_its_hash_recorded()
+    {
+        var seriesId = _db.SeedSeries("Berserk");
+        await _settings.SetAsync(SettingKeys.QBittorrentUrl, "http://qbt.test");
+        var release = new ReleaseDto("g", "Berserk v01", 1000, "Nyaa", 10, 1, "torrent", "http://prowlarr:9696/3/download?x=1", null, null);
+
+        var item = await Build(TinyTorrent).GrabAsync(seriesId, release, DownloadOrigin.Manual, null, null);
+
+        Assert.Null(_qbt.AddedLink);
+        Assert.Equal(TinyTorrent, System.Text.Encoding.ASCII.GetString(_qbt.AddedFile!));
+        Assert.Contains("f57885ddc30a153b9f534bc8c8b5d3744ca9b535", item.ReleaseInfoJson);
+    }
+
+    [Fact]
+    public async Task A_download_link_that_redirects_to_a_magnet_is_added_as_that_magnet()
+    {
+        var seriesId = _db.SeedSeries("Berserk");
+        await _settings.SetAsync(SettingKeys.QBittorrentUrl, "http://qbt.test");
+        var magnet = "magnet:?xt=urn:btih:0123456789ABCDEF0123456789ABCDEF01234567&dn=x";
+        var service = new ReleaseService(
+            _db.NewContext(), new ProwlarrClient(new RedirectingFactory(magnet)), _qbt, _settings, NullLogger<ReleaseService>.Instance);
+        var release = new ReleaseDto("g", "Berserk v01", 1000, "Nyaa", 10, 1, "torrent", "http://prowlarr:9696/3/download", null, null);
+
+        var item = await service.GrabAsync(seriesId, release, DownloadOrigin.Manual, null, null);
+
+        Assert.Equal(magnet, _qbt.AddedLink);
+        Assert.Null(_qbt.AddedFile);
+        Assert.Contains("0123456789abcdef0123456789abcdef01234567", item.ReleaseInfoJson);
+    }
+
+    [Fact]
+    public async Task A_download_link_that_does_not_return_a_torrent_fails_the_grab_and_queues_nothing()
+    {
+        var seriesId = _db.SeedSeries("Berserk");
+        await _settings.SetAsync(SettingKeys.QBittorrentUrl, "http://qbt.test");
+        var release = new ReleaseDto("g", "Berserk v01", 1000, "Nyaa", 10, 1, "torrent", "http://prowlarr:9696/3/download", null, null);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => Build("<html>login</html>").GrabAsync(seriesId, release, DownloadOrigin.Manual, null, null));
+
+        Assert.Null(_qbt.AddedFile);
+        Assert.Empty(_db.NewContext().DownloadQueue);
     }
 
     [Fact]

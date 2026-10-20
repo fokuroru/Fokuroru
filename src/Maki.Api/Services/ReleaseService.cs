@@ -102,14 +102,32 @@ public partial class ReleaseService(
         var link = release.MagnetUrl ?? release.DownloadUrl
             ?? throw new InvalidOperationException("Release has no download link");
 
-        await qbittorrent.AddAsync(qbt.Url, qbt.Username, qbt.Password, link, qbt.Category, ct);
-
-        // Magnets carry their infohash; .torrent URLs get matched later by the
-        // completed-download job (newest unclaimed torrent in our category).
+        // A magnet goes straight to qBittorrent. Any other link is a Prowlarr URL, which qBittorrent (often behind a VPN
+        // container) cannot reach, so it is fetched here and the file handed over; its info-hash lets the completed-download
+        // job find the torrent exactly.
         string? hash = null;
-        if (release.MagnetUrl != null && MagnetHash().Match(release.MagnetUrl) is { Success: true } m)
+        if (release.MagnetUrl is null)
         {
-            hash = m.Groups[1].Value.ToLowerInvariant();
+            var source = await prowlarr.FetchTorrentAsync(link, ct);
+            if (source.Magnet is { } redirected)
+            {
+                link = redirected;
+            }
+            else
+            {
+                await qbittorrent.AddFileAsync(qbt.Url, qbt.Username, qbt.Password, source.File!, source.FileName, qbt.Category, ct);
+                hash = Maki.Core.Download.TorrentFile.TryInfoHash(source.File!, out var infoHash) ? infoHash : null;
+                link = string.Empty;
+            }
+        }
+
+        if (link.Length > 0)
+        {
+            await qbittorrent.AddAsync(qbt.Url, qbt.Username, qbt.Password, link, qbt.Category, ct);
+            if (MagnetHash().Match(link) is { Success: true } m)
+            {
+                hash = m.Groups[1].Value.ToLowerInvariant();
+            }
         }
 
         var item = new DownloadQueueItem
