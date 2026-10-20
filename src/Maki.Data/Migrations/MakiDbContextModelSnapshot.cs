@@ -230,6 +230,24 @@ namespace Maki.Data.Migrations
                     b.ToTable("ChapterFiles");
                 });
 
+            modelBuilder.Entity("Maki.Core.Entities.ChapterFilePageHashes", b =>
+                {
+                    b.Property<int>("ChapterFileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Hashes")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ChapterFileId");
+
+                    b.ToTable("ChapterFilePageHashes");
+                });
+
             modelBuilder.Entity("Maki.Core.Entities.ChapterProgress", b =>
                 {
                     b.Property<int>("Id")
@@ -2730,6 +2748,15 @@ namespace Maki.Data.Migrations
                     b.HasOne("Maki.Core.Entities.Series", null)
                         .WithMany()
                         .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.ChapterFilePageHashes", b =>
+                {
+                    b.HasOne("Maki.Core.Entities.ChapterFile", null)
+                        .WithOne()
+                        .HasForeignKey("Maki.Core.Entities.ChapterFilePageHashes", "ChapterFileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

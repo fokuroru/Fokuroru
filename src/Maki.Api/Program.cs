@@ -892,6 +892,8 @@ try
     builder.Services.AddScoped<ReaderService>();
     builder.Services.AddScoped<ContinueReadingService>();
     builder.Services.AddScoped<FreshChaptersService>();
+    builder.Services.AddSingleton<DuplicateSweep>();
+    builder.Services.AddScoped<DuplicateFileService>();
     builder.Services.AddScoped<ReadingProfileService>();
     builder.Services.AddScoped<ReadingTimeEstimateService>();
     builder.Services.AddScoped<OpdsCatalogService>();
@@ -1020,6 +1022,11 @@ try
             .WithIdentity("housekeeping")
             .StartAt(DateTimeOffset.UtcNow.AddHours(1))
             .WithSimpleSchedule(s => s.WithIntervalInHours(24).RepeatForever()));
+
+        q.ScheduleJob<Maki.Api.Jobs.DuplicateSweepJob>(t => t
+            .WithIdentity("duplicate-sweep")
+            .StartAt(DateTimeOffset.UtcNow.AddMinutes(6))
+            .WithSimpleSchedule(s => s.WithIntervalInMinutes(5).RepeatForever()));
 
         q.ScheduleJob<Maki.Api.Jobs.BankReleaseJob>(t => t
             .WithIdentity("bank-release")

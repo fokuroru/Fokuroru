@@ -345,9 +345,11 @@ public class DownloadQueueService(
                 .ToListAsync(ct))
             .ToHashSet();
 
+        // An automatic download of a volume whose chapters are all here would be the same pages twice.
+        var covered = origin == DownloadOrigin.Manual ? [] : await CoveredVolumeRowsAsync(db, ids, ct);
         var toQueue = ids
             .Where(id => seriesOf.TryGetValue(id, out var seriesId) && !reviewed.Contains(seriesId) &&
-                         mapped.Contains(seriesId) && !active.Contains(id))
+                         mapped.Contains(seriesId) && !active.Contains(id) && !covered.Contains(id))
             .ToList();
         if (toQueue.Count == 0)
         {
@@ -454,6 +456,11 @@ public class DownloadQueueService(
         if (existing is not null)
         {
             return await OnAlreadyActiveAsync(existing);
+        }
+
+        if (origin != DownloadOrigin.Manual && replaceInfo is null && (await CoveredVolumeRowsAsync(db, [chapterId], ct)).Count > 0)
+        {
+            return null;
         }
 
         // Cheap, DB-only check: a series with literally no enabled mapping can be rejected
@@ -901,6 +908,33 @@ public class DownloadQueueService(
         {
             await SignalAsync(0, ct);
         }
+    }
+
+    /// <summary>
+    /// Of <paramref name="ids"/>, the whole-volume entries ("Volume 3") whose chapters are all on disk already:
+    /// downloading one would hold the same pages twice.
+    /// </summary>
+    internal static async Task<HashSet<int>> CoveredVolumeRowsAsync(MakiDbContext db, IReadOnlyCollection<int> ids, CancellationToken ct)
+    {
+        var rows = (await db.Chapters.Where(c => ids.Contains(c.Id) && c.Number == null && c.Volume != null)
+                .Select(c => new { c.Id, c.SeriesId, c.Volume, c.Title })
+                .ToListAsync(ct))
+            .Where(r => ChapterSequence.IsVolumeRow(null, r.Volume, r.Title))
+            .ToList();
+        if (rows.Count == 0)
+        {
+            return [];
+        }
+
+        var seriesIds = rows.Select(r => r.SeriesId).Distinct().ToList();
+        var missing = (await db.Chapters
+                .Where(c => seriesIds.Contains(c.SeriesId) && c.Wanted && c.ChapterFileId == null && c.Number != null && c.Volume != null)
+                .Select(c => new { c.SeriesId, c.Volume, c.Number })
+                .ToListAsync(ct))
+            .Where(c => ChapterSequence.IsMain(c.Number))
+            .Select(c => (c.SeriesId, c.Volume!.Value))
+            .ToHashSet();
+        return rows.Where(r => !missing.Contains((r.SeriesId, r.Volume!.Value))).Select(r => r.Id).ToHashSet();
     }
 
     /// <summary>

@@ -89,4 +89,17 @@ public class ChapterSequenceRuleTests
 
         Assert.Equal([1, 2, 3], swapped);
     }
+
+    [Fact]
+    public void A_volume_whose_chapters_are_all_on_disk_is_not_downloaded()
+    {
+        var chapters = Wanted();
+        foreach (var c in chapters.Where(c => c.Volume == 1 && c.Number is not null))
+        {
+            c.ChapterFileId = 7; // chapters 1 and 2 are already here
+        }
+
+        // Smart's window reached the volume row itself.
+        Assert.Equal([3], ChapterSequence.PreferVolumes([900, 3], chapters, new HashSet<int>()));
+    }
 }

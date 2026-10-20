@@ -1259,6 +1259,7 @@ function DownloadSection() {
   const [autoDeleteReadDays, setAutoDeleteReadDays] = useState<number | string>(0)
   const [autoDeleteKeepLast, setAutoDeleteKeepLast] = useState(false)
   const [bankPages, setBankPages] = useState<number | string>(100)
+  const [dedupe, setDedupe] = useState(true)
   const [sourceOrder, setSourceOrder] = useState<SourceOrderMode>('manual')
   const [scoutOnMatch, setScoutOnMatch] = useState(false)
   const [discarded, discard] = useReducer((n: number) => n + 1, 0)
@@ -1275,6 +1276,7 @@ function DownloadSection() {
       setAutoDeleteReadDays(settings.autoDeleteReadDays)
       setAutoDeleteKeepLast(settings.autoDeleteKeepLast)
       setBankPages(settings.bankPages)
+      setDedupe(settings.dedupe)
       setSourceOrder(settings.sourceOrder)
       setScoutOnMatch(settings.scoutOnMatch)
     }
@@ -1292,6 +1294,7 @@ function DownloadSection() {
       Number(autoDeleteReadDays) !== settings.autoDeleteReadDays ||
       autoDeleteKeepLast !== settings.autoDeleteKeepLast ||
       Number(bankPages) !== settings.bankPages ||
+      dedupe !== settings.dedupe ||
       sourceOrder !== settings.sourceOrder ||
       scoutOnMatch !== settings.scoutOnMatch)
 
@@ -1323,6 +1326,7 @@ function DownloadSection() {
             autoDeleteReadDays: Number(autoDeleteReadDays),
             autoDeleteKeepLast,
             bankPages: Number(bankPages),
+            dedupe,
             sourceOrder,
             scoutOnMatch,
           },
@@ -1448,6 +1452,16 @@ function DownloadSection() {
         checked={autoDeleteKeepLast}
         onChange={(e) => setAutoDeleteKeepLast(e.currentTarget.checked)}
         disabled={Number(autoDeleteReadDays) === 0}
+        mb="md"
+      />
+      <Text fw={500} size="sm" mb={4}>
+        <Trans>Duplicate files</Trans>
+      </Text>
+      <Switch
+        label={t`Move duplicate files to the trash`}
+        description={t`Compares the pages of each series' files. A volume replaces the chapters inside it, and of two copies of the same volume the better one stays. Nothing is deleted: duplicates wait in the library's trash folder until it is purged.`}
+        checked={dedupe}
+        onChange={(e) => setDedupe(e.currentTarget.checked)}
         mb="md"
       />
       <Text fw={500} size="sm" mb={4}>

@@ -44,6 +44,7 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
     public DbSet<Series> Series => Set<Series>();
     public DbSet<Chapter> Chapters => Set<Chapter>();
     public DbSet<ChapterFile> ChapterFiles => Set<ChapterFile>();
+    public DbSet<ChapterFilePageHashes> ChapterFilePageHashes => Set<ChapterFilePageHashes>();
     public DbSet<HealthCheckRecord> HealthChecks => Set<HealthCheckRecord>();
     public DbSet<HealthFile> HealthFiles => Set<HealthFile>();
     public DbSet<HealthFinding> HealthFindings => Set<HealthFinding>();
@@ -471,6 +472,13 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
             e.HasIndex(f => f.MeasuredAtUtc).HasFilter("MeasuredAtUtc IS NULL");
 
             e.HasOne<Series>().WithMany().HasForeignKey(f => f.SeriesId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ChapterFilePageHashes>(e =>
+        {
+            e.HasKey(h => h.ChapterFileId);
+            e.HasOne<ChapterFile>().WithOne().HasForeignKey<ChapterFilePageHashes>(h => h.ChapterFileId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<SourceMapping>(e =>

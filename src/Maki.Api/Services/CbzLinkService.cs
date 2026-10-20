@@ -23,7 +23,8 @@ public record RescanResult(int NewFiles, int Relinked, int Removed, int Unrecogn
 public class CbzLinkService(
     MakiDbContext db, SourceRegistry sources, KavitaScanService kavitaScans,
     StatsEventService stats, ReaderArchiveCache archives, SourceAvailability sourceAvailability,
-    ChapterFileQualityService quality, IAppSettings settings, ILogger<CbzLinkService> logger)
+    ChapterFileQualityService quality, IAppSettings settings, ILogger<CbzLinkService> logger,
+    DuplicateSweep? duplicates = null)
 {
     /// <param name="files">Absolute paths of CBZ files, already inside the series folder.</param>
     /// <param name="seriesDir">Absolute path of the series folder (for relative paths).</param>
@@ -384,6 +385,11 @@ public class CbzLinkService(
             // LinkFilesAsync runs the estimator itself; cover the no-new-files path too.
             await EstimateCompletedVolumeLinksAsync(series, chapters, ct);
             await db.SaveChangesAsync(ct);
+        }
+
+        if (linkedNew > 0 || relinked > 0)
+        {
+            duplicates?.Request(series.Id);
         }
 
         return new RescanResult(linkedNew, relinked, removed, unrecognized);

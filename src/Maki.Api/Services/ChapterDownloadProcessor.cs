@@ -53,7 +53,8 @@ public class ChapterDownloadProcessor(
     ILocalizer localizer,
     IUserLocaleResolver locales,
     ILogger<ChapterDownloadProcessor> logger,
-    Maki.Core.Configuration.IAppSettings? appSettings = null)
+    Maki.Core.Configuration.IAppSettings? appSettings = null,
+    DuplicateSweep? duplicates = null)
 {
     /// <summary>A RateLimited row parked for a missing root folder, which no source's cooldown is about.</summary>
     public const string RootFolderUnavailableKey = "error.download.rootFolderUnavailable";
@@ -365,6 +366,7 @@ public class ChapterDownloadProcessor(
 
             await BroadcastAsync(item, chapter, series, mapping.SourceName);
             await events.ChapterImported(series.Id, chapter.Id, series.RootFolderId);
+            duplicates?.Request(series.Id);
 
             // Part of a batch (series add, search-missing, refresh)? The batch sends one summary
             // when every chapter in it has settled, instead of a ping per chapter.

@@ -149,7 +149,8 @@ public class SettingsController(
         int ConcurrentChapters, bool RetryEnabled, int RetryMaxAttempts,
         int SmartDownloadChaptersLeft, int SmartDownloadChapters, int ItemTimeoutMinutes,
         bool UseHardlinks = true, int? BulkHoldThreshold = null, string? SourceOrder = null, bool? ScoutOnMatch = null,
-        int? AutoDeleteReadDays = null, bool? AutoDeleteKeepLast = null, int? BankPages = null);
+        int? AutoDeleteReadDays = null, bool? AutoDeleteKeepLast = null, int? BankPages = null,
+        bool? Dedupe = null);
     /// <param name="Enabled">Turns the daily upgrade scan on.</param>
     /// <param name="DefaultProfileId">The upgrade profile a series without its own pin uses, or null for none.</param>
     /// <param name="MaxPerDay">0 means no cap.</param>
@@ -912,7 +913,8 @@ public class SettingsController(
         await settings.GetAsync(SettingKeys.SourcesScoutOnMatch, ct) == "true",
         await AutoDeleteReadChaptersJob.DaysAsync(settings, ct),
         await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct),
-        await ChapterBanking.PagesAsync(settings, ct)));
+        await ChapterBanking.PagesAsync(settings, ct),
+        await DuplicateSweepJob.EnabledAsync(settings, ct)));
 
     private async Task<string> SourceOrderNameAsync(CancellationToken ct) => SourceOrderService.Name(
         SourceOrderService.Parse(await settings.GetAsync(SettingKeys.DownloadSourceOrder, ct)) ?? SourceOrderMode.Manual);
@@ -992,6 +994,11 @@ public class SettingsController(
             await settings.SetAsync(SettingKeys.LibraryAutoDeleteKeepLast, keepLast ? "true" : "false", ct);
         }
 
+        if (request.Dedupe is { } dedupe)
+        {
+            await settings.SetAsync(SettingKeys.LibraryDedupe, dedupe ? "true" : "false", ct);
+        }
+
         if (request.BankPages is { } bankPages)
         {
             await settings.SetAsync(SettingKeys.ReadingBankPages, bankPages.ToString(CultureInfo.InvariantCulture), ct);
@@ -1015,6 +1022,7 @@ public class SettingsController(
             AutoDeleteReadDays = await AutoDeleteReadChaptersJob.DaysAsync(settings, ct),
             AutoDeleteKeepLast = await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct),
             BankPages = await ChapterBanking.PagesAsync(settings, ct),
+            Dedupe = await DuplicateSweepJob.EnabledAsync(settings, ct),
         });
     }
 

@@ -3387,6 +3387,8 @@ export interface DownloadSettings {
   autoDeleteKeepLast: boolean
   /** Pages of new chapters that must be waiting before a caught-up reader sees them. 0 means off. */
   bankPages: number
+  /** Move files that only repeat what other files in a series hold into the trash. */
+  dedupe: boolean
   /** Which source a series without its own setting downloads from first. */
   sourceOrder: SourceOrderMode
   /** Measure every linked source of a newly matched series before anything downloads. */

@@ -172,7 +172,8 @@ public class TorrentImportService(
     IAppSettings settings,
     UpgradeEvaluationService evaluation,
     InboxService inbox,
-    ILogger<TorrentImportService> logger)
+    ILogger<TorrentImportService> logger,
+    DuplicateSweep? duplicates = null)
 {
     public const int GuardSamplePages = 6;
 
@@ -513,6 +514,7 @@ public class TorrentImportService(
                 importedRows.Select(r => r.Id).ToHashSet(), ct)
             : (0, null);
         seriesLock.Dispose();
+        duplicates?.Request(series.Id);
 
         if (upgrade is not null)
         {

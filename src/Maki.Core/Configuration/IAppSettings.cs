@@ -94,6 +94,12 @@ public static class SettingKeys
     public const string ReadingBankPages = "reading.bankpages";
 
     /// <summary>
+    /// "false" turns off the duplicate check that moves files repeating what other files in a series hold
+    /// into the trash. Default on.
+    /// </summary>
+    public const string LibraryDedupe = "library.dedupe";
+
+    /// <summary>
     /// "false" → don't rewrite ComicInfo.xml inside files Maki adopts from disk (torrent grabs,
     /// manual imports). Chapters Maki downloads itself from a source always get a fresh ComicInfo —
     /// that CBZ is built by Maki, not an existing file being modified. Default on.
