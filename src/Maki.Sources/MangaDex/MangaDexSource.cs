@@ -164,8 +164,7 @@ public class MangaDexSource(IHttpClientFactory httpClientFactory) : ISource, ICh
     public async Task<IReadOnlyDictionary<decimal, int>> GetChapterVolumesAsync(
         string sourceSeriesId, CancellationToken ct = default)
     {
-        var map = new Dictionary<decimal, int>();
-        var conflicted = new HashSet<decimal>();
+        var votes = new Dictionary<decimal, Dictionary<int, int>>();
         var offset = 0;
 
         while (true)
@@ -185,17 +184,8 @@ public class MangaDexSource(IHttpClientFactory httpClientFactory) : ISource, ICh
                 var parsed = ChapterNumberParser.Parse(c.Attributes.Chapter, c.Attributes.Volume);
                 if (parsed is { Number: { } number, Volume: { } volume })
                 {
-                    if (map.TryGetValue(number, out var existing))
-                    {
-                        if (existing != volume)
-                        {
-                            conflicted.Add(number);
-                        }
-                    }
-                    else
-                    {
-                        map[number] = volume;
-                    }
+                    var tally = votes.TryGetValue(number, out var t) ? t : votes[number] = [];
+                    tally[volume] = tally.GetValueOrDefault(volume) + 1;
                 }
             }
 
@@ -206,9 +196,17 @@ public class MangaDexSource(IHttpClientFactory httpClientFactory) : ISource, ICh
             }
         }
 
-        foreach (var number in conflicted)
+        // Uploads disagree now and then (one group files a chapter under the previous volume), so the
+        // volume most uploads name wins. A tie says nothing and the chapter stays without one.
+        var map = new Dictionary<decimal, int>();
+        foreach (var (number, tally) in votes)
         {
-            map.Remove(number);
+            var best = tally.Max(v => v.Value);
+            var winners = tally.Where(v => v.Value == best).ToList();
+            if (winners.Count == 1)
+            {
+                map[number] = winners[0].Key;
+            }
         }
 
         return map;

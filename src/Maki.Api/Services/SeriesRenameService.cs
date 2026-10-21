@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Maki.Api.Localization;
+using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Reading;
 using Maki.Data;
@@ -74,7 +75,8 @@ public class SeriesRenameService(
     NamingService naming,
     KavitaScanService kavitaScans,
     ILocalizer localizer,
-    ILogger<SeriesRenameService> logger)
+    ILogger<SeriesRenameService> logger,
+    IAppSettings? settings = null)
 {
     /// <summary>Suffix for the two-step move a case-only rename needs on Windows.</summary>
     private const string TempSuffix = ".maki-rename";
@@ -231,6 +233,40 @@ public class SeriesRenameService(
         chapterFileIds.Count == 0
             ? Task.FromResult(new SeriesRenameResult(null, true, null, []))
             : RenameAsync(seriesId, new RenameScope(false, chapterFileIds.ToHashSet()), null, ct);
+
+    /// <summary>
+    /// Names every file in the series after a rescan or relink has settled what each one backs. The
+    /// folder stays put, for the reasons <see cref="RenameFilesAsync"/> gives, and
+    /// <see cref="SettingKeys.LibraryRenameImportedFiles"/> switches it off like it does for imports.
+    /// A refusal (a name collision, a download in flight) is logged and leaves the files as they were.
+    /// </summary>
+    public async Task TidyAfterScanAsync(int seriesId, CancellationToken ct)
+    {
+        if (settings is not null && await settings.GetAsync(SettingKeys.LibraryRenameImportedFiles, ct) == "false")
+        {
+            return;
+        }
+
+        try
+        {
+            using var seriesLock = await SeriesLocks.SeriesAsync(seriesId, ct);
+            var result = await RenameAsync(seriesId, new RenameScope(false, null), null, ct);
+            if (!result.Applied)
+            {
+                logger.LogWarning("Did not tidy file names of series {SeriesId} after a scan: {Error}", seriesId, result.Error);
+                return;
+            }
+
+            foreach (var warning in result.Warnings)
+            {
+                logger.LogWarning("Tidying names of series {SeriesId} after a scan: {Warning}", seriesId, warning);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not tidy file names of series {SeriesId} after a scan", seriesId);
+        }
+    }
 
     private async Task<SeriesRenameResult> RenameAsync(
         int seriesId, RenameScope scope, string? expectedFingerprint, CancellationToken ct)

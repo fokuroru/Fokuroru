@@ -233,6 +233,11 @@ public class SeriesController(
         }
 
         var result = await cbzLinkService.RescanSeriesAsync(series, ct);
+        if (!result.RootUnavailable)
+        {
+            await seriesRename.TidyAfterScanAsync(id, ct);
+        }
+
         return result.RootUnavailable ? this.Fail(localizer, "error.series.rootUnavailable") : Ok(result);
     }
 
@@ -290,8 +295,10 @@ public class SeriesController(
             return this.Conflict(localizer, "error.series.activeDownloadRelink");
         }
 
-        return Ok(await relinkPlanner.ApplyAsync(
-            series, request.Options, request.DeleteSuperseded, request.ConfirmedSuperseded ?? [], ct));
+        var relinked = await relinkPlanner.ApplyAsync(
+            series, request.Options, request.DeleteSuperseded, request.ConfirmedSuperseded ?? [], ct);
+        await seriesRename.TidyAfterScanAsync(id, ct);
+        return Ok(relinked);
     }
 
     private Task<bool> HasActiveDownloadAsync(int seriesId, CancellationToken ct) =>

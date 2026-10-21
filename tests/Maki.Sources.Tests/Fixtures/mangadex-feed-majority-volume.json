@@ -1,0 +1,65 @@
+{
+  "result": "ok",
+  "response": "collection",
+  "data": [
+    {
+      "id": "00000001-0000-0000-0000-000000000000",
+      "type": "chapter",
+      "attributes": {
+        "chapter": "50",
+        "volume": "7",
+        "title": null,
+        "translatedLanguage": "en",
+        "externalUrl": null,
+        "isUnavailable": false,
+        "pages": 20,
+        "publishAt": "2018-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "id": "00000002-0000-0000-0000-000000000000",
+      "type": "chapter",
+      "attributes": {
+        "chapter": "50",
+        "volume": "7",
+        "title": null,
+        "translatedLanguage": "pt-br",
+        "externalUrl": null,
+        "isUnavailable": false,
+        "pages": 20,
+        "publishAt": "2018-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "id": "00000003-0000-0000-0000-000000000000",
+      "type": "chapter",
+      "attributes": {
+        "chapter": "50",
+        "volume": "6",
+        "title": null,
+        "translatedLanguage": "uk",
+        "externalUrl": null,
+        "isUnavailable": false,
+        "pages": 20,
+        "publishAt": "2018-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "id": "00000004-0000-0000-0000-000000000000",
+      "type": "chapter",
+      "attributes": {
+        "chapter": "51",
+        "volume": "7",
+        "title": null,
+        "translatedLanguage": "en",
+        "externalUrl": null,
+        "isUnavailable": false,
+        "pages": 20,
+        "publishAt": "2018-01-01T00:00:00+00:00"
+      }
+    }
+  ],
+  "limit": 500,
+  "offset": 0,
+  "total": 4
+}

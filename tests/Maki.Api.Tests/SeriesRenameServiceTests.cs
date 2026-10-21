@@ -440,6 +440,21 @@ public class SeriesRenameServiceTests : IDisposable
             db.ChapterFiles.Single(f => f.Id == nested).RelativePath);
     }
 
+    [Fact]
+    public async Task TidyAfterScan_names_every_file_and_leaves_the_folder()
+    {
+        var id = SeedSeries("Berserk", "Berserk", chapters: (24m, 3, "en"));
+        var adopted = SeedChapterAt(id, 25m, 3, Path.Combine("Berserk", "Berserk.v03.c25.SOMEGROUP.cbz"));
+
+        await Service().TidyAfterScanAsync(id, CancellationToken.None);
+
+        Assert.True(File.Exists(Path.Combine(_root, "Berserk", "Berserk Vol.3 Ch.25.cbz")));
+        using var db = _db.NewContext();
+        Assert.Equal(Path.Combine("Berserk", "Berserk Vol.3 Ch.25.cbz"),
+            db.ChapterFiles.Single(f => f.Id == adopted).RelativePath);
+        Assert.Equal("Berserk", db.Series.Single(s => s.Id == id).FolderName);
+    }
+
     /// <summary>
     /// What a completed torrent import asks for: name what just arrived, touch nothing else. The
     /// folder in particular has to survive, or one grabbed release rewrites every path in a series

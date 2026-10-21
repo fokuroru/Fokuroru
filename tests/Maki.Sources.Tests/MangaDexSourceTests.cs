@@ -84,6 +84,20 @@ public class MangaDexSourceTests
     }
 
     [Fact]
+    public async Task GetChapterVolumes_takes_the_volume_most_uploads_agree_on()
+    {
+        var factory = new FakeHttpClientFactory(new()
+        {
+            ["feed"] = FakeHttpClientFactory.Fixture("mangadex-feed-majority-volume.json")
+        });
+
+        var volumes = await new MangaDexSource(factory).GetChapterVolumesAsync("a1c7c817");
+
+        // One upload files chapter 50 under volume 6; two others say volume 7.
+        Assert.Equal(7, volumes[50m]);
+    }
+
+    [Fact]
     public async Task Several_languages_are_repeated_into_one_request_and_tagged_individually()
     {
         var factory = new FakeHttpClientFactory(new()

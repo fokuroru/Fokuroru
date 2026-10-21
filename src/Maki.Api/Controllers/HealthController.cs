@@ -20,7 +20,7 @@ namespace Maki.Api.Controllers;
 [Route("api/v1/health")]
 public class HealthController(MakiDbContext db, HealthMonitor monitor, HealthOperationService operations,
     HealthMatchService matches, ICurrentUser user, IAppSettings settings,
-    ILocalizer localizer, SourceRegistry sources, HealthSourceRecovery recovery) : ControllerBase
+    ILocalizer localizer, SourceRegistry sources, HealthSourceRecovery recovery, SeriesRenameService? seriesRename = null) : ControllerBase
 {
     /// <summary>
     /// The row as the page reads it: same fields, with <c>message</c> worded in the caller's own
@@ -337,6 +337,7 @@ public class HealthController(MakiDbContext db, HealthMonitor monitor, HealthOpe
             var result = await cbz.RescanSeriesAsync(owner, ct);
             linked += result.NewFiles + result.Relinked;
             unrecognized += result.Unrecognized;
+            if (seriesRename is not null) await seriesRename.TidyAfterScanAsync(owner.Id, ct);
         }
         if (files.Count > 0)
         {
