@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { api } from './client'
+import { api, beginSession } from './client'
 
 type SetupDoneHandler = () => void
 let onSetupDone: SetupDoneHandler | null = null
@@ -165,6 +165,8 @@ function isIdentityQuery(key: readonly unknown[]): boolean {
  * nothing reads, not into the new account's cache.
  */
 export function clearAccountData(qc: QueryClient, signOut: boolean) {
+  // Every caller is a session boundary, so a late 401 from a request the old session sent is ignored.
+  beginSession()
   const predicate = (query: { queryKey: readonly unknown[] }) => !isIdentityQuery(query.queryKey)
   void qc.cancelQueries({ predicate })
   qc.removeQueries({ predicate })

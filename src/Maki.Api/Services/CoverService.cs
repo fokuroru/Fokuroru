@@ -2,7 +2,9 @@ using Maki.Api.Configuration;
 using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Notifications;
+using System.Security.Cryptography;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using Maki.Core.Imaging;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
@@ -16,6 +18,8 @@ public class CoverService(
     : INotificationCoverStore
 {
     private const int PosterWidth = 400;
+
+    private static readonly DecoderOptions FirstFrameOnly = new() { MaxFrames = 1 };
 
     public string CoverPathFor(int seriesId) => Path.Combine(paths.MediaCoverDir, seriesId.ToString(), "cover.jpg");
 
@@ -72,7 +76,7 @@ public class CoverService(
         {
             var client = httpClientFactory.CreateClient("covers");
             await using var stream = await client.GetStreamAsync(coverUrl, ct);
-            using var image = await Image.LoadAsync(stream, ct);
+            using var image = await Image.LoadAsync(FirstFrameOnly, stream, ct);
 
             if (image.Width > PosterWidth)
             {
@@ -94,12 +98,32 @@ public class CoverService(
     /// <summary>
     /// Copies the cached poster into the series' own library folder as "cover.jpg", for readers
     /// (Komga, Kavita) that pick up a poster placed directly next to the series' files rather than
-    /// through Maki. Gated on <see cref="SettingKeys.LibraryWriteCoverToFolder"/>, default off.
+    /// through Maki. Gated on <see cref="SettingKeys.LibraryWriteCoverToFolder"/>, default off. A cover.jpg
+    /// the user placed there is left alone; only one Maki wrote is refreshed.
     /// </summary>
     public Task WriteLibraryCoverAsync(Series series, CancellationToken ct = default) =>
         series.RootFolder is null
             ? Task.CompletedTask
             : WriteLibraryCoverAsync(series.Id, Path.Combine(series.RootFolder.Path, series.FolderName), ct);
+
+    /// <summary>
+    /// Hash of the last cover.jpg Maki wrote into the series folder. A cover.jpg that matches neither it
+    /// nor the current poster was put there by the user and is never overwritten.
+    /// </summary>
+    private string LibraryCoverRecordFor(int seriesId) =>
+        Path.Combine(paths.MediaCoverDir, seriesId.ToString(), "library-cover.sha256");
+
+    private static bool WrittenByMaki(string cover, string record) =>
+        File.Exists(record) && File.ReadAllText(record).Trim() == Sha256Of(cover);
+
+    private static bool SameBytes(string a, string b) =>
+        new FileInfo(a).Length == new FileInfo(b).Length && Sha256Of(a) == Sha256Of(b);
+
+    private static string Sha256Of(string path)
+    {
+        using var stream = File.OpenRead(path);
+        return Convert.ToHexString(SHA256.HashData(stream));
+    }
 
     /// <inheritdoc cref="WriteLibraryCoverAsync(Series, CancellationToken)"/>
     public async Task WriteLibraryCoverAsync(int seriesId, string seriesFolder, CancellationToken ct = default)
@@ -117,8 +141,16 @@ public class CoverService(
 
         try
         {
+            var target = Path.Combine(seriesFolder, "cover.jpg");
+            var record = LibraryCoverRecordFor(seriesId);
+            if (File.Exists(target) && !SameBytes(source, target) && !WrittenByMaki(target, record))
+            {
+                return;
+            }
+
             Directory.CreateDirectory(seriesFolder);
-            File.Copy(source, Path.Combine(seriesFolder, "cover.jpg"), overwrite: true);
+            File.Copy(source, target, overwrite: true);
+            File.WriteAllText(record, Sha256Of(target));
         }
         catch (Exception ex)
         {

@@ -79,6 +79,16 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): voi
   onUnauthorized = handler
 }
 
+let sessionGeneration = 0
+
+/**
+ * Marks a sign-in, sign-out or dropped session. A 401 answering a request sent before it belongs to
+ * the session that ended: still thrown, but it must not sign out the account that has signed in since.
+ */
+export function beginSession(): void {
+  sessionGeneration++
+}
+
 const XSRF_COOKIE = 'XSRF-TOKEN'
 
 function readCookie(name: string): string | null {
@@ -130,6 +140,7 @@ export function xsrfHeader(): Record<string, string> {
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const generation = sessionGeneration
   const init = await getInitialize()
   const res = await fetch(`${init.apiRoot}${path}`, {
     ...options,
@@ -138,7 +149,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     credentials: 'same-origin',
     headers: authHeaders(options.headers),
   })
-  return readResponse<T>(res)
+  return readResponse<T>(res, generation)
 }
 
 /**
@@ -146,6 +157,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
  * language, spice and antiforgery headers are sent; errors come back the same way as from `api`.
  */
 export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
+  const generation = sessionGeneration
   const init = await getInitialize()
   const res = await fetch(`${init.apiRoot}${path}`, {
     method: 'POST',
@@ -153,10 +165,10 @@ export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
     headers: { ...languageHeader(), ...spiceHeader(), ...xsrfHeader() },
     body: form,
   })
-  return readResponse<T>(res)
+  return readResponse<T>(res, generation)
 }
 
-async function readResponse<T>(res: Response): Promise<T> {
+async function readResponse<T>(res: Response, generation: number): Promise<T> {
   if (res.status === 401) {
     // A 401 body may be missing, non-JSON, or JSON without an `error` field; any of those falls
     // back to UnauthorizedError's own generic message.
@@ -165,7 +177,7 @@ async function readResponse<T>(res: Response): Promise<T> {
       const body = await res.text()
       message = (JSON.parse(body) as { error?: string }).error
     } catch { /* no body, not JSON, or no error field */ }
-    onUnauthorized?.()
+    if (generation === sessionGeneration) onUnauthorized?.()
     throw new UnauthorizedError(message)
   }
   if (!res.ok) {
