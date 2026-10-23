@@ -806,6 +806,8 @@ svg.setup-rail-wordmark {
   background-image: none;
   box-shadow: none;
   font-variant-numeric: tabular-nums;
+  /* Mantine draws the count as the button's sibling, so without this a press on it hits nothing. */
+  pointer-events: none;
 }
 .count-indicator[data-tone='warn'] > .mantine-Indicator-indicator {
   color: var(--app-bg);
