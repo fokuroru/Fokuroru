@@ -253,8 +253,12 @@ public class ReaderService(
         return (start, Math.Max(0, end - start));
     }
 
-    /// <summary>The previous/next downloaded chapter of the same series and language.</summary>
-    public async Task<(int? Previous, int? Next)> NeighboursAsync(Chapter chapter, CancellationToken ct)
+    /// <summary>
+    /// The previous/next downloaded chapter of the same series and language. <paramref name="wholeFileId"/> is
+    /// the archive the current chapter is served in full (a volume, or markers that did not name it): its other
+    /// chapters are already on screen, so leading on to one would replay the volume from page one.
+    /// </summary>
+    public async Task<(int? Previous, int? Next)> NeighboursAsync(Chapter chapter, CancellationToken ct, int? wholeFileId = null)
     {
         var siblings = await db.Chapters
             .AsNoTracking()
@@ -275,6 +279,8 @@ public class ReaderService(
             filePages);
         var anyWanted = siblings.Any(c => c.Wanted);
         siblings = siblings.Where(c => c.Id == chapter.Id || (!skipped.Contains(c.Id) && (c.Wanted || !anyWanted))).ToList();
+
+        siblings = siblings.Where(c => c.Id == chapter.Id || wholeFileId is null || c.ChapterFileId != wholeFileId).ToList();
 
         var ordered = ChapterOrder.Sort(siblings, c => c.Number, c => c.Volume, c => c.Id);
 

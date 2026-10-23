@@ -222,7 +222,8 @@ public class ReaderController(
             return this.NotFoundMessage(localizer, "error.reader.chapterNotReadable");
         }
 
-        var (previous, next) = await reader.NeighboursAsync(slice.Chapter, ct);
+        var (previous, next) = await reader.NeighboursAsync(
+            slice.Chapter, ct, slice.PageCount == slice.Pages.Count ? slice.ChapterFileId : null);
 
         // Neighbours only sees chapters on disk, so a wanted chapter that hasn't downloaded yet would be
         // jumped over (and its story spoiled). While one sits between here and the next downloaded

@@ -788,6 +788,20 @@ public sealed class ReaderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task NeighboursSkipChaptersOfTheArchiveBeingServedWhole()
+    {
+        var (seriesId, chapters) = SeedFromCbz("vol.cbz", ["001.jpg", "002.jpg"], [(1m, null), (2m, null)]);
+        var path = WriteCbz("after.cbz", "001.jpg");
+        var after = LinkChapters(seriesId, path, [(3m, null)]).Single().Id;
+
+        var reader = Reader();
+        var slice = await reader.SliceAsync(chapters[1m], CancellationToken.None);
+        var (_, next) = await reader.NeighboursAsync(slice!.Chapter, CancellationToken.None, slice.ChapterFileId);
+
+        Assert.Equal(after, next);
+    }
+
+    [Fact]
     public async Task NeighboursSkipChaptersWithoutAFile()
     {
         var (seriesId, chapters) = SeedFromCbz("n.cbz", ["001.jpg"], [(1m, null)]);
