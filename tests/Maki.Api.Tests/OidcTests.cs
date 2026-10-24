@@ -51,32 +51,6 @@ public class OidcTests
     }
 
     [Fact]
-    public async Task TheBreakGlassVariableRestoresPasswordLoginForEveryone()
-    {
-        using var fixture = new TestDb();
-        fixture.SetConfig(
-            (SettingKeys.AuthOidcEnabled, "true"),
-            (SettingKeys.AuthOidcAuthority, "https://auth.example.com"),
-            (SettingKeys.AuthOidcClientId, "maki"),
-            (SettingKeys.AuthOidcOnly, "true"));
-
-        var options = await LoadAsync(fixture);
-        Assert.True(options.OidcOnly);
-
-        Environment.SetEnvironmentVariable(OidcRuntimeOptions.BreakGlassVariable, "1");
-        try
-        {
-            // Read per call rather than captured at load, so setting the variable and restarting is
-            // the whole recovery procedure for a provider that has stopped answering.
-            Assert.False(options.OidcOnly);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(OidcRuntimeOptions.BreakGlassVariable, null);
-        }
-    }
-
-    [Fact]
     public async Task TheAuthorityLosesItsTrailingSlash()
     {
         using var fixture = new TestDb();
@@ -766,7 +740,7 @@ public class OidcTests
     private static Claim[] Claims(params (string Type, string Value)[] claims) =>
         claims.Select(c => new Claim(c.Type, c.Value)).ToArray();
 
-    private static async Task<OidcRuntimeOptions> LoadAsync(TestDb fixture)
+    internal static async Task<OidcRuntimeOptions> LoadAsync(TestDb fixture)
     {
         var options = new OidcRuntimeOptions();
         using var db = fixture.NewContext();
@@ -836,5 +810,39 @@ public class OidcTests
             new IdentityErrorDescriber(),
             null!,
             NullLogger<UserManager<MakiUser>>.Instance);
+    }
+}
+
+/// <summary>
+/// The break-glass variable is process-wide, and a host that boots while it is set logs a startup
+/// warning, so this runs in the collection that host boots run in rather than alongside them.
+/// </summary>
+[Collection(ConfigDirCollection.Name)]
+public class OidcBreakGlassTests
+{
+    [Fact]
+    public async Task TheBreakGlassVariableRestoresPasswordLoginForEveryone()
+    {
+        using var fixture = new TestDb();
+        fixture.SetConfig(
+            (SettingKeys.AuthOidcEnabled, "true"),
+            (SettingKeys.AuthOidcAuthority, "https://auth.example.com"),
+            (SettingKeys.AuthOidcClientId, "maki"),
+            (SettingKeys.AuthOidcOnly, "true"));
+
+        var options = await OidcTests.LoadAsync(fixture);
+        Assert.True(options.OidcOnly);
+
+        Environment.SetEnvironmentVariable(OidcRuntimeOptions.BreakGlassVariable, "1");
+        try
+        {
+            // Read per call rather than captured at load, so setting the variable and restarting is
+            // the whole recovery procedure for a provider that has stopped answering.
+            Assert.False(options.OidcOnly);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(OidcRuntimeOptions.BreakGlassVariable, null);
+        }
     }
 }
