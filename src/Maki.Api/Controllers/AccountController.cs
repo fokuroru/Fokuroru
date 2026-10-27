@@ -152,6 +152,7 @@ public class AccountController(
         // Always a fresh secret: reusing one across abandoned enrolment attempts means an old QR
         // screenshot still works.
         await userManager.ResetAuthenticatorKeyAsync(user);
+        await TotpReplayGuard.ClearAsync(userManager, user);
         // Every stamp-rotating call here re-issues this device's cookie, as ChangePassword does.
         // Otherwise the next stamp validation, a minute away, signs the user out mid-enrolment.
         await signInManager.RefreshSignInAsync(user);
@@ -210,6 +211,12 @@ public class AccountController(
             return this.Fail(localizer, "error.account.invalidCode");
         }
 
+        if (await TotpReplayGuard.IsReplayAsync(userManager, user, code))
+        {
+            return this.Fail(localizer, "error.account.totpReplayed");
+        }
+
+        await TotpReplayGuard.RecordAsync(userManager, user, code);
         await userManager.SetTwoFactorEnabledAsync(user, true);
         var codes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, RecoveryCodeCount);
         await signInManager.RefreshSignInAsync(user);
@@ -239,6 +246,7 @@ public class AccountController(
         // Clear the secret too, so re-enabling forces a fresh enrolment rather than silently
         // reactivating whatever app still has the old one.
         await userManager.ResetAuthenticatorKeyAsync(user);
+        await TotpReplayGuard.ClearAsync(userManager, user);
         await signInManager.RefreshSignInAsync(user);
         await auditLog.LogAsync(AuthEventType.TwoFactorDisabled, user.UserName ?? string.Empty, user.Id, HttpContext, ct: ct);
         return NoContent();

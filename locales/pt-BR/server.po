@@ -26,6 +26,14 @@ msgstr "É necessário um código do aplicativo autenticador"
 msgid "error.account.incorrectPassword"
 msgstr "A senha está incorreta"
 
+#. An authenticator code that was already used, so the next one is needed. Shown only after the
+#. password was verified, so it says nothing about which accounts exist.
+#: src/Maki.Api/Controllers/AccountController.cs
+#. English: That code was already used. Wait for the next one and try again
+#, fuzzy
+msgid "error.account.totpReplayed"
+msgstr "Esse código já foi usado. Aguarde o próximo e tente de novo"
+
 #. The two-factor enrolment code was rejected. Distinct from error.auth.invalidCode, which is the
 #. sign-in-time 2FA prompt.
 #: src/Maki.Api/Controllers/AccountController.cs
