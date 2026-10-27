@@ -32,6 +32,9 @@ RUN expected="$(ls -1d /src/locales/*/ | wc -l)" \
 # ---- Backend build ----
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS backend
 WORKDIR /src
+# A cheap layer ahead of everything else in this stage: changing the text here makes every later layer
+# rebuild, which is the way round a damaged build cache.
+RUN echo backend-stage-2
 COPY Directory.Build.props ./
 # Only the project files first, so the package restore below is cached until a dependency changes, not
 # every time a source file does. The tests are not part of the publish, so they are not copied at all.
