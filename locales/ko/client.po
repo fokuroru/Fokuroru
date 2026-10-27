@@ -508,6 +508,16 @@ msgstr "{alt}에 페이지 {page} 없음"
 msgid "{alt}, page {page}"
 msgstr "{alt}, 페이지 {page}"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "{announcedBy} has it scheduled for {announced}"
+msgstr "{announcedBy}이(가) {announced}로 예정해 두었습니다."
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "{announcedBy} has it scheduled for {when}"
+msgstr "{announcedBy}이(가) {when}로 예정해 두었습니다."
+
 #: src/components/RatingImportModal.tsx
 #, fuzzy
 msgid "{applied, plural, one {Imported # rating} other {Imported # ratings}}"
@@ -711,6 +721,11 @@ msgstr "{cycles, plural, other {#× 다시 추가됨}}"
 msgid "{days, plural, one {Deleted files, removed chapters and series deleted with their files wait here for # day before they are deleted for good. Restore puts a file back where it was.} other {Deleted files, removed chapters and series deleted with their files wait here for # days before they are deleted for good. Restore puts a file back where it was.}}"
 msgstr ""
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "{days, plural, one {Usually every day.} other {Usually every # days.}}"
+msgstr "{days, plural, other {보통 #일마다.}}"
+
 #: src/pages/stats/sections/TasteSection.tsx
 #, fuzzy
 msgid "{decade}s"
@@ -873,6 +888,11 @@ msgstr "{haveCount} / {totalCount, plural, other {# 챕터}}"
 #, fuzzy
 msgid "{haveCount} / {totalCount, plural, one {# chapter} other {# chapters}} listed, none wanted"
 msgstr "{haveCount} / {totalCount, plural, other {# 챕터}} 목록에 있지만, 원하는 챕터는 없음"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "{hits} of the last {checked} chapters came out inside the window drawn for them."
+msgstr "최근 챕터 {checked}개 중 {hits}개가 그 챕터들에 그려진 범위 안에서 나왔습니다."
 
 #: src/components/RecommendationModelSwitch.tsx
 #, fuzzy
@@ -2186,6 +2206,16 @@ msgstr "서재의 세부 주제마다 한 행씩 표시합니다."
 msgid "A scan is already running"
 msgstr ""
 
+#: src/pages/SettingsPage.tsx
+#, fuzzy
+msgid "A series is checked every 30 minutes for a few hours after a new chapter, every 2 hours while chapters keep coming, every 6 hours after two quiet weeks and once a day after two quiet months. A new chapter puts it straight back on the fast checks. Off checks every series every 30 minutes."
+msgstr "새 챕터가 나온 뒤 몇 시간 동안은 시리즈를 30분마다 확인합니다. 챕터가 계속 나오는 동안에는 2시간마다, 2주 동안 조용하면 6시간마다, 두 달 동안 조용하면 하루에 한 번 확인합니다. 새 챕터가 나오면 다시 빠른 확인으로 돌아갑니다. 끄면 모든 시리즈를 30분마다 확인합니다."
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "A series shows up here once its chapters come out on a steady enough rhythm, or when its source announces the next one."
+msgstr "시리즈는 챕터가 일정한 간격으로 나오거나, 소스가 다음 챕터를 미리 발표하면 여기에 표시됩니다."
+
 #: src/components/NotificationsSection.tsx
 #, fuzzy
 msgid "A series was added to the library, by hand or from an approved request."
@@ -2917,6 +2947,11 @@ msgstr "애니메이션은 {0}화에서 끝납니다"
 #, fuzzy
 msgid "Anime you've watched"
 msgstr "시청한 애니메이션"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Announced by the source"
+msgstr "소스가 발표함"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Another upgrade scan was already running, so this one did not run. Try again once it finishes."
@@ -4234,10 +4269,50 @@ msgstr "업데이트 확인"
 msgid "Check now"
 msgstr "지금 확인"
 
+#: src/pages/SettingsPage.tsx
+#, fuzzy
+msgid "Check quiet series less often"
+msgstr "조용한 시리즈는 덜 자주 확인"
+
 #: src/api/inbox.ts
 #, fuzzy
 msgid "Checked after each nightly catalogue update. Follow someone from their creator page."
 msgstr "매일 밤 카탈로그가 업데이트될 때마다 확인합니다. 창작자 페이지에서 팔로우할 수 있습니다."
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 2 hours while chapters keep coming."
+msgstr "챕터가 계속 나오는 동안에는 2시간마다 확인합니다."
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 30 minutes for a few hours after a new chapter."
+msgstr "새 챕터가 나온 뒤 몇 시간 동안은 30분마다 확인합니다."
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 30 minutes."
+msgstr "30분마다 확인합니다."
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 6 hours after two weeks without a chapter."
+msgstr "2주 동안 챕터가 없으면 6시간마다 확인합니다."
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 6 hours until it has some release history."
+msgstr "릴리스 기록이 쌓일 때까지 6시간마다 확인합니다."
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked once a day while it is quiet."
+msgstr "조용한 동안에는 하루에 한 번 확인합니다."
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked right after the announced time."
+msgstr "발표된 시간 직후에 확인합니다."
 
 #: src/components/MetadataDumpProgress.tsx
 #, fuzzy
@@ -5007,6 +5082,11 @@ msgstr "알림 연결을 불러오지 못했습니다"
 #: src/components/rails/CustomRailSection.tsx
 #, fuzzy
 msgid "Couldn't load this rail"
+msgstr "이 섹션을 불러오지 못했습니다"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Couldn't load this section"
 msgstr "이 섹션을 불러오지 못했습니다"
 
 #: src/pages/HomePage.tsx
@@ -6059,6 +6139,11 @@ msgstr "예: 연재 중 및 미수록"
 #, fuzzy
 msgid "Each account has its own login, permissions, content rating and reading history."
 msgstr "각 계정에는 별도의 로그인, 권한, 콘텐츠 등급 및 읽기 기록이 있습니다."
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Each bar spans the days a chapter is likely, worked out from the series' own release history, so it is a span and never a promise. The percentage is how often its recent chapters came out inside the span drawn for them. A diamond marks a day the source itself announced."
+msgstr "각 막대는 시리즈 자체의 릴리스 기록으로 계산한, 챕터가 나올 가능성이 높은 기간을 나타냅니다. 이는 기간이며 약속이 아닙니다. 백분율은 최근 챕터들이 그 챕터에 그려진 기간 안에서 나온 빈도입니다. 마름모는 소스가 직접 발표한 날짜를 뜻합니다."
 
 #: src/components/import/MihonReview.tsx
 msgid "Each Mihon category becomes a tag on the series. Manga in Mihon's Default category get no tag."
@@ -7210,6 +7295,11 @@ msgstr "전체 화면"
 msgid "Fully read owned"
 msgstr "소유한 작품을 모두 읽음"
 
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Further out"
+msgstr "더 먼 시점"
+
 #: src/components/discover/RecommenderDials.tsx
 #, fuzzy
 msgid "gems"
@@ -7581,6 +7671,11 @@ msgstr "이 작품 숨기기"
 #: src/pages/LibraryPage.tsx
 msgid "Hide up to date"
 msgstr ""
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "High confidence"
+msgstr "높은 신뢰도"
 
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "High quality"
@@ -8451,6 +8546,11 @@ msgstr ""
 msgid "last {lastSync} · next {nextSync}"
 msgstr "마지막 {lastSync} · 다음 {nextSync}"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Last chapter {last}."
+msgstr "마지막 챕터 {last}."
+
 #: src/pages/reader/ChapterEnd.tsx
 #, fuzzy
 msgid "Last chapter on disk"
@@ -8754,6 +8854,17 @@ msgstr "라이브러리 제목"
 msgid "Light"
 msgstr "밝은"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Likely {range}"
+msgstr "예상 {range}"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Likely {range}. {confidence}: {hits} of the last {checked} came out inside their window."
+msgstr "예상 {range}. {confidence}: 최근 {checked}개 중 {hits}개가 예상 기간 안에서 나왔습니다."
+
 #: src/components/LinkChaptersModal.tsx
 #: src/components/LinkFileToChaptersModal.tsx
 #: src/components/SeriesScrobbleSection.tsx
@@ -8964,6 +9075,11 @@ msgstr ""
 #, fuzzy
 msgid "loose"
 msgstr "느슨함"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Low confidence"
+msgstr "낮은 신뢰도"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -9389,6 +9505,11 @@ msgstr "중앙 대기 시간"
 #: src/pages/SettingsPage.tsx
 msgid "Medium"
 msgstr ""
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Medium confidence"
+msgstr "보통 신뢰도"
 
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Menu only"
@@ -10038,11 +10159,17 @@ msgstr "새로 활성화된 소스는 맨 아래에 추가됩니다."
 
 #: src/components/reader/TapZoneEditor.tsx
 #: src/components/reader/TapZoneHint.tsx
+#: src/components/releases/ReleaseOutlookSummary.tsx
 #: src/pages/reader/ChapterEnd.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Next chapter"
 msgstr "다음 챕터"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Next check {next}."
+msgstr "다음 확인 {next}."
 
 #: src/components/reader/TapZoneEditor.tsx
 #: src/components/reader/TapZoneHint.tsx
@@ -10060,6 +10187,11 @@ msgstr "다음 소스"
 #, fuzzy
 msgid "Next tier at {nextValue}"
 msgstr "{nextValue}에서 다음 등급"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Next week"
+msgstr "다음 주"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -10581,6 +10713,11 @@ msgstr ""
 msgid "Not analyzed"
 msgstr "분석되지 않음"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Not checked for new chapters: it is finished and complete, or has no source switched on."
+msgstr "새 챕터를 확인하지 않습니다. 완결되었거나, 켜져 있는 소스가 없습니다."
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Not checked yet"
@@ -10610,6 +10747,11 @@ msgstr ""
 #, fuzzy
 msgid "Not enough genre data yet"
 msgstr "아직 장르 데이터가 충분하지 않습니다"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Not enough release history for an estimate yet."
+msgstr "예측하기에는 아직 릴리스 기록이 부족합니다."
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
@@ -10911,6 +11053,11 @@ msgstr "가져올 항목 없음, {label}의 점수 중 로컬 평점과 다른 �
 #, fuzzy
 msgid "Nothing to pick up yet"
 msgstr "아직 가져올 항목이 없습니다"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Nothing to place yet"
+msgstr "아직 배치할 항목이 없음"
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
@@ -12228,6 +12375,11 @@ msgstr ""
 msgid "Queuing the chapter…"
 msgstr ""
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Quiet for longer than its usual rhythm, so there is no estimate."
+msgstr "평소 간격보다 오래 조용해서 예측하지 않습니다."
+
 #: src/pages/SettingsPage.tsx
 msgid "Quiet period (days)"
 msgstr ""
@@ -12862,6 +13014,11 @@ msgstr ""
 msgid "Released"
 msgstr "출시됨"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Releases too irregularly to estimate."
+msgstr "릴리스 간격이 너무 불규칙해서 예측할 수 없습니다."
+
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
 msgid "Releasing"
@@ -13427,6 +13584,7 @@ msgstr "{retryCount}회 재시도함 - 다음 시도 {nextAttemptTime}"
 #: src/components/NotificationsSection.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/RatingImportModal.tsx
+#: src/components/releases/UpcomingView.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/CreatorPage.tsx
 #: src/pages/HomePage.tsx
@@ -13633,6 +13791,17 @@ msgstr "설정 안내 실행"
 #, fuzzy
 msgid "Running"
 msgstr "실행 중"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Running late"
+msgstr "지연 중"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Running late. It was likely {range}."
+msgstr "지연 중입니다. 원래 예상 기간은 {range}였습니다."
 
 #: src/pages/SettingsPage.tsx
 msgid "Runs the daily scan and lets a series-level scan enqueue upgrades too."
@@ -15990,6 +16159,11 @@ msgstr "MangaBaka 카탈로그에서 가장 인기 있는 작품입니다."
 msgid "The newest titles from the creators and studios you follow. Empty until you follow someone."
 msgstr "팔로우 중인 창작자와 스튜디오의 최신 작품입니다. 누군가를 팔로우하기 전에는 비어 있습니다."
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "The next check is due."
+msgstr "다음 확인 시점이 되었습니다."
+
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "The odd one out"
@@ -16426,6 +16600,7 @@ msgstr "이 작품만"
 msgid "This upgrade was already reverted"
 msgstr ""
 
+#: src/components/releases/UpcomingView.tsx
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
 msgid "This week"
@@ -17154,6 +17329,11 @@ msgstr ""
 msgid "Up to date: every wanted chapter read"
 msgstr ""
 
+#: src/pages/ActivityPage.tsx
+#, fuzzy
+msgid "Upcoming"
+msgstr "예정"
+
 #: src/components/layout/SidebarFooter.tsx
 msgid "Update {latestVersion} available"
 msgstr ""
@@ -17776,6 +17956,11 @@ msgstr "웹훅 URL"
 #, fuzzy
 msgid "Webtoon"
 msgstr "웹툰"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Week of {start}"
+msgstr "{start} 주"
 
 #: src/pages/stats/sections/RhythmSection.tsx
 #, fuzzy

@@ -102,6 +102,12 @@ public static class SettingKeys
     public const string MonitoringBulkHoldThreshold = "monitoring.bulkholdthreshold";
 
     /// <summary>
+    /// "false" → refresh every series every 30 minutes, as before. On unless set: each series is
+    /// checked on a tier picked from how recently it last had a new chapter (<c>RefreshSchedule</c>).
+    /// </summary>
+    public const string MonitoringAdaptiveRefresh = "monitoring.adaptiverefresh";
+
+    /// <summary>
     /// Days after a chapter is read before its file is deleted. 0 (the default) turns auto-delete
     /// off. Read by <c>AutoDeleteReadChaptersJob</c>, which also unwants the chapter so no download
     /// path fetches it again.

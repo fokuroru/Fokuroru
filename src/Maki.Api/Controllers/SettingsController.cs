@@ -147,12 +147,13 @@ public class SettingsController(
     /// "manual" or "quality"; see <see cref="SettingKeys.DownloadSourceOrder"/>. Null on a write leaves it alone.
     /// </param>
     /// <param name="ScoutOnMatch">See <see cref="SettingKeys.SourcesScoutOnMatch"/>. Null on a write leaves it alone.</param>
+    /// <param name="AdaptiveRefresh">See <see cref="SettingKeys.MonitoringAdaptiveRefresh"/>. Null on a write leaves it alone.</param>
     public record DownloadSettings(
         int ConcurrentChapters, bool RetryEnabled, int RetryMaxAttempts,
         int SmartDownloadChaptersLeft, int SmartDownloadChapters, int ItemTimeoutMinutes,
         bool UseHardlinks = true, int? BulkHoldThreshold = null, string? SourceOrder = null, bool? ScoutOnMatch = null,
         int? AutoDeleteReadDays = null, bool? AutoDeleteKeepLast = null, int? BankPages = null,
-        bool? Dedupe = null);
+        bool? Dedupe = null, bool? AdaptiveRefresh = null);
     /// <param name="Enabled">Turns the daily upgrade scan on.</param>
     /// <param name="DefaultProfileId">The upgrade profile a series without its own pin uses, or null for none.</param>
     /// <param name="MaxPerDay">0 means no cap.</param>
@@ -916,7 +917,11 @@ public class SettingsController(
         await AutoDeleteReadChaptersJob.DaysAsync(settings, ct),
         await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct),
         await ChapterBanking.PagesAsync(settings, ct),
-        await DuplicateSweepJob.EnabledAsync(settings, ct)));
+        await DuplicateSweepJob.EnabledAsync(settings, ct),
+        await AdaptiveRefreshAsync(ct)));
+
+    private async Task<bool> AdaptiveRefreshAsync(CancellationToken ct) =>
+        await settings.GetAsync(SettingKeys.MonitoringAdaptiveRefresh, ct) != "false";
 
     private async Task<string> SourceOrderNameAsync(CancellationToken ct) => SourceOrderService.Name(
         SourceOrderService.Parse(await settings.GetAsync(SettingKeys.DownloadSourceOrder, ct)) ?? SourceOrderMode.Manual);
@@ -1016,6 +1021,14 @@ public class SettingsController(
             await settings.SetAsync(SettingKeys.SourcesScoutOnMatch, scoutOnMatch ? "true" : "false", ct);
         }
 
+        if (request.AdaptiveRefresh is { } adaptive && adaptive != await AdaptiveRefreshAsync(ct))
+        {
+            await settings.SetAsync(SettingKeys.MonitoringAdaptiveRefresh, adaptive ? "true" : "false", ct);
+            // Plans made under the old mode could be a day out; the next tick replans every series.
+            await db.Series.Where(s => s.NextCheckAt != null)
+                .ExecuteUpdateAsync(u => u.SetProperty(s => s.NextCheckAt, (DateTime?)null), ct);
+        }
+
         return Ok(request with
         {
             BulkHoldThreshold = await RefreshMonitoredSeriesJob.BulkHoldThresholdAsync(settings, ct),
@@ -1025,6 +1038,7 @@ public class SettingsController(
             AutoDeleteKeepLast = await AutoDeleteReadChaptersJob.KeepLastAsync(settings, ct),
             BankPages = await ChapterBanking.PagesAsync(settings, ct),
             Dedupe = await DuplicateSweepJob.EnabledAsync(settings, ct),
+            AdaptiveRefresh = await AdaptiveRefreshAsync(ct),
         });
     }
 

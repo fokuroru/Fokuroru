@@ -1261,6 +1261,7 @@ function DownloadSection() {
   const [dedupe, setDedupe] = useState(true)
   const [sourceOrder, setSourceOrder] = useState<SourceOrderMode>('manual')
   const [scoutOnMatch, setScoutOnMatch] = useState(false)
+  const [adaptiveRefresh, setAdaptiveRefresh] = useState(true)
   const [discarded, discard] = useReducer((n: number) => n + 1, 0)
 
   useEffect(() => {
@@ -1278,6 +1279,7 @@ function DownloadSection() {
       setDedupe(settings.dedupe)
       setSourceOrder(settings.sourceOrder)
       setScoutOnMatch(settings.scoutOnMatch)
+      setAdaptiveRefresh(settings.adaptiveRefresh)
     }
   }, [settings, discarded])
 
@@ -1295,7 +1297,8 @@ function DownloadSection() {
       Number(bankPages) !== settings.bankPages ||
       dedupe !== settings.dedupe ||
       sourceOrder !== settings.sourceOrder ||
-      scoutOnMatch !== settings.scoutOnMatch)
+      scoutOnMatch !== settings.scoutOnMatch ||
+      adaptiveRefresh !== settings.adaptiveRefresh)
 
   return (
     <SettingsSection
@@ -1328,6 +1331,7 @@ function DownloadSection() {
             dedupe,
             sourceOrder,
             scoutOnMatch,
+            adaptiveRefresh,
           },
           {
             onSuccess: () =>
@@ -1423,6 +1427,13 @@ function DownloadSection() {
         value={bulkHoldThreshold}
         onChange={setBulkHoldThreshold}
         w={220}
+        mb="md"
+      />
+      <Switch
+        label={t`Check quiet series less often`}
+        description={t`A series is checked every 30 minutes for a few hours after a new chapter, every 2 hours while chapters keep coming, every 6 hours after two quiet weeks and once a day after two quiet months. A new chapter puts it straight back on the fast checks. Off checks every series every 30 minutes.`}
+        checked={adaptiveRefresh}
+        onChange={(e) => setAdaptiveRefresh(e.currentTarget.checked)}
         mb="md"
       />
       <Text fw={500} size="sm" mb={4}>

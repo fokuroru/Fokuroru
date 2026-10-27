@@ -36,11 +36,16 @@ const integer = cached((l) => new Intl.NumberFormat(l))
 const shortMonth = cached((l) => new Intl.DateTimeFormat(l, { month: 'short' }))
 const longMonth = cached((l) => new Intl.DateTimeFormat(l, { month: 'long' }))
 const dateOnly = cached((l) => new Intl.DateTimeFormat(l, { dateStyle: 'medium' }))
+const dayAndMonth = cached((l) => new Intl.DateTimeFormat(l, { day: 'numeric', month: 'short' }))
 const dateAndTime = cached((l) => new Intl.DateTimeFormat(l, { dateStyle: 'medium', timeStyle: 'short' }))
 const timeOnly = cached((l) => new Intl.DateTimeFormat(l, { timeStyle: 'short' }))
 const shortWeekday = cached((l) => new Intl.DateTimeFormat(l, { weekday: 'short' }))
 const longWeekday = cached((l) => new Intl.DateTimeFormat(l, { weekday: 'long' }))
 const hourOnly = cached((l) => new Intl.DateTimeFormat(l, { hour: 'numeric', minute: '2-digit' }))
+const weekdayDate = cached((l) => new Intl.DateTimeFormat(l, { weekday: 'short', day: 'numeric', month: 'short' }))
+const weekdayDateTime = cached(
+  (l) => new Intl.DateTimeFormat(l, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }),
+)
 const percents = cached(() => new Map<number, Intl.NumberFormat>())
 const signedDecimals = cached(() => new Map<number, Intl.NumberFormat>())
 
@@ -75,6 +80,33 @@ export function formatBytes(bytes: number | null | undefined): string {
 export function formatDate(value: string | number | Date): string {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? '' : dateOnly().format(date)
+}
+
+/** "15 Sep" within the current year, "15 Sep 2025" before it. For dates that are nearly always recent. */
+export function formatRecentDate(value: string | number | Date): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.getFullYear() === new Date().getFullYear() ? dayAndMonth().format(date) : dateOnly().format(date)
+}
+
+/** "Fri 24 Oct", in the viewer's zone. */
+export function formatWeekdayDate(value: string | number | Date): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '' : weekdayDate().format(date)
+}
+
+/** "Fri 24 Oct, 16:00", in the viewer's zone. */
+export function formatWeekdayDateTime(value: string | number | Date): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '' : weekdayDateTime().format(date)
+}
+
+/** "Fri 24 Oct to Sun 26 Oct" as the language writes a range, collapsing to one day when both fall on it. */
+export function formatDayRange(start: string | number | Date, end: string | number | Date): string {
+  const from = new Date(start)
+  const to = new Date(end)
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return ''
+  return from.toDateString() === to.toDateString() ? weekdayDate().format(from) : weekdayDate().formatRange(from, to)
 }
 
 /** "15 Sep 2026, 16:45". */

@@ -508,6 +508,16 @@ msgstr "{alt}没有第 {page} 页"
 msgid "{alt}, page {page}"
 msgstr "{alt}，第 {page} 页"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "{announcedBy} has it scheduled for {announced}"
+msgstr "{announcedBy} 安排在 {announced} 更新"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "{announcedBy} has it scheduled for {when}"
+msgstr "{announcedBy} 安排在 {when} 更新"
+
 #: src/components/RatingImportModal.tsx
 #, fuzzy
 msgid "{applied, plural, one {Imported # rating} other {Imported # ratings}}"
@@ -711,6 +721,11 @@ msgstr "{cycles, plural, other {重新添加 #×}}"
 msgid "{days, plural, one {Deleted files, removed chapters and series deleted with their files wait here for # day before they are deleted for good. Restore puts a file back where it was.} other {Deleted files, removed chapters and series deleted with their files wait here for # days before they are deleted for good. Restore puts a file back where it was.}}"
 msgstr ""
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "{days, plural, one {Usually every day.} other {Usually every # days.}}"
+msgstr "{days, plural, other {通常每 # 天更新一次。}}"
+
 #: src/pages/stats/sections/TasteSection.tsx
 #, fuzzy
 msgid "{decade}s"
@@ -873,6 +888,11 @@ msgstr "{haveCount} / {totalCount, plural, other {# 个章节}}"
 #, fuzzy
 msgid "{haveCount} / {totalCount, plural, one {# chapter} other {# chapters}} listed, none wanted"
 msgstr "{haveCount} / {totalCount, plural, other {# 个章节}}已列出，但没有想要的"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "{hits} of the last {checked} chapters came out inside the window drawn for them."
+msgstr "最近 {checked} 个章节中，有 {hits} 个落在为其绘制的时间范围内。"
 
 #: src/components/RecommendationModelSwitch.tsx
 #, fuzzy
@@ -2186,6 +2206,16 @@ msgstr "每个较小主题在书架上单独占一行。"
 msgid "A scan is already running"
 msgstr ""
 
+#: src/pages/SettingsPage.tsx
+#, fuzzy
+msgid "A series is checked every 30 minutes for a few hours after a new chapter, every 2 hours while chapters keep coming, every 6 hours after two quiet weeks and once a day after two quiet months. A new chapter puts it straight back on the fast checks. Off checks every series every 30 minutes."
+msgstr "系列在出现新章节后的几个小时内每 30 分钟检查一次，章节持续更新期间每 2 小时检查一次，安静两周后每 6 小时检查一次，安静两个月后每天检查一次。出现新章节后，系列会立即恢复到快速检查。关闭时，所有系列每 30 分钟检查一次。"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "A series shows up here once its chapters come out on a steady enough rhythm, or when its source announces the next one."
+msgstr "当系列的章节以足够稳定的节奏更新，或来源公布了下一章时，它会出现在这里。"
+
 #: src/components/NotificationsSection.tsx
 #, fuzzy
 msgid "A series was added to the library, by hand or from an approved request."
@@ -2917,6 +2947,11 @@ msgstr "动画在第{0}章结束"
 #, fuzzy
 msgid "Anime you've watched"
 msgstr "你看过的动画"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Announced by the source"
+msgstr "来源已公布"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Another upgrade scan was already running, so this one did not run. Try again once it finishes."
@@ -4234,10 +4269,50 @@ msgstr "检查更新"
 msgid "Check now"
 msgstr "立即检查"
 
+#: src/pages/SettingsPage.tsx
+#, fuzzy
+msgid "Check quiet series less often"
+msgstr "降低冷门系列的检查频率"
+
 #: src/api/inbox.ts
 #, fuzzy
 msgid "Checked after each nightly catalogue update. Follow someone from their creator page."
 msgstr "每晚目录更新后检查。在创作者页面上即可关注对方。"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 2 hours while chapters keep coming."
+msgstr "章节持续更新期间，每 2 小时检查一次。"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 30 minutes for a few hours after a new chapter."
+msgstr "新章节出现后的几个小时内，每 30 分钟检查一次。"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 30 minutes."
+msgstr "每 30 分钟检查一次。"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 6 hours after two weeks without a chapter."
+msgstr "两周没有新章节后，每 6 小时检查一次。"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked every 6 hours until it has some release history."
+msgstr "在积累一些更新历史之前，每 6 小时检查一次。"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked once a day while it is quiet."
+msgstr "更新较少时，每天检查一次。"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Checked right after the announced time."
+msgstr "在公布的时间之后立即检查。"
 
 #: src/components/MetadataDumpProgress.tsx
 #, fuzzy
@@ -5008,6 +5083,11 @@ msgstr "无法加载通知连接"
 #, fuzzy
 msgid "Couldn't load this rail"
 msgstr "无法加载此横栏"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Couldn't load this section"
+msgstr "无法加载此部分"
 
 #: src/pages/HomePage.tsx
 #, fuzzy
@@ -6059,6 +6139,11 @@ msgstr "例如：连载中和落后"
 #, fuzzy
 msgid "Each account has its own login, permissions, content rating and reading history."
 msgstr "每个账户都有自己的登录信息、权限、内容分级和阅读历史。"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Each bar spans the days a chapter is likely, worked out from the series' own release history, so it is a span and never a promise. The percentage is how often its recent chapters came out inside the span drawn for them. A diamond marks a day the source itself announced."
+msgstr "每个条形覆盖的是章节可能更新的日期范围，根据系列自身的更新历史推算，因此它只是一个范围，而不是承诺。百分比表示其近期章节落在对应范围内的频率。菱形标记的是来源自己公布的日期。"
 
 #: src/components/import/MihonReview.tsx
 msgid "Each Mihon category becomes a tag on the series. Manga in Mihon's Default category get no tag."
@@ -7210,6 +7295,11 @@ msgstr "全屏"
 msgid "Fully read owned"
 msgstr "已读完的收藏"
 
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Further out"
+msgstr "更远的时间"
+
 #: src/components/discover/RecommenderDials.tsx
 #, fuzzy
 msgid "gems"
@@ -7581,6 +7671,11 @@ msgstr "隐藏此标题"
 #: src/pages/LibraryPage.tsx
 msgid "Hide up to date"
 msgstr ""
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "High confidence"
+msgstr "高置信度"
 
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "High quality"
@@ -8451,6 +8546,11 @@ msgstr ""
 msgid "last {lastSync} · next {nextSync}"
 msgstr "上次 {lastSync} · 下次 {nextSync}"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Last chapter {last}."
+msgstr "最新章节：{last}。"
+
 #: src/pages/reader/ChapterEnd.tsx
 #, fuzzy
 msgid "Last chapter on disk"
@@ -8754,6 +8854,17 @@ msgstr "资料库标题"
 msgid "Light"
 msgstr "浅色"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Likely {range}"
+msgstr "可能在 {range}"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Likely {range}. {confidence}: {hits} of the last {checked} came out inside their window."
+msgstr "可能在 {range}。{confidence}：最近 {checked} 个章节中有 {hits} 个落在对应范围内。"
+
 #: src/components/LinkChaptersModal.tsx
 #: src/components/LinkFileToChaptersModal.tsx
 #: src/components/SeriesScrobbleSection.tsx
@@ -8964,6 +9075,11 @@ msgstr ""
 #, fuzzy
 msgid "loose"
 msgstr "宽松"
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Low confidence"
+msgstr "低置信度"
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -9389,6 +9505,11 @@ msgstr "等待时间中位数"
 #: src/pages/SettingsPage.tsx
 msgid "Medium"
 msgstr ""
+
+#: src/components/releases/outlookText.ts
+#, fuzzy
+msgid "Medium confidence"
+msgstr "中等置信度"
 
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Menu only"
@@ -10038,11 +10159,17 @@ msgstr "新启用的来源会排在列表末尾。"
 
 #: src/components/reader/TapZoneEditor.tsx
 #: src/components/reader/TapZoneHint.tsx
+#: src/components/releases/ReleaseOutlookSummary.tsx
 #: src/pages/reader/ChapterEnd.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Next chapter"
 msgstr "下一章"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Next check {next}."
+msgstr "下次检查：{next}。"
 
 #: src/components/reader/TapZoneEditor.tsx
 #: src/components/reader/TapZoneHint.tsx
@@ -10060,6 +10187,11 @@ msgstr "下一个来源"
 #, fuzzy
 msgid "Next tier at {nextValue}"
 msgstr "下一层级：{nextValue}"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Next week"
+msgstr "下周"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -10581,6 +10713,11 @@ msgstr ""
 msgid "Not analyzed"
 msgstr "未分析"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Not checked for new chapters: it is finished and complete, or has no source switched on."
+msgstr "不检查新章节：该系列已完结，或没有开启任何来源。"
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Not checked yet"
@@ -10610,6 +10747,11 @@ msgstr ""
 #, fuzzy
 msgid "Not enough genre data yet"
 msgstr "类型数据还不够"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Not enough release history for an estimate yet."
+msgstr "更新记录还不够，暂时无法估算。"
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
@@ -10911,6 +11053,11 @@ msgstr "没有可导入内容，{label} 上的评分与本地评分没有差异�
 #, fuzzy
 msgid "Nothing to pick up yet"
 msgstr "暂无可继续阅读的内容"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Nothing to place yet"
+msgstr "暂时没有可安排的内容"
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
@@ -12228,6 +12375,11 @@ msgstr ""
 msgid "Queuing the chapter…"
 msgstr ""
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Quiet for longer than its usual rhythm, so there is no estimate."
+msgstr "停更时间超过了平时的更新节奏，因此暂无估算。"
+
 #: src/pages/SettingsPage.tsx
 msgid "Quiet period (days)"
 msgstr ""
@@ -12862,6 +13014,11 @@ msgstr ""
 msgid "Released"
 msgstr "已发布"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "Releases too irregularly to estimate."
+msgstr "更新太不规律，无法估算。"
+
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
 msgid "Releasing"
@@ -13427,6 +13584,7 @@ msgstr "已重试 {retryCount} 次 - 下次尝试时间 {nextAttemptTime}"
 #: src/components/NotificationsSection.tsx
 #: src/components/rails/CustomRailSection.tsx
 #: src/components/RatingImportModal.tsx
+#: src/components/releases/UpcomingView.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/CreatorPage.tsx
 #: src/pages/HomePage.tsx
@@ -13633,6 +13791,17 @@ msgstr "运行设置指南"
 #, fuzzy
 msgid "Running"
 msgstr "正在运行"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Running late"
+msgstr "已延迟"
+
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Running late. It was likely {range}."
+msgstr "已延迟。原本可能在 {range}。"
 
 #: src/pages/SettingsPage.tsx
 msgid "Runs the daily scan and lets a series-level scan enqueue upgrades too."
@@ -15990,6 +16159,11 @@ msgstr "MangaBaka 目录中最受欢迎的作品。"
 msgid "The newest titles from the creators and studios you follow. Empty until you follow someone."
 msgstr "你关注的创作者和工作室的最新作品。关注某人之前为空。"
 
+#: src/components/releases/ReleaseOutlookSummary.tsx
+#, fuzzy
+msgid "The next check is due."
+msgstr "下次检查即将到期。"
+
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "The odd one out"
@@ -16426,6 +16600,7 @@ msgstr "仅此标题"
 msgid "This upgrade was already reverted"
 msgstr ""
 
+#: src/components/releases/UpcomingView.tsx
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
 msgid "This week"
@@ -17154,6 +17329,11 @@ msgstr ""
 msgid "Up to date: every wanted chapter read"
 msgstr ""
 
+#: src/pages/ActivityPage.tsx
+#, fuzzy
+msgid "Upcoming"
+msgstr "即将更新"
+
 #: src/components/layout/SidebarFooter.tsx
 msgid "Update {latestVersion} available"
 msgstr ""
@@ -17776,6 +17956,11 @@ msgstr "Webhook URL"
 #, fuzzy
 msgid "Webtoon"
 msgstr "Webtoon"
+
+#: src/components/releases/UpcomingView.tsx
+#, fuzzy
+msgid "Week of {start}"
+msgstr "{start} 当周"
 
 #: src/pages/stats/sections/RhythmSection.tsx
 #, fuzzy
