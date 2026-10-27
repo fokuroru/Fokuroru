@@ -19,7 +19,7 @@ not a replacement.
 - `Chapter.Number` is `REAL` in SQLite — never assume `ORDER BY` sorts it correctly.
 - MangaBaka has no MangaDex IDs; source matching is by normalized-title search, not shared UUID.
 - Series monitoring is only `Series.MonitorNewItems` — there is no separate `Monitored` flag.
-- Settings secrets (qBittorrent, Kavita, Prowlarr, MAL, tracker tokens) are intentionally plaintext
+- Settings secrets (qBittorrent, Transmission, Deluge, Kavita, Prowlarr, MAL, tracker tokens) are intentionally plaintext
   in the `AppConfig` table — don't "fix" this without reading why in CLAUDE.md.
 - Images go through `Maki.Core.Images` (`ImageCodec`, `Raster`), never `NetVips.Image` directly. ImageSharp is gone; do not reintroduce it.
 - EF Core migrations auto-apply on startup; never suggest a manual migration step for users.

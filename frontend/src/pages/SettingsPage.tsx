@@ -16,7 +16,6 @@ import {
   Anchor,
   Badge,
   Button,
-  Checkbox,
   Code,
   FileButton,
   Divider,
@@ -103,10 +102,8 @@ import {
   useMetadataSettings,
   useMonitoringSettings,
   useOpdsSettings,
-  useProwlarrIndexers,
   useRotateOpdsToken,
   useSaveOpdsSettings,
-  useProwlarrOptions,
   useRecommendationIndex,
   useRefreshMetadataDump,
   useRootFolders,
@@ -114,7 +111,6 @@ import {
   useSaveDownloadSettings,
   useSaveMetadataSettings,
   useSaveMonitoringSettings,
-  useSaveProwlarrOptions,
   useSaveScrobbleSettings,
   useImportListSettings,
   useSaveImportListSettings,
@@ -147,6 +143,7 @@ import {
 } from '../api/hooks'
 import { useKavitaReadImport, useReaderSettings, useSaveReaderSettings } from '../api/reader'
 import { ConnectionSettingsCard } from '../components/ConnectionSettingsCard'
+import { DownloadClientCard, IndexerSection } from './settings/DownloadClientCards'
 import { UnsavedSettingsContext } from '../components/settings/SaveButton'
 import { SettingsHelp } from '../components/settings/SettingsHelp'
 import { setShelfFigurePrefs, useShelfFigurePrefs, type FigureFrequency, type FigureSize } from '../lib/shelfFigurePrefs'
@@ -2000,143 +1997,6 @@ function BackupSection() {
   )
 }
 
-/** The indexer and category filter, which saves through its own endpoint beside the connection. */
-function useProwlarrOptionsForm() {
-  const { data: options } = useProwlarrOptions()
-  const save = useSaveProwlarrOptions()
-  const [selectedIndexers, setSelectedIndexers] = useState<Set<number>>(new Set())
-  const [categories, setCategories] = useState<string[]>([])
-  const [discarded, discard] = useReducer((n: number) => n + 1, 0)
-
-  useEffect(() => {
-    if (options) {
-      setSelectedIndexers(
-        new Set((options.indexerIds ?? '').split(',').filter(Boolean).map(Number)),
-      )
-      setCategories((options.categories ?? '').split(',').filter(Boolean))
-    }
-  }, [options, discarded])
-
-  const sortedIds = (ids: Iterable<number>) => [...ids].sort((a, b) => a - b).join(',')
-  const dirty =
-    options !== undefined &&
-    (sortedIds(selectedIndexers) !==
-      sortedIds((options.indexerIds ?? '').split(',').filter(Boolean).map(Number)) ||
-      categories.join(',') !== (options.categories ?? ''))
-
-  return {
-    selectedIndexers,
-    setSelectedIndexers,
-    categories,
-    setCategories,
-    dirty,
-    saving: save.isPending,
-    reset: discard,
-    commit: () =>
-      save.mutateAsync({
-        indexerIds: [...selectedIndexers].sort((a, b) => a - b).join(',') || null,
-        categories: categories.join(',') || null,
-      }),
-  }
-}
-
-function ProwlarrSection() {
-  const { t } = useLingui()
-  const options = useProwlarrOptionsForm()
-  return (
-    <ConnectionSettingsCard
-      name="prowlarr"
-      title="Prowlarr"
-      description={t`Searches your indexers for manga releases through Prowlarr's search API. No app sync needed.`}
-      fields={[
-        { key: 'url', label: t`URL`, placeholder: 'http://localhost:9696' },
-        { key: 'apiKey', label: t`API key`, secret: true },
-      ]}
-      extra={options}
-    >
-      <ProwlarrOptionsSection form={options} />
-    </ConnectionSettingsCard>
-  )
-}
-
-function ProwlarrOptionsSection({ form }: { form: ReturnType<typeof useProwlarrOptionsForm> }) {
-  const { t } = useLingui()
-  const { data: connection } = useConnectionSettings<Record<string, string | null>>('prowlarr')
-  const configured = Boolean(connection?.url && connection?.apiKey)
-  const { data: indexers, error: indexersError } = useProwlarrIndexers(configured)
-  const indexersErrorMessage = indexersError != null ? String(indexersError) : null
-  const { selectedIndexers, setSelectedIndexers, categories, setCategories } = form
-
-  const categoryData = [
-    ...new Map(
-      (indexers ?? [])
-        .flatMap((i) => i.categories)
-        .map((c) => [String(c.id), { value: String(c.id), label: `${c.name} (${c.id})` }]),
-    ).values(),
-    // keep saved categories selectable even when no indexer advertises them
-    ...categories
-      .filter((c) => !(indexers ?? []).some((i) => i.categories.some((x) => String(x.id) === c)))
-      .map((c) => ({ value: c, label: c })),
-  ].sort((a, b) => Number(a.value) - Number(b.value))
-
-  return (
-    <Stack gap="sm" mt="md">
-      {configured && (
-        <Text size="sm" c="var(--ink-3)">
-          <Trans>
-            Restrict release searches to specific indexers and Torznab categories. With nothing
-            selected, every indexer and category is searched.
-          </Trans>
-        </Text>
-      )}
-      {configured && indexersErrorMessage != null && (
-        <Text size="sm" c="var(--danger)">
-          <Trans>Could not load indexers from Prowlarr: {indexersErrorMessage}</Trans>
-        </Text>
-      )}
-      {configured && indexers && (
-        <Stack gap="sm">
-          <Stack gap={6}>
-            {indexers.map((indexer) => {
-              const { name, enable } = indexer
-              return (
-              <Checkbox
-                key={indexer.id}
-                label={enable ? name : t`${name} (disabled in Prowlarr)`}
-                checked={selectedIndexers.has(indexer.id)}
-                onChange={(e) => {
-                  const checked = e.currentTarget.checked
-                  setSelectedIndexers((prev) => {
-                    const next = new Set(prev)
-                    if (checked) next.add(indexer.id)
-                    else next.delete(indexer.id)
-                    return next
-                  })
-                }}
-              />
-              )
-            })}
-            {indexers.length === 0 && (
-              <Text size="sm" c="var(--ink-3)">
-                <Trans>No indexers configured in Prowlarr.</Trans>
-              </Text>
-            )}
-          </Stack>
-          <MultiSelect
-            label={t`Categories`}
-            placeholder={categories.length === 0 ? t`All categories` : undefined}
-            data={categoryData}
-            value={categories}
-            onChange={setCategories}
-            searchable
-            clearable
-          />
-        </Stack>
-      )}
-    </Stack>
-  )
-}
-
 function ScrobbleSection() {
   const { t } = useLingui()
   const { data } = useScrobbleSettings()
@@ -3277,22 +3137,8 @@ function useSectionNodes(): Record<string, ReactNode> {
           fields={[{ key: 'url', label: t`URL`, placeholder: 'http://localhost:8191' }]}
         />
       ),
-      prowlarr: <ProwlarrSection />,
-      qbittorrent: (
-        <ConnectionSettingsCard
-          name="qbittorrent"
-          title="qBittorrent"
-          description={t`Download client for grabbed releases. Finished torrents import into the library automatically. Fill the path mapping only if qBittorrent reports paths Fōkurōru can't reach, e.g. /downloads in Docker where Fōkurōru sees Z:\\downloads.`}
-          fields={[
-            { key: 'url', label: t`URL`, placeholder: 'http://localhost:8080' },
-            { key: 'username', label: t`Username` },
-            { key: 'password', label: t`Password`, secret: true },
-            { key: 'category', label: t`Category`, placeholder: 'maki' },
-            { key: 'pathMapFrom', label: t`Path mapping - qBittorrent side`, placeholder: t`/downloads (optional)` },
-            { key: 'pathMapTo', label: t`Path mapping - Fōkurōru side`, placeholder: t`Z:\\downloads (optional)` },
-          ]}
-        />
-      ),
+      indexer: <IndexerSection />,
+      downloadclient: <DownloadClientCard />,
 
       suwayomi: <SuwayomiCard />,
 

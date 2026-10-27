@@ -18,13 +18,13 @@ Maki is a manga collection manager in the Sonarr/Radarr mold: add a series once,
 
 ## Positioning
 
-Kavita-first but not Kavita-only: Maki owns acquisition (source monitoring, scraping, torrent fallback via Prowlarr/qBittorrent) and metadata (local MangaBaka mirror, no rate limits), and writes plain well-tagged CBZs any reader can consume — no proprietary lock-in. A neighboring "just a reader" app can't truthfully claim the automated, multi-source acquisition pipeline or the free rate-limit-free local metadata mirror.
+Kavita-first but not Kavita-only: Maki owns acquisition (source monitoring, scraping, torrent fallback that searches Prowlarr or Jackett and downloads with qBittorrent, Transmission or Deluge) and metadata (local MangaBaka mirror, no rate limits), and writes plain well-tagged CBZs any reader can consume — no proprietary lock-in. A neighboring "just a reader" app can't truthfully claim the automated, multi-source acquisition pipeline or the free rate-limit-free local metadata mirror.
 
 ## Operating Context
 
 - Deployed via Docker alongside Kavita, sharing a library volume; also runs bare via `dotnet run` on Windows/Linux.
 - Backend ASP.NET Core host (`:8990`) + Vite/React/Mantine SPA (`:5173` in dev, proxied).
-- Core workflows: Add Series (search MangaBaka → auto-link sources) → Monitoring (scheduled chapter-list refresh) → Download (scraper queue or torrent via Prowlarr/qBittorrent) → Library (poster grid, per-series state) → Reader (built-in CBZ reader) → Discover (embedding-based recommendations) → Stats (reading/download history, achievements and levels; "Rewind" is its year playback) → Scrobble (AniList/MyAnimeList/MangaBaka progress push) → Settings (root folders, metadata, sources, backup/restore, appearance).
+- Core workflows: Add Series (search MangaBaka → auto-link sources) → Monitoring (scheduled chapter-list refresh) → Download (scraper queue or torrent search through Prowlarr or Jackett, downloaded with qBittorrent, Transmission or Deluge) → Library (poster grid, per-series state) → Reader (built-in CBZ reader) → Discover (embedding-based recommendations) → Stats (reading/download history, achievements and levels; "Rewind" is its year playback) → Scrobble (AniList/MyAnimeList/MangaBaka progress push) → Settings (root folders, metadata, sources, backup/restore, appearance).
 - Real-time activity queue over SignalR (download progress, retry/remove).
 - REST API at `/api/v1` with `X-Api-Key` auth, Swagger docs.
 

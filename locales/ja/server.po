@@ -1593,12 +1593,6 @@ msgstr "完了したダウンロード内に漫画が見つかりません（{de
 msgid "error.torrentImport.noRootFolder"
 msgstr "シリーズにルートフォルダーがありません"
 
-#: src/Maki.Api/Services/TorrentImportService.cs
-#. English: The download is no longer in qBittorrent
-#, fuzzy
-msgid "error.torrentImport.notInQbittorrent"
-msgstr "ダウンロードはqBittorrentにありません"
-
 #. {path} is a filesystem path and is never translated.
 #: src/Maki.Api/Services/TorrentImportService.cs
 #. English: Download path not accessible from Fōkurōru: {path}
@@ -1779,7 +1773,7 @@ msgstr ""
 msgid "error.upgrades.proposalNotFound"
 msgstr ""
 
-#. {detail} is the torrent client's or Prowlarr's own error text, shown as it is.
+#. {detail} is the torrent client's or the indexer's own error text, shown as it is.
 #: src/Maki.Api/Controllers/UpgradesController.cs
 #. English: Could not grab the release: {detail}
 msgid "error.upgrades.grabFailed"
@@ -1979,13 +1973,7 @@ msgstr "不明な言語コード: {codes}"
 msgid "error.settings.noSourceLanguageEnabled"
 msgstr "少なくとも1つの言語を有効のままにする必要があります"
 
-#: src/Maki.Api/Controllers/SettingsController.cs
-#. English: Prowlarr is not configured
-#, fuzzy
-msgid "error.settings.prowlarrNotConfigured"
-msgstr "Prowlarrが設定されていません"
-
-#. Shared by the Prowlarr and Kavita connection tests, both of which need the pair.
+#. Shared by the indexer and Kavita connection tests, both of which need the pair.
 #: src/Maki.Api/Controllers/SettingsController.cs
 #. English: URL and API key are required
 #, fuzzy
@@ -2005,18 +1993,6 @@ msgstr "URLは必須です"
 #, fuzzy
 msgid "error.settings.userCannotSignIn"
 msgstr "そのユーザーは存在しないか、サインインできません"
-
-#: src/Maki.Api/Controllers/SettingsController.cs
-#. English: Prowlarr did not respond (check URL/API key)
-#, fuzzy
-msgid "error.settings.prowlarrNoResponse"
-msgstr "Prowlarrが応答しませんでした（URL/APIキーを確認してください）"
-
-#: src/Maki.Api/Controllers/SettingsController.cs
-#. English: qBittorrent login failed
-#, fuzzy
-msgid "error.settings.qbittorrentLoginFailed"
-msgstr "qBittorrentのログインに失敗しました"
 
 #: src/Maki.Api/Controllers/SettingsController.cs
 #. English: Kavita did not respond (check URL/API key)
@@ -3140,15 +3116,15 @@ msgid "error.download.importRejected"
 msgstr "インポートを拒否しました。ライブラリはそのままです"
 
 #: src/Maki.Api/Jobs/CompletedDownloadJob.cs
-#. English: The torrent never appeared in qBittorrent
+#. English: The torrent never appeared in the download client
 #, fuzzy
 msgid "error.download.torrentMissing"
 msgstr "torrentがqBittorrentに表示されませんでした"
 
-#. The torrent had been seen in qBittorrent before and has been gone for hours: deleted there, moved to
-#. another category, or dropped.
+#. The torrent had been seen in the download client before and has been gone for hours: deleted there,
+#. moved to another category or label, or dropped.
 #: src/Maki.Api/Jobs/CompletedDownloadJob.cs
-#. English: The torrent is no longer in qBittorrent
+#. English: The torrent is no longer in the download client
 msgid "error.download.torrentRemoved"
 msgstr ""
 
@@ -3799,7 +3775,7 @@ msgstr "前回の起動時マイグレーションに失敗しました。起動
 msgid "health.check.diagnosticsUnavailable"
 msgstr "データベースまたはスケジューラーの診断を完了できませんでした"
 
-#. {service} is a product name (Prowlarr, Kavita, qBittorrent, FlareSolverr), never translated.
+#. {service} is a product name (Prowlarr, Jackett, Kavita, qBittorrent, FlareSolverr), never translated.
 #: src/Maki.Api/Services/HealthMonitor.cs
 #. English: {service}: not configured
 #, fuzzy
@@ -4910,3 +4886,161 @@ msgstr "ごみ箱：{files, plural, other {削除したファイル#件}}、{gib
 #, fuzzy
 msgid "error.recycleBin.stillMoving"
 msgstr "このファイルはまだごみ箱に移動中です。しばらくしてから、もう一度お試しください。"
+
+#. The download client has held this torrent in an error state for half an hour. The client's own message follows.
+#: src/Maki.Api/Jobs/CompletedDownloadJob.cs
+#. English: The download client reports an error on this torrent
+msgid "error.download.torrentClientError"
+msgstr ""
+
+#. A qBittorrent duplicate upload of a torrent the user keeps in another category.
+#: src/Maki.Api/Controllers/ReleaseController.cs
+#. English: The download client already has this torrent in another category or label. Move it to Maki's, or remove it, and grab again.
+msgid "error.release.downloadClientHeldOutsideLabel"
+msgstr ""
+
+#. The download client rejected the username or password Maki has stored for it.
+#: src/Maki.Api/Controllers/ReleaseController.cs
+#. English: The download client rejected the login. Check the username and password in Settings → Downloads.
+msgid "error.release.downloadClientLoginFailed"
+msgstr ""
+
+#: src/Maki.Api/Services/ReleaseService.cs
+#. English: No download client is configured (Settings → Downloads → Download client)
+msgid "error.release.downloadClientNotConfigured"
+msgstr ""
+
+#. The download client answered but refused to add the torrent.
+#: src/Maki.Api/Controllers/ReleaseController.cs
+#. English: The download client refused to add the torrent.
+msgid "error.release.downloadClientRejected"
+msgstr ""
+
+#. The download client did not answer, or answered with something that was not its API.
+#: src/Maki.Api/Controllers/ReleaseController.cs
+#. English: The download client did not respond. Check its URL in Settings → Downloads.
+msgid "error.release.downloadClientUnreachable"
+msgstr ""
+
+#. The indexer or download client call failed; the cause is in the server log.
+#: src/Maki.Api/Controllers/ReleaseController.cs
+#. English: Could not send the release to the download client. Details are in the server log.
+msgid "error.release.grabFailed"
+msgstr ""
+
+#: src/Maki.Api/Services/ReleaseService.cs
+#. English: No indexer is configured (Settings → Downloads → Indexer)
+msgid "error.release.indexerNotConfigured"
+msgstr ""
+
+#: src/Maki.Api/Services/ReleaseService.cs
+#. English: This release has no download link
+msgid "error.release.noDownloadLink"
+msgstr ""
+
+#. A grab names a release from an earlier search; the server no longer holds that search (it expired or was never run for this series).
+#: src/Maki.Api/Controllers/ReleaseController.cs
+#. English: This search result has expired. Search again, then grab the release.
+msgid "error.release.searchExpired"
+msgstr ""
+
+#. The indexer call failed; the cause is in the server log.
+#: src/Maki.Api/Controllers/ReleaseController.cs
+#. English: The release search failed. Details are in the server log.
+msgid "error.release.searchFailed"
+msgstr ""
+
+#: src/Maki.Api/Services/ReleaseService.cs
+#. English: Series not found
+msgid "error.release.seriesNotFound"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: Unknown download client
+msgid "error.settings.downloadClientKindInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: The download client rejected the login (check username/password)
+msgid "error.settings.downloadClientLoginFailed"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: The download client did not respond (check the URL)
+msgid "error.settings.downloadClientNoResponse"
+msgstr ""
+
+#. Saving a different download client or label while torrents are still downloading or waiting to import through the current one.
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: {count, plural, one {# torrent is} other {# torrents are}} still downloading or waiting to import through the current client and label. Let them finish or remove them before changing either.
+msgid "error.settings.downloadClientTorrentsInFlight"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: Unknown indexer
+msgid "error.settings.indexerBackendInvalid"
+msgstr ""
+
+#. {service} is the indexer backend's product name (Prowlarr, Jackett), never translated.
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: {service} did not respond (check the URL and API key)
+msgid "error.settings.indexerNoResponse"
+msgstr ""
+
+#. {service} is the indexer backend's product name (Prowlarr, Jackett), never translated.
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: {service} is not configured
+msgid "error.settings.indexerNotConfigured"
+msgstr ""
+
+#. The label, category or tag Maki puts on its torrents.
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: The label cannot start or end with a space, contain control characters, or be longer than 64 characters
+msgid "error.settings.labelInvalid"
+msgstr ""
+
+#. Deluge's Label plugin rejects anything else, so Maki checks before saving.
+#: src/Maki.Api/Controllers/SettingsController.cs
+#. English: Deluge labels can only use letters, digits, dot, dash and underscore
+msgid "error.settings.labelInvalidDeluge"
+msgstr ""
+
+#: src/Maki.Api/Services/TorrentImportService.cs
+#. English: No comics found in the completed download (it is empty)
+msgid "error.torrentImport.noComicsEmpty"
+msgstr ""
+
+#. {census} lists the most common file types that were there with their counts, such as "2 .pdf, 1 .txt". The extensions are never translated.
+#: src/Maki.Api/Services/TorrentImportService.cs
+#. English: No comics found in the completed download (found {census})
+msgid "error.torrentImport.noComicsOfType"
+msgstr ""
+
+#: src/Maki.Api/Services/TorrentImportService.cs
+#. English: The download is no longer in the download client
+msgid "error.torrentImport.notInClient"
+msgstr ""
+
+#. {release} is the torrent's release name and is never translated.
+#: src/Maki.Api/Jobs/CompletedDownloadJob.cs
+#. English: {series}: {release} needs a Replace or Skip decision in Activity before it is imported
+msgid "inbox.import.awaiting.body"
+msgstr ""
+
+#: src/Maki.Api/Jobs/CompletedDownloadJob.cs
+#. English: Import waiting for a decision
+msgid "inbox.import.awaiting.title"
+msgstr ""
+
+#. {release} is the torrent's release name and is never translated.
+#: src/Maki.Api/Jobs/CompletedDownloadJob.cs
+#. English: {series}: {release} needs a Replace or Skip decision in Activity before it is imported
+msgid "notify.import.awaiting.body"
+msgstr ""
+
+#. Sent outward when a finished torrent covers files the library already has and waits for a Replace
+#. or Skip decision. Renders in the instance's own language.
+#: src/Maki.Api/Jobs/CompletedDownloadJob.cs
+#. English: Import waiting for a decision
+msgid "notify.import.awaiting.title"
+msgstr ""

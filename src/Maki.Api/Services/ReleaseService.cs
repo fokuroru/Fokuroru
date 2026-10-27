@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Maki.Core.Configuration;
 using Maki.Core.Download;
 using Maki.Core.Entities;
@@ -19,7 +18,8 @@ public record ReleaseDto(
     string Protocol,
     string? DownloadUrl,
     string? MagnetUrl,
-    string? InfoUrl)
+    string? InfoUrl,
+    string? InfoHash = null)
 {
     /// <summary>
     /// How the release reads against the series' upgrade profile. Filled only on search results, and
@@ -28,6 +28,30 @@ public record ReleaseDto(
     public Dtos.ReleaseParsedDto? Parsed { get; init; }
 }
 
+/// <summary>
+/// A release as a client sees it. The download link is the indexer's proxy URL and carries its API key,
+/// so it stays on the server; a grab names the release by guid and the server resolves the link.
+/// </summary>
+public record ReleaseResultDto(
+    string Guid,
+    string Title,
+    long Size,
+    string Indexer,
+    int? Seeders,
+    int? Leechers,
+    string Protocol,
+    string? InfoUrl,
+    string? InfoHash,
+    Dtos.ReleaseParsedDto? Parsed)
+{
+    public static ReleaseResultDto From(ReleaseDto release, Dtos.ReleaseParsedDto? parsed) => new(
+        IndexerLinks.WithoutApiKey(release.Guid)!, release.Title, release.Size, release.Indexer, release.Seeders,
+        release.Leechers, release.Protocol, IndexerLinks.WithoutApiKey(release.InfoUrl),
+        release.InfoHash, parsed);
+}
+
+public record ReleaseSearchResponse(string Query, IReadOnlyList<ReleaseResultDto> Releases);
+
 /// <summary>Payload persisted on torrent queue items (DownloadQueueItem.ReleaseInfoJson).</summary>
 public record ReleaseInfo(
     string Guid,
@@ -35,26 +59,38 @@ public record ReleaseInfo(
     string Indexer,
     string? TorrentHash);
 
-public record ReleaseSearchResult(string Query, IReadOnlyList<ReleaseDto> Releases);
+public record ReleaseSearchResult(string Query, IReadOnlyList<ReleaseDto> Releases)
+{
+    /// <summary>The backend that answered; release guids and links only mean something to it.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public IndexerBackend Backend { get; init; }
+}
 
-public partial class ReleaseService(
+/// <summary>A release search or grab refused for a reason the caller can show, with its catalogue key.</summary>
+public sealed class ReleaseRefusedException(string key, string message) : InvalidOperationException(message)
+{
+    public const string SeriesNotFound = "error.release.seriesNotFound";
+    public const string NoDownloadLink = "error.release.noDownloadLink";
+    public const string IndexerNotConfigured = "error.release.indexerNotConfigured";
+    public const string DownloadClientNotConfigured = "error.release.downloadClientNotConfigured";
+
+    public string Key { get; } = key;
+}
+
+public class ReleaseService(
     MakiDbContext db,
-    ProwlarrClient prowlarr,
-    QBittorrentClient qbittorrent,
+    IndexerRegistry indexers,
+    TorrentClientRegistry torrentClients,
     SettingsService settings,
     ILogger<ReleaseService> logger)
 {
-    [GeneratedRegex(@"xt=urn:btih:([0-9a-fA-F]{40}|[a-zA-Z2-7]{32})")]
-    private static partial Regex MagnetHash();
-
     public virtual async Task<ReleaseSearchResult> SearchAsync(int seriesId, string? query = null, CancellationToken ct = default)
     {
         var series = await db.Series.FindAsync([seriesId], ct)
             ?? throw new InvalidOperationException("Series not found");
 
-        var (url, apiKey) = await GetProwlarrConfigAsync(ct);
-        var indexerIds = ParseIds(await settings.GetAsync(SettingKeys.ProwlarrIndexerIds, ct));
-        var categories = ParseIds(await settings.GetAsync(SettingKeys.ProwlarrCategories, ct));
+        var indexerSettings = await GetIndexerSettingsAsync(ct);
+        var indexer = indexers.For(indexerSettings.Backend);
 
         var candidates = string.IsNullOrWhiteSpace(query)
             ? SearchQuery.WithFallbacks(series.Title, series.OriginalTitle, series.AltTitles).ToList()
@@ -65,7 +101,7 @@ public partial class ReleaseService(
         foreach (var candidate in candidates)
         {
             attempted = candidate;
-            var releases = await prowlarr.SearchAsync(url, apiKey, candidate, indexerIds, categories, ct);
+            var releases = await indexer.SearchAsync(indexerSettings, candidate, ct);
             results = releases
                 .Where(r => r.Protocol.Equals("torrent", StringComparison.OrdinalIgnoreCase))
                 // Anime episodes and seasons come back for a series name too; none of them is a comic.
@@ -73,7 +109,7 @@ public partial class ReleaseService(
                 .OrderByDescending(r => r.Seeders ?? 0)
                 .Select(r => new ReleaseDto(
                     r.Guid, r.Title, r.Size, r.Indexer, r.Seeders, r.Leechers,
-                    r.Protocol, r.DownloadUrl, r.MagnetUrl, r.InfoUrl))
+                    r.Protocol, r.DownloadUrl, r.MagnetUrl, r.InfoUrl, r.InfoHash))
                 .ToList();
             if (results.Count > 0)
             {
@@ -83,7 +119,7 @@ public partial class ReleaseService(
             logger.LogInformation("No releases for '{Query}'", candidate);
         }
 
-        return new ReleaseSearchResult(attempted, results);
+        return new ReleaseSearchResult(attempted, results) { Backend = indexerSettings.Backend };
     }
 
     /// <param name="origin">What asked for it; an unattended grab notifies, a click does not.</param>
@@ -98,37 +134,13 @@ public partial class ReleaseService(
             throw new InvalidOperationException("Series not found");
         }
 
-        var qbt = await GetQbtConfigAsync(ct);
-        var link = release.MagnetUrl ?? release.DownloadUrl
-            ?? throw new InvalidOperationException("Release has no download link");
-
-        // A magnet goes straight to qBittorrent. Any other link (even one Prowlarr put in the magnet field) is a Prowlarr URL, which qBittorrent (often behind a VPN
-        // container) cannot reach, so it is fetched here and the file handed over; its info-hash lets the completed-download
-        // job find the torrent exactly.
-        string? hash = null;
-        if (!link.StartsWith("magnet:", StringComparison.OrdinalIgnoreCase))
+        var client = await GetClientSettingsAsync(ct);
+        if (release.MagnetUrl is null && release.DownloadUrl is null)
         {
-            var source = await prowlarr.FetchTorrentAsync(link, ct);
-            if (source.Magnet is { } redirected)
-            {
-                link = redirected;
-            }
-            else
-            {
-                await qbittorrent.AddFileAsync(qbt.Url, qbt.Username, qbt.Password, source.File!, source.FileName, qbt.Category, ct);
-                hash = Maki.Core.Download.TorrentFile.TryInfoHash(source.File!, out var infoHash) ? infoHash : null;
-                link = string.Empty;
-            }
+            throw new ReleaseRefusedException(ReleaseRefusedException.NoDownloadLink, "Release has no download link");
         }
 
-        if (link.Length > 0)
-        {
-            await qbittorrent.AddAsync(qbt.Url, qbt.Username, qbt.Password, link, qbt.Category, ct);
-            if (MagnetHash().Match(link) is { Success: true } m)
-            {
-                hash = m.Groups[1].Value.ToLowerInvariant();
-            }
-        }
+        var hash = await AddToClientAsync(release, client, ct);
 
         var item = new DownloadQueueItem
         {
@@ -151,53 +163,96 @@ public partial class ReleaseService(
         return item;
     }
 
-    /// <summary>Parses a CSV of ids from the settings store; null/blank → null (no restriction).</summary>
-    private static List<int>? ParseIds(string? csv)
+    /// <summary>
+    /// Adds the release and returns its infohash, so the completed-download job can find the torrent by
+    /// hash. A .torrent link is fetched and uploaded rather than handed to the client as a URL, because
+    /// a URL may leave the hash unknown and the job then has to guess which torrent is this one by when
+    /// it was added, which fails when the client already had it. Only when the fetch fails does the URL
+    /// go over as before, with whatever hash the client reports for it.
+    /// </summary>
+    private async Task<string?> AddToClientAsync(ReleaseDto release, TorrentClientSettings client, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(csv))
+        var driver = torrentClients.For(client.Kind);
+        if (release.MagnetUrl is { } magnet)
         {
-            return null;
+            return await driver.AddAsync(client, magnet, ct) ?? TorrentInfoHash.FromMagnet(magnet) ?? NormalizedInfoHash(release.InfoHash);
         }
 
-        var ids = csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(part => int.TryParse(part, out var id) ? id : (int?)null)
-            .OfType<int>()
-            .ToList();
-        return ids.Count > 0 ? ids : null;
+        var url = release.DownloadUrl!;
+        TorrentLink? link = null;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(30));
+            var indexer = indexers.For(await ActiveBackendAsync(ct));
+            link = await indexer.FetchTorrentAsync(url, timeout.Token);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or UriFormatException ||
+                                   (ex is TaskCanceledException && !ct.IsCancellationRequested))
+        {
+            logger.LogWarning("Could not fetch the torrent file for '{Title}' ({Error}); handing {Client} the link instead",
+                release.Title, ex.Message, client.Kind.DisplayName());
+        }
+
+        if (link?.Magnet is { } redirected)
+        {
+            return await driver.AddAsync(client, redirected, ct) ?? TorrentInfoHash.FromMagnet(redirected)
+                ?? NormalizedInfoHash(release.InfoHash);
+        }
+
+        if (link?.File is { } file && TorrentInfoHash.FromTorrentFile(file) is { } hash)
+        {
+            await driver.AddFileAsync(client, file, hash, ct);
+            return hash;
+        }
+
+        if (link is not null)
+        {
+            logger.LogWarning("The download link for '{Title}' did not serve a torrent file; handing {Client} the link instead",
+                release.Title, client.Kind.DisplayName());
+        }
+
+        return await driver.AddAsync(client, url, ct) ?? NormalizedInfoHash(release.InfoHash);
     }
 
-    public async Task<(string Url, string ApiKey)> GetProwlarrConfigAsync(CancellationToken ct)
+    /// <summary>The indexer's own hash, for a URL add the client reported nothing for, in the form the clients list.</summary>
+    private static string? NormalizedInfoHash(string? hash) =>
+        string.IsNullOrWhiteSpace(hash) ? null : TorrentInfoHash.FromMagnet($"xt=urn:btih:{hash.Trim()}");
+
+    public virtual Task<IndexerBackend> ActiveBackendAsync(CancellationToken ct) =>
+        IndexerSettingsStore.ActiveBackendAsync(settings, ct);
+
+    /// <summary>The active backend's settings; refused when its URL or API key is missing.</summary>
+    public async Task<IndexerSettings> GetIndexerSettingsAsync(CancellationToken ct)
     {
-        var url = await settings.GetAsync(SettingKeys.ProwlarrUrl, ct);
-        var apiKey = await settings.GetAsync(SettingKeys.ProwlarrApiKey, ct);
-        if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(apiKey))
+        var indexerSettings = await IndexerSettingsStore.LoadAsync(settings, ct);
+        if (!indexerSettings.IsConfigured)
         {
-            throw new InvalidOperationException("Prowlarr is not configured (Settings → Prowlarr)");
+            throw new ReleaseRefusedException(
+                ReleaseRefusedException.IndexerNotConfigured,
+                $"{indexerSettings.Backend.DisplayName()} is not configured (Settings, Downloads, Indexer)");
         }
 
-        return (url, apiKey);
+        return indexerSettings;
     }
 
-    public async Task<(string Url, string Username, string Password, string Category)> GetQbtConfigAsync(CancellationToken ct)
+    public async Task<TorrentClientSettings> GetClientSettingsAsync(CancellationToken ct)
     {
-        var url = await settings.GetAsync(SettingKeys.QBittorrentUrl, ct);
-        if (string.IsNullOrWhiteSpace(url))
+        var client = await DownloadClientSettingsStore.LoadAsync(settings, ct);
+        if (string.IsNullOrWhiteSpace(client.Url))
         {
-            throw new InvalidOperationException("qBittorrent is not configured (Settings → qBittorrent)");
+            throw new ReleaseRefusedException(
+                ReleaseRefusedException.DownloadClientNotConfigured, "No download client is configured (Settings, Downloads)");
         }
 
-        return (
-            url,
-            await settings.GetAsync(SettingKeys.QBittorrentUsername, ct) ?? string.Empty,
-            await settings.GetAsync(SettingKeys.QBittorrentPassword, ct) ?? string.Empty,
-            await settings.GetAsync(SettingKeys.QBittorrentCategory, ct) ?? "maki");
+        return client;
     }
 
     /// <summary>
-    /// Optional prefix rewrite from the download path qBittorrent reports to the one
-    /// Maki can read — for when qBittorrent runs in a container with different mounts.
+    /// Optional prefix rewrite from the download path the client reports to the one Maki can
+    /// read, for when the client runs in a container with different mounts.
     /// </summary>
-    public async Task<(string? From, string? To)> GetQbtPathMapAsync(CancellationToken ct) => (
-        await settings.GetAsync(SettingKeys.QBittorrentPathMapFrom, ct),
-        await settings.GetAsync(SettingKeys.QBittorrentPathMapTo, ct));
+    public async Task<(string? From, string? To)> GetClientPathMapAsync(CancellationToken ct) => (
+        await settings.GetAsync(SettingKeys.DownloadClientPathMapFrom, ct),
+        await settings.GetAsync(SettingKeys.DownloadClientPathMapTo, ct));
 }

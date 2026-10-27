@@ -57,7 +57,9 @@ import { languageName } from '../api/titles'
 import { formatBytes } from '../format'
 import { useLanguageChoice } from '../i18n-context'
 import { AppearancePicker } from './AppearancePicker'
-import { ConnectionForm, type ConnectionField } from './ConnectionSettingsCard'
+import { ConnectionForm, type ConnectionFields } from './ConnectionSettingsCard'
+import { useDownloadClientFields } from './settings/downloadClientFields'
+import { IndexerForm } from './settings/IndexerForm'
 import { ContentRatingCards } from './ContentRatingCards'
 import { BrandWordmark, IconBrandMark } from './IconBrandMark'
 import { DumpProgressBar } from './MetadataDumpProgress'
@@ -451,11 +453,13 @@ interface ServiceSpec {
   name: ConnectionName
   title: string
   description: string
-  fields: ConnectionField[]
+  /** Left out for the indexer, which has its own form. */
+  fields?: ConnectionFields
 }
 
 function useServices(): ServiceSpec[] {
   const { t } = useLingui()
+  const downloadClientFields = useDownloadClientFields()
   return [
     {
       name: 'flaresolverr',
@@ -464,25 +468,15 @@ function useServices(): ServiceSpec[] {
       fields: [{ key: 'url', label: t`URL`, placeholder: 'http://localhost:8191' }],
     },
     {
-      name: 'prowlarr',
-      title: 'Prowlarr',
-      description: t`Searches your indexers for manga releases to download as torrents.`,
-      fields: [
-        { key: 'url', label: t`URL`, placeholder: 'http://localhost:9696' },
-        { key: 'apiKey', label: t`API key`, secret: true },
-      ],
+      name: 'indexer',
+      title: t`Indexer`,
+      description: t`Searches your indexers for manga releases to download as torrents. Works through Prowlarr or Jackett.`,
     },
     {
-      name: 'qbittorrent',
-      title: 'qBittorrent',
-      description: t`Downloads what Prowlarr finds. Finished torrents import into the library on their own. Fill the path mapping only if qBittorrent sees paths Fōkurōru can't, as in Docker.`,
-      fields: [
-        { key: 'url', label: t`URL`, placeholder: 'http://localhost:8080' },
-        { key: 'username', label: t`Username` },
-        { key: 'password', label: t`Password`, secret: true },
-        { key: 'pathMapFrom', label: t`Path mapping - qBittorrent side`, placeholder: t`/downloads (optional)` },
-        { key: 'pathMapTo', label: t`Path mapping - Fōkurōru side`, placeholder: t`Z:\\downloads (optional)` },
-      ],
+      name: 'downloadclient',
+      title: t`Download client`,
+      description: t`Downloads what the indexer finds. Finished torrents import into the library on their own. Fill the path mapping only if the client sees paths Fōkurōru can't, as in Docker.`,
+      fields: downloadClientFields,
     },
     {
       name: 'kavita',
@@ -509,8 +503,8 @@ function useConnectedTitles(): string[] {
   const services = useServices()
   const connected: Record<ConnectionName, boolean> = {
     flaresolverr: useConnected('flaresolverr'),
-    prowlarr: useConnected('prowlarr'),
-    qbittorrent: useConnected('qbittorrent'),
+    indexer: useConnected('indexer'),
+    downloadclient: useConnected('downloadclient'),
     kavita: useConnected('kavita'),
   }
   return services.filter((s) => connected[s.name]).map((s) => s.title)
@@ -540,7 +534,11 @@ function ServiceRow({ service }: { service: ServiceSpec }) {
       </UnstyledButton>
       <Collapse expanded={open} id={bodyId}>
         <div className="setup-service-body">
-          <ConnectionForm name={service.name} title={service.title} fields={service.fields} />
+          {service.fields ? (
+            <ConnectionForm name={service.name} title={service.title} fields={service.fields} />
+          ) : (
+            <IndexerForm />
+          )}
         </div>
       </Collapse>
     </div>

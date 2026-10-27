@@ -342,7 +342,7 @@ try
         .AddHttpMessageHandler(() => new RateLimitDetectingHandler());
 
     // Page and image clients fetch URLs the scraped site chose, so they may only reach public
-    // addresses (SSRF). Never give this handler to FlareSolverr, Kavita, qBittorrent or Prowlarr.
+    // addresses (SSRF). Never give this handler to FlareSolverr, Kavita, the download client or the indexer.
     builder.Services.AddHttpClient(PageDownloader.HttpClientName, client =>
         {
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Maki/1.0 (+https://github.com/Maki)");
@@ -891,6 +891,7 @@ try
     // so it has to outlive both the request that starts one and the job scope that runs it.
     builder.Services.AddSingleton<ImageCacheRebuildStatus>();
     builder.Services.AddScoped<ReleaseService>();
+    builder.Services.AddSingleton<ReleaseSearchCache>();
     builder.Services.AddScoped<StatsEventService>();
     builder.Services.AddScoped<StatsBackfillService>();
     builder.Services.AddScoped<SeriesIdentityService>();
@@ -935,13 +936,25 @@ try
     builder.Services.AddScoped<OpdsAccessService>();
     builder.Services.AddSingleton<OpdsProgressWriter>().AddHostedService(sp => sp.GetRequiredService<OpdsProgressWriter>());
 
-    builder.Services.AddHttpClient(Maki.Core.Indexers.ProwlarrClient.HttpClientName,
-            client => client.Timeout = TimeSpan.FromSeconds(100)) // aggregated searches fan out to indexers
-        // FetchTorrentAsync follows redirects itself so a hop to a magnet link is seen rather than failing inside the handler.
-        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
+    // Aggregated searches fan out to every indexer, hence the long timeout. Both are LAN services, so
+    // neither gets PublicAddressGuard.
+    foreach (var indexerClient in new[] { Maki.Core.Indexers.ProwlarrClient.HttpClientName, Maki.Core.Indexers.JackettClient.HttpClientName })
+    {
+        builder.Services.AddHttpClient(indexerClient, client => client.Timeout = TimeSpan.FromSeconds(100))
+            .AddHttpMessageHandler(() => new TransientRetryHandler());
+    }
+
+    builder.Services.AddHttpClient(Maki.Core.Indexers.ReleaseIndexerBase.DownloadHttpClientName)
+        .ConfigurePrimaryHttpMessageHandler(Maki.Core.Indexers.ReleaseIndexerBase.CreateDownloadLinkHandler)
         .AddHttpMessageHandler(() => new TransientRetryHandler());
-    builder.Services.AddSingleton<Maki.Core.Indexers.ProwlarrClient>();
-    builder.Services.AddSingleton<Maki.Core.Download.QBittorrentClient>();
+
+    builder.Services.AddSingleton<Maki.Core.Indexers.IReleaseIndexer, Maki.Core.Indexers.ProwlarrClient>();
+    builder.Services.AddSingleton<Maki.Core.Indexers.IReleaseIndexer, Maki.Core.Indexers.JackettClient>();
+    builder.Services.AddSingleton<Maki.Core.Indexers.IndexerRegistry>();
+    builder.Services.AddSingleton<Maki.Core.Download.ITorrentClient, Maki.Core.Download.QBittorrentClient>();
+    builder.Services.AddSingleton<Maki.Core.Download.ITorrentClient, Maki.Core.Download.TransmissionClient>();
+    builder.Services.AddSingleton<Maki.Core.Download.ITorrentClient, Maki.Core.Download.DelugeClient>();
+    builder.Services.AddSingleton<Maki.Core.Download.TorrentClientRegistry>();
     builder.Services.AddHostedService<DownloadWorkerHostedService>();
 
     builder.Services.AddHttpClient(Maki.Core.Kavita.KavitaClient.HttpClientName,

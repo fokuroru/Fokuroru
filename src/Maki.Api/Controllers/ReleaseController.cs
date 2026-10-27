@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Maki.Api.Auth;
 using Maki.Api.Dtos;
+using Maki.Api.Localization;
 using Maki.Api.Services;
+using Maki.Core.Download;
 using Maki.Core.Entities;
 using Maki.Core.Quality;
 using Maki.Core.Security;
@@ -13,12 +15,17 @@ namespace Maki.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/release")]
-// Both actions: the search hits the instance's Prowlarr indexers, and the grab pushes a torrent to
-// qBittorrent. Neither is something a read-only account should reach.
+// Both actions: the search hits the instance's indexers, and the grab pushes a torrent to
+// the download client. Neither is something a read-only account should reach.
 [Authorize(Policy = Policies.DownloadChapters)]
-public class ReleaseController(ReleaseService releaseService) : ControllerBase
+public class ReleaseController(
+    ReleaseService releaseService, ReleaseSearchCache searches, ILocalizer localizer, ILogger<ReleaseController> logger)
+    : ControllerBase
 {
-    public record GrabRequest(int SeriesId, ReleaseDto Release);
+    /// <summary>The release is named by its guid alone; the link, title and indexer come from the search.</summary>
+    public record GrabRelease(string Guid);
+
+    public record GrabRequest(int SeriesId, GrabRelease Release);
 
     /// <summary>
     /// Each row carries <c>parsed</c>: its span, tier, score and what the volume search would do with
@@ -32,22 +39,23 @@ public class ReleaseController(ReleaseService releaseService) : ControllerBase
         try
         {
             var result = await releaseService.SearchAsync(seriesId, query, ct);
+            searches.Remember(seriesId, result.Backend, result.Releases);
             var views = await torrents.EvaluateAsync(seriesId, result.Releases, ct);
             var byGuid = views
                 .Where(v => !v.Verdict.Reasons.Contains(SpanVerdictReasons.NoProfile))
                 .GroupBy(v => v.Release.Guid)
                 .ToDictionary(g => g.Key, g => g.First());
-            return Ok(result with
-            {
-                Releases = [.. result.Releases.Select(r => r with
-                {
-                    Parsed = byGuid.TryGetValue(r.Guid, out var v) ? Parsed(v) : null
-                })]
-            });
+            return Ok(new ReleaseSearchResponse(result.Query, [.. result.Releases.Select(r =>
+                ReleaseResultDto.From(r, byGuid.TryGetValue(r.Guid, out var v) ? Parsed(v) : null))]));
         }
-        catch (InvalidOperationException ex)
+        catch (ReleaseRefusedException ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return this.Fail(localizer, ex.Key);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
+        {
+            logger.LogWarning(ex, "Release search failed for series {SeriesId}", seriesId);
+            return this.BadGateway(localizer, "error.release.searchFailed");
         }
     }
 
@@ -56,14 +64,20 @@ public class ReleaseController(ReleaseService releaseService) : ControllerBase
         [FromBody] GrabRequest request, [FromServices] ICurrentUser user, [FromServices] MakiDbContext db,
         CancellationToken ct)
     {
+        var backend = await releaseService.ActiveBackendAsync(ct);
+        if (searches.Find(request.SeriesId, backend, request.Release.Guid) is not { } release)
+        {
+            return this.Fail(localizer, "error.release.searchExpired");
+        }
+
         try
         {
-            var item = await releaseService.GrabAsync(request.SeriesId, request.Release with { Parsed = null },
+            var item = await releaseService.GrabAsync(request.SeriesId, release,
                 DownloadOrigin.Manual, user.UserId, null, ct);
 
             // Grabbed by hand from the search: a pending proposal for the same release is settled by it.
             if (await db.TorrentProposals.FirstOrDefaultAsync(p => p.SeriesId == request.SeriesId &&
-                    p.ReleaseGuid == request.Release.Guid && p.Status == TorrentProposalStatus.Pending, ct) is { } proposal)
+                    p.ReleaseGuid == release.Guid && p.Status == TorrentProposalStatus.Pending, ct) is { } proposal)
             {
                 proposal.Status = TorrentProposalStatus.Accepted;
                 proposal.QueueItemId = item.Id;
@@ -74,9 +88,25 @@ public class ReleaseController(ReleaseService releaseService) : ControllerBase
 
             return Ok(new { queueItemId = item.Id });
         }
+        catch (ReleaseRefusedException ex)
+        {
+            return this.Fail(localizer, ex.Key);
+        }
+        catch (TorrentClientException ex)
+        {
+            logger.LogWarning(ex, "The download client refused the grab for series {SeriesId}", request.SeriesId);
+            return this.BadGateway(localizer, ex.Failure switch
+            {
+                TorrentClientFailure.LoginFailed => "error.release.downloadClientLoginFailed",
+                TorrentClientFailure.Rejected => "error.release.downloadClientRejected",
+                TorrentClientFailure.HeldOutsideLabel => "error.release.downloadClientHeldOutsideLabel",
+                _ => "error.release.downloadClientUnreachable",
+            });
+        }
         catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
         {
-            return BadRequest(new { error = ex.Message });
+            logger.LogWarning(ex, "Release grab failed for series {SeriesId}", request.SeriesId);
+            return this.BadGateway(localizer, "error.release.grabFailed");
         }
     }
 

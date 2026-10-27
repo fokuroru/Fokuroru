@@ -1238,7 +1238,7 @@ public class DownloadQueueService(
     /// <summary>
     /// Re-queues Failed scraper items whose backoff has elapsed and whose attempt count is still
     /// under <paramref name="maxAttempts"/>. Torrent items are excluded — they're tracked
-    /// externally by <c>CompletedDownloadJob</c> against qBittorrent, and re-signalling one
+    /// externally by <c>CompletedDownloadJob</c> against the download client, and re-signalling one
     /// wouldn't resubmit the grab. Returns the number re-queued.
     /// </summary>
     public async Task<int> RequeueEligibleFailuresAsync(int maxAttempts, CancellationToken ct = default)
