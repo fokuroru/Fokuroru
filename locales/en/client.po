@@ -2403,8 +2403,12 @@ msgid "Already queued"
 msgstr "Already queued"
 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
-msgid "Already read or seen, taste unchanged"
-msgstr "Already read or seen, taste unchanged"
+msgid "Already read or seen"
+msgstr "Already read or seen"
+
+#: src/components/discover/RecommendationFeedbackMenu.tsx
+#~ msgid "Already read or seen, taste unchanged"
+#~ msgstr "Already read or seen, taste unchanged"
 
 #: src/pages/SettingsPage.tsx
 msgid "Already running"
@@ -5000,6 +5004,10 @@ msgstr "Discover and offline search are available now."
 msgid "Disk used"
 msgstr "Disk used"
 
+#: src/components/discover/RecommendationFeedbackMenu.tsx
+msgid "Disliked it"
+msgstr "Disliked it"
+
 #: src/components/layout/SidebarFooter.tsx
 #: src/components/upgrades/TorrentProposalCard.tsx
 #: src/pages/NotificationsPage.tsx
@@ -7590,6 +7598,10 @@ msgstr "Library title"
 #: src/theme-context.tsx
 msgid "Light"
 msgstr "Light"
+
+#: src/components/discover/RecommendationFeedbackMenu.tsx
+msgid "Liked it"
+msgstr "Liked it"
 
 #: src/components/releases/ReleaseOutlookSummary.tsx
 #: src/components/releases/UpcomingView.tsx

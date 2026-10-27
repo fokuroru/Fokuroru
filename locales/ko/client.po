@@ -2819,9 +2819,13 @@ msgid "Already queued"
 msgstr ""
 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
+msgid "Already read or seen"
+msgstr ""
+
+#: src/components/discover/RecommendationFeedbackMenu.tsx
 #, fuzzy
-msgid "Already read or seen, taste unchanged"
-msgstr "이미 읽었거나 봤음, 취향은 변경되지 않음"
+#~ msgid "Already read or seen, taste unchanged"
+#~ msgstr "이미 읽었거나 봤음, 취향은 변경되지 않음"
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -5865,6 +5869,10 @@ msgstr "탐색 및 오프라인 검색을 지금 사용할 수 있습니다."
 #, fuzzy
 msgid "Disk used"
 msgstr "디스크 사용량"
+
+#: src/components/discover/RecommendationFeedbackMenu.tsx
+msgid "Disliked it"
+msgstr ""
 
 #: src/components/layout/SidebarFooter.tsx
 #: src/components/upgrades/TorrentProposalCard.tsx
@@ -8918,6 +8926,10 @@ msgstr "라이브러리 제목"
 #, fuzzy
 msgid "Light"
 msgstr "밝은"
+
+#: src/components/discover/RecommendationFeedbackMenu.tsx
+msgid "Liked it"
+msgstr ""
 
 #: src/components/releases/ReleaseOutlookSummary.tsx
 #: src/components/releases/UpcomingView.tsx
