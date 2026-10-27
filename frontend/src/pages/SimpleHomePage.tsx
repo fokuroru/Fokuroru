@@ -23,6 +23,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { matchesSeriesTitle } from '../api/titles'
 import type { SeriesDto } from '../api/types'
 import { BrandWordmark, IconBrandMark } from '../components/IconBrandMark'
+import { obtainedCount } from '../lib/chapterCounts'
 import { nativeApp } from '../lib/nativeApp'
 import { setSimpleViewPreferred } from '../lib/simpleView'
 import { spineVars } from '../lib/spine'
@@ -94,6 +95,8 @@ export default function SimpleHomePage() {
     const list = (library.data ?? []).filter(
       (s) =>
         s.chapterFileCount > 0 &&
+        // Every chapter on the server (or removed from it after reading) is already read: nothing to open.
+        (s.readChapterCount == null || obtainedCount(s) > s.readChapterCount) &&
         // Caught up on an ongoing series, or finished one that is fully read: nothing left to read.
         s.readingStatus !== 'UpToDate' &&
         s.readingStatus !== 'Completed' &&

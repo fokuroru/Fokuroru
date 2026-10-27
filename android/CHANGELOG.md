@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.49 (77)
+- The simple view's library lists only series with a saved chapter left to read; a series whose only chapters on the server are already read is hidden, online and offline.
+
 ## 0.5.48 (76)
 - Saved chapters lists only series with chapters on the device, and removes queued or failed chapters the server no longer has. Pages download four at a time, a chapter the server has deleted is dropped instead of retried, series rows show unread counts, and chapter rows show page x of y. Syncing with the server runs a few series at a time, at most every five minutes.
 

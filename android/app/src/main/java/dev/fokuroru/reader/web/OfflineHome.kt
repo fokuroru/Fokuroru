@@ -58,7 +58,7 @@ object OfflineHome {
             .put("added", iso(chapters.minOf { it.addedAt }))
             .put("wantedChapterCount", 0).put("chapterFileCount", chapters.size).put("knownChapterCount", chapters.size)
             .put("queuedCount", 0).put("downloadingCount", 0).put("hasAnime", false)
-            .put("readChapterCount", JSONObject.NULL).put("sourceMatchPending", false)
+            .put("readChapterCount", chapters.count { it.completed }).put("sourceMatchPending", false)
             .put("incognito", "").put("notificationMode", "")
     }
 
