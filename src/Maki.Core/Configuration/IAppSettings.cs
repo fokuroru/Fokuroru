@@ -63,6 +63,22 @@ public static class SettingKeys
     /// </summary>
     public const string KavitaUserId = "kavita.userid";
 
+    /// <summary>Suwayomi base URL including any <c>server.webUISubpath</c>. Unset means the integration is off.</summary>
+    public const string SuwayomiUrl = "suwayomi.url";
+    /// <summary><c>none</c>, <c>basic</c> or <c>uilogin</c>; see <c>SuwayomiAuthMode</c>.</summary>
+    public const string SuwayomiAuthMode = "suwayomi.authmode";
+    public const string SuwayomiUsername = "suwayomi.username";
+    public const string SuwayomiPassword = "suwayomi.password";
+    /// <summary>
+    /// JSON array of every source installed in Suwayomi at the last refresh (<c>SuwayomiStoredSource</c>).
+    /// A snapshot, so the source registry is the same at startup whether Suwayomi is reachable or not.
+    /// </summary>
+    public const string SuwayomiSources = "suwayomi.sources";
+    /// <summary>Where a browser reaches Suwayomi's web UI, for the "Search on" link. Optional; the URL Maki uses is often a container name.</summary>
+    public const string SuwayomiPublicUrl = "suwayomi.publicurl";
+    /// <summary>Set once the <c>MAKI_SOURCE_SUWAYOMI_*</c> variables were imported, so clearing the URL later sticks across restarts.</summary>
+    public const string SuwayomiEnvImported = "suwayomi.envimported";
+
     /// <summary>"true" → new series default to MonitorNewItems.MainOnly (specials unmonitored).</summary>
     public const string MonitoringUnmonitorSpecials = "monitoring.unmonitorspecials";
 

@@ -207,7 +207,7 @@ public class ChapterDownloadProcessor(
                     lastBroadcast = DateTime.UtcNow;
                     await BroadcastAsync(item, chapter, series, mapping.SourceName);
                 }
-            }, ct);
+            }, ct, source as IPageClientSource);
 
             pages = null;
             item.PagesDone = pageCount;

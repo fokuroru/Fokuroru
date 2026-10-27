@@ -8,6 +8,8 @@ using Maki.Core.Quality;
 using Maki.Core.Security;
 using Maki.Core.Sources;
 using Maki.Data;
+using Maki.Sources.Suwayomi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Maki.Api.Controllers;
@@ -130,7 +132,9 @@ public class SearchController(
             return BadRequest();
         }
 
-        if (!CoverHostPolicy.Allows(source, target))
+        // A Suwayomi source's "own domain" is the admin's Suwayomi host, so the host check would let any
+        // signed-in user fetch arbitrary image-typed paths from it. Its thumbnails use the dedicated relay.
+        if (source is SuwayomiSource || !CoverHostPolicy.Allows(source, target))
         {
             logger.LogWarning("Blocked cover proxy request for {Host} via source {Source}", target.Host, sourceName);
             return this.Fail(localizer, "error.search.hostNotServed");
@@ -227,10 +231,10 @@ public class SearchController(
     /// Ceiling on a proxied cover. Real covers are well under a megabyte; the cap stops a reader from
     /// making the server buffer an arbitrarily large file from an allowed host.
     /// </summary>
-    private const int MaxCoverBytes = 10 * 1024 * 1024;
+    internal const int MaxCoverBytes = 10 * 1024 * 1024;
 
     /// <summary>The whole body, or null once it would exceed <paramref name="max"/> bytes.</summary>
-    private static async Task<byte[]?> ReadCappedAsync(HttpContent content, int max, CancellationToken ct)
+    internal static async Task<byte[]?> ReadCappedAsync(HttpContent content, int max, CancellationToken ct)
     {
         if (content.Headers.ContentLength is > 0 and var declared && declared > max)
         {
@@ -267,6 +271,8 @@ public class SearchController(
         var instanceLanguage = Core.Localization.SupportedLanguages.Resolve(
             await settings.GetAsync(SettingKeys.UiDefaultLanguage, ct));
         var library = await SourceQualitySamples.LibraryEstimatesAsync(db, ct);
+        // Only an address the admin typed for browsers, for the "Search on" link; never the one Maki uses.
+        var suwayomiPublicUrl = await settings.GetAsync(SettingKeys.SuwayomiPublicUrl, ct);
         var defaultRank = SourceMatchService.OrderSources(sourceRegistry.All, null)
             .Select((s, i) => (s.Name, i))
             .ToDictionary(x => x.Name, x => x.i, StringComparer.OrdinalIgnoreCase);
@@ -275,7 +281,13 @@ public class SearchController(
         {
             s.Name,
             s.DisplayName,
-            s.BaseUrl,
+            // A Suwayomi source's BaseUrl is the Suwayomi server, usually a LAN address, and every
+            // signed-in user reads this list. The UI shows Provider for those instead of a host.
+            BaseUrl = s is SuwayomiSource ? "" : s.BaseUrl,
+            Provider = s is SuwayomiSource ? "suwayomi" : null,
+            Suwayomi = s is SuwayomiSource suwayomi
+                ? new { suwayomi.SourceId, suwayomi.SiteName, suwayomi.Lang, suwayomi.MixedLanguage, suwayomi.ChapterLanguage, suwayomi.NeedsSetup, suwayomi.Missing, PublicUrl = suwayomiPublicUrl }
+                : null,
             NeedsFlareSolverr = s.Capabilities.HasFlag(SourceCapabilities.NeedsFlareSolverr),
             // Whether ListChaptersAsync honours SourceMapping.LanguageFilter, so the mappings card
             // only offers a language picker where one does something. A multi-language source that
@@ -349,9 +361,13 @@ public class SearchController(
     // request is same-origin, so the browser attaches the session cookie by itself. The instance API
     // key used to be appended here, which put it in the JSON of an ordinary search response and from
     // there into browser history and any proxy log the image request passed through.
+    // Suwayomi's thumbnail relay is already a same-origin path and passes as is, but only from a
+    // Suwayomi source and only in its exact shape: a scraper handing back some other relative URL,
+    // dot segments included, must not point readers at arbitrary Maki paths.
     private static string? ProxiedCoverUrl(string sourceName, string? coverUrl) =>
-        coverUrl is null
-            ? null
-            : $"/api/v1/search/cover?sourceName={Uri.EscapeDataString(sourceName)}" +
-              $"&url={Uri.EscapeDataString(coverUrl)}";
+        coverUrl is null ? null
+        : sourceName.StartsWith(SuwayomiSource.NamePrefix, StringComparison.OrdinalIgnoreCase) &&
+          SuwayomiSource.IsThumbnailPath(coverUrl) ? coverUrl
+        : $"/api/v1/search/cover?sourceName={Uri.EscapeDataString(sourceName)}" +
+          $"&url={Uri.EscapeDataString(coverUrl)}";
 }

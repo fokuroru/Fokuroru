@@ -516,7 +516,7 @@ public sealed class SeriesPreviewService(
                 chapter.Number?.ToString(CultureInfo.InvariantCulture) ?? chapter.NumberRaw,
                 pages.Pages.Count, dir);
 
-            await pageDownloader.DownloadAsync(pages, source.Name, dir, null, ct);
+            await pageDownloader.DownloadAsync(pages, source.Name, dir, null, ct, source as IPageClientSource);
             job.MarkReady();
             return null;
         }

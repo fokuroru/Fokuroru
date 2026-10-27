@@ -1,6 +1,6 @@
 # Suwayomi as an optional source: plan
 
-Status: proposal, no application code changed. Researched against `dev` (f293475) and Suwayomi-Server `v2.4.2366` (latest stable, 2026-09-29), with `v2.1.1867` and `master` (d4f88a3) checked for drift. Revision 3, after two review rounds; reviewer and author agree it is ready for implementation.
+Status: implemented on `dev`, phases 1 to 5. Revised after implementation: the separate source picker is gone. Every installed Suwayomi source is stored and registered, switched off, and turned on in Manage sources like any other source; see "Source picker" below for what replaced it. Not yet run against a real Suwayomi server; release checklist item 7.8 covers that. Researched against `dev` (f293475) and Suwayomi-Server `v2.4.2366` (latest stable, 2026-09-29), with `v2.1.1867` and `master` (d4f88a3) checked for drift. Revision 3, after two review rounds; reviewer and author agree it is ready for implementation.
 
 ## Goal
 
@@ -67,7 +67,7 @@ v1 supports `none`, `basic_auth` and `ui_login`. `simple_login` is a cookie-sess
 
 Auth is applied by a `SuwayomiAuthHandler` (a `DelegatingHandler` on both Suwayomi named clients, §3), not in each call site. Because the handler sits on the client, page fetches get auth and refresh for free, and a JWT that expires halfway through a 200-page chapter is handled without the source baking a token into `PageRequest.Headers`.
 
-- **Token state lives in a singleton `SuwayomiTokenStore`, not in the handler.** `IHttpClientFactory` rebuilds handler chains every couple of minutes (no `SetHandlerLifetime` in `Program.cs`), so anything held on a handler instance is lost on rotation; `Maki.Sources/CLAUDE.md` records the same lesson for MangaTube's cookie. The store holds the access and refresh tokens and the single-flight `SemaphoreSlim` (the `MangaTubeSession` pattern: skip the refresh when another caller already swapped in a newer token). The handler, `POST settings/suwayomi/test` and the health probe all share it. A settings change clears it.
+- **Token state lives in a singleton `SuwayomiTokenStore`, not in the handler.** `IHttpClientFactory` rebuilds handler chains every couple of minutes (no `SetHandlerLifetime` in `Program.cs`), so anything held on a handler instance is lost on rotation; `Maki.Sources/CLAUDE.md` records the same lesson for MangaTube's cookie. The store holds the access and refresh tokens and the single-flight `SemaphoreSlim` (the `MangaTubeSession` pattern: skip the refresh when another caller already swapped in a newer token). The handler and the health probe share it; `POST settings/suwayomi/test` builds its own for the connection under test, since it probes values that are not saved yet. Tokens are minted for one `SuwayomiConnection` value (URL, mode, user, password), so a settings change drops them on the next request without anyone clearing them.
 - **Retry once, after one refresh**, on a 401 or on a GraphQL 200 whose errors say "Unauthorized". Re-sending from a `DelegatingHandler` needs re-readable request content, so `SuwayomiClient` always sends `StringContent`.
 - **Body inspection only for POSTs to `/api/graphql`.** There the handler buffers the response, checks `errors[]`, and returns a re-readable content. Page and thumbnail GETs are sent `ResponseHeadersRead` and judged on status alone; reading their body in the handler would defeat `PageDownloader`'s stall-timeout streaming. Suwayomi also accepts `?token=` on REST; Maki never uses it, for the reason `auth.md` bans `?apikey=`.
 
@@ -79,7 +79,7 @@ Suwayomi master (unreleased) adds multi-user accounts with permissions. When tha
 
 - Add `ISourceProvider` in `Maki.Core/Sources/`: `IReadOnlyList<ISource> Current { get; }` and an explicit `Task ReloadAsync(CancellationToken)`.
 - `SourceRegistry` takes the static sources plus the providers and holds an immutable snapshot that it swaps atomically after a provider reloads. Static sources win on a name clash (they cannot clash given the `suwayomi-` prefix, but the rule should be explicit). **Keep the existing single-argument constructor as an overload**: 51 tests build `new SourceRegistry([...])`.
-- `IAppSettings` has no change notification, so reloads are explicit: `PUT settings/suwayomi/sources` and `PUT settings/suwayomi` call `ReloadAsync` after saving. A URL change also clears `SuwayomiMangaIdCache`. Startup loads once.
+- `IAppSettings` has no change notification, so reloads are explicit: `PUT settings/suwayomi/sources` and `PUT settings/suwayomi` call `SourceRegistry.ReloadAsync` after saving, which reloads every provider and swaps the snapshot. `SuwayomiMangaIdCache` is keyed by base URL, so a URL change needs no clear. `Program.cs` calls it once at startup, before Kestrel and Quartz.
 - The list of exposed Suwayomi sources is **persisted in settings**, not read live from Suwayomi. The registry is therefore the same at startup whether Suwayomi is up or not, `SetSourcePriority`'s unknown-name check keeps passing, and a Suwayomi outage shows up as failing sources rather than vanishing ones.
 
 New setting keys in `SettingKeys`:
@@ -89,7 +89,7 @@ New setting keys in `SettingKeys`:
 | `suwayomi.url` | Base URL including any subpath, e.g. `http://suwayomi:4567` |
 | `suwayomi.authmode` | `none`, `basic`, `uilogin` |
 | `suwayomi.username` / `suwayomi.password` | Never returned by GET, only `passwordSet`, mirroring the Kitsu password in `GET/PUT settings/scrobble` (null on PUT means unchanged, empty clears). Stored plaintext in `AppConfig` like the Prowlarr, Kavita and qBittorrent secrets, so backups carry it the same way |
-| `suwayomi.sources` | JSON array of exposed sources: `{ id, name, displayName, lang, chapterLanguage, contentWarning }`. A snapshot so the registry can be built without calling Suwayomi |
+| `suwayomi.sources` | JSON array of every installed source: `{ id, name, displayName, lang, chapterLanguage, contentWarning, isNsfw, missing }`. A snapshot so the registry can be built without calling Suwayomi; refreshed when the connection is saved and whenever Manage sources opens |
 
 ### 2. The virtual source (Maki.Sources/Suwayomi)
 
@@ -98,7 +98,7 @@ New folder, matching the existing one-folder-per-source layout:
 - `SuwayomiClient`: GraphQL POST over the `suwayomi` named `HttpClient`, error mapping, version probe. One per instance.
 - `SuwayomiAuthHandler`: see Authentication above.
 - `SuwayomiSource : ISource, IPageClientSource`: one instance per exposed source, constructed from the settings snapshot plus the shared client.
-- `SuwayomiSourceProvider : ISourceProvider`: reads `suwayomi.sources` on `ReloadAsync`.
+- `SuwayomiSourceProvider : ISourceProvider`: reads `suwayomi.sources` when `SourceRegistry.ReloadAsync` reloads it.
 - `SuwayomiMangaIdCache`: `(sourceId, url) -> mangaId` and `(mangaId, chapterUrl) -> chapterId`, in memory.
 
 Field mapping:
@@ -179,7 +179,7 @@ Filling `PageRequest.Data` inside `GetPagesAsync` instead was considered and rej
 - The response copies the cover proxy's hygiene (`SearchController`): sniff with `ImageValidator.SniffMediaType` and refuse non-rasters, cap the size, `Content-Security-Policy: default-src 'none'; sandbox`, `Cache-Control: private`. These are third-party bytes served from Maki's origin under the session cookie.
 - The caller only chooses two integers, so this is not an SSRF primitive.
 - `SearchController.ProxiedCoverUrl` passes a Maki-relative URL through unchanged instead of wrapping it in `search/cover`. That method (search and series-lookup responses) is the only place source covers reach the client; `CoverService` and series creation fetch metadata-provider covers, not source covers.
-- New entry in `ControllerAuthorizationInventoryTests`.
+- `ControllerAuthorizationInventoryTests` needs no entry (it pins mutating actions without a policy, anonymous actions and `SettingsController` by name, and this is a GET); `SuwayomiControllerTests` pins instead that every other action on the controller is admin-only.
 
 ### 4. Settings and UI
 
@@ -189,16 +189,18 @@ Filling `PageRequest.Data` inside `GetPagesAsync` instead was considered and rej
 - "Test connection": calls `aboutServer` and `sources`, shows the server version and how many sources are installed, reports an unsupported version (below v2.1, or below v2.2 with `ui_login`). With `ui_login` the test also logs in so a wrong password shows up here, not later in a sync.
 - Empty source list: explain that extensions are installed in Suwayomi, and link to the configured Suwayomi URL.
 
-**Source picker** (a modal from the card, structured like `ManageSourcesModal`):
+**Source picker** (revised: there is none; Manage sources is the picker):
 
-- Every installed Suwayomi source with display name, language and content warning. No icons in v1: Suwayomi's `iconUrl` needs auth and an icon passthrough is not worth the endpoint yet, so `SourceIcon`'s monogram fallback applies.
-- Grouped by language, filtered by the instance's enabled languages by default, since a typical Suwayomi install has hundreds of language variants.
-- A checkbox per source. Nothing is exposed until the admin ticks it. The picker says plainly that a ticked source whose language is English or the instance language is **on immediately** and searched for every added series (`SourceAvailability.DefaultsOn`); there is no second opt-in. It also shows the number exposed.
-- `all`/`multi` sources require a chapter language to be chosen before they can be ticked.
-- Unticking a source that has mappings warns with the count. The mappings are kept and simply stop running, so re-ticking restores them.
-- Sources exposed earlier but no longer installed in Suwayomi are listed as missing rather than dropped silently.
+- Every installed Suwayomi source is stored in `suwayomi.sources` and registered. `SourceAvailability.DefaultsOn` is false for every Suwayomi source, so all of them arrive switched off and are turned on with the ordinary per-source switch; there was a separate picker with checkboxes at first, and two places to say "use this source" was one too many.
+- Opening Manage sources with Suwayomi connected calls `POST settings/suwayomi/sources/refresh` before seeding the draft, so an extension installed since shows up. A source Suwayomi no longer lists is dropped from the snapshot unless series are linked to it; then it stays, flagged `missing`, and the row says "No longer in Suwayomi".
+- `all`/`multi`/`other` sources (`SuwayomiSource.NeedsSetup` until set) show a **Set up** button that picks one chapter language from a searchable list of language names, never a typed code. Mihon chapters have no language, so it is one language per source; two languages would need a per-chapter answer Suwayomi cannot give. Until it is set, `SourceAvailability` keeps the source disabled whatever the stored order says, and `ListChaptersAsync` throws rather than guess.
+- Mihon extensions register one source per language (MangaDex has forty-odd: `MangaDex (EN)`, `MangaDex (ES)`, all named `MangaDex`). Manage sources groups a site's single-language variants into one row, keyed on `SuwayomiSource.SiteName`, with a **Languages** multi-select instead of a switch. Each pick is still its own source with its own chapters, mappings and place on the priority rail, which keeps ranking English MangaDex above Spanish possible; the grouping only spares the catalogue forty rows of one site. A site with one variant keeps its plain row, and a mixed-language variant stays on its own row with its **Set up** button.
+- The Suwayomi card's **Manage sources** button opens the same modal with its Provider filter set to Suwayomi. The filter (Built in / Suwayomi) sits in the Filters popover.
+- Rows carry a coloured Suwayomi badge in place of the `sourceHost(baseUrl)` line, which would otherwise print the Suwayomi hostname for every one of them. Search matches "suwayomi" instead of that host.
+- The language ranking (`GET settings/sources/languages`) only offers the languages of Suwayomi sources that are switched on, or one install would add every language it has an extension for.
+- The thumbnail relay serves only sources that are switched on, since every installed source is now registered.
 
-Once exposed, the sources appear in the normal priority list. `GET search/sources` gains `provider: "suwayomi"` (null for built-ins); `ManageSourcesModal` shows a "Suwayomi" badge in place of the `sourceHost(baseUrl)` line, which would otherwise print the Suwayomi hostname for every one of them. They rank after every listed source by default, because `OrderSources` puts unlisted names last. A built-in source and its Suwayomi twin (MangaDex both ways, say) coexist; the admin's priority order decides.
+`GET search/sources` carries `provider: "suwayomi"` (null for built-ins) and a `suwayomi` object (`sourceId`, `siteName`, `lang`, `mixedLanguage`, `chapterLanguage`, `needsSetup`, `missing`). Suwayomi sources rank after every listed source by default, because `OrderSources` puts unlisted names last. A built-in source and its Suwayomi twin (MangaDex both ways, say) coexist; the admin's priority order decides.
 
 All new strings through `t`/`<Trans>` and `this.Fail(localizer, key)`.
 
@@ -206,10 +208,10 @@ All new strings through `t`/`<Trans>` and `this.Fail(localizer, key)`.
 
 | Endpoint | Purpose | Access |
 | --- | --- | --- |
-| `GET/PUT settings/suwayomi` | Connection settings; PUT reloads the provider and clears the id cache on a URL change | Admin, in `SettingsController` |
-| `POST settings/suwayomi/test` | Version + source count | Admin |
-| `GET settings/suwayomi/sources` | Installed sources merged with the exposed snapshot (live + missing) | Admin |
-| `PUT settings/suwayomi/sources` | Save the exposed set; reloads the provider | Admin |
+| `GET/PUT settings/suwayomi` | Connection settings; PUT reloads the registry | Admin, in `SuwayomiController` (not `SettingsController`, whose constructor three tests build by hand) |
+| `POST settings/suwayomi/test` | Version + source count, on unsaved values; the stored password is reused only for the stored URL. Under `ui_login` the version check is sent anonymously, so a server too old to have a login mutation says so instead of failing the login | Admin |
+| `POST settings/suwayomi/sources/refresh` | Reads the installed sources into the snapshot, keeping chosen chapter languages; reloads the provider when it changed | Admin |
+| `PUT settings/suwayomi/sources/{id}` | Sets a mixed-language source's chapter language; reloads the provider | Admin |
 | `GET suwayomi/thumbnail/{sourceId}/{mangaId}` | Cover passthrough, `SuwayomiController` | Any signed-in user |
 
 ### 5. Health
@@ -239,11 +241,11 @@ Each exposed source is one more entry in `SourceMatchService`'s fan-out, which i
 
 Each phase leaves a non-Suwayomi install unchanged.
 
-1. **Registry and page seam.** `ISourceProvider`, dynamic `SourceRegistry` (single-argument constructor kept), `IPageClientSource` and the optional `DownloadAsync` parameter, the four callers passing their source. Tests: a provider reload is visible through `All`/`Find`; a vanished source's mappings are skipped; fetcher-path cases in the existing `PageDownloaderCooldownTests` and `PageDownloaderRateLimitTests` (cooldown honoured, 429/503 → `RateLimitException`, 404 → `HttpRequestException`, a disallowed URL → `BlockedDestinationException`). No user-visible change.
-2. **Client, source and settings keys.** Setting keys, `suwayomi` and `suwayomi-pages` named clients with their handlers, `SuwayomiTokenStore`, `SuwayomiAuthHandler`, `SuwayomiClient`, `SuwayomiSource`, provider, id cache. Testable without a UI by writing the keys directly. Tests use a stub `HttpMessageHandler` that matches GraphQL requests on `operationName` in the body (`FakeHttpClientFactory` matches on URL substring, and every GraphQL call is the same URL), either by extending `FakeHttpClientFactory` with a body matcher or a small dedicated stub in the Suwayomi tests. Cases: v2.1 and v2.4 response shapes; 200-with-Unauthorized and 401 both refresh once and retry once; concurrent callers refresh once; `-1` chapter number; an `all`-language source; a manga missing from Suwayomi; an uninstalled extension; a relative page URL made absolute under a subpath; the client refusing an off-origin URL and a redirect.
-3. **Endpoints.** Controller actions, thumbnail passthrough with its sniff/CSP/ownership checks, `ControllerAuthorizationInventoryTests` entries, `GET settings/suwayomi` never returning the password.
-4. **UI.** Integration card, source picker, `provider` field and badge on the priority list, strings extracted.
-5. **Health and docs.** Probe and missing-extension rows in `HealthMonitor`; a `Maki.Sources/CLAUDE.md` entry with the gotchas above (portable url ids, `sourceOrder`-based page URLs, 200-with-Unauthorized, subpath, chapter language for `all` sources, upsert-on-search, the "search it once in Suwayomi" fix); an optional `suwayomi` service in the Docker compose example; a release-checklist line for a smoke test against a real instance.
+1. **Registry and page seam.** *(Done.)* `ISourceProvider`, dynamic `SourceRegistry` (single-argument constructor kept), `IPageClientSource` and the optional `DownloadAsync` parameter, the four callers passing their source. Tests: a provider reload is visible through `All`/`Find`; a vanished source's mappings are skipped; page-client cases in `PageDownloaderPageClientTests` (cooldown honoured, 429/503 → `RateLimitException`, 404 → `HttpRequestException`, a disallowed URL → `BlockedDestinationException`). No user-visible change.
+2. **Client, source and settings keys.** *(Done. Cover URLs already point at the phase 3 thumbnail endpoint; until it exists they render broken, which nobody sees since nothing can be exposed without the phase 3 endpoints.)* Setting keys, `suwayomi` and `suwayomi-pages` named clients with their handlers, `SuwayomiTokenStore`, `SuwayomiAuthHandler`, `SuwayomiClient`, `SuwayomiSource`, provider, id cache. Testable without a UI by writing the keys directly. Tests use a stub `HttpMessageHandler` that matches GraphQL requests on `operationName` in the body (`FakeHttpClientFactory` matches on URL substring, and every GraphQL call is the same URL), either by extending `FakeHttpClientFactory` with a body matcher or a small dedicated stub in the Suwayomi tests. Cases: v2.1 and v2.4 response shapes; 200-with-Unauthorized and 401 both refresh once and retry once; concurrent callers refresh once; `-1` chapter number; an `all`-language source; a manga missing from Suwayomi; an uninstalled extension; a relative page URL made absolute under a subpath; the client refusing an off-origin URL and a redirect.
+3. **Endpoints.** *(Done. New error keys are in every `server.po`, translated only in English; translation runs once at the end per `i18n.md`.)* Controller actions, thumbnail passthrough with its sniff/CSP/ownership checks, `ControllerAuthorizationInventoryTests` entries, `GET settings/suwayomi` never returning the password.
+4. **UI.** *(Done: `pages/settings/SuwayomiCards.tsx` and `api/suwayomi.ts`, smoke-tested in a browser against a fake Suwayomi. Strings extracted, translated only in English.)* Integration card, source picker, `provider` field and badge on the priority list, strings extracted.
+5. **Health and docs.** *(Done. There was no compose file in the repo; the optional `suwayomi` service went into the README's Quick start example instead.)* Probe and missing-extension rows in `HealthMonitor`; a `Maki.Sources/CLAUDE.md` entry with the gotchas above (portable url ids, `sourceOrder`-based page URLs, 200-with-Unauthorized, subpath, chapter language for `all` sources, upsert-on-search, the "search it once in Suwayomi" fix); an optional `suwayomi` service in the Docker compose example; a release-checklist line for a smoke test against a real instance.
 
 Rule-file frontmatter: new files under `src/Maki.Sources/Suwayomi/` are covered by `Maki.Sources/CLAUDE.md`. `PageDownloader` (`src/Maki.Core/Download/`) matches no rule file today, so the `IPageClientSource` gotcha (the origin check is what keeps it from being a guard bypass) goes in `downloads.md` with that path added to its `paths`. The thumbnail endpoint gets a line next to the cover-proxy note in `auth.md`, with `src/Maki.Api/Controllers/Suwayomi*.cs` added to its `paths`.
 

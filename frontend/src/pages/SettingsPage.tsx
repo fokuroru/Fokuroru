@@ -57,6 +57,7 @@ import { NamingFormatInput } from '../components/NamingFormatInput'
 import { PriorityList } from '../components/PriorityList'
 import { SourceIcon, baseLanguage } from '../sourceIcons'
 import { ManageSourcesModal } from './settings/ManageSourcesModal'
+import { SuwayomiCard } from './settings/SuwayomiCards'
 import { useAuth } from '../auth/AuthProvider'
 import { SETTINGS_ENTRIES, SETTINGS_TABS, entryVisible } from './settings/registry'
 import { useKavitaUser, useSetKavitaUser, useUsers } from '../api/auth'
@@ -3290,6 +3291,8 @@ function useSectionNodes(): Record<string, ReactNode> {
           ]}
         />
       ),
+
+      suwayomi: <SuwayomiCard />,
 
       kavita: (
         <ConnectionSettingsCard

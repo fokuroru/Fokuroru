@@ -422,18 +422,6 @@ try
         .AddHttpMessageHandler(() => new RateLimitingHandler(shinigamiLimiter))
         .AddHttpMessageHandler(() => new RateLimitDetectingHandler());
 
-    // Suwayomi: a self-hosted server on the private network, deliberately without the public-address
-    // guard the page clients carry (it would refuse the very host this talks to). It fetches pages
-    // from the real sites on demand, so the timeout is long. Unconfigured (no base URL) the source
-    // returns nothing and never opens this client.
-    var suwayomiUrl = Environment.GetEnvironmentVariable(SuwayomiClient.BaseUrlVariable)?.TrimEnd('/')
-        ?? "http://suwayomi:4567";
-    builder.Services.AddHttpClient(SuwayomiClient.HttpClientName, client =>
-    {
-        client.BaseAddress = new Uri($"{suwayomiUrl}/");
-        client.Timeout = TimeSpan.FromMinutes(3);
-    });
-
     var topManhuaLimiter = RateLimitingHandler.TokenBucket(1, TimeSpan.FromSeconds(1), burst: 2);
     builder.Services.AddHttpClient(TopManhuaSource.HttpClientName, client =>
     {
@@ -739,11 +727,6 @@ try
     builder.Services.AddSingleton<ISource, ManhwaWebSource>();
     builder.Services.AddSingleton<ISource, OlympusSource>();
     builder.Services.AddSingleton<ISource, ShinigamiSource>();
-    // Suwayomi's installed extensions are discovered at runtime, one Maki source each.
-    builder.Services.AddSingleton<SuwayomiClient>();
-    builder.Services.AddSingleton<SuwayomiSourceProvider>();
-    builder.Services.AddSingleton<IDynamicSourceProvider>(sp => sp.GetRequiredService<SuwayomiSourceProvider>());
-    builder.Services.AddHostedService<SuwayomiSourceRefresher>();
     builder.Services.AddSingleton<ISource, Manhwa18NetSource>();
     builder.Services.AddSingleton<ISource, CuuTruyenSource>();
     builder.Services.AddSingleton<ISource, MangaWorldSource>();
@@ -755,7 +738,56 @@ try
     builder.Services.AddSingleton<ISource, ComicWalkerSource>();
     builder.Services.AddSingleton<ISource, RawkumaSource>();
     builder.Services.AddSingleton<ISource, TeamXSource>();
-    
+
+    // Suwayomi: optional, inert until a URL is set. Its clients skip PublicAddressGuard because the
+    // server is on the LAN; SuwayomiOriginHandler pins them to the configured origin instead, and
+    // redirects are refused rather than followed so that check holds past the first hop. API and
+    // images get separate limits so a chapter download never queues a search or the health probe.
+    builder.Services.AddSingleton<SuwayomiSettings>();
+    builder.Services.AddSingleton<SuwayomiTokenStore>();
+    builder.Services.AddSingleton<SuwayomiClient>();
+    builder.Services.AddSingleton<SuwayomiMangaIdCache>();
+    builder.Services.AddSingleton(_ => new SuwayomiConnectionTester());
+    builder.Services.AddSingleton<ISourceProvider, SuwayomiSourceProvider>();
+    builder.Services.AddScoped<SuwayomiSnapshotService>();
+    builder.Services.AddHostedService<SuwayomiSourceRefresher>();
+    AddSuwayomiClient(SuwayomiClient.HttpClientName, TimeSpan.FromSeconds(60), perRequest: true);
+    AddSuwayomiClient(SuwayomiClient.PagesHttpClientName, TimeSpan.FromMinutes(2), perRequest: false);
+
+    // The API client times the request itself, not its wait in the concurrency queue: a bulk refresh
+    // queues dozens of calls behind four permits, and the client-wide timeout would fail the tail of
+    // them as "Search failed" without Suwayomi ever being slow. The outer bound only caps the queue.
+    void AddSuwayomiClient(string name, TimeSpan timeout, bool perRequest)
+    {
+        var limiter = new System.Threading.RateLimiting.ConcurrencyLimiter(
+            new System.Threading.RateLimiting.ConcurrencyLimiterOptions
+            {
+                PermitLimit = 4,
+                QueueLimit = int.MaxValue,
+                QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst
+            });
+        var http = builder.Services.AddHttpClient(name, client =>
+            {
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("Maki/1.0 (+https://github.com/Maki)");
+                client.Timeout = perRequest ? Timeout.InfiniteTimeSpan : timeout;
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+        if (perRequest)
+        {
+            http.AddHttpMessageHandler(() => new RequestTimeoutHandler(TimeSpan.FromMinutes(10)));
+        }
+
+        http.AddHttpMessageHandler(sp => new SuwayomiOriginHandler(sp.GetRequiredService<SuwayomiSettings>()))
+            .AddHttpMessageHandler(sp => new SuwayomiAuthHandler(sp.GetRequiredService<SuwayomiTokenStore>()))
+            .AddHttpMessageHandler(() => new TransientRetryHandler())
+            .AddHttpMessageHandler(() => new RateLimitDetectingHandler())
+            .AddHttpMessageHandler(() => new RateLimitingHandler(limiter));
+        if (perRequest)
+        {
+            http.AddHttpMessageHandler(() => new RequestTimeoutHandler(timeout));
+        }
+    }
+
     builder.Services.AddSingleton<SourceRegistry>();
     builder.Services.AddSingleton<SourceAvailability>();
     builder.Services.AddSingleton<PageDownloader>();
@@ -1406,6 +1438,14 @@ try
         // Anything read before the migration and the marker-gated repairs above may have changed
         // under the settings cache.
         app.Services.GetRequiredService<SettingsService>().Invalidate();
+
+        SuwayomiSourceRefresher.ImportEnvironmentAsync(app.Services.GetRequiredService<SettingsService>(), CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        // Providers build their sources from settings, so after the invalidate, and before Kestrel and
+        // Quartz so a sync or a priority save never asks for one of them by name before it exists.
+        app.Services.GetRequiredService<SourceRegistry>()
+            .ReloadAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
     var authOptions = app.Services.GetRequiredService<AuthRuntimeOptions>();

@@ -84,14 +84,13 @@ const SEARCH_SITES: { key: string; label: string; url: (query: string) => string
 
 /**
  * One button per site, each opening that site's search for the title in a new tab. Suwayomi's own
- * all-sources search is added when Suwayomi is set up: its sources carry the address a browser
- * reaches it on, so there is nothing to configure here.
+ * all-sources search is added when Suwayomi is set up: when the admin gave Suwayomi an address for browsers.
  */
 export function SearchOnLinks({ title }: { title: string }) {
   const { t } = useLingui()
   const { data: sources } = useSources()
   const query = encodeURIComponent(title)
-  const suwayomi = sources?.find((source) => source.name.startsWith('suwayomi-'))?.baseUrl
+  const suwayomi = sources?.find((source) => source.suwayomi?.publicUrl)?.suwayomi?.publicUrl
   const sites = suwayomi
     ? [
         ...SEARCH_SITES,

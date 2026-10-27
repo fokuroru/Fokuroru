@@ -707,6 +707,10 @@ msgstr "{indexer} · Torrent"
 msgid "{inLibraryCount, plural, one {Show # series already in the library} other {Show # series already in the library}}"
 msgstr "{inLibraryCount, plural, one {Show # series already in the library} other {Show # series already in the library}}"
 
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "{installed, plural, =0 {No Suwayomi sources yet.} one {# Suwayomi source, {inUse} switched on.} other {# Suwayomi sources, {inUse} switched on.}}"
+msgstr "{installed, plural, =0 {No Suwayomi sources yet.} one {# Suwayomi source, {inUse} switched on.} other {# Suwayomi sources, {inUse} switched on.}}"
+
 #: src/pages/stats/sections/ProgressSection.tsx
 msgid "{intoLevel} / {levelSpan} XP to level {nextLevel}"
 msgstr "{intoLevel} / {levelSpan} XP to level {nextLevel}"
@@ -744,6 +748,10 @@ msgstr "{label} already has a file. Compare the two before deciding: importing t
 msgid "{label} hidden"
 msgstr "{label} hidden"
 
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "{label} mixes languages, and Suwayomi does not say which one a chapter is in. Every chapter from it is filed under the language you pick here."
+msgstr "{label} mixes languages, and Suwayomi does not say which one a chapter is in. Every chapter from it is filed under the language you pick here."
+
 #: src/components/layout/PageLayoutEditor.tsx
 msgid "{label} moved to position {position} of {total}"
 msgstr "{label} moved to position {position} of {total}"
@@ -775,6 +783,10 @@ msgstr "{languageCount, plural, one {# language} other {# languages}}"
 #: src/pages/SettingsPage.tsx
 msgid "{languageCount, plural, one {Covers # language} other {Covers # languages}}"
 msgstr "{languageCount, plural, one {Covers # language} other {Covers # languages}}"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "{languagesOn, plural, =0 {No languages on} one {# language on} other {# languages on}}"
+msgstr "{languagesOn, plural, =0 {No languages on} one {# language on} other {# languages on}}"
 
 #: src/components/layout/SidebarFooter.tsx
 msgid "{latestVersion} available, skipped"
@@ -1134,6 +1146,10 @@ msgstr "{shown, plural, one {Showing the first # result. Search to narrow it dow
 msgid "{shownCount} of {totalSeriesShown} series shown."
 msgstr "{shownCount} of {totalSeriesShown} series shown."
 
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "{siteName} languages"
+msgstr "{siteName} languages"
+
 #: src/pages/discover/TasteTab.tsx
 msgid "{size, plural, one {# series, {shareLabel} of this view, {coherenceWord}} other {# series, {shareLabel} of this view, {coherenceWord}}}"
 msgstr "{size, plural, one {# series, {shareLabel} of this view, {coherenceWord}} other {# series, {shareLabel} of this view, {coherenceWord}}}"
@@ -1153,6 +1169,10 @@ msgstr "{source} {tierLabel} ({score})"
 #: src/pages/ActivityPage.tsx
 msgid "{source} {tierLabel} {medianWidth}px ({score})"
 msgstr "{source} {tierLabel} {medianWidth}px ({score})"
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "{sourceCount, plural, one {Suwayomi {version} answered with # source installed.} other {Suwayomi {version} answered with # sources installed.}}"
+msgstr "{sourceCount, plural, one {Suwayomi {version} answered with # source installed.} other {Suwayomi {version} answered with # sources installed.}}"
 
 #: src/pages/HealthPage.tsx
 msgid "{sourceName} · priority {priority}"
@@ -1707,6 +1727,10 @@ msgstr "A local embedding model lets Discover recommend by feel and search by de
 #: src/components/NotificationsSection.tsx
 msgid "A new system health problem was detected."
 msgstr "A new system health problem was detected."
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "A new URL clears the saved password, so enter it again."
+msgstr "A new URL clears the saved password, so enter it again."
 
 #: src/components/NotificationsSection.tsx
 msgid "A newer Fōkurōru release was published."
@@ -2771,6 +2795,10 @@ msgstr "Base recommendations on these titles. Search adds any title from MangaBa
 msgid "Based on your recent activity"
 msgstr "Based on your recent activity"
 
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Basic auth"
+msgstr "Basic auth"
+
 #: src/components/NotificationsSection.tsx
 msgid "Bearer token"
 msgstr "Bearer token"
@@ -2923,6 +2951,7 @@ msgid "Building metadata search indexes"
 msgstr "Building metadata search indexes"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/pages/settings/ManageSourcesModal.tsx
 msgid "Built in"
 msgstr "Built in"
 
@@ -3252,6 +3281,10 @@ msgstr "Change linked chapters"
 msgid "Change own content rating"
 msgstr "Change own content rating"
 
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Change the chapter language of {label}"
+msgstr "Change the chapter language of {label}"
+
 #: src/pages/RequestsPage.tsx
 msgid "Change the chapter range"
 msgstr "Change the chapter range"
@@ -3332,6 +3365,14 @@ msgstr "Chapter downloaded"
 #: src/pages/SettingsPage.tsx
 msgid "Chapter Format"
 msgstr "Chapter Format"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Chapter language"
+msgstr "Chapter language"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Chapter language for {label}"
+msgstr "Chapter language for {label}"
 
 #: src/components/NamingTokenModal.tsx
 msgid "Chapter number and volume also take zero-padding: <0>{paddingExampleToken}</0> renders 24 as 024."
@@ -6669,6 +6710,10 @@ msgstr "Include subtags"
 msgid "Include subtags when adding"
 msgstr "Include subtags when adding"
 
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Include the subpath if Suwayomi runs under one."
+msgstr "Include the subpath if Suwayomi runs under one."
+
 #: src/components/CatalogueRules.tsx
 msgid "Includes subtags"
 msgstr "Includes subtags"
@@ -6988,9 +7033,14 @@ msgid "language, translation, translate, locale, interface language, ui language
 msgstr "language, translation, translate, locale, interface language, ui language, english, swedish, svenska"
 
 #: src/components/SourceMappingsSection.tsx
+#: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/SettingsPage.tsx
 msgid "Languages"
 msgstr "Languages"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Languages of {siteName}"
+msgstr "Languages of {siteName}"
 
 #: src/components/SetupWizard.tsx
 msgid "Languages to download"
@@ -7542,6 +7592,7 @@ msgstr "Manage signals"
 
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
+#: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 msgid "Manage sources"
 msgstr "Manage sources"
@@ -7702,6 +7753,10 @@ msgstr "Match"
 #: src/components/import/MihonReview.tsx
 msgid "Match for {title}"
 msgstr "Match for {title}"
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Match Suwayomi's own auth mode setting."
+msgstr "Match Suwayomi's own auth mode setting."
 
 #: src/theme-context.tsx
 msgid "Match system"
@@ -8488,9 +8543,21 @@ msgstr "No index yet, the prebuilt vectors download automatically."
 msgid "No indexers configured in Prowlarr."
 msgstr "No indexers configured in Prowlarr."
 
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "No language matches"
+msgstr "No language matches"
+
 #: src/components/SetupWizard.tsx
 msgid "No library folder yet. Series need one to download into."
 msgstr "No library folder yet. Series need one to download into."
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "no longer in Suwayomi"
+msgstr "no longer in Suwayomi"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "No longer in Suwayomi"
+msgstr "No longer in Suwayomi"
 
 #: src/pages/discover/FeedbackLab.tsx
 msgid "no longer steers your taste"
@@ -8756,6 +8823,7 @@ msgstr "none"
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/pages/LibraryPage.tsx
+#: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 msgid "None"
 msgstr "None"
@@ -8820,6 +8888,10 @@ msgstr "not configured (see Settings)"
 #: src/components/ui/status.tsx
 msgid "Not connected"
 msgstr "Not connected"
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Not connected."
+msgstr "Not connected."
 
 #: src/pages/stats/sections/TasteSection.tsx
 msgid "Not enough genre data yet"
@@ -9480,6 +9552,14 @@ msgstr "Optional"
 msgid "Optional, and yours to set. Fōkurōru never adds one for you."
 msgstr "Optional, and yours to set. Fōkurōru never adds one for you."
 
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Optional. Point Maki at a Suwayomi server to use the sources of the extensions installed there, alongside Maki's own. Extensions are installed and configured in Suwayomi; Maki only reads from it."
+msgstr "Optional. Point Maki at a Suwayomi server to use the sources of the extensions installed there, alongside Maki's own. Extensions are installed and configured in Suwayomi; Maki only reads from it."
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Optional. Where your browser reaches Suwayomi, if that differs from the URL above. It adds a Suwayomi search to the Search on links, and every signed-in user can see it."
+msgstr "Optional. Where your browser reaches Suwayomi, if that differs from the URL above. It adds a Suwayomi search to the Search on links, and every signed-in user can see it."
+
 #: src/pages/LoginPage.tsx
 msgid "or"
 msgstr "or"
@@ -9670,6 +9750,7 @@ msgstr "Passed over: {reasons}"
 #: src/components/settings/UsersSection.tsx
 #: src/components/SetupWizard.tsx
 #: src/pages/LoginPage.tsx
+#: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 #: src/pages/SetupAccountPage.tsx
 msgid "Password"
@@ -9778,6 +9859,14 @@ msgstr "Personal add weighting is disabled for this instance."
 msgid "Phone reader"
 msgstr "Phone reader"
 
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Pick a chapter language first"
+msgstr "Pick a chapter language first"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Pick a language"
+msgstr "Pick a language"
+
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Pick a layout"
 msgstr "Pick a layout"
@@ -9790,6 +9879,10 @@ msgstr "Pick a root folder"
 #: src/components/QueuePause.tsx
 msgid "Pick a time in the future"
 msgstr "Pick a time in the future"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Pick languages"
+msgstr "Pick languages"
 
 #: src/pages/SettingsPage.tsx
 msgid "Pick the dark theme, the light theme, or match your system's light or dark mode. Remembered on this device."
@@ -10056,6 +10149,10 @@ msgstr "Protect from upgrades"
 #: src/components/series/FileQualityBadge.tsx
 msgid "Protected from upgrades"
 msgstr "Protected from upgrades"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Provider"
+msgstr "Provider"
 
 #: src/pages/settings/registry.ts
 msgid "Prowlarr"
@@ -10421,6 +10518,10 @@ msgstr "Readers like you also finished this"
 #: src/components/ui/DiscoverRail.tsx
 msgid "Readers like you also recommended this"
 msgstr "Readers like you also recommended this"
+
+#: src/components/ui/DiscoverRail.tsx
+msgid "Readers who finished {finished} also finished this"
+msgstr "Readers who finished {finished} also finished this"
 
 #: src/components/ImportListsSection.tsx
 #: src/components/series/SeriesProgress.tsx
@@ -11407,6 +11508,7 @@ msgstr "Sample chapter"
 #: src/components/settings/UsersSection.tsx
 #: src/components/TagManagerModal.tsx
 #: src/pages/LibraryPage.tsx
+#: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/SettingsSection.tsx
 msgid "Save"
 msgstr "Save"
@@ -11491,6 +11593,7 @@ msgstr "Save your recovery codes"
 #: src/components/settings/UpgradeProfilesSection.tsx
 #: src/components/SetupWizard.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
+#: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 msgid "Saved"
 msgstr "Saved"
@@ -11513,6 +11616,10 @@ msgstr "Saved filters"
 #: src/components/DeviceSaveButton.tsx
 msgid "Saved on this device. Tap to remove it"
 msgstr "Saved on this device. Tap to remove it"
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Saved. Leave empty to keep it."
+msgstr "Saved. Leave empty to keep it."
 
 #: src/pages/LibraryPage.tsx
 msgid "Saves the current search, sort and every filter in the panel as a named preset."
@@ -12227,6 +12334,7 @@ msgid "Set to <0>0</0> to disable lockout."
 msgstr "Set to <0>0</0> to disable lockout."
 
 #: src/components/settings/AccountSection.tsx
+#: src/pages/settings/ManageSourcesModal.tsx
 msgid "Set up"
 msgstr "Set up"
 
@@ -12262,6 +12370,10 @@ msgstr "Setup guide"
 #: src/components/SetupWizard.tsx
 msgid "Setup steps"
 msgstr "Setup steps"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Several languages, pick one"
+msgstr "Several languages, pick one"
 
 #: src/pages/discover/ManageSignalsModal.tsx
 msgid "Shapes recommendations"
@@ -12339,10 +12451,6 @@ msgstr "Show less"
 #: src/pages/SimpleHomePage.tsx
 msgid "Show more"
 msgstr "Show more"
-
-#: src/pages/HealthPage.tsx
-msgid "Show newest {max} of {count}"
-msgstr "Show newest {max} of {count}"
 
 #: src/components/rails/CustomRailEditor.tsx
 msgid "Show on"
@@ -12454,6 +12562,10 @@ msgstr "Sign out"
 #: src/components/settings/AccountSection.tsx
 msgid "Sign out everywhere else"
 msgstr "Sign out everywhere else"
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Sign-in"
+msgstr "Sign-in"
 
 #: src/components/settings/AccountSection.tsx
 msgid "Sign-in relies on your identity provider. A code, once set up, protects password sign-in only."
@@ -12973,9 +13085,22 @@ msgstr "Suggestive"
 msgid "Supernatural"
 msgstr "Supernatural"
 
+#: src/pages/settings/registry.ts
+msgid "Suwayomi"
+msgstr "Suwayomi"
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "Suwayomi has a separate source for each language of this site, with its own chapters. Every language you pick is searched for each series you add and gets its own place in the priority list."
+msgstr "Suwayomi has a separate source for each language of this site, with its own chapters. Every language you pick is searched for each series you add and gets its own place in the priority list."
+
 #: src/sourceLabels.ts
 msgid "Suwayomi source"
 msgstr "Suwayomi source"
+
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "suwayomi, tachidesk, mihon, tachiyomi, extensions, extension sources, more sources, graphql, 4567"
+msgstr "suwayomi, tachidesk, mihon, tachiyomi, extensions, extension sources, more sources, graphql, 4567"
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Switch reading direction"
@@ -13132,6 +13257,7 @@ msgstr "Tells you about every new chapter, whatever your default is."
 
 #: src/components/ConnectionSettingsCard.tsx
 #: src/components/NotificationsSection.tsx
+#: src/pages/settings/SuwayomiCards.tsx
 msgid "Test"
 msgstr "Test"
 
@@ -13437,6 +13563,10 @@ msgstr "The specific things that keep coming back in your library, each with mor
 #: src/components/settings/NotificationPrefsSection.tsx
 msgid "The starting point for every series. Any series can be set to something else from its own page, or for a whole selection at once from the Library's Select mode."
 msgstr "The starting point for every series. Any series can be set to something else from its own page, or for a whole selection at once from the Library's Select mode."
+
+#: src/pages/settings/ManageSourcesModal.tsx
+msgid "The Suwayomi sources below are the ones it listed last time."
+msgstr "The Suwayomi sources below are the ones it listed last time."
 
 #: src/api/upgrades.ts
 msgid "The title might be a different series"
@@ -14114,6 +14244,10 @@ msgstr "Typical chapter"
 msgid "Typical sitting"
 msgstr "Typical sitting"
 
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "UI login (v2.2 or later)"
+msgstr "UI login (v2.2 or later)"
+
 #: src/components/ImportListsSection.tsx
 msgid "Un-ignore"
 msgstr "Un-ignore"
@@ -14428,6 +14562,7 @@ msgstr "Upper Case"
 
 #: src/components/NotificationsSection.tsx
 #: src/components/SetupWizard.tsx
+#: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 msgid "URL"
 msgstr "URL"
@@ -14529,6 +14664,7 @@ msgstr "User, group or channel ID. Public channels can use @name."
 #: src/components/settings/UsersSection.tsx
 #: src/components/SetupWizard.tsx
 #: src/pages/LoginPage.tsx
+#: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 #: src/pages/SetupAccountPage.tsx
 msgid "Username"
@@ -14839,6 +14975,10 @@ msgstr "Watched chapters don't count toward your reading stats. If you have a co
 #: src/pages/discover/AnimeSignalsSection.tsx
 msgid "Watching"
 msgstr "Watching"
+
+#: src/pages/settings/SuwayomiCards.tsx
+msgid "Web address for browsers"
+msgstr "Web address for browsers"
 
 #: src/components/NotificationsSection.tsx
 msgid "Webhook"
