@@ -23,7 +23,7 @@ import PageStrip from './PageStrip'
 import ReaderToolbar from './ReaderToolbar'
 import { navigatesVertically, scaleMax, useReaderPrefs } from './prefs'
 import { usePinchZoom } from './usePinchZoom'
-import { usePageUrls, usePreload } from './usePageUrls'
+import { usePageUrls, usePreload, useWarmChapter } from './usePageUrls'
 import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
 import { spineVars } from '../../lib/spine'
@@ -33,6 +33,8 @@ import { useTapZones } from '../../api/tapZones'
 import TapZoneHint from '../../components/reader/TapZoneHint'
 import { actionAt, layoutFor } from '../../lib/tapZones'
 
+// Pages from the end of a chapter at which the next chapter starts warming up.
+const WARM_NEXT_WITHIN = 3
 const ZOOM_STEP = 0.25
 const ZOOM_MAX = 4
 const CHROME_HIDE_MS = 4000
@@ -129,6 +131,19 @@ export default function ReaderPage() {
   const bookmarked = bookmarkedPages.has(page)
 
   usePreload(urls, page, prefs.mode === 'vertical' ? 0 : prefs.preload)
+  // How many pages from the end of a chapter the next chapter's first pages start loading. Held back until
+  // this chapter's own resume has landed, so the warm-up never competes with the pages being opened.
+  const nearEnd =
+    atEnd ||
+    (pageCount > 0 &&
+      (prefs.mode === 'vertical'
+        ? page >= pageCount - WARM_NEXT_WITHIN
+        : spreadIndex >= spreads.length - WARM_NEXT_WITHIN))
+  useWarmChapter(
+    manifest?.nextChapterId ?? null,
+    resumedFor === manifest?.chapterId && nearEnd && prefs.preload > 0,
+    Math.max(2, prefs.preload),
+  )
 
   /**
    * Achievements ride back on the write that completes a chapter, so the toast needs no second
