@@ -6,11 +6,6 @@ using Maki.Core.Http;
 using Maki.Core.Images;
 using Maki.Core.Parsing;
 using Maki.Core.Sources;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace Maki.Sources.CuuTruyen;
 
@@ -340,29 +335,56 @@ public class CuuTruyenSource(IHtmlFetcher fetcher, IHttpClientFactory httpClient
             })
             .ToList();
 
-        return await ImageWorkGate.RunAsync(async () =>
+        return await ImageWorkGate.RunAsync(() =>
         {
-            using var source = Image.Load<Rgba32>(imageBytes);
-            using var destination = new Image<Rgba32>(source.Width, source.Height);
+            var source = Raster.Decode(imageBytes);
+            var destination = new Raster(source.Width, source.Height);
 
             var sourceY = 0;
-            destination.Mutate(ctx =>
+            foreach (var (dy, h) in strips)
             {
-                foreach (var (dy, h) in strips)
+                // Clipped like a draw would be: a map that runs past either edge loses the overhang
+                // rather than throwing away the whole page.
+                var height = Math.Min(h, Math.Min(source.Height - sourceY, destination.Height - dy));
+                if (height > 0 && dy >= 0)
                 {
-                    ctx.DrawImage(source, new Point(0, dy), new Rectangle(0, sourceY, source.Width, h), 1f);
-                    sourceY += h;
+                    destination.CopyFrom(source, 0, sourceY, source.Width, height, 0, dy);
                 }
-            });
 
-            IImageEncoder encoder = source.Metadata.DecodedImageFormat is { } format
-                ? source.Configuration.ImageFormatsManager.GetEncoder(format)
-                : new JpegEncoder { Quality = 90 };
+                sourceY += h;
+            }
 
-            using var buffer = new MemoryStream();
-            await destination.SaveAsync(buffer, encoder, ct);
-            return buffer.ToArray();
+            return Task.FromResult(Encode(destination, ImageCodec.DetectFormat(imageBytes), imageBytes));
         }, ct);
+    }
+
+    private const int ReencodeQuality = 90;
+
+    /// <summary>The page goes back out in the format it came in, so its saved name still matches its bytes.</summary>
+    private static byte[] Encode(Raster page, ImageFormat? format, byte[] original) => format switch
+    {
+        null or ImageFormat.Jpeg => page.EncodeJpeg(ReencodeQuality),
+        ImageFormat.Webp => IsLosslessWebp(original) ? page.EncodeWebpLossless() : page.EncodeWebp(ReencodeQuality),
+        ImageFormat.Gif => page.EncodeGif(),
+        _ => page.EncodePng(),
+    };
+
+    /// <summary>
+    /// A lossless WebP carries a VP8L chunk: first in a simple file, after VP8X and any metadata
+    /// chunks in an extended one. A lossy one carries VP8 instead.
+    /// </summary>
+    internal static bool IsLosslessWebp(ReadOnlySpan<byte> bytes)
+    {
+        for (var offset = 12; offset + 8 <= bytes.Length;)
+        {
+            var fourCc = bytes.Slice(offset, 4);
+            if (fourCc.SequenceEqual("VP8L"u8)) return true;
+            if (fourCc.SequenceEqual("VP8 "u8)) return false;
+            var size = System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(bytes.Slice(offset + 4, 4));
+            offset += 8 + (int)Math.Min(size + (size & 1), int.MaxValue - 8);
+        }
+
+        return false;
     }
 
     // ── Plumbing ──────────────────────────────────────────────────────

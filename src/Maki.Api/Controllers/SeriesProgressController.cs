@@ -10,10 +10,6 @@ using Maki.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Processing;
 
 namespace Maki.Api.Controllers;
 
@@ -159,19 +155,10 @@ public class SeriesProgressController(
                 return;
             }
 
-            var seekable = new MemoryStream();
-            await source.CopyToAsync(seekable, ct);
-            seekable.Position = 0;
-            var info = await Image.IdentifyAsync(seekable, ct);
-            seekable.Position = 0;
-            var options = info.Width > PreviewWidth
-                ? new DecoderOptions { TargetSize = new Size(PreviewWidth, Math.Max(1, (int)Math.Round((double)info.Height * PreviewWidth / info.Width))) }
-                : new DecoderOptions();
-            using var image = await Image.LoadAsync(options, seekable, ct);
-            image.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(PreviewWidth, 0), Mode = ResizeMode.Max }));
-            using var output = new MemoryStream();
-            await image.SaveAsJpegAsync(output, new JpegEncoder { Quality = 70 }, ct);
-            bytes = output.ToArray();
+            using var buffer = new MemoryStream();
+            await source.CopyToAsync(buffer, ct);
+            // Shrunk while decoding where the format allows it, and never enlarged.
+            bytes = ImageCodec.JpegThumbnail(buffer.ToArray(), PreviewWidth, 70, enlarge: false);
         }, ct);
 
         if (bytes is null)

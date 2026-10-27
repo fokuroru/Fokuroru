@@ -3,12 +3,8 @@ using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Notifications;
 using System.Security.Cryptography;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
+using Maki.Core.Images;
 using Maki.Core.Imaging;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace Maki.Api.Services;
 
@@ -18,8 +14,6 @@ public class CoverService(
     : INotificationCoverStore
 {
     private const int PosterWidth = 400;
-
-    private static readonly DecoderOptions FirstFrameOnly = new() { MaxFrames = 1 };
 
     public string CoverPathFor(int seriesId) => Path.Combine(paths.MediaCoverDir, seriesId.ToString(), "cover.jpg");
 
@@ -60,8 +54,8 @@ public class CoverService(
 
         try
         {
-            using var image = await Image.LoadAsync<Rgb24>(path, ct);
-            return SpineColor.Sample(image);
+            var bytes = await File.ReadAllBytesAsync(path, ct);
+            return await ImageWorkGate.RunAsync(() => Task.FromResult(SpineColor.Sample(bytes)), ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -76,16 +70,18 @@ public class CoverService(
         {
             var client = httpClientFactory.CreateClient("covers");
             await using var stream = await client.GetStreamAsync(coverUrl, ct);
-            using var image = await Image.LoadAsync(FirstFrameOnly, stream, ct);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer, ct);
+            var source = buffer.ToArray();
 
-            if (image.Width > PosterWidth)
-            {
-                image.Mutate(x => x.Resize(PosterWidth, 0));
-            }
+            // The first frame of an animation, shrunk to the poster width when wider and never enlarged,
+            // with orientation applied and every metadata block dropped.
+            var poster = await ImageWorkGate.RunAsync(
+                () => Task.FromResult(ImageCodec.JpegThumbnail(source, PosterWidth, 90, enlarge: false)), ct);
 
             var target = CoverPathFor(seriesId);
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            await image.SaveAsync(target, new JpegEncoder { Quality = 90 }, ct);
+            await File.WriteAllBytesAsync(target, poster, ct);
             return target;
         }
         catch (Exception ex)

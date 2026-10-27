@@ -1,8 +1,6 @@
 using System.Numerics;
 using PdfSharp.Pdf.IO;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using Maki.Core.Images;
 
 namespace Maki.Core.Reading;
 
@@ -76,12 +74,13 @@ public static class PdfOrientation
                 ? PdfReader.RenderPage(path, index, ThumbEdge)
                 : CbzReader.OpenPage(path, pageName);
             if (stream is null) return null;
-            using var image = Image.Load<L8>(stream);
-            image.Mutate(x => x.Resize(HashWidth, HashHeight));
+            using var buffer = new MemoryStream();
+            stream.CopyTo(buffer);
+            var grey = ImageCodec.ForcedGrey(buffer.ToArray(), HashWidth, HashHeight);
             ulong hash = 0;
             for (var y = 0; y < HashHeight; y++)
                 for (var x = 0; x < HashWidth - 1; x++)
-                    hash = hash << 1 | (image[x, y].PackedValue < image[x + 1, y].PackedValue ? 1UL : 0);
+                    hash = hash << 1 | (grey[y * HashWidth + x] < grey[y * HashWidth + x + 1] ? 1UL : 0);
             return hash;
         }
         catch

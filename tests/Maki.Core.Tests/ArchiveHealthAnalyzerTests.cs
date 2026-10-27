@@ -1,8 +1,6 @@
 using System.IO.Compression;
 using Maki.Core.Reading;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Formats.Png;
+using Maki.Core.Images;
 namespace Maki.Core.Tests;
 public class ArchiveHealthAnalyzerTests : IDisposable
 {
@@ -15,12 +13,12 @@ public class ArchiveHealthAnalyzerTests : IDisposable
         foreach (var (name, bytes) in entries) { using var stream = zip.CreateEntry(name).Open(); stream.Write(bytes); }
         return path;
     }
-    private static byte[] Png(PngCompressionLevel level = PngCompressionLevel.DefaultCompression)
+    private static byte[] Png(int compression = 6)
     {
-        using var image = new Image<Rgba32>(32, 48);
+        var image = new Raster(32, 48);
         for (var y = 0; y < image.Height; y++)
-        for (var x = 0; x < image.Width; x++) image[x,y] = new Rgba32((byte)(x*7), (byte)(y*5), (byte)((x+y)*3));
-        using var bytes = new MemoryStream(); image.Save(bytes, new PngEncoder { CompressionLevel = level }); return bytes.ToArray();
+        for (var x = 0; x < image.Width; x++) image[x,y] = new Rgba((byte)(x*7), (byte)(y*5), (byte)((x+y)*3));
+        return image.EncodePng(compression);
     }
     [Fact] public async Task Detects_empty_and_missing_files()
     {
@@ -37,7 +35,7 @@ public class ArchiveHealthAnalyzerTests : IDisposable
     }
     [Fact] public async Task Reencoded_pages_match_decoded_hash_and_reader_order()
     {
-        var result = await ArchiveHealthAnalyzer.AnalyzeAsync(Archive(("z.png",Png(level:PngCompressionLevel.Level1)),("a.png",Png(level:PngCompressionLevel.Level9))), default, null, null, verify: true);
+        var result = await ArchiveHealthAnalyzer.AnalyzeAsync(Archive(("z.png",Png(compression:1)),("a.png",Png(compression:9))), default, null, null, verify: true);
         Assert.Equal("complete",result.Status); Assert.Empty(result.Problems);
         Assert.Equal("a.png",result.Pages[0].Name);
         Assert.Equal(2,result.Pages.Count);

@@ -1,6 +1,4 @@
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using Maki.Core.Images;
 
 namespace Maki.Core.Imaging;
 
@@ -17,26 +15,24 @@ namespace Maki.Core.Imaging;
 public static class SpineColor
 {
     private const double WhiteContrastTarget = 4.8;
+    private const int SampleWidth = 60;
+    private const int SampleHeight = 90;
 
-    public static string? Sample(Image<Rgb24> cover)
+    /// <summary>Samples the colour of an image file's bytes (any format the image codec reads).</summary>
+    public static string? Sample(byte[] cover)
     {
-        using var small = cover.Clone(x => x.Resize(new ResizeOptions { Size = new Size(60, 90), Mode = ResizeMode.Stretch }));
+        var pixels = ImageCodec.ForcedRgb(cover, SampleWidth, SampleHeight);
 
         var sums = new Dictionary<int, (long R, long G, long B, int N)>();
         var total = 0;
-        small.ProcessPixelRows(rows =>
+        for (var i = 0; i + 2 < pixels.Length; i += 3)
         {
-            for (var y = 0; y < rows.Height; y++)
-            {
-                foreach (var p in rows.GetRowSpan(y))
-                {
-                    var key = (p.R >> 5) << 6 | (p.G >> 5) << 3 | (p.B >> 5);
-                    sums.TryGetValue(key, out var s);
-                    sums[key] = (s.R + p.R, s.G + p.G, s.B + p.B, s.N + 1);
-                    total++;
-                }
-            }
-        });
+            byte r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+            var key = (r >> 5) << 6 | (g >> 5) << 3 | (b >> 5);
+            sums.TryGetValue(key, out var s);
+            sums[key] = (s.R + r, s.G + g, s.B + b, s.N + 1);
+            total++;
+        }
 
         (double Score, double H, double L, double S)? best = null;
         foreach (var (r, g, b, n) in sums.Values)

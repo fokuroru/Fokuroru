@@ -1,9 +1,6 @@
 using System.IO.Compression;
 using System.Numerics;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using Maki.Core.Images;
 
 namespace Maki.Core.Reading;
 
@@ -68,21 +65,22 @@ public static class PageHashes
     {
         try
         {
-            // The target size lets decoders that can (JPEG) read the page already shrunk.
-            using var picture = Image.Load<L8>(new DecoderOptions { TargetSize = new Size(72, 72) }, image);
-            picture.Mutate(x => x.Resize(9, 8, KnownResamplers.Box));
+            using var buffer = new MemoryStream();
+            image.CopyTo(buffer);
+            // The page squeezed to 9 by 8, shrunk while decoding where the format allows it.
+            var grey = ImageCodec.ForcedGrey(buffer.ToArray(), 9, 8);
             ulong bits = 0;
             for (var y = 0; y < 8; y++)
             {
                 for (var x = 0; x < 8; x++)
                 {
-                    bits = (bits << 1) | (picture[x, y].PackedValue > picture[x + 1, y].PackedValue ? 1UL : 0UL);
+                    bits = (bits << 1) | (grey[y * 9 + x] > grey[y * 9 + x + 1] ? 1UL : 0UL);
                 }
             }
 
             return bits;
         }
-        catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
+        catch (Exception ex) when (ex is NetVips.VipsException or NotSupportedException or InvalidDataException)
         {
             return 0;
         }

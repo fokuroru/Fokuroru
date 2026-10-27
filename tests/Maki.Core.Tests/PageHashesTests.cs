@@ -1,18 +1,14 @@
+using Maki.Core.Images;
 using Maki.Core.Reading;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace Maki.Core.Tests;
 
 public class PageHashesTests
 {
     // A page with a few shapes whose layout depends on the seed: distinct seeds are distinct "pages".
-    private static Image<Rgb24> Page(int seed, int width, int height)
+    private static Raster Page(int seed, int width, int height)
     {
-        var image = new Image<Rgb24>(width, height, Color.White);
+        var image = new Raster(width, height, new Rgba(255, 255, 255), bands: 3);
         var rng = new Random(seed);
         for (var i = 0; i < 6; i++)
         {
@@ -25,7 +21,7 @@ public class PageHashesTests
             {
                 for (var x = x0; x < x0 + w; x++)
                 {
-                    image[x, y] = new Rgb24(shade, shade, shade);
+                    image[x, y] = new Rgba(shade, shade, shade);
                 }
             }
         }
@@ -33,12 +29,9 @@ public class PageHashesTests
         return image;
     }
 
-    private static ulong HashOf(Image<Rgb24> image, bool jpeg)
+    private static ulong HashOf(Raster image, bool jpeg)
     {
-        using var stream = new MemoryStream();
-        if (jpeg) image.Save(stream, new JpegEncoder { Quality = 70 });
-        else image.Save(stream, new PngEncoder());
-        stream.Position = 0;
+        using var stream = new MemoryStream(jpeg ? image.EncodeJpeg(70) : image.EncodePng());
         return PageHashes.Hash(stream);
     }
 
@@ -47,8 +40,8 @@ public class PageHashesTests
     {
         for (var seed = 1; seed <= 12; seed++)
         {
-            using var big = Page(seed, 1600, 2400);
-            using var small = Page(seed, 800, 1200);
+            var big = Page(seed, 1600, 2400);
+            var small = Page(seed, 800, 1200);
             var distance = System.Numerics.BitOperations.PopCount(HashOf(big, jpeg: true) ^ HashOf(small, jpeg: false));
             Assert.True(distance <= PageHashes.MaxDistance, $"seed {seed}: {distance} bits apart");
         }
@@ -57,8 +50,8 @@ public class PageHashesTests
     [Fact]
     public void Different_pages_hash_apart()
     {
-        using var a = Page(1, 800, 1200);
-        using var b = Page(2, 800, 1200);
+        var a = Page(1, 800, 1200);
+        var b = Page(2, 800, 1200);
         var distance = System.Numerics.BitOperations.PopCount(HashOf(a, true) ^ HashOf(b, true));
         Assert.True(distance > PageHashes.MaxDistance, $"{distance} bits apart");
     }
@@ -66,7 +59,7 @@ public class PageHashesTests
     [Fact]
     public void A_blank_page_says_nothing()
     {
-        using var blank = new Image<Rgb24>(400, 600, Color.White);
+        var blank = new Raster(400, 600, new Rgba(255, 255, 255), bands: 3);
         Assert.False(PageHashes.Informative(HashOf(blank, jpeg: false)));
     }
 

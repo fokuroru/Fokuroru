@@ -3,8 +3,7 @@ using Maki.Core.Reading;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using Maki.Core.Images;
 
 namespace Maki.Core.Tests;
 
@@ -46,13 +45,14 @@ public class PdfOrientationTests : IDisposable
     // A page whose left half is dark and right half light, or the opposite, per seed.
     private static byte[] Shade(int seed)
     {
-        using var image = new Image<L8>(64, 64);
+        var image = new Raster(64, 64, bands: 3);
         for (var y = 0; y < 64; y++)
             for (var x = 0; x < 64; x++)
-                image[x, y] = new L8((byte)((x * (seed + 1) * 7 + y * (seed + 2) * 3 + seed * 90) % 256));
-        using var ms = new MemoryStream();
-        image.SaveAsPng(ms);
-        return ms.ToArray();
+            {
+                var v = (byte)((x * (seed + 1) * 7 + y * (seed + 2) * 3 + seed * 90) % 256);
+                image[x, y] = new Rgba(v, v, v);
+            }
+        return image.EncodePng();
     }
 
     private string Cbz(string name, params byte[][] pages)

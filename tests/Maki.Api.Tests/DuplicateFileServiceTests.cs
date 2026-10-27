@@ -1,14 +1,11 @@
 using System.IO.Compression;
 using Maki.Api.Services;
+using Maki.Core.Images;
 using Maki.Core.Entities;
 using Maki.Core.Kavita;
 using Maki.Core.Quality;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace Maki.Api.Tests;
 
@@ -28,7 +25,7 @@ public class DuplicateFileServiceTests : IDisposable
     // A page whose layout depends on its seed, so different seeds are different pages.
     private static byte[] Page(int seed, bool jpeg, int width = 300, int height = 450)
     {
-        using var image = new Image<Rgb24>(width, height, Color.White);
+        var image = new Raster(width, height, new Rgba(255, 255, 255), bands: 3);
         var rng = new Random(seed);
         for (var i = 0; i < 6; i++)
         {
@@ -39,13 +36,10 @@ public class DuplicateFileServiceTests : IDisposable
             var shade = (byte)rng.Next(0, 200);
             for (var y = y0; y < y0 + h; y++)
                 for (var x = x0; x < x0 + w; x++)
-                    image[x, y] = new Rgb24(shade, shade, shade);
+                    image[x, y] = new Rgba(shade, shade, shade);
         }
 
-        using var stream = new MemoryStream();
-        if (jpeg) image.Save(stream, new JpegEncoder { Quality = 75 });
-        else image.Save(stream, new PngEncoder());
-        return stream.ToArray();
+        return jpeg ? image.EncodeJpeg(75) : image.EncodePng();
     }
 
     private void Cbz(string folder, string name, IEnumerable<(string Entry, int Seed)> pages, bool jpeg)

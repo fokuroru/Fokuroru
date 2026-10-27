@@ -1,8 +1,4 @@
 using Maki.Core.Images;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace Maki.Core.Download;
 
@@ -24,22 +20,21 @@ public static class MangaFireDescrambler
     public static Task DescrambleFileAsync(string filePath, int offset, CancellationToken ct = default) =>
         ImageWorkGate.RunAsync(async () =>
         {
-            using var source = await Image.LoadAsync(filePath, ct);
-            using var result = Descramble(source, offset);
+            var source = Raster.Decode(await File.ReadAllBytesAsync(filePath, ct));
+            var result = Descramble(source, offset);
 
-            var extension = Path.GetExtension(filePath);
-            if (extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+            // Written back in the format the file's own name says, so the bytes still match it.
+            var bytes = Path.GetExtension(filePath).ToLowerInvariant() switch
             {
-                await result.SaveAsJpegAsync(filePath, new JpegEncoder { Quality = 90 }, ct);
-            }
-            else
-            {
-                await result.SaveAsync(filePath, ct); // encoder chosen by file extension
-            }
+                ".jpg" or ".jpeg" => result.EncodeJpeg(90),
+                ".webp" => result.EncodeWebp(90),
+                ".gif" => result.EncodeGif(),
+                _ => result.EncodePng(),
+            };
+            await File.WriteAllBytesAsync(filePath, bytes, ct);
         }, ct);
 
-    public static Image Descramble(Image source, int offset)
+    public static Raster Descramble(Raster source, int offset)
     {
         var width = source.Width;
         var height = source.Height;
@@ -48,26 +43,23 @@ public static class MangaFireDescrambler
         var xMax = CeilDiv(width, pieceWidth) - 1;
         var yMax = CeilDiv(height, pieceHeight) - 1;
 
-        var result = new Image<Rgba32>(width, height);
-        result.Mutate(ctx =>
+        var result = new Raster(width, height, source.Bands);
+        for (var y = 0; y <= yMax; y++)
         {
-            for (var y = 0; y <= yMax; y++)
+            for (var x = 0; x <= xMax; x++)
             {
-                for (var x = 0; x <= xMax; x++)
-                {
-                    var xDst = pieceWidth * x;
-                    var yDst = pieceHeight * y;
-                    var w = Math.Min(pieceWidth, width - xDst);
-                    var h = Math.Min(pieceHeight, height - yDst);
+                var xDst = pieceWidth * x;
+                var yDst = pieceHeight * y;
+                var w = Math.Min(pieceWidth, width - xDst);
+                var h = Math.Min(pieceHeight, height - yDst);
 
-                    // The last row/column stay in place; the rest are shuffled by the offset.
-                    var xSrc = pieceWidth * (x == xMax ? x : (xMax - x + offset) % xMax);
-                    var ySrc = pieceHeight * (y == yMax ? y : (yMax - y + offset) % yMax);
+                // The last row/column stay in place; the rest are shuffled by the offset.
+                var xSrc = pieceWidth * (x == xMax ? x : (xMax - x + offset) % xMax);
+                var ySrc = pieceHeight * (y == yMax ? y : (yMax - y + offset) % yMax);
 
-                    ctx.DrawImage(source, new Point(xDst, yDst), new Rectangle(xSrc, ySrc, w, h), 1f);
-                }
+                result.CopyFrom(source, xSrc, ySrc, w, h, xDst, yDst);
             }
-        });
+        }
 
         return result;
     }

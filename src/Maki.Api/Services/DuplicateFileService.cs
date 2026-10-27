@@ -285,7 +285,8 @@ public class DuplicateFileService(
 
     private async Task<ulong[]> HashesAsync(ChapterFile file, string path, CancellationToken ct)
     {
-        var key = $"{new FileInfo(path).Length}:{file.DateAdded.Ticks}";
+        // The trailing number names the hashing method; stored hashes from another method do not compare reliably.
+        var key = $"{new FileInfo(path).Length}:{file.DateAdded.Ticks}:2";
         var stored = await db.ChapterFilePageHashes.FirstOrDefaultAsync(h => h.ChapterFileId == file.Id, ct);
         if (stored is not null && stored.Key == key)
         {

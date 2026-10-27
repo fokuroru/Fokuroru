@@ -1,25 +1,20 @@
+using Maki.Core.Images;
 using Maki.Core.Imaging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace Maki.Core.Tests;
 
 public class SpineColorTests
 {
-    private static Image<Rgb24> Cover(Rgb24 background, Rgb24? band = null)
+    private static byte[] Cover(Rgba background, Rgba? band = null)
     {
-        var image = new Image<Rgb24>(200, 300, background);
+        var image = new Raster(200, 300, background, bands: 3);
         if (band is { } b)
         {
-            image.ProcessPixelRows(rows =>
-            {
-                for (var y = 0; y < 90; y++)
-                {
-                    rows.GetRowSpan(y).Fill(b);
-                }
-            });
+            for (var y = 0; y < 90; y++)
+            for (var x = 0; x < 200; x++)
+                image[x, y] = b;
         }
-        return image;
+        return image.EncodePng();
     }
 
     private static double WhiteContrast(string hex)
@@ -33,7 +28,7 @@ public class SpineColorTests
     [Fact]
     public void A_saturated_cover_gives_a_spine_that_carries_white_text()
     {
-        using var cover = Cover(new Rgb24(245, 240, 232), new Rgb24(226, 30, 40));
+        var cover = Cover(new Rgba(245, 240, 232), new Rgba(226, 30, 40));
 
         var spine = SpineColor.Sample(cover);
 
@@ -45,7 +40,7 @@ public class SpineColorTests
     [Fact]
     public void Skin_tones_are_not_picked()
     {
-        using var cover = Cover(new Rgb24(242, 196, 170));
+        var cover = Cover(new Rgba(242, 196, 170));
 
         Assert.Null(SpineColor.Sample(cover));
     }
@@ -53,7 +48,7 @@ public class SpineColorTests
     [Fact]
     public void Skin_is_skipped_in_favour_of_a_smaller_real_colour()
     {
-        using var cover = Cover(new Rgb24(242, 196, 170), new Rgb24(40, 130, 150));
+        var cover = Cover(new Rgba(242, 196, 170), new Rgba(40, 130, 150));
 
         var spine = SpineColor.Sample(cover);
 
@@ -64,7 +59,7 @@ public class SpineColorTests
     [Fact]
     public void A_bright_yellow_stays_pale_rather_than_going_olive()
     {
-        using var cover = Cover(new Rgb24(250, 245, 238), new Rgb24(253, 240, 20));
+        var cover = Cover(new Rgba(250, 245, 238), new Rgba(253, 240, 20));
 
         var spine = SpineColor.Sample(cover);
 
@@ -75,7 +70,7 @@ public class SpineColorTests
     [Fact]
     public void A_colourless_cover_has_no_spine()
     {
-        using var cover = Cover(new Rgb24(128, 128, 128), new Rgb24(30, 30, 30));
+        var cover = Cover(new Rgba(128, 128, 128), new Rgba(30, 30, 30));
 
         Assert.Null(SpineColor.Sample(cover));
     }

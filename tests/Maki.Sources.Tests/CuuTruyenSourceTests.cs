@@ -1,8 +1,6 @@
 using Maki.Core.Sources;
 using Maki.Sources.CuuTruyen;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.PixelFormats;
+using Maki.Core.Images;
 
 namespace Maki.Sources.Tests;
 
@@ -161,8 +159,8 @@ public class CuuTruyenSourceTests
         Assert.NotNull(first.Data);
         Assert.Equal("Referer", first.Headers!.Keys.Single());
 
-        using var source = Image.Load<Rgba32>(FakeHttpClientFactory.BinaryFixture("cuutruyen-page.bin"));
-        using var result = Image.Load<Rgba32>(first.Data!);
+        var source = Raster.Decode(FakeHttpClientFactory.BinaryFixture("cuutruyen-page.bin"));
+        var result = Raster.Decode(first.Data!);
         Assert.Equal(2048, result.Width);
         Assert.Equal(1152, result.Height);
         AssertStripMoved(source, result, sourceY: 0, destinationY: 300, height: 150);
@@ -212,9 +210,9 @@ public class CuuTruyenSourceTests
             "EEcATQYJAhsEBgVEAAcJHgIEBE0BDAIbBAYFRAkaCAYDTQUBAAkfBwUBSQkM\nBxQCBgFIBgAJHwcAA0kOCQcUAgYB\n";
 
         var bytes = FakeHttpClientFactory.BinaryFixture("cuutruyen-page.bin");
-        using var source = Image.Load<Rgba32>(bytes);
+        var source = Raster.Decode(bytes);
         var unscrambled = await CuuTruyenSource.UnscrambleAsync(bytes, drmData);
-        using var result = Image.Load<Rgba32>(unscrambled);
+        var result = Raster.Decode(unscrambled);
 
         Assert.Equal(2048, result.Width);
         Assert.Equal(1152, result.Height);
@@ -239,7 +237,7 @@ public class CuuTruyenSourceTests
     /// 79 for an unrelated one (see <see cref="AssertRowsDiffer"/>), so a threshold well below that
     /// gap distinguishes "moved correctly" from "wrong source" without being thrown off by codec noise.
     /// </summary>
-    private static void AssertStripMoved(Image<Rgba32> source, Image<Rgba32> result, int sourceY, int destinationY, int height)
+    private static void AssertStripMoved(Raster source, Raster result, int sourceY, int destinationY, int height)
     {
         var meanDiff = MeanAbsChannelDiff(source, result, sourceY, destinationY, height);
         Assert.True(meanDiff < 15,
@@ -252,24 +250,24 @@ public class CuuTruyenSourceTests
     /// differs by far more than JPEG re-encoding noise (measured ~79 mean channel difference on this
     /// fixture against ~3-5 for a true match), so this checks the gap from the other side.
     /// </summary>
-    private static void AssertRowsDiffer(Image<Rgba32> source, Image<Rgba32> result, int sourceY, int destinationY, int height = 150)
+    private static void AssertRowsDiffer(Raster source, Raster result, int sourceY, int destinationY, int height = 150)
     {
         var meanDiff = MeanAbsChannelDiff(source, result, sourceY, destinationY, height);
         Assert.True(meanDiff > 30,
             $"result rows [{destinationY},{destinationY + height}) should not just be the source's rows [{sourceY},{sourceY + height}) left in place; mean channel diff was only {meanDiff:F2}");
     }
 
-    private static double MeanAbsChannelDiff(Image<Rgba32> a, Image<Rgba32> b, int aY, int bY, int height)
+    private static double MeanAbsChannelDiff(Raster a, Raster b, int aY, int bY, int height)
     {
         double total = 0;
         long samples = 0;
         for (var k = 0; k < height; k++)
         {
-            var rowA = a.DangerousGetPixelRowMemory(aY + k).Span;
-            var rowB = b.DangerousGetPixelRowMemory(bY + k).Span;
-            for (var x = 0; x < rowA.Length; x += 4)
+            var rowA = a.Row(aY + k);
+            var rowB = b.Row(bY + k);
+            for (var x = 0; x + 3 < rowA.Length; x += 4)
             {
-                total += Math.Abs(rowA[x].R - rowB[x].R) + Math.Abs(rowA[x].G - rowB[x].G) + Math.Abs(rowA[x].B - rowB[x].B);
+                total += Math.Abs(rowA[x] - rowB[x]) + Math.Abs(rowA[x + 1] - rowB[x + 1]) + Math.Abs(rowA[x + 2] - rowB[x + 2]);
                 samples++;
             }
         }
