@@ -4834,3 +4834,79 @@ msgstr ""
 #. English: {source} is no longer installed in Suwayomi. Reinstall its extension there, or remove the source in Maki's Suwayomi settings.
 msgid "health.check.suwayomiSourceMissing"
 msgstr ""
+
+#. Binning is a rename within one volume. A file on another volume than its root folder (a mount
+#. inside the library) would have to be copied, so the delete is refused and nothing changes.
+#: src/Maki.Api/Controllers/ChapterController.cs
+#. English: These files are on a different drive than the recycle bin, so they cannot be moved there. Nothing was deleted.
+#, fuzzy
+msgid "error.recycleBin.crossVolume"
+msgstr "Bu dosyalar geri dönüşüm kutusundan farklı bir sürücüde, bu yüzden oraya taşınamaz. Hiçbir şey silinmedi."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Could not delete the file. Details are in the server log.
+#, fuzzy
+msgid "error.recycleBin.deleteFailed"
+msgstr "Dosya silinemedi. Ayrıntılar sunucu günlüğünde."
+
+#. The bin entry exists but its file is gone from the bin folder, removed outside Maki.
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: The file is no longer in the recycle bin folder. Delete the entry to clear it.
+#, fuzzy
+msgid "error.recycleBin.fileMissing"
+msgstr "Dosya artık geri dönüşüm kutusu klasöründe değil. Temizlemek için girdiyi silin."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: That file is no longer in the recycle bin
+#, fuzzy
+msgid "error.recycleBin.notFound"
+msgstr "Bu dosya artık geri dönüşüm kutusunda değil"
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Could not move the file back. Details are in the server log.
+#, fuzzy
+msgid "error.recycleBin.restoreFailed"
+msgstr "Dosya geri taşınamadı. Ayrıntılar sunucu günlüğünde."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Recycle bin retention must be between {min} and {max} days
+#, fuzzy
+msgid "error.recycleBin.retentionRange"
+msgstr "Geri dönüşüm kutusu saklama süresi {min} ile {max} gün arasında olmalı"
+
+#. .maki-trash/bin could not be created under the root folder (read-only share, permissions). The
+#. client then offers to delete permanently instead.
+#: src/Maki.Api/Services/RecycleBinService.cs
+#. English: The recycle bin folder could not be created in this root folder. Nothing was deleted.
+#, fuzzy
+msgid "error.recycleBin.unavailable"
+msgstr "Bu kök klasörde geri dönüşüm kutusu klasörü oluşturulamadı. Hiçbir şey silinmedi."
+
+#. Restore never overwrites. Something, usually a new download of the same chapter, now sits where
+#. the deleted file used to be.
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Another file is already where this one was. Move or delete it, then restore again.
+#, fuzzy
+msgid "error.recycleBin.targetExists"
+msgstr "Bunun yerine geçen başka bir dosya zaten var. Onu taşıyın veya silin, sonra yeniden geri yükleyin."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: The original location is outside the root folder or behind a link, so the file cannot go back there.
+#, fuzzy
+msgid "error.recycleBin.targetInvalid"
+msgstr "Özgün konum kök klasörün dışında veya bir bağlantının arkasında, bu yüzden dosya oraya geri konulamaz."
+
+#. Files users deleted, kept for {days} days so they can be restored from Settings. A warning only
+#. when a library drive is already low on space.
+#: src/Maki.Api/Services/HealthMonitor.cs
+#. English: Recycle bin: {files, plural, one {# deleted file} other {# deleted files}}, {gib} GiB, kept {days, plural, one {# day} other {# days}}
+#, fuzzy
+msgid "health.check.recycleBin"
+msgstr "Geri dönüşüm kutusu: {files, plural, one {# silinmiş dosya} other {# silinmiş dosya}}, {gib} GiB, {days, plural, one {# gün} other {# gün}} saklanıyor"
+
+#. A delete saved this entry a moment ago and is still moving its file into the bin folder.
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: This file is still being moved into the recycle bin. Try again in a moment.
+#, fuzzy
+msgid "error.recycleBin.stillMoving"
+msgstr "Bu dosya hâlâ geri dönüşüm kutusuna taşınıyor. Birazdan yeniden deneyin."

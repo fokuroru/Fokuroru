@@ -257,7 +257,7 @@ public class ReaderController(
         // stale within the chapter, which is exactly right: they only move when a chapter is
         // finished, and finishing one refetches this.
         var seriesChapterCount = await db.Chapters
-            .CountAsync(c => c.SeriesId == slice.Series.Id && c.ChapterFileId != null && !hidden.Contains(c.Id), ct);
+            .CountAsync(c => c.SeriesId == slice.Series.Id && (c.ChapterFileId != null || c.FileRemovedAt != null) && !hidden.Contains(c.Id), ct);
         var seriesReadCount = await ReadCounts.Read(db)
             .CountAsync(p => p.SeriesId == slice.Series.Id, ct);
 
@@ -265,7 +265,7 @@ public class ReaderController(
         // rule the series page's denominator uses. The toolbar shows it as a trailing hint so
         // someone reading a series that downloads in batches can tell there is more coming.
         var seriesWantedCount = await db.Chapters
-            .CountAsync(c => c.SeriesId == slice.Series.Id && (c.Wanted || c.ChapterFileId != null) && !hidden.Contains(c.Id), ct);
+            .CountAsync(c => c.SeriesId == slice.Series.Id && (c.Wanted || c.ChapterFileId != null || c.FileRemovedAt != null) && !hidden.Contains(c.Id), ct);
 
         // Named on the end-of-chapter screen, and its number is how that screen tells a straight
         // continuation from a jump over chapters that were never downloaded.

@@ -834,6 +834,9 @@ try
     builder.Services.AddScoped<HealthScanService>();
     builder.Services.AddScoped<HealthMatchService>();
     builder.Services.AddScoped<HealthOperationService>();
+    builder.Services.AddScoped<ChapterFileDeletion>();
+    builder.Services.AddScoped<RecycleBinService>();
+    builder.Services.AddSingleton<RecycleBinMover>();
     builder.Services.AddHostedService<HealthWorker>();
 
     builder.Services.AddSingleton(TimeProvider.System);

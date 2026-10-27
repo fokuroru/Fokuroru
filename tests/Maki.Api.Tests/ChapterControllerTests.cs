@@ -223,7 +223,7 @@ public class ChapterControllerTests : IDisposable
         var (_, second) = SeedSeriesWithChapter("Second");
 
         using var db = _db.NewContext();
-        var result = await Controller(db).Delete([first, second], default);
+        var result = await Controller(db).Delete([first, second], TestDeletion.For(db), default, permanent: true);
 
         // The root folder used to build the delete path comes from chapters[0]'s series, so a mixed
         // batch would delete the second series' file from under the first series' root.
@@ -262,7 +262,7 @@ public class ChapterControllerTests : IDisposable
             }
 
             using var db = _db.NewContext();
-            var result = await Controller(db).Delete([chapterId], default);
+            var result = await Controller(db).Delete([chapterId], TestDeletion.For(db), default, permanent: true);
 
             Assert.IsType<OkObjectResult>(result);
             Assert.True(File.Exists(outside));
@@ -318,7 +318,7 @@ public class ChapterControllerTests : IDisposable
 
             using (var db = _db.NewContext())
             {
-                var result = await Controller(db).Delete([chapterId], default);
+                var result = await Controller(db).Delete([chapterId], TestDeletion.For(db), default, permanent: true);
 
                 Assert.IsType<OkObjectResult>(result);
                 AssertKeptUnwanted(db);
@@ -368,7 +368,7 @@ public class ChapterControllerTests : IDisposable
 
             using (var db = _db.NewContext())
             {
-                Assert.IsType<OkObjectResult>(await Controller(db).Delete([chapterId], default));
+                Assert.IsType<OkObjectResult>(await Controller(db).Delete([chapterId], TestDeletion.For(db), default, permanent: true));
                 Assert.Empty(db.ChapterFiles);
             }
 
@@ -426,7 +426,7 @@ public class ChapterControllerTests : IDisposable
 
         using (var db = _db.NewContext())
         {
-            var result = await Controller(db).Delete([chapterId], default);
+            var result = await Controller(db).Delete([chapterId], TestDeletion.For(db), default, permanent: true);
 
             Assert.IsType<OkObjectResult>(result);
             AssertKeptUnwanted(db, chapterId);
@@ -468,7 +468,7 @@ public class ChapterControllerTests : IDisposable
 
         using (var db = _db.NewContext())
         {
-            Assert.IsType<OkObjectResult>(await Controller(db).Delete([chapterId, secondChapterId], default));
+            Assert.IsType<OkObjectResult>(await Controller(db).Delete([chapterId, secondChapterId], TestDeletion.For(db), default, permanent: true));
             Assert.Equal(keptFileId, Assert.Single(db.ChapterFiles).Id);
         }
 
@@ -508,7 +508,7 @@ public class ChapterControllerTests : IDisposable
         using (var failing = new FailingSaveDbContext(_db.Options))
         {
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => Controller(failing).Delete([chapterId], default));
+                () => Controller(failing).Delete([chapterId], TestDeletion.For(failing), default, permanent: true));
         }
 
         using var db = _db.NewContext();
@@ -518,18 +518,12 @@ public class ChapterControllerTests : IDisposable
     }
 
     /// <summary>
-    /// Deleting keeps the row, unlinked and unwanted: a source refresh re-adds any chapter it still
-    /// lists, so a removed row came straight back as a wanted chapter and downloaded again.
+    /// "Remove chapters" drops the rows with the file; the file on disk is the thing under test, so
+    /// this only checks the chapter is no longer linked to anything.
     /// </summary>
     private static void AssertKeptUnwanted(MakiDbContext db, int? chapterId = null)
     {
         db.ChangeTracker.Clear();
-        var rows = db.Chapters.Where(c => chapterId == null || c.Id == chapterId).ToList();
-        Assert.NotEmpty(rows);
-        Assert.All(rows, c =>
-        {
-            Assert.False(c.Wanted);
-            Assert.Null(c.ChapterFileId);
-        });
+        Assert.DoesNotContain(db.Chapters, c => (chapterId == null || c.Id == chapterId) && c.ChapterFileId != null);
     }
 }

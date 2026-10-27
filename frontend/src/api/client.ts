@@ -59,11 +59,15 @@ export class ApiError extends Error {
   /** The stable dotted key behind `message` (`error.upgrades.trashGone`), or null when the body carried none. */
   readonly code: string | null
 
-  constructor(status: number, message: string, code: string | null = null) {
+  /** A delete the recycle bin refused, which the same request with `permanent=true` may carry out instead. */
+  readonly permanentDeleteAvailable: boolean
+
+  constructor(status: number, message: string, code: string | null = null, permanentDeleteAvailable = false) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
+    this.permanentDeleteAvailable = permanentDeleteAvailable
   }
 }
 
@@ -182,7 +186,12 @@ async function readResponse<T>(res: Response, generation: number): Promise<T> {
   }
   if (!res.ok) {
     const body = await res.text()
-    throw new ApiError(res.status, `API ${res.status}: ${errorMessage(body) ?? res.statusText}`, errorCode(body))
+    throw new ApiError(
+      res.status,
+      `API ${res.status}: ${errorMessage(body) ?? res.statusText}`,
+      errorCode(body),
+      offersPermanentDelete(body),
+    )
   }
   // 204, and any 200 whose handler wrote no body, have nothing to parse.
   const body = await res.text()
@@ -214,5 +223,14 @@ function errorCode(body: string): string | null {
     return (JSON.parse(body) as { code?: string }).code ?? null
   } catch {
     return null
+  }
+}
+
+function offersPermanentDelete(body: string): boolean {
+  if (!body) return false
+  try {
+    return (JSON.parse(body) as { permanentDeleteAvailable?: boolean }).permanentDeleteAvailable === true
+  } catch {
+    return false
   }
 }

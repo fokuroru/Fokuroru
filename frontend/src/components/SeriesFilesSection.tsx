@@ -16,6 +16,8 @@ import { notifications } from '@mantine/notifications'
 import { useQuery } from '@tanstack/react-query'
 import { getInitialize } from '../api/client'
 import { useSeriesFiles, useDeleteSeriesFiles, useReverseSeriesFile } from '../api/hooks'
+import { offersPermanentDelete, useRecycleBinDays } from '../api/recycleBin'
+import { PermanentDeleteFallback } from './PermanentDeleteFallback'
 import { useSetFileTrusted } from '../api/upgrades'
 import { filePreviewUrl } from '../api/progress'
 import type { SeriesFileDto } from '../api/types'
@@ -53,6 +55,39 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const { data: files, isLoading, isFetching, refetch } = useSeriesFiles(seriesId)
   const deleteFiles = useDeleteSeriesFiles(seriesId)
+  const binDays = useRecycleBinDays(confirmOpen)
+  const [binRefused, setBinRefused] = useState(false)
+  const closeConfirm = () => {
+    setConfirmOpen(false)
+    setBinRefused(false)
+  }
+
+  const deleteSelected = (permanent: boolean) =>
+    deleteFiles.mutate(
+      { relativePaths: [...selected], permanent },
+      {
+        onSuccess: (r) => {
+          const done = permanent
+            ? plural(r.deleted, { one: 'Deleted # file', other: 'Deleted # files' })
+            : plural(r.deleted, { one: 'Moved # file to the recycle bin', other: 'Moved # files to the recycle bin' })
+          notifications.show({
+            color: r.failed > 0 ? 'var(--warn)' : 'var(--ok)',
+            message:
+              r.failed > 0
+                ? `${done}, ${plural(r.failed, {
+                    one: '# could not be moved (locked or permission denied)',
+                    other: '# could not be moved (locked or permission denied)',
+                  })}`
+                : done,
+          })
+          closeConfirm()
+          exitSelectMode()
+        },
+        onError: (error) => {
+          if (offersPermanentDelete(error)) setBinRefused(true)
+        },
+      },
+    )
   const reverseFile = useReverseSeriesFile(seriesId)
   const apiRoot = useQuery({ queryKey: ['api-root'], queryFn: getInitialize, staleTime: Infinity }).data?.apiRoot
   const [reverseTarget, setReverseTarget] = useState<SeriesFileDto | null>(null)
@@ -449,8 +484,8 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
 
           <Modal
             opened={confirmOpen}
-            onClose={() => setConfirmOpen(false)}
-            title={t`Delete files from disk?`}
+            onClose={closeConfirm}
+            title={t`Delete files?`}
             centered
             attributes={{ content: { 'data-edge': 'danger' } }}
           >
@@ -458,47 +493,35 @@ export function SeriesFilesSection({ seriesId }: { seriesId: number }) {
               <Text size="sm" c="var(--ink-3)">
                 <Plural
                   value={selected.size}
-                  one="This will permanently delete # file from disk."
-                  other="This will permanently delete # files from disk."
+                  one="This moves # file to the recycle bin."
+                  other="This moves # files to the recycle bin."
                 />{' '}
                 <Trans>Chapters that share a volume archive will also lose their file.</Trans>
               </Text>
-              <Text size="sm" c="var(--danger)">
-                <Trans>This action cannot be undone.</Trans>
+              <Text size="sm" c="var(--ink-3)">
+                <Plural
+                  value={binDays}
+                  one="Files can be restored from Settings for # day, then they are deleted for good."
+                  other="Files can be restored from Settings for # days, then they are deleted for good."
+                />
               </Text>
               <Group justify="flex-end">
-                <Button variant="default" onClick={() => setConfirmOpen(false)}>
+                <Button variant="default" onClick={closeConfirm}>
                   <Trans>Cancel</Trans>
                 </Button>
                 <Button
                   color="var(--danger-fill)"
                   leftSection={<IconTrash size={16} />}
                   loading={deleteFiles.isPending}
-                  onClick={() =>
-                    deleteFiles.mutate([...selected], {
-                      onSuccess: (r) => {
-                        notifications.show({
-                          color: r.failed > 0 ? 'var(--warn)' : 'var(--ok)',
-                          message:
-                            r.failed > 0
-                              ? `${plural(r.deleted, { one: 'Deleted # file', other: 'Deleted # files' })}, ${plural(
-                                  r.failed,
-                                  {
-                                    one: '# could not be deleted (locked or permission denied)',
-                                    other: '# could not be deleted (locked or permission denied)',
-                                  },
-                                )}`
-                              : plural(r.deleted, { one: 'Deleted # file', other: 'Deleted # files' }),
-                        })
-                        setConfirmOpen(false)
-                        exitSelectMode()
-                      },
-                    })
-                  }
+                  disabled={binRefused}
+                  onClick={() => deleteSelected(false)}
                 >
                   <Trans>Delete</Trans>
                 </Button>
               </Group>
+              {binRefused && (
+                <PermanentDeleteFallback loading={deleteFiles.isPending} onConfirm={() => deleteSelected(true)} />
+              )}
             </Stack>
           </Modal>
         </>

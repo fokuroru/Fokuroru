@@ -48,6 +48,10 @@ msgstr "(되돌릴 수 없음)"
 msgid "(inaccessible)"
 msgstr "(접근할 수 없음)"
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "(no longer in the library)"
+msgstr ""
+
 #. placeholder {0}: spans.length
 #: src/components/AnimeCoverageBar.tsx
 #, fuzzy
@@ -98,8 +102,13 @@ msgstr "{0, plural, other {#개 챕터}}"
 #. placeholder {0}: r.failed
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
-msgid "{0, plural, one {# could not be deleted (locked or permission denied)} other {# could not be deleted (locked or permission denied)}}"
-msgstr "{0, plural, other {삭제할 수 없는 항목 #개 (잠김 또는 권한 없음)}}"
+#~ msgid "{0, plural, one {# could not be deleted (locked or permission denied)} other {# could not be deleted (locked or permission denied)}}"
+#~ msgstr "{0, plural, other {삭제할 수 없는 항목 #개 (잠김 또는 권한 없음)}}"
+
+#. placeholder {0}: r.failed
+#: src/components/SeriesFilesSection.tsx
+msgid "{0, plural, one {# could not be moved (locked or permission denied)} other {# could not be moved (locked or permission denied)}}"
+msgstr ""
 
 #. placeholder {0}: failed.length
 #: src/components/import/MihonSummary.tsx
@@ -117,6 +126,11 @@ msgstr "{0, plural, other {잠겨 있거나 권한이 없어 삭제하지 못한
 #, fuzzy
 msgid "{0, plural, one {# file deleted} other {# files deleted}}"
 msgstr "{0, plural, other {#개 파일 삭제됨}}"
+
+#. placeholder {0}: entries.length
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "{0, plural, one {# file, {totalSize}} other {# files, {totalSize}}}"
+msgstr ""
 
 #. placeholder {0}: upgradesSummary.trashFiles
 #: src/pages/ActivityPage.tsx
@@ -151,6 +165,12 @@ msgstr ""
 #, fuzzy
 msgid "{0, plural, one {# match} other {# matches}}"
 msgstr "{0, plural, other {일치 항목 #개}}"
+
+#. placeholder {0}: deleteFilesPlan.others
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "{0, plural, one {# more chapter is in the same volume file and loses it too.} other {# more chapters are in the same volume files and lose them too.}}"
+msgstr "{0, plural, other {같은 볼륨 파일에 있는 챕터 #개도 함께 잃습니다.}}"
 
 #. placeholder {0}: panel.pageCount
 #: src/components/SourceCompareModal.tsx
@@ -221,17 +241,29 @@ msgstr "{0, plural, other {읽을 수 있게 됨}}"
 msgid "{0, plural, one {Clear # queued download?} other {Clear # queued downloads?}}"
 msgstr "{0, plural, other {대기 중인 다운로드 #개를 비울까요?}}"
 
+#. placeholder {0}: r.failed
+#: src/pages/SeriesDetailPage.tsx
+#: src/pages/settings/RecycleBinSection.tsx
+#, fuzzy
+msgid "{0, plural, one {Couldn't delete # file, check the log} other {Couldn't delete # files, check the log}}"
+msgstr "{0, plural, other {파일 #개를 삭제하지 못했습니다. 로그를 확인하세요.}}"
+
 #. placeholder {0}: r.deleted
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
-msgid "{0, plural, one {Deleted # chapter} other {Deleted # chapters}}"
-msgstr "{0, plural, other {챕터 #개를 삭제함}}"
+#~ msgid "{0, plural, one {Deleted # chapter} other {Deleted # chapters}}"
+#~ msgstr "{0, plural, other {챕터 #개를 삭제함}}"
 
 #. placeholder {0}: r.deleted
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
 msgid "{0, plural, one {Deleted # file} other {Deleted # files}}"
 msgstr "{0, plural, other {파일 #개를 삭제함}}"
+
+#. placeholder {0}: entries.length
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "{0, plural, one {Deletes # file for good.} other {Deletes # files for good.}}"
+msgstr ""
 
 #. placeholder {0}: r.rowCount
 #: src/components/RecommendationModelSwitch.tsx
@@ -273,6 +305,16 @@ msgstr "{0, plural, other {읽지 않음으로 표시: 챕터 #개}}"
 #, fuzzy
 msgid "{0, plural, one {Marked watched: # chapter} other {Marked watched: # chapters}}"
 msgstr "{0, plural, other {시청함으로 표시: 챕터 #개}}"
+
+#. placeholder {0}: r.deleted
+#: src/components/SeriesFilesSection.tsx
+msgid "{0, plural, one {Moved # file to the recycle bin} other {Moved # files to the recycle bin}}"
+msgstr ""
+
+#. placeholder {0}: deleteFilesPlan?.files ?? 0
+#: src/pages/SeriesDetailPage.tsx
+msgid "{0, plural, one {Moves # file to the recycle bin.} other {Moves # files to the recycle bin.}}"
+msgstr ""
 
 #. placeholder {0}: r.updated
 #: src/pages/SeriesDetailPage.tsx
@@ -316,11 +358,22 @@ msgstr "{0, plural, other {누락된 챕터 #개를 대기열에 추가함}}"
 msgid "{0, plural, one {Refreshed, # new chapter} other {Refreshed, # new chapters}}"
 msgstr "{0, plural, other {새로 추가된 챕터 #개, 새로 고침 완료}}"
 
+#. placeholder {0}: r.deleted
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "{0, plural, one {Removed # chapter} other {Removed # chapters}}"
+msgstr "{0, plural, other {챕터 #개를 제거함}}"
+
 #. placeholder {0}: result.removedChapters
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
 msgid "{0, plural, one {Removed # unsupported chapter} other {Removed # unsupported chapters}}"
 msgstr "{0, plural, other {지원하지 않는 챕터 #개를 제거함}}"
+
+#. placeholder {0}: r.chapters
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "{0, plural, one {Restored and linked to # chapter} other {Restored and linked to # chapters}}"
+msgstr ""
 
 #. placeholder {0}: selectable.length
 #: src/components/import/MihonReview.tsx
@@ -340,9 +393,14 @@ msgstr ""
 
 #. placeholder {0}: selected.size
 #: src/components/SeriesFilesSection.tsx
+msgid "{0, plural, one {This moves # file to the recycle bin.} other {This moves # files to the recycle bin.}}"
+msgstr ""
+
+#. placeholder {0}: selected.size
+#: src/components/SeriesFilesSection.tsx
 #, fuzzy
-msgid "{0, plural, one {This will permanently delete # file from disk.} other {This will permanently delete # files from disk.}}"
-msgstr "{0, plural, other {파일 #개를 디스크에서 영구 삭제합니다.}}"
+#~ msgid "{0, plural, one {This will permanently delete # file from disk.} other {This will permanently delete # files from disk.}}"
+#~ msgstr "{0, plural, other {파일 #개를 디스크에서 영구 삭제합니다.}}"
 
 #. placeholder {0}: checkNow.data.restarted
 #: src/pages/RequestsPage.tsx
@@ -489,6 +547,22 @@ msgstr ""
 #, fuzzy
 msgid "{biggestDayCount, plural, one {# chapter} other {# chapters}}"
 msgstr "{biggestDayCount, plural, other {하루에 챕터 #개}}"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "{binDays, plural, one {Backing files go to the recycle bin for # day.} other {Backing files go to the recycle bin for # days.}}"
+msgstr ""
+
+#: src/components/SeriesFilesSection.tsx
+msgid "{binDays, plural, one {Files can be restored from Settings for # day, then they are deleted for good.} other {Files can be restored from Settings for # days, then they are deleted for good.}}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "{binDays, plural, one {Files go to the recycle bin and can be restored from Settings for # day.} other {Files go to the recycle bin and can be restored from Settings for # days.}}"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "{binDays, plural, one {It can be restored from Settings for # day.} other {It can be restored from Settings for # days.}}"
+msgstr ""
 
 #: src/components/SourceCompareModal.tsx
 msgid "{bpp} bits per pixel, JPG equivalent."
@@ -651,6 +725,10 @@ msgstr ""
 msgid "{cycles, plural, one {re-added #×} other {re-added #×}}"
 msgstr "{cycles, plural, other {#× 다시 추가됨}}"
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "{days, plural, one {Deleted files, removed chapters and series deleted with their files wait here for # day before they are deleted for good. Restore puts a file back where it was.} other {Deleted files, removed chapters and series deleted with their files wait here for # days before they are deleted for good. Restore puts a file back where it was.}}"
+msgstr ""
+
 #: src/pages/stats/sections/TasteSection.tsx
 #, fuzzy
 msgid "{decade}s"
@@ -785,6 +863,15 @@ msgstr "{forwardKey} 또는 스페이스로 열고, Esc를 눌러 시리즈로 �
 #, fuzzy
 msgid "{free} free"
 msgstr "{free} 여유 공간"
+
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "{gone, plural, one {Deleted # file} other {Deleted # files}}"
+msgstr "{gone, plural, other {파일 #개를 삭제함}}"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "{gone, plural, one {Moved # file to the recycle bin} other {Moved # files to the recycle bin}}"
+msgstr ""
 
 #: src/components/settings/UsersSection.tsx
 #, fuzzy
@@ -925,6 +1012,10 @@ msgstr ""
 #, fuzzy
 msgid "{latestVersion} available, skipped"
 msgstr "{latestVersion} 사용 가능, 건너뜀"
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "{left, plural, one {# day} other {# days}}"
+msgstr ""
 
 #: src/pages/stats/MidwayList.tsx
 #, fuzzy
@@ -1290,6 +1381,10 @@ msgstr "{selectedCount, plural, other {폴더 #개 가져올까요?}}"
 #, fuzzy
 msgid "{selectedCount, plural, one {Import # selected} other {Import # selected}}"
 msgstr "{selectedCount, plural, other {선택 항목 #개 가져오기}}"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "{selectedCount, plural, one {This permanently removes # chapter row, not just its file link, along with everyone's read history for it.} other {This permanently removes # chapter rows, not just their file link, along with everyone's read history for them.}}"
+msgstr ""
 
 #: src/components/RatingImportModal.tsx
 #, fuzzy
@@ -1888,6 +1983,10 @@ msgstr "👍 좋아요"
 msgid "👎 Disliked"
 msgstr "👎 싫어요"
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "0 deletes them for good on the next housekeeping pass."
+msgstr ""
+
 #: src/pages/SettingsPage.tsx
 msgid "0 means no cap."
 msgstr ""
@@ -2251,6 +2350,10 @@ msgstr "확인됨"
 #, fuzzy
 msgid "Action"
 msgstr "액션"
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Actions"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -3499,6 +3602,10 @@ msgstr "가장 바쁜 요일"
 msgid "Button label"
 msgstr "버튼 레이블"
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "by {deletedBy}"
+msgstr ""
+
 #: src/components/ui/DiscoverRail.tsx
 #, fuzzy
 msgid "By an author you read"
@@ -3722,11 +3829,13 @@ msgid "Ch. {chapters}"
 msgstr "챕터 {chapters}"
 
 #: src/components/RelinkFilesModal.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #, fuzzy
 msgid "Ch. {first}"
 msgstr "챕터 {first}"
 
 #: src/components/RelinkFilesModal.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #, fuzzy
 msgid "Ch. {first} to {last}"
 msgstr "챕터 {first}~{last}"
@@ -5204,6 +5313,10 @@ msgstr "연속 기록 일수"
 msgid "Days active"
 msgstr "활동 일수"
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Days left"
+msgstr ""
+
 #: src/components/settings/ProgressSection.tsx
 #, fuzzy
 msgid "Decides when your reading day ends, which is what streaks and daily goals count against."
@@ -5266,7 +5379,6 @@ msgstr "정의 중"
 #: src/components/settings/UsersSection.tsx
 #: src/pages/HealthPage.tsx
 #: src/pages/LibraryPage.tsx
-#: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Delete"
 msgstr "삭제"
@@ -5305,8 +5417,8 @@ msgstr "백업 삭제"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
-msgid "Delete chapters?"
-msgstr "챕터를 삭제할까요?"
+#~ msgid "Delete chapters?"
+#~ msgstr "챕터를 삭제할까요?"
 
 #: src/components/NotificationsSection.tsx
 #, fuzzy
@@ -5322,13 +5434,24 @@ msgid "Delete file"
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Delete file?"
-msgstr ""
+#~ msgid "Delete file?"
+#~ msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "Delete files"
+msgstr "파일 삭제"
 
 #: src/components/SeriesFilesSection.tsx
 #, fuzzy
-msgid "Delete files from disk?"
-msgstr "디스크에서 파일을 삭제할까요?"
+#~ msgid "Delete files from disk?"
+#~ msgstr "디스크에서 파일을 삭제할까요?"
+
+#: src/components/SeriesFilesSection.tsx
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "Delete files?"
+msgstr "파일을 삭제할까요?"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Delete format"
@@ -5339,7 +5462,9 @@ msgstr ""
 msgid "Delete from disk"
 msgstr "디스크에서 삭제"
 
+#: src/components/PermanentDeleteFallback.tsx
 #: src/pages/HealthPage.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #, fuzzy
 msgid "Delete permanently"
 msgstr "영구 삭제"
@@ -5407,8 +5532,8 @@ msgid "Delete series"
 msgstr "시리즈 삭제"
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Delete the file for {chapterLbl}"
-msgstr ""
+#~ msgid "Delete the file for {chapterLbl}"
+#~ msgstr ""
 
 #. placeholder {0}: deleting?.label
 #: src/components/layout/PageLayoutEditor.tsx
@@ -5429,6 +5554,10 @@ msgstr "\"{railName}\" 섹션을 삭제할까요? 필터도 함께 삭제됩니�
 #, fuzzy
 msgid "Delete them, free {emptiedSize}"
 msgstr "파일을 삭제하고 {emptiedSize} 확보"
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Delete this file permanently?"
+msgstr ""
 
 #: src/pages/RequestsPage.tsx
 msgid "Delete this preview request?"
@@ -5454,11 +5583,19 @@ msgstr "사용자 삭제"
 msgid "Delete zone {0}"
 msgstr ""
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Deleted"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
 #, fuzzy
 msgid "Deleted \"{name}\""
 msgstr "\"{name}\" 삭제됨"
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Deleted file"
+msgstr ""
 
 #. placeholder {0}: formatDate(disk.purgeAfter)
 #: src/components/series/SeriesProgress.tsx
@@ -5467,25 +5604,25 @@ msgstr ""
 
 #. placeholder {0}: deleteFileChapter.label
 #: src/pages/SeriesDetailPage.tsx
-msgid "Deleted the file for {0}"
-msgstr ""
+#~ msgid "Deleted the file for {0}"
+#~ msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Deletes a chapter's file this many days after it was read. The chapter stays in the series with its read status and is no longer wanted, so it won't be downloaded again. A volume file goes only when every chapter in it has been read that long. 0 means never."
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Deletes all downloaded files, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
-msgstr ""
+#~ msgid "Deletes all downloaded files, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
+#~ msgstr ""
 
 #. placeholder {0}: deleteFileChapter?.label
 #: src/pages/SeriesDetailPage.tsx
-msgid "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
-msgstr ""
+#~ msgid "Deletes the downloaded file for {0}. Its read status and other details stay, and it is marked not wanted so it is not downloaded again."
+#~ msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so they are not downloaded again."
-msgstr ""
+#~ msgid "Deletes the downloaded files for {selectedCount} chapter(s) and marks them not wanted, so they are not downloaded again."
+#~ msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -6078,6 +6215,14 @@ msgstr "임베딩, 임베딩 모델, 의미 검색, 벡터, Discover 검색"
 msgid "Empty"
 msgstr "비어 있음"
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Empty bin"
+msgstr ""
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Empty the recycle bin?"
+msgstr ""
+
 #: src/pages/ScrobblePage.tsx
 #, fuzzy
 msgid "Empty."
@@ -6587,6 +6732,7 @@ msgid "Figure size"
 msgstr ""
 
 #: src/components/SeriesFilesSection.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #, fuzzy
 msgid "File"
 msgstr "파일"
@@ -6604,6 +6750,11 @@ msgstr "가져오기 시 파일 이름"
 #, fuzzy
 msgid "file on disk, not linked"
 msgstr "디스크에 있는 미연결 파일"
+
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "File removed"
+msgstr "파일 제거됨"
 
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/components/SeriesFilesSection.tsx
@@ -6838,6 +6989,10 @@ msgstr "너비에 맞춤"
 #, fuzzy
 msgid "Fit width"
 msgstr "너비에 맞춤"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Fix or remove the source mapping first, or a refresh will bring them right back."
+msgstr ""
 
 #: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/registry.ts
@@ -8145,6 +8300,10 @@ msgstr "MangaBaka 로컬 사본 유지"
 
 #: src/components/SourceMeasurePanel.tsx
 msgid "Keep as is"
+msgstr ""
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Keep deleted files (days)"
 msgstr ""
 
 #: src/pages/reader/DownloadSplash.tsx
@@ -9619,6 +9778,10 @@ msgstr "위로 이동"
 msgid "Move up in queue"
 msgstr "대기열에서 위로 이동"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
+msgstr ""
+
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
 msgid "moves onto a volume"
@@ -10408,6 +10571,11 @@ msgstr "{total}개 챕터 중 원하는 항목 없음"
 #, fuzzy
 msgid "None of their titles match these filters. Try loosening one of them."
 msgstr "이 제작자의 제목 중 이 필터와 일치하는 것이 없습니다. 필터를 하나 완화해 보세요."
+
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "None of these chapters has a file on disk."
+msgstr "이 챕터들 중 디스크에 파일이 있는 것은 없습니다."
 
 #: src/components/discover/SourcePreviewPanel.tsx
 msgid "None of your enabled sources has this title."
@@ -12577,6 +12745,16 @@ msgstr ""
 msgid "Recurrent"
 msgstr "반복"
 
+#: src/pages/settings/RecycleBinSection.tsx
+#: src/pages/settings/registry.ts
+msgid "Recycle bin"
+msgstr ""
+
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "recycle bin, trash, deleted files, restore, undelete, empty bin, retention"
+msgstr ""
+
 #: src/components/settings/SecuritySection.tsx
 msgid "Redirects HTTP to HTTPS, sends HSTS and marks the session cookie Secure. Only turn this on once Fōkurōru is behind TLS: over plain HTTP, sign-in fails without saying why."
 msgstr ""
@@ -12787,6 +12965,16 @@ msgstr "보관 파일 제거"
 msgid "Remove bookmark"
 msgstr "북마크 제거"
 
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "Remove chapters"
+msgstr "챕터 제거"
+
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+msgid "Remove chapters?"
+msgstr "챕터를 제거할까요?"
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Remove condition"
 msgstr ""
@@ -12894,6 +13082,14 @@ msgstr "제거됨"
 msgid "Removed {seriesTitle}. It comes back when you read it again."
 msgstr "{seriesTitle}이(가) 삭제되었습니다. 다시 읽으면 표시됩니다."
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Removed chapter"
+msgstr ""
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Removed chapter rows and their read history cannot be restored."
+msgstr ""
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Removed from every profile that scores it. This can't be undone."
 msgstr ""
@@ -12902,6 +13098,10 @@ msgstr ""
 #, fuzzy
 msgid "Removed from recommendations. Only this title: its genres and author are unaffected."
 msgstr "추천에서 제외되었습니다. 이 작품에만 적용되며, 장르와 작가는 영향받지 않습니다."
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Removed series"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Removes \"{seriesTitle}\" and its chapters. This cannot be undone."
@@ -13160,6 +13360,7 @@ msgid "Resolved using ID. High accuracy"
 msgstr "ID로 해결됨. 정확도 높음"
 
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Restore"
@@ -13209,6 +13410,10 @@ msgstr "이 작품 복원"
 #, fuzzy
 msgid "Restored"
 msgstr "복원됨"
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "Restored as an unlinked file. Health can import it."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -13623,6 +13828,7 @@ msgstr "복구 코드 저장"
 #: src/components/settings/UpgradeProfilesSection.tsx
 #: src/components/SetupWizard.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -14851,6 +15057,7 @@ msgstr "주당 독서 횟수"
 #: src/components/ReleaseSearchModal.tsx
 #: src/components/SeriesFilesSection.tsx
 #: src/pages/HealthPage.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #: src/pages/SettingsPage.tsx
 #: src/pages/stats/SourceReliability.tsx
 #, fuzzy
@@ -15677,8 +15884,13 @@ msgid "The chapter numbers are in the archive's page file names. Certain."
 msgstr "압축 파일 안의 페이지 파일명에서 챕터 번호를 확인했습니다. 확실합니다."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "The chapters stay in the list. Tick them as wanted again to bring them back."
-msgstr ""
+#, fuzzy
+msgid "The chapters stay in the list with their read history, and Maki won't download them again unless you ask."
+msgstr "챕터는 읽기 기록과 함께 목록에 남고, 요청하지 않으면 Maki가 다시 다운로드하지 않습니다."
+
+#: src/pages/SeriesDetailPage.tsx
+#~ msgid "The chapters stay in the list. Tick them as wanted again to bring them back."
+#~ msgstr ""
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -15711,14 +15923,18 @@ msgstr ""
 msgid "The file is already off the disk, so nothing is deleted. This drops the record that still says the chapters are downloaded, which is why they read as available on the series page."
 msgstr "파일이 이미 디스크에서 없어졌으므로 삭제할 항목이 없습니다. 챕터가 다운로드되었다고 기록된 기록을 지우므로 시리즈 페이지에서 읽을 수 있는 상태로 표시됩니다."
 
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "The file is missing from the bin folder."
+msgstr ""
+
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
 msgid "The file is named for its chapter."
 msgstr "파일 이름에서 챕터를 확인했습니다."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "The file is removed from disk and cannot be recovered."
-msgstr ""
+#~ msgid "The file is removed from disk and cannot be recovered."
+#~ msgstr ""
 
 #: src/pages/HealthPage.tsx
 #, fuzzy
@@ -15730,8 +15946,13 @@ msgid "The file this upgrade was meant to replace is gone"
 msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "The files are removed from disk and cannot be recovered."
-msgstr ""
+#, fuzzy
+msgid "The file was deleted on purpose. Maki won't download it again unless you ask."
+msgstr "파일을 일부러 삭제했습니다. 요청하지 않으면 Maki가 다시 다운로드하지 않습니다."
+
+#: src/pages/SeriesDetailPage.tsx
+#~ msgid "The files are removed from disk and cannot be recovered."
+#~ msgstr ""
 
 #: src/components/discover/PreviewChapterButton.tsx
 msgid "The first chapter of {title} is ready to read."
@@ -15856,6 +16077,10 @@ msgstr "제공자가 이 챕터들을 이 권에 배정했습니다. 대체로 �
 
 #: src/components/settings/SecuritySection.tsx
 msgid "The provider's issuer, without /.well-known/openid-configuration. Fōkurōru appends that itself."
+msgstr ""
+
+#: src/pages/settings/RecycleBinSection.tsx
+msgid "The recycle bin is empty."
 msgstr ""
 
 #: src/pages/RequestsPage.tsx
@@ -16018,6 +16243,10 @@ msgstr "긴 스트립 페이지이며 두 릴리스가 서로 다른 지점에�
 msgid "These are shown once. They are stored hashed, so nobody (including you) can read them back. Keep them somewhere you can reach without your authenticator."
 msgstr "한 번만 표시됩니다. 해시로 저장되므로 누구도(나를 포함하여) 다시 읽을 수 없습니다. 인증 앱 없이 접근할 수 있는 곳에 보관하세요."
 
+#: src/components/PermanentDeleteFallback.tsx
+msgid "These files cannot go to the recycle bin. You can delete them permanently instead, and they cannot be restored afterwards."
+msgstr ""
+
 #: src/components/CatalogueRules.tsx
 #, fuzzy
 msgid "These rules need the rules view. Remove some to switch back."
@@ -16038,8 +16267,8 @@ msgstr "해당 사용자는 더 이상 로그인할 수 없습니다. 되돌릴 
 msgid "This account has no password login for two-factor to protect."
 msgstr "이 계정에는 2단계 인증으로 보호할 비밀번호 로그인이 없습니다."
 
-#: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
+#: src/pages/settings/RecycleBinSection.tsx
 #, fuzzy
 msgid "This action cannot be undone."
 msgstr "이 작업은 취소할 수 없습니다."
@@ -17154,6 +17383,10 @@ msgstr "이 파일 사용"
 #, fuzzy
 msgid "Use this title for taste"
 msgstr "이 작품을 취향에 반영"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Use this to clean up chapters pulled in by a wrong source match."
+msgstr ""
 
 #: src/components/settings/UsersSection.tsx
 #, fuzzy

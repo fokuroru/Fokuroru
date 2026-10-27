@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncE
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { nativeApp } from '../lib/nativeApp'
+import { RecycleBinSection } from './settings/RecycleBinSection'
 import PairAppModal from '../components/settings/PairAppModal'
 import { getSkippedVersion, setSkippedVersion, subscribeSkippedVersion } from '../lib/updateSkip'
 import { ApiError } from '../api/client'
@@ -3252,6 +3253,7 @@ function useSectionNodes(): Record<string, ReactNode> {
 
       'root-folders': <RootFoldersSection />,
       'library-files': <LibraryFilesSection />,
+      'recycle-bin': <RecycleBinSection />,
       naming: <NamingSection />,
       monitoring: <NewSeriesDefaultsSection />,
       metadata: <MetadataSection />,

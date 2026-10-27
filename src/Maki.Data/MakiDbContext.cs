@@ -92,12 +92,14 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
     public DbSet<UpgradeAttempt> UpgradeAttempts => Set<UpgradeAttempt>();
     public DbSet<SourceQualitySample> SourceQualitySamples => Set<SourceQualitySample>();
     public DbSet<UpgradeHistory> UpgradeHistory => Set<UpgradeHistory>();
+    public DbSet<RecycleBinEntry> RecycleBin => Set<RecycleBinEntry>();
     public DbSet<TorrentProposal> TorrentProposals => Set<TorrentProposal>();
 
     public override int SaveChanges()
     {
         StampOwner();
         StampCompletedAt();
+        ClearRemovedStamp();
         return base.SaveChanges();
     }
 
@@ -105,7 +107,22 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
     {
         StampOwner();
         StampCompletedAt();
+        ClearRemovedStamp();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
+    }
+
+    /// <summary>Linking a file to a chapter ends its "removed on purpose" state, so no linking path has to.</summary>
+    private void ClearRemovedStamp()
+    {
+        foreach (var entry in ChangeTracker.Entries<Chapter>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified &&
+                entry.Entity.FileRemovedAt != null &&
+                (entry.Entity.ChapterFileId != null || entry.Entity.ChapterFile != null))
+            {
+                entry.Entity.FileRemovedAt = null;
+            }
+        }
     }
 
     private void StampCompletedAt()
@@ -562,6 +579,18 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
             e.HasOne<Chapter>().WithMany().HasForeignKey(h => h.ChapterId).OnDelete(DeleteBehavior.Cascade);
             // No FK to ChapterFile: a torrent replacement removes the superseded file's row and its
             // history has to outlive it so the group can be reverted.
+        });
+
+        modelBuilder.Entity<RecycleBinEntry>(e =>
+        {
+            e.ToTable("RecycleBin");
+            // By root folder rather than series: the series is often the thing that was deleted.
+            e.HasQueryFilter(r =>
+                _scope.Unrestricted ||
+                _scope.AllRootFolders ||
+                UserRootFolders.Any(g => g.UserId == _scope.UserId && g.RootFolderId == r.RootFolderId));
+            e.HasIndex(r => r.DeletedAtUtc);
+            e.HasIndex(r => r.SeriesId);
         });
 
         modelBuilder.Entity<TorrentProposal>(e =>

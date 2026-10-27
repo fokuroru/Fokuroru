@@ -928,7 +928,7 @@ public class DownloadQueueService(
 
         var seriesIds = rows.Select(r => r.SeriesId).Distinct().ToList();
         var missing = (await db.Chapters
-                .Where(c => seriesIds.Contains(c.SeriesId) && c.Wanted && c.ChapterFileId == null && c.Number != null && c.Volume != null)
+                .Where(c => seriesIds.Contains(c.SeriesId) && c.Wanted && c.ChapterFileId == null && c.FileRemovedAt == null && c.Number != null && c.Volume != null)
                 .Select(c => new { c.SeriesId, c.Volume, c.Number })
                 .ToListAsync(ct))
             .Where(c => ChapterSequence.IsMain(c.Number))

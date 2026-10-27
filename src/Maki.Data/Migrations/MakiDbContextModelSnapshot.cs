@@ -114,6 +114,9 @@ namespace Maki.Data.Migrations
                     b.Property<DateTime?>("DiscoveredAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("FileRemovedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsOneShot")
                         .HasColumnType("INTEGER");
 
@@ -1345,6 +1348,72 @@ namespace Maki.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("RecommendationSignalOverrides");
+                });
+
+            modelBuilder.Entity("Maki.Core.Entities.RecycleBinEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BinPath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ChapterFileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ChaptersJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DeletedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeletedByName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DeletedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FileJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OriginalPath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RelativePath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RootFolderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RootPath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SeriesTitle")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedAtUtc");
+
+                    b.HasIndex("SeriesId");
+
+                    b.ToTable("RecycleBin", (string)null);
                 });
 
             modelBuilder.Entity("Maki.Core.Entities.RootFolder", b =>

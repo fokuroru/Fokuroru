@@ -119,6 +119,23 @@ public class CoverService(
     private static bool SameBytes(string a, string b) =>
         new FileInfo(a).Length == new FileInfo(b).Length && Sha256Of(a) == Sha256Of(b);
 
+    /// <summary>
+    /// True for a cover.jpg Maki wrote: it matches the hash record or is the current poster. Anything
+    /// else in a series folder is the user's.
+    /// </summary>
+    public bool IsMakiLibraryCover(int seriesId, string cover)
+    {
+        try
+        {
+            return File.Exists(cover)
+                   && (WrittenByMaki(cover, LibraryCoverRecordFor(seriesId)) || SameBytes(cover, CoverPathFor(seriesId)));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
     private static string Sha256Of(string path)
     {
         using var stream = File.OpenRead(path);

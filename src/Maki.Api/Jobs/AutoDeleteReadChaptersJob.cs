@@ -1,6 +1,5 @@
 using Maki.Api.Services;
 using Maki.Core.Configuration;
-using Maki.Core.Paths;
 using Maki.Data;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
@@ -9,19 +8,20 @@ namespace Maki.Api.Jobs;
 
 /// <summary>
 /// Deletes the files of chapters read more than <see cref="SettingKeys.LibraryAutoDeleteReadDays"/>
-/// days ago. The chapter row stays (so read history and counts survive) and is unwanted, because a
-/// wanted chapter with no file is exactly what Smart Download and "Download N wanted" go looking for.
+/// days ago. The chapter row stays (so read history and counts survive) and is marked removed
+/// (<see cref="Maki.Core.Entities.Chapter.FileRemovedAt"/>), so nothing downloads it again. The delete is
+/// permanent: cleanup runs unattended, so it never fills the recycle bin.
 /// <para>
 /// A file backing several chapters (a volume) goes only once every one of them qualifies, and a file
-/// any other row points at, in this root or through an overlapping one, is left alone
-/// (<see cref="FileClaims"/>).
+/// any other row points at, in this root or through an overlapping one, stays on disk
+/// (<see cref="ChapterFileDeletion.ClaimedAsync"/>).
 /// </para>
 /// </summary>
 [DisallowConcurrentExecution]
 public class AutoDeleteReadChaptersJob(
     MakiDbContext db,
     IAppSettings settings,
-    ReaderArchiveCache archives,
+    ChapterFileDeletion deletion,
     TimeProvider time,
     ILogger<AutoDeleteReadChaptersJob> logger) : IJob
 {
@@ -126,66 +126,35 @@ public class AutoDeleteReadChaptersJob(
                 .ToListAsync(ct))
             .ToLookup(c => c.ChapterFileId!.Value);
 
-        var files = await (from f in db.ChapterFiles
-                           join s in db.Series on f.SeriesId equals s.Id
-                           where fileIds.Contains(f.Id)
-                           select new { File = f, Root = s.RootFolder })
+        var files = await db.ChapterFiles.Where(f => fileIds.Contains(f.Id))
+            .Where(f => db.Series.Any(s => s.Id == f.SeriesId && s.RootFolderId != null))
             .ToListAsync(ct);
 
-        var claims = await FileClaims.LoadAsync(db, ct);
+        // A volume goes only once every chapter on it qualifies.
+        var qualifying = files
+            .Where(f => chaptersByFile[f.Id].Any() && chaptersByFile[f.Id].All(c => readIds.Contains(c.Id)))
+            .GroupBy(f => f.SeriesId);
 
         var deleted = 0;
-        foreach (var (file, root) in files.Select(f => (f.File, f.Root)))
+        foreach (var group in qualifying)
         {
             if (ct.IsCancellationRequested)
             {
                 break;
             }
 
-            var chapters = chaptersByFile[file.Id].ToList();
-            if (root is null || chapters.Count == 0 || chapters.Any(c => !readIds.Contains(c.Id)))
+            // Under the same lock a rescan or delete holds, and not while a worker is packaging into the series.
+            using var seriesLock = await SeriesLocks.SeriesAsync(group.Key, ct);
+            if (await SeriesLocks.InFlight(db.DownloadQueue).AnyAsync(q => q.SeriesId == group.Key, ct))
             {
                 continue;
             }
 
-            if (claims.ClaimedByOthers(root.Path, file.RelativePath, new HashSet<int> { file.Id }))
-            {
-                continue;
-            }
-
-            var absPath = LibraryPaths.ResolveForDelete(root.Path, file.RelativePath);
-            if (absPath is null)
-            {
-                logger.LogWarning("Auto-delete refused {File}: resolves outside {Root} or through a linked folder",
-                    file.RelativePath, root.Path);
-                continue;
-            }
-
-            try
-            {
-                File.Delete(absPath);
-            }
-            catch (DirectoryNotFoundException)
-            {
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                logger.LogWarning(ex, "Auto-delete could not remove {File}, keeping it", file.RelativePath);
-                continue;
-            }
-
-            foreach (var chapter in chapters)
-            {
-                chapter.ChapterFileId = null;
-                chapter.Wanted = false;
-            }
-
-            archives.Invalidate(file.Id);
-            db.ChapterFiles.Remove(file);
-            deleted++;
+            var series = await db.Series.Include(s => s.RootFolder).FirstAsync(s => s.Id == group.Key, ct);
+            var result = await deletion.DeleteAsync(series, group.ToList(), CancellationToken.None);
+            deleted += result.Deleted;
         }
 
-        await db.SaveChangesAsync(CancellationToken.None);
         if (deleted > 0)
         {
             logger.LogInformation("Auto-delete removed {Count} file(s) read more than {Days} day(s) ago", deleted, days);

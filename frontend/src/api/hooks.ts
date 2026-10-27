@@ -18,6 +18,7 @@ import { affectedKeys } from './recommendationFeedback'
 import type { RequestSummaryDto, SourceReliabilityDto } from './stats'
 import type { IncognitoMode } from '../components/ui/incognito'
 import type { ReleaseParsedDto } from './upgrades'
+import { obtainedCount } from '../lib/chapterCounts'
 import type {
   AddSeriesRequest,
   ChapterDto,
@@ -85,7 +86,7 @@ export function useSeries() {
  * reads "0/147", which made sorting and filtering on this a no-op for those series.
  */
 export function missingCount(s: SeriesDto): number {
-  return (s.wantedChapterCount || s.knownChapterCount || 0) - s.chapterFileCount
+  return (s.wantedChapterCount || s.knownChapterCount || 0) - obtainedCount(s)
 }
 
 export interface LibraryStats {
@@ -1602,10 +1603,11 @@ export function useAddSeries() {
 export function useDeleteSeries() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, deleteFiles }: { id: number; deleteFiles: boolean }) =>
-      api<void>(`/series/${id}?deleteFiles=${deleteFiles}`, { method: 'DELETE' }),
+    mutationFn: ({ id, deleteFiles, permanent = false }: { id: number; deleteFiles: boolean; permanent?: boolean }) =>
+      api<void>(`/series/${id}?deleteFiles=${deleteFiles}&permanent=${permanent}`, { method: 'DELETE' }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['series'] })
+      void queryClient.invalidateQueries({ queryKey: ['recycle-bin'] })
       for (const key of affectedKeys) void queryClient.invalidateQueries({ queryKey: [key] })
     },
   })
@@ -1614,8 +1616,11 @@ export function useDeleteSeries() {
 export function useRetireSeries() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, retire }: { id: number; retire: boolean }) =>
-      api<{ retired: boolean; filesDeleted?: number; onHold?: string[] }>(`/series/${id}/${retire ? 'retire' : 'unretire'}`, { method: 'POST' }),
+    mutationFn: ({ id, retire, permanent = false }: { id: number; retire: boolean; permanent?: boolean }) =>
+      api<{ retired: boolean; filesDeleted?: number; onHold?: string[] }>(
+        `/series/${id}/${retire ? `retire?permanent=${permanent}` : 'unretire'}`,
+        { method: 'POST' },
+      ),
     onSuccess: (_data, { id }) => {
       void queryClient.invalidateQueries({ queryKey: ['series'] })
       void queryClient.invalidateQueries({ queryKey: ['series', id] })
@@ -2002,6 +2007,7 @@ export function useUnlinkChapters() {
         body: JSON.stringify(chapterIds),
       }),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['recycle-bin'] })
       void queryClient.invalidateQueries({ queryKey: ['chapters'] })
       void queryClient.invalidateQueries({ queryKey: ['series-files'] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })
@@ -2012,12 +2018,35 @@ export function useUnlinkChapters() {
 export function useDeleteChapters() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (chapterIds: number[]) =>
-      api<{ deleted: number }>('/chapter', {
+    mutationFn: ({ chapterIds, permanent = false }: { chapterIds: number[]; permanent?: boolean }) =>
+      api<{ deleted: number }>(`/chapter?permanent=${permanent}`, {
         method: 'DELETE',
         body: JSON.stringify(chapterIds),
       }),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['recycle-bin'] })
+      void queryClient.invalidateQueries({ queryKey: ['chapters'] })
+      void queryClient.invalidateQueries({ queryKey: ['series-files'] })
+      void queryClient.invalidateQueries({ queryKey: ['series'] })
+    },
+  })
+}
+
+/**
+ * Deletes the files behind these chapters and keeps the chapters, marked removed. A volume file
+ * takes every chapter on it along. `kept` counts files left on disk because another series' record
+ * still points at them.
+ */
+export function useDeleteChapterFiles() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ chapterIds, permanent = false }: { chapterIds: number[]; permanent?: boolean }) =>
+      api<{ deleted: number; kept: number; failed: number; chaptersRemoved: number }>(`/chapter/deletefiles?permanent=${permanent}`, {
+        method: 'POST',
+        body: JSON.stringify(chapterIds),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['recycle-bin'] })
       void queryClient.invalidateQueries({ queryKey: ['chapters'] })
       void queryClient.invalidateQueries({ queryKey: ['series-files'] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })
@@ -2028,12 +2057,13 @@ export function useDeleteChapters() {
 export function useDeleteSeriesFiles(seriesId: number) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (relativePaths: string[]) =>
-      api<{ deleted: number; failed: number }>(`/series/${seriesId}/files`, {
+    mutationFn: ({ relativePaths, permanent = false }: { relativePaths: string[]; permanent?: boolean }) =>
+      api<{ deleted: number; failed: number }>(`/series/${seriesId}/files?permanent=${permanent}`, {
         method: 'DELETE',
         body: JSON.stringify(relativePaths),
       }),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['recycle-bin'] })
       void queryClient.invalidateQueries({ queryKey: ['series-files', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['chapters', seriesId] })
       void queryClient.invalidateQueries({ queryKey: ['series', seriesId] })

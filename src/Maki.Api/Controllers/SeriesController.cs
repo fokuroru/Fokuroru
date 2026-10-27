@@ -399,6 +399,7 @@ public class SeriesController(
                 notificationMode: userState?.NotificationMode ?? SeriesNotificationMode.Default,
                 titleLanguage: titleLanguage) with
             {
+                RemovedChapterCount = counts?.Removed ?? 0,
                 Sources = [.. mappings.Select(m => m.SourceName).Distinct().Order()],
                 EnabledSources =
                 [
@@ -417,7 +418,7 @@ public class SeriesController(
         }));
     }
 
-    private sealed record ChapterTallies(int SeriesId, int Wanted, int WithFile, int Known);
+    private sealed record ChapterTallies(int SeriesId, int Wanted, int WithFile, int Known, int Removed);
 
     /// <summary>Takes banked chapters out of the totals, so a held-back release does not show up as a count.</summary>
     private async Task<Dictionary<int, ChapterTallies>> WithoutBankedAsync(
@@ -430,7 +431,7 @@ public class SeriesController(
 
         var ids = banked.Values.SelectMany(x => x).ToList();
         var flags = await db.Chapters.Where(c => ids.Contains(c.Id))
-            .Select(c => new { c.SeriesId, c.Wanted, HasFile = c.ChapterFileId != null })
+            .Select(c => new { c.SeriesId, c.Wanted, HasFile = c.ChapterFileId != null, Removed = c.ChapterFileId == null && c.FileRemovedAt != null })
             .ToListAsync(ct);
         foreach (var group in flags.GroupBy(f => f.SeriesId))
         {
@@ -438,9 +439,10 @@ public class SeriesController(
             {
                 tallies[group.Key] = t with
                 {
-                    Wanted = t.Wanted - group.Count(f => f.Wanted || f.HasFile),
+                    Wanted = t.Wanted - group.Count(f => f.Wanted || f.HasFile || f.Removed),
                     WithFile = t.WithFile - group.Count(f => f.HasFile),
                     Known = t.Known - group.Count(),
+                    Removed = t.Removed - group.Count(f => f.Removed),
                 };
             }
         }
@@ -449,13 +451,14 @@ public class SeriesController(
     }
 
     /// <summary>
-    /// The three chapter counts every series surface reports, keyed by series id. The list and detail
+    /// The chapter counts every series surface reports, keyed by series id. The list and detail
     /// endpoints must agree on these, so they share one expression rather than each spelling it out.
     /// <para>
     /// <c>Wanted</c> counts what the user asked for plus anything already on disk: a chapter they
     /// don't want and don't have (a skipped special) is excluded so a fully-downloaded series reads
     /// 39/39 rather than 39/40, while one they don't want but already have still counts on both
-    /// sides. Chapters merely waiting to download are wanted, so deferring never shrinks this.
+    /// sides. Chapters merely waiting to download are wanted, so deferring never shrinks this. A
+    /// chapter whose file was removed on purpose counts too, so clearing read files never shrinks it.
     /// </para>
     /// </summary>
     private static async Task<Dictionary<int, ChapterTallies>> ChapterTalliesAsync(
@@ -464,9 +467,10 @@ public class SeriesController(
             .GroupBy(c => c.SeriesId)
             .Select(g => new ChapterTallies(
                 g.Key,
-                g.Count(c => c.Wanted || c.ChapterFileId != null),
+                g.Count(c => c.Wanted || c.ChapterFileId != null || c.FileRemovedAt != null),
                 g.Count(c => c.ChapterFileId != null),
-                g.Count()))
+                g.Count(),
+                g.Count(c => c.ChapterFileId == null && c.FileRemovedAt != null)))
             .ToDictionaryAsync(x => x.SeriesId, ct);
 
     /// <summary>
@@ -683,12 +687,15 @@ public class SeriesController(
     }
 
     /// <summary>
-    /// Deletes the given CBZ files from disk, removes their ChapterFile records, and
-    /// unlinks every chapter that shared each file (volume CBZs back several chapters).
+    /// Moves the given files to the recycle bin and removes their records. Every chapter that shared one
+    /// (volume CBZs back several) is marked removed rather than left missing, so it keeps its reads
+    /// and nothing downloads it again; see <see cref="ChapterFileDeletion"/>.
     /// </summary>
     [Authorize(Policy = Policies.DeleteSeries)]
     [HttpDelete("{id:int}/files")]
-    public async Task<IActionResult> DeleteFiles(int id, [FromBody] string[] relativePaths, CancellationToken ct)
+    public async Task<IActionResult> DeleteFiles(
+        int id, [FromBody] string[] relativePaths, [FromServices] ChapterFileDeletion deletion, CancellationToken ct,
+        [FromQuery] bool permanent = false)
     {
         if (relativePaths.Length == 0)
             return this.Fail(localizer, "error.series.noFilesSelected");
@@ -706,70 +713,30 @@ public class SeriesController(
             .Where(f => f.SeriesId == id && relativePaths.Contains(f.RelativePath))
             .ToListAsync(ct);
 
+        var everything = relativePaths
+            .Select(p => LibraryPaths.ResolveForDelete(series.RootFolder.Path, LibraryPaths.ComparisonKey(p)))
+            .OfType<string>();
+        if (!permanent && deletion.Bin.Refusal(series.RootFolder.Path, everything) is { } refusal)
+            return this.BinRefused(localizer, refusal);
+
         // The Files tab also lists comics on disk that have no record (never adopted), and those
         // are what this dialog is most often used to clean up.
         var (strayDeleted, strayFailed) = await DeleteStrayFilesAsync(
-            series, relativePaths.Except(files.Select(f => f.RelativePath), StringComparer.Ordinal).ToList(), ct);
+            series, relativePaths.Except(files.Select(f => f.RelativePath), StringComparer.Ordinal).ToList(),
+            deletion, permanent, ct);
 
-        if (files.Count == 0)
-            return Ok(new { deleted = strayDeleted, failed = strayFailed });
-
-        var fileIds = files.Select(f => f.Id).ToList();
-        var linkedByFileId = (await db.Chapters
-                .Where(c => c.ChapterFileId != null && fileIds.Contains(c.ChapterFileId.Value))
-                .ToListAsync(ct))
-            .ToLookup(c => c.ChapterFileId!.Value);
-
-        var deleted = strayDeleted;
-        var failed = strayFailed;
-        foreach (var file in files)
-        {
-            // Resolve, never a bare Combine: RelativePath is stored data, and a row that escapes the
-            // root would have this delete an arbitrary file for whoever holds DeleteSeries.
-            var absPath = LibraryPaths.ResolveForDelete(series.RootFolder.Path, file.RelativePath);
-            if (absPath is null)
-            {
-                logger.LogWarning("Refusing to delete {File}: resolves outside {Root} or through a linked folder",
-                    file.RelativePath, series.RootFolder.Path);
-                failed++;
-                continue;
-            }
-
-            try
-            {
-                System.IO.File.Delete(absPath);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                // Containing directory is already gone — the file is effectively deleted.
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                // File locked or permission denied: leave the record and its chapter
-                // links intact so a half-finished batch doesn't drift from disk state.
-                logger.LogWarning(ex, "Could not delete {File}, skipping", file.RelativePath);
-                failed++;
-                continue;
-            }
-
-            foreach (var chapter in linkedByFileId[file.Id])
-                chapter.ChapterFileId = null;
-
-            archives.Invalidate(file.Id);
-            db.ChapterFiles.Remove(file);
-            deleted++;
-        }
-
-        await db.SaveChangesAsync(ct);
-        return Ok(new { deleted, failed });
+        // A file another series still points at stays on disk, but this series has let go of it,
+        // which is what the user asked for here, so it reads as deleted.
+        var result = await deletion.DeleteAsync(series, files, ct, permanent ? null : RecycleReason.DeleteFile);
+        return Ok(new { deleted = strayDeleted + result.Deleted + result.Kept, failed = strayFailed + result.Failed });
     }
 
     /// <summary>
-    /// Deletes requested paths that have no record: only a comic, only inside one of this series'
-    /// folders, never through a link, and never a path another series has a record for.
+    /// Sends requested paths that have no record to the recycle bin: only a comic, only inside one of
+    /// this series' folders, never through a link, and never a path another series has a record for.
     /// </summary>
     private async Task<(int Deleted, int Failed)> DeleteStrayFilesAsync(
-        Series series, List<string> relativePaths, CancellationToken ct)
+        Series series, List<string> relativePaths, ChapterFileDeletion deletion, bool permanent, CancellationToken ct)
     {
         if (relativePaths.Count == 0)
         {
@@ -778,25 +745,24 @@ public class SeriesController(
 
         var rootPath = series.RootFolder!.Path;
         var folders = await SeriesFolders.ForAsync(db, series, ct);
-        var spellings = relativePaths
-            .SelectMany(p => new[] { p, p.Replace('\\', '/'), p.Replace('/', '\\') })
-            .Distinct()
-            .ToList();
-        var recorded = (await db.ChapterFiles
-                .Where(f => db.Series.Any(s => s.Id == f.SeriesId && s.RootFolderId == series.RootFolderId) &&
-                            spellings.Contains(f.RelativePath))
-                .Select(f => f.RelativePath)
-                .ToListAsync(ct))
-            .Select(LibraryPaths.ComparisonKey)
-            .ToHashSet(LibraryPaths.FolderComparer);
+        // Any record anywhere counts, including one under a nested root folder or in a root the
+        // caller cannot see: that file is somebody's chapter, not a stray.
+        var recorded = await deletion.ClaimedAsync(
+            relativePaths
+                .Select(p => LibraryPaths.ResolveForDelete(rootPath, LibraryPaths.ComparisonKey(p)))
+                .OfType<string>()
+                .ToList(),
+            new HashSet<int>(),
+            ct);
 
-        var deleted = 0;
         var failed = 0;
+        var permanentDeleted = 0;
+        var entries = new List<RecycleBinEntry>();
         foreach (var path in relativePaths)
         {
             var key = LibraryPaths.ComparisonKey(path);
             var absolute = LibraryPaths.ResolveForDelete(rootPath, key);
-            if (recorded.Contains(key) || absolute is null || !ComicFile.IsComic(absolute) ||
+            if (absolute is null || recorded.Contains(absolute) || !ComicFile.IsComic(absolute) ||
                 LibraryPaths.TopFolder(key) is not { } top || !folders.Contains(top, LibraryPaths.FolderComparer) ||
                 !System.IO.File.Exists(absolute))
             {
@@ -806,18 +772,42 @@ public class SeriesController(
                 continue;
             }
 
-            try
+            if (!permanent)
             {
-                System.IO.File.Delete(absolute);
-                deleted++;
+                entries.Add(deletion.Bin.Record(series, rootPath, key, absolute, null, [], RecycleReason.DeleteFile));
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            else if (deletion.DeleteFromDisk(absolute))
             {
-                logger.LogWarning(ex, "Could not delete {File}, skipping", path);
+                permanentDeleted++;
+            }
+            else
+            {
                 failed++;
             }
         }
 
+        if (entries.Count == 0)
+        {
+            return (permanentDeleted, failed);
+        }
+
+        await db.SaveChangesAsync(ct);
+        var deleted = 0;
+        var stuck = new List<RecycleBinEntry>();
+        foreach (var entry in entries)
+        {
+            if (await deletion.Bin.MoveInAsync(entry, CancellationToken.None))
+            {
+                deleted++;
+            }
+            else
+            {
+                failed++;
+                stuck.Add(entry);
+            }
+        }
+
+        await deletion.Bin.ForgetAsync(stuck);
         return (deleted, failed);
     }
 
@@ -1061,6 +1051,7 @@ public class SeriesController(
             notificationMode: userState.NotificationMode,
             titleLanguage: await TitleLanguageAsync(ct)) with
         {
+            RemovedChapterCount = counts?.Removed ?? 0,
             ReadingStatus = detailStatus.TryGetValue(id, out var reading) ? reading.Status.ToString() : null,
             ReadMainChapters = reading?.ReadMain,
             MainChapterCount = reading?.TotalMain,
@@ -1139,8 +1130,11 @@ public class SeriesController(
 
     [Authorize(Policy = Policies.DeleteSeries)]
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id, [FromQuery] bool deleteFiles, CancellationToken ct)
+    public async Task<IActionResult> Delete(
+        int id, [FromQuery] bool deleteFiles, [FromServices] ChapterFileDeletion deletion, CancellationToken ct,
+        [FromQuery] bool permanent = false)
     {
+        var bin = deletion.Bin;
         var series = await db.Series.Include(s => s.RootFolder).FirstOrDefaultAsync(s => s.Id == id, ct);
         if (series is null)
         {
@@ -1161,6 +1155,30 @@ public class SeriesController(
         // still listed.
         var diskPlan = series.RootFolder is null ? null : await PlanSeriesDiskDeleteAsync(series, deleteFiles, ct);
 
+        // Saved with the series row's removal, so a failed save leaves both, and moved only after it.
+        var binned = new List<RecycleBinEntry>();
+        var doomed = new List<string>();
+        if (diskPlan is not null && deleteFiles)
+        {
+            var targets = await SeriesBinTargetsAsync(series, diskPlan, deletion, ct);
+            if (permanent)
+            {
+                doomed = targets.Select(t => t.Absolute).ToList();
+                targets = [];
+            }
+            else if (bin.Refusal(series.RootFolder!.Path, targets.Select(t => t.Absolute)) is { } refusal)
+            {
+                return this.BinRefused(localizer, refusal);
+            }
+
+            var chapters = (await db.Chapters.Where(c => c.SeriesId == id && c.ChapterFileId != null).ToListAsync(ct))
+                .ToLookup(c => c.ChapterFileId!.Value);
+            binned = targets
+                .Select(t => bin.Record(series, series.RootFolder!.Path, t.Relative, t.Absolute, t.File,
+                    t.File is null ? [] : chapters[t.File.Id], RecycleReason.SeriesDelete))
+                .ToList();
+        }
+
         var payload = await SeriesRemovalRecord.PayloadAsync(series, mangaBakaStore, logger, ct);
         var title = series.Title;
         var seriesKey = SeriesIdentity.For(series);
@@ -1172,7 +1190,7 @@ public class SeriesController(
         await db.SaveChangesAsync(ct);
         if (diskPlan is not null)
         {
-            DeleteSeriesFromDisk(diskPlan, id);
+            await DeleteSeriesFromDiskAsync(diskPlan, binned, doomed, deletion, id);
         }
 
         // Still on somebody's tracker list, so an import list would add it straight back otherwise.
@@ -1206,7 +1224,8 @@ public class SeriesController(
     /// </summary>
     [Authorize(Policy = Policies.DeleteSeries)]
     [HttpPost("{id:int}/retire")]
-    public async Task<IActionResult> Retire(int id, CancellationToken ct)
+    public async Task<IActionResult> Retire(
+        int id, [FromServices] ChapterFileDeletion deletion, CancellationToken ct, [FromQuery] bool permanent = false)
     {
         var series = await db.Series.Include(s => s.RootFolder).FirstOrDefaultAsync(s => s.Id == id, ct);
         if (series is null)
@@ -1222,6 +1241,31 @@ public class SeriesController(
         }
 
         var diskPlan = series.RootFolder is null ? null : await PlanSeriesDiskDeleteAsync(series, true, ct);
+
+        // Saved with the row changes below, so a failed save leaves both, and moved only after it.
+        var binned = new List<RecycleBinEntry>();
+        var doomed = new List<string>();
+        if (diskPlan is not null)
+        {
+            var targets = await SeriesBinTargetsAsync(series, diskPlan, deletion, ct);
+            if (permanent)
+            {
+                doomed = targets.Select(t => t.Absolute).ToList();
+            }
+            else if (deletion.Bin.Refusal(series.RootFolder!.Path, targets.Select(t => t.Absolute)) is { } refusal)
+            {
+                return this.BinRefused(localizer, refusal);
+            }
+            else
+            {
+                var chapters = (await db.Chapters.Where(c => c.SeriesId == id && c.ChapterFileId != null).ToListAsync(ct))
+                    .ToLookup(c => c.ChapterFileId!.Value);
+                binned = targets
+                    .Select(t => deletion.Bin.Record(series, series.RootFolder!.Path, t.Relative, t.Absolute, t.File,
+                        t.File is null ? [] : chapters[t.File.Id], RecycleReason.SeriesDelete))
+                    .ToList();
+            }
+        }
 
         var files = await db.ChapterFiles.Where(f => f.SeriesId == id).ToListAsync(ct);
         var linked = await db.Chapters.Where(c => c.SeriesId == id && c.ChapterFileId != null).ToListAsync(ct);
@@ -1249,7 +1293,7 @@ public class SeriesController(
         await db.SaveChangesAsync(ct);
         if (diskPlan is not null)
         {
-            DeleteSeriesFromDisk(diskPlan, id);
+            await DeleteSeriesFromDiskAsync(diskPlan, binned, doomed, deletion, id);
         }
 
         var trackers = await scrobbler.PushOnHoldAsync(currentUser.UserId, series, ct);
@@ -1273,11 +1317,13 @@ public class SeriesController(
     }
 
     /// <param name="Folder">The series' own folder, when it resolves without passing a link.</param>
-    /// <param name="RemoveFolderWhole">Delete <paramref name="Folder"/> recursively.</param>
-    /// <param name="Files">Single files to delete, for folders the series does not own outright.</param>
+    /// <param name="RemoveFolderWhole">Bin everything in <paramref name="Folder"/>, then prune it.</param>
+    /// <param name="Files">Single files to bin, for folders the series does not own outright.</param>
     /// <param name="PruneIfEmpty">Folders removed only if nothing is left in them.</param>
+    /// <param name="MakiCover">The folder's cover.jpg when Maki wrote it, deleted rather than binned.</param>
     private sealed record SeriesDiskPlan(
-        string? Folder, bool RemoveFolderWhole, List<string> Files, List<string> PruneIfEmpty, string? Trash);
+        string? Folder, bool RemoveFolderWhole, List<string> Files, List<string> PruneIfEmpty, string? Trash,
+        string? MakiCover);
 
     private async Task<SeriesDiskPlan> PlanSeriesDiskDeleteAsync(Series series, bool deleteFiles, CancellationToken ct)
     {
@@ -1346,15 +1392,73 @@ public class SeriesController(
             prune.Add(trash);
         }
 
-        return new SeriesDiskPlan(folder, removeWhole, files, prune, deleteFiles ? trash : null);
+        // Read now: the hash record goes with the poster folder once the series is gone. Maki never
+        // writes a folder-level ComicInfo.xml, so that one is always the user's.
+        var cover = folder is null ? null : Path.Combine(folder, "cover.jpg");
+        var makiCover = removeWhole && cover is not null && coverService.IsMakiLibraryCover(series.Id, cover) ? cover : null;
+        return new SeriesDiskPlan(folder, removeWhole, files, prune, deleteFiles ? trash : null, makiCover);
+    }
+
+    private static bool IsMakiCover(SeriesDiskPlan plan, string path) =>
+        plan.MakiCover is { } cover && LibraryPaths.FolderComparer.Equals(path, cover);
+
+    private static bool Present(string path) =>
+        System.IO.File.Exists(path) || new FileInfo(path).LinkTarget is not null;
+
+    /// <summary>
+    /// Every file the delete would take: in a folder the series owns outright, every regular file
+    /// in the tree whatever its extension, plus the files the series tracks there (a tracked link
+    /// included); elsewhere only the tracked files. Maki's own cover.jpg is left for the prune, and a
+    /// file another series or a nested root still claims stays where it is.
+    /// </summary>
+    private async Task<List<(string Absolute, string Relative, ChapterFile? File)>> SeriesBinTargetsAsync(
+        Series series, SeriesDiskPlan plan, ChapterFileDeletion deletion, CancellationToken ct)
+    {
+        var rootPath = series.RootFolder!.Path;
+        var rows = await db.ChapterFiles.Where(f => f.SeriesId == series.Id).OrderBy(f => f.Id).ToListAsync(ct);
+        var tracked = new Dictionary<string, ChapterFile>(LibraryPaths.FolderComparer);
+        foreach (var file in rows)
+        {
+            if (LibraryPaths.ResolveForDelete(rootPath, LibraryPaths.ComparisonKey(file.RelativePath)) is { } absolute)
+            {
+                tracked.TryAdd(absolute, file);
+            }
+        }
+
+        var paths = new List<string>(plan.Files);
+        if (plan is { RemoveFolderWhole: true, Folder: { } folder } && Directory.Exists(folder))
+        {
+            var prefix = folder.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            paths.AddRange(tracked.Keys.Where(p => p.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)));
+            paths.AddRange(LibraryPaths.EnumerateFilesNoLinks(folder).Where(p => !IsMakiCover(plan, p)));
+        }
+
+        var candidates = paths.Distinct(LibraryPaths.FolderComparer).Where(Present).ToList();
+        var claimed = await deletion.ClaimedAsync(candidates, rows.Select(f => f.Id).ToHashSet(), ct);
+        foreach (var kept in candidates.Where(claimed.Contains))
+        {
+            logger.LogInformation("Leaving {File} on disk: another series' record still points at it", kept);
+        }
+
+        return candidates
+            .Where(p => !claimed.Contains(p))
+            .Select(p => tracked.TryGetValue(p, out var file)
+                ? (p, file.RelativePath, (ChapterFile?)file)
+                : (p, Path.GetRelativePath(rootPath, p), null))
+            .ToList();
     }
 
     /// <summary>
     /// Best effort: the row is already gone, so a file that is locked or a folder that cannot be
-    /// read is logged and left for Health's unlinked scan rather than failing the request.
+    /// read is logged and left for Health's unlinked scan rather than failing the request. Folders
+    /// are pruned bottom-up and never deleted recursively: whatever did not reach the bin, a claimed
+    /// file, a link or a file that arrived mid-delete keeps its folder.
     /// </summary>
-    private void DeleteSeriesFromDisk(SeriesDiskPlan plan, int seriesId)
+    /// <param name="doomed">Files the caller chose to delete for good instead of binning.</param>
+    private async Task DeleteSeriesFromDiskAsync(
+        SeriesDiskPlan plan, List<RecycleBinEntry> binned, List<string> doomed, ChapterFileDeletion deletion, int seriesId)
     {
+        var bin = deletion.Bin;
         void Attempt(string path, Action delete)
         {
             try
@@ -1367,17 +1471,24 @@ public class SeriesController(
             }
         }
 
-        if (plan is { RemoveFolderWhole: true, Folder: { } folder } && Directory.Exists(folder))
+        var stuck = new List<RecycleBinEntry>();
+        foreach (var entry in binned)
         {
-            Attempt(folder, () => Directory.Delete(folder, recursive: true));
+            if (!await bin.MoveInAsync(entry, CancellationToken.None))
+            {
+                stuck.Add(entry);
+            }
         }
 
-        foreach (var file in plan.Files)
+        await bin.ForgetAsync(stuck);
+        foreach (var file in doomed)
         {
-            if (System.IO.File.Exists(file))
-            {
-                Attempt(file, () => System.IO.File.Delete(file));
-            }
+            deletion.DeleteFromDisk(file);
+        }
+
+        if (plan is { RemoveFolderWhole: true, Folder: { } folder } && Directory.Exists(folder))
+        {
+            Attempt(folder, () => PruneSeriesFolder(plan, folder, seriesId));
         }
 
         foreach (var dir in plan.PruneIfEmpty)
@@ -1395,6 +1506,36 @@ public class SeriesController(
         {
             Attempt(trash, () => Directory.Delete(trash, recursive: true));
         }
+    }
+
+    /// <summary>
+    /// Removes the empty folders under <paramref name="folder"/>, deepest first, then the folder
+    /// itself once nothing but Maki's own cover.jpg is left in it. Anything else keeps it.
+    /// </summary>
+    private void PruneSeriesFolder(SeriesDiskPlan plan, string folder, int seriesId)
+    {
+        foreach (var dir in LibraryPaths.EnumerateDirectoriesNoLinks(folder).OrderByDescending(d => d.Length).ToList())
+        {
+            if (!Directory.EnumerateFileSystemEntries(dir).Any())
+            {
+                Directory.Delete(dir, recursive: false);
+            }
+        }
+
+        var left = Directory.EnumerateFileSystemEntries(folder).ToList();
+        if (left.Any(p => !IsMakiCover(plan, p) || Directory.Exists(p)))
+        {
+            logger.LogWarning("Kept {Folder} for removed series {SeriesId}: {Count} entries are still in it",
+                folder, seriesId, left.Count);
+            return;
+        }
+
+        foreach (var cover in left)
+        {
+            System.IO.File.Delete(cover);
+        }
+
+        Directory.Delete(folder, recursive: false);
     }
 
     /// <param name="MoveFiles">

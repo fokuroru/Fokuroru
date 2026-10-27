@@ -31,7 +31,9 @@ public class AutoDeleteReadChaptersJobTests : IDisposable
     private readonly FakeAppSettings _settings = new();
 
     private AutoDeleteReadChaptersJob Job(Maki.Data.MakiDbContext db) => new(
-        db, _settings, new ReaderArchiveCache(NullLogger<ReaderArchiveCache>.Instance),
+        db, _settings,
+        new ChapterFileDeletion(db, new ReaderArchiveCache(NullLogger<ReaderArchiveCache>.Instance), new StoppedClock(Now),
+            TestRecycleBin.For(db), NullLogger<ChapterFileDeletion>.Instance),
         new StoppedClock(Now), NullLogger<AutoDeleteReadChaptersJob>.Instance);
 
     private int SeedFile(string name, params (decimal Number, int? DaysSinceRead)[] chapters)
@@ -69,7 +71,7 @@ public class AutoDeleteReadChaptersJobTests : IDisposable
     }
 
     [Fact]
-    public async Task Deletes_a_file_read_long_enough_ago_and_unwants_its_chapter()
+    public async Task Deletes_a_file_read_long_enough_ago_and_marks_its_chapter_removed()
     {
         var fileId = SeedFile("Berserk Ch.1.cbz", (1m, 10));
 
@@ -80,7 +82,8 @@ public class AutoDeleteReadChaptersJobTests : IDisposable
         Assert.DoesNotContain(check.ChapterFiles, f => f.Id == fileId);
         var chapter = Assert.Single(check.Chapters);
         Assert.Null(chapter.ChapterFileId);
-        Assert.False(chapter.Wanted);
+        Assert.True(chapter.Wanted);
+        Assert.NotNull(chapter.FileRemovedAt);
     }
 
     [Fact]
@@ -146,13 +149,13 @@ public class AutoDeleteReadChaptersJobTests : IDisposable
             chapterB = chapter.Id;
         }
 
-        Assert.Equal(0, await Run(days: 7));
+        await Run(days: 7);
 
+        // The file stays on disk for the other root's record; this series lets go of it.
         Assert.True(File.Exists(Path.Combine(_root, "Berserk", "ch1.cbz")));
         using var check = _db.NewContext();
-        Assert.Contains(check.ChapterFiles, f => f.Id == fileA);
+        Assert.DoesNotContain(check.ChapterFiles, f => f.Id == fileA);
         Assert.NotNull(check.Chapters.Single(c => c.Id == chapterB).ChapterFileId);
-        Assert.All(check.Chapters, c => Assert.NotNull(c.ChapterFileId));
     }
 
     [Fact]

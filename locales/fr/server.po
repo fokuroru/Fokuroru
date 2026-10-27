@@ -4834,3 +4834,79 @@ msgstr ""
 #. English: {source} is no longer installed in Suwayomi. Reinstall its extension there, or remove the source in Maki's Suwayomi settings.
 msgid "health.check.suwayomiSourceMissing"
 msgstr ""
+
+#. Binning is a rename within one volume. A file on another volume than its root folder (a mount
+#. inside the library) would have to be copied, so the delete is refused and nothing changes.
+#: src/Maki.Api/Controllers/ChapterController.cs
+#. English: These files are on a different drive than the recycle bin, so they cannot be moved there. Nothing was deleted.
+#, fuzzy
+msgid "error.recycleBin.crossVolume"
+msgstr "Ces fichiers sont sur un autre disque que la corbeille, ils ne peuvent donc pas y être déplacés. Rien n'a été supprimé."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Could not delete the file. Details are in the server log.
+#, fuzzy
+msgid "error.recycleBin.deleteFailed"
+msgstr "Impossible de supprimer le fichier. Les détails sont dans le journal du serveur."
+
+#. The bin entry exists but its file is gone from the bin folder, removed outside Maki.
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: The file is no longer in the recycle bin folder. Delete the entry to clear it.
+#, fuzzy
+msgid "error.recycleBin.fileMissing"
+msgstr "Le fichier n'est plus dans le dossier de la corbeille. Supprimez l'entrée pour la retirer."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: That file is no longer in the recycle bin
+#, fuzzy
+msgid "error.recycleBin.notFound"
+msgstr "Ce fichier n'est plus dans la corbeille"
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Could not move the file back. Details are in the server log.
+#, fuzzy
+msgid "error.recycleBin.restoreFailed"
+msgstr "Impossible de remettre le fichier à sa place. Les détails sont dans le journal du serveur."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Recycle bin retention must be between {min} and {max} days
+#, fuzzy
+msgid "error.recycleBin.retentionRange"
+msgstr "La durée de conservation de la corbeille doit être comprise entre {min} et {max} jours"
+
+#. .maki-trash/bin could not be created under the root folder (read-only share, permissions). The
+#. client then offers to delete permanently instead.
+#: src/Maki.Api/Services/RecycleBinService.cs
+#. English: The recycle bin folder could not be created in this root folder. Nothing was deleted.
+#, fuzzy
+msgid "error.recycleBin.unavailable"
+msgstr "Le dossier de la corbeille n'a pas pu être créé dans ce dossier racine. Rien n'a été supprimé."
+
+#. Restore never overwrites. Something, usually a new download of the same chapter, now sits where
+#. the deleted file used to be.
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: Another file is already where this one was. Move or delete it, then restore again.
+#, fuzzy
+msgid "error.recycleBin.targetExists"
+msgstr "Un autre fichier occupe déjà l'emplacement de celui-ci. Déplacez-le ou supprimez-le, puis restaurez à nouveau."
+
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: The original location is outside the root folder or behind a link, so the file cannot go back there.
+#, fuzzy
+msgid "error.recycleBin.targetInvalid"
+msgstr "L'emplacement d'origine est en dehors du dossier racine ou derrière un lien, le fichier ne peut donc pas y revenir."
+
+#. Files users deleted, kept for {days} days so they can be restored from Settings. A warning only
+#. when a library drive is already low on space.
+#: src/Maki.Api/Services/HealthMonitor.cs
+#. English: Recycle bin: {files, plural, one {# deleted file} other {# deleted files}}, {gib} GiB, kept {days, plural, one {# day} other {# days}}
+#, fuzzy
+msgid "health.check.recycleBin"
+msgstr "Corbeille : {files, plural, one {# fichier supprimé} many {# fichiers supprimés} other {# fichiers supprimés}}, {gib} Gio, conservés {days, plural, one {# jour} many {# jours} other {# jours}}"
+
+#. A delete saved this entry a moment ago and is still moving its file into the bin folder.
+#: src/Maki.Api/Controllers/RecycleBinController.cs
+#. English: This file is still being moved into the recycle bin. Try again in a moment.
+#, fuzzy
+msgid "error.recycleBin.stillMoving"
+msgstr "Ce fichier est encore en cours de déplacement vers la corbeille. Réessayez dans un instant."

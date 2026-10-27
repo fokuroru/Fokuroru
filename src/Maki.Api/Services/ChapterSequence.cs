@@ -51,7 +51,7 @@ public static partial class ChapterSequence
         // A volume is worth fetching only while some wanted chapter of it is still missing; once they are all
         // on disk it would be the same pages twice.
         var needed = chapters
-            .Where(c => c.Wanted && c.ChapterFileId == null && IsMain(c.Number) && c.Volume is not null)
+            .Where(c => c.Wanted && c.ChapterFileId == null && c.FileRemovedAt == null && IsMain(c.Number) && c.Volume is not null)
             .Select(c => c.Volume!.Value)
             .ToHashSet();
         var byId = chapters.ToDictionary(c => c.Id);
@@ -59,7 +59,7 @@ public static partial class ChapterSequence
             .Where(id => !(IsVolumeRow(byId[id].Number, byId[id].Volume, byId[id].Title) && !needed.Contains(byId[id].Volume!.Value)))
             .ToList();
         var volumes = chapters
-            .Where(c => c.Wanted && c.ChapterFileId == null && !backingOff.Contains(c.Id) && IsVolumeRow(c.Number, c.Volume, c.Title)
+            .Where(c => c.Wanted && c.ChapterFileId == null && c.FileRemovedAt == null && !backingOff.Contains(c.Id) && IsVolumeRow(c.Number, c.Volume, c.Title)
                         && needed.Contains(c.Volume!.Value))
             .GroupBy(c => c.Volume!.Value)
             .ToDictionary(g => g.Key, g => g.Min(c => c.Id));
