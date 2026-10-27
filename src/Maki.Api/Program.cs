@@ -1339,6 +1339,7 @@ try
     // Images, archives and the SignalR event stream are not in the default MIME list, so they pass
     // through untouched. Fastest because most of it is JSON built per request, where CPU matters more
     // than the last few percent of size.
+    builder.Services.AddHttpContextAccessor();
     builder.Services.AddResponseCompression(o =>
     {
         o.EnableForHttps = true;
@@ -1569,14 +1570,22 @@ try
     // lazy chunks point at hashes that no longer exist.
     var spaFiles = new StaticFileOptions
     {
-        OnPrepareResponse = c => c.Context.Response.Headers.CacheControl =
-            c.Context.Request.Path.StartsWithSegments("/assets")
-                ? "public, max-age=31536000, immutable"
-                : "no-cache"
+        FileProvider = new PrecompressedFileProvider(
+            app.Environment.WebRootFileProvider, app.Services.GetRequiredService<IHttpContextAccessor>()),
+        OnPrepareResponse = c =>
+        {
+            c.Context.Response.Headers.CacheControl =
+                c.Context.Request.Path.StartsWithSegments("/assets")
+                    ? "public, max-age=31536000, immutable"
+                    : "no-cache";
+            PrecompressedFileProvider.Apply(c);
+        }
     };
-    app.UseResponseCompression();
     app.UseDefaultFiles();
     app.UseStaticFiles(spaFiles);
+    // After the static files on purpose: they answer from the Vite build's precompressed siblings and
+    // never reach it, so runtime compression is left to API responses.
+    app.UseResponseCompression();
 
     app.UseRateLimiter();
 
