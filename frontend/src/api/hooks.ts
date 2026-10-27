@@ -37,6 +37,8 @@ import type {
   ImportDecisionResultDto,
   QueuePauseDto,
   QueuePauseRequest,
+  QueueFailedAction,
+  QueueFailureGroupDto,
   QueueHistoryDto,
   QueueSummaryDto,
   TorrentImportPlanDto,
@@ -2145,6 +2147,42 @@ export function useSettleImport() {
       void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
       void queryClient.invalidateQueries({ queryKey: ['queue-history'] })
       void queryClient.invalidateQueries({ queryKey: ['series'] })
+    },
+  })
+}
+
+/** Failed rows bucketed by failure key and source, for picking what a bulk retry or remove acts on. */
+export function useFailedQueueGroups(enabled = true) {
+  return useQuery({
+    queryKey: ['queue-failed'],
+    queryFn: () => api<QueueFailureGroupDto[]>('/queue/failed'),
+    enabled,
+    refetchInterval: 10_000,
+  })
+}
+
+export function useRetryFailedQueue() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (filter: QueueFailedAction) =>
+      api<{ affected: number }>('/queue/retry-failed', { method: 'POST', body: JSON.stringify(filter) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-failed'] })
+    },
+  })
+}
+
+export function useRemoveFailedQueue() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (filter: QueueFailedAction) =>
+      api<{ affected: number }>('/queue/remove-failed', { method: 'POST', body: JSON.stringify(filter) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['queue'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-summary'] })
+      void queryClient.invalidateQueries({ queryKey: ['queue-failed'] })
     },
   })
 }

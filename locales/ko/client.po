@@ -494,6 +494,16 @@ msgstr "{added}개 추가, {requested}개 요청, {skipped}개 건너뜀, 오류
 msgid "{adds} added by you, {excluded} excluded from taste"
 msgstr "직접 추가함 {adds}개, 취향에서 제외됨 {excluded}개"
 
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "{affected, plural, one {Removed # failed download} other {Removed # failed downloads}}"
+msgstr "{affected, plural, other {실패한 다운로드 #개를 제거함}}"
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "{affected, plural, one {Retrying # failed download} other {Retrying # failed downloads}}"
+msgstr "{affected, plural, other {실패한 다운로드 #개를 다시 시도하는 중}}"
+
 #: src/api/upgrades.ts
 msgid "{alreadyMetCount} already at cutoff"
 msgstr ""
@@ -1072,6 +1082,16 @@ msgstr "{markerLabel} 애니메이션 적용 시작 지점 · 클릭하여 펼�
 #, fuzzy
 msgid "{matched} of {total} matched, {positive} positive, {avoided} avoided, {superseded} already yours"
 msgstr "{total}개 중 {matched}개 일치, 긍정 {positive}개, 회피 {avoided}개, 이미 보유 {superseded}개"
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "{matchingCount, plural, one {# failed download will be queued again, ignoring the automatic retry limit.} other {# failed downloads will be queued again, ignoring the automatic retry limit.}}"
+msgstr "{matchingCount, plural, other {실패한 다운로드 #개를 자동 재시도 한도와 상관없이 다시 대기열에 넣습니다.}}"
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "{matchingCount, plural, one {# failed download will be removed from the queue.} other {# failed downloads will be removed from the queue.}}"
+msgstr "{matchingCount, plural, other {실패한 다운로드 #개를 대기열에서 제거합니다.}}"
 
 #: src/components/series/FileQualityBadge.tsx
 #: src/components/series/UpgradeNowResultModal.tsx
@@ -2703,6 +2723,11 @@ msgstr ""
 msgid "all read"
 msgstr "모두 읽음"
 
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "All reasons"
+msgstr "모든 사유"
+
 #: src/pages/stats/sections/LibrarySection.tsx
 #, fuzzy
 msgid "All requests"
@@ -2718,6 +2743,7 @@ msgstr "모든 루트"
 msgid "All series"
 msgstr "모든 시리즈"
 
+#: src/components/FailedQueueActions.tsx
 #: src/components/QueuePause.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -3684,6 +3710,7 @@ msgid "Can't read this download"
 msgstr "이 다운로드를 읽을 수 없음"
 
 #: src/components/DiscoverPresets.tsx
+#: src/components/FailedQueueActions.tsx
 #: src/components/import/MihonImport.tsx
 #: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
@@ -4985,6 +5012,11 @@ msgstr "클립보드에 복사하지 못했습니다. 텍스트를 선택해서 
 msgid "Could not delete the preview"
 msgstr ""
 
+#: src/api/queue.ts
+#, fuzzy
+msgid "Could not import a file"
+msgstr "파일을 가져오지 못했습니다"
+
 #. placeholder {0}: String(error)
 #: src/pages/discover/AnimeSignalsSection.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
@@ -5113,9 +5145,19 @@ msgstr ""
 msgid "Couldn't reach {label}."
 msgstr "{label}에 연결하지 못했습니다."
 
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Couldn't remove the failed downloads"
+msgstr "실패한 다운로드를 제거하지 못했습니다"
+
 #: src/components/QueuePause.tsx
 msgid "Couldn't resume the downloads"
 msgstr ""
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Couldn't retry the failed downloads"
+msgstr "실패한 다운로드를 다시 시도하지 못했습니다"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Couldn't run the scan"
@@ -5854,6 +5896,11 @@ msgstr "{until}까지 일시 숨김"
 msgid "Display name"
 msgstr "표시 이름"
 
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Don't grab removed torrent releases again"
+msgstr "제거한 토렌트 릴리스는 다시 받지 않음"
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Don't want"
@@ -5984,6 +6031,11 @@ msgstr ""
 #, fuzzy
 msgid "Download order when a series matches several sources, highest first. Language ranking above comes first. Applies to new auto-matches and manual Auto-match runs; other series keep their order. Switching a source off pauses it for every series without touching their own toggles."
 msgstr "시리즈가 여러 소스에 있으면 다운로드 순서를 지정합니다. 위쪽이 먼저입니다. 위의 언어 순위가 우선 적용됩니다. 새 자동 매칭과 수동 자동 매칭에 적용되며 다른 시리즈의 순서는 유지됩니다. 소스를 끄면 시리즈별 설정은 바꾸지 않고 모든 시리즈에서 일시 중지됩니다."
+
+#: src/api/queue.ts
+#, fuzzy
+msgid "Download path not accessible from Maki"
+msgstr "Maki에서 다운로드 경로에 접근할 수 없습니다"
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Download progress"
@@ -7556,6 +7608,11 @@ msgstr "높이"
 #: src/components/ImportReviewModal.tsx
 msgid "Held back before importing"
 msgstr ""
+
+#: src/api/queue.ts
+#, fuzzy
+msgid "Held back for review"
+msgstr "검토를 위해 보류됨"
 
 #: src/api/queue.ts
 msgid "Held back for review, {file}: {reason}"
@@ -10274,6 +10331,11 @@ msgstr "이 기간에 읽은 챕터 없음."
 msgid "No checks have run yet. Use Check now."
 msgstr "아직 확인을 실행하지 않았습니다. 지금 확인을 사용하세요."
 
+#: src/api/queue.ts
+#, fuzzy
+msgid "No comics found in the completed download"
+msgstr "완료된 다운로드에서 만화를 찾지 못했습니다"
+
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "No creator shows up often enough yet."
@@ -11078,6 +11140,11 @@ msgstr "아직 추천할 항목이 없습니다"
 #, fuzzy
 msgid "Nothing to relink"
 msgstr "다시 연결할 항목 없음"
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Nothing to retry"
+msgstr "다시 시도할 항목이 없습니다"
 
 #: src/components/LuckyButton.tsx
 #, fuzzy
@@ -12429,6 +12496,7 @@ msgstr ""
 msgid "Rate a few series to compare yourself with the crowd."
 msgstr "다른 사용자와 비교하려면 시리즈 몇 개에 평점을 매기세요."
 
+#: src/api/queue.ts
 #: src/components/ui/status.tsx
 #, fuzzy
 msgid "Rate limited"
@@ -12735,6 +12803,11 @@ msgstr ""
 msgid "Ready to read"
 msgstr ""
 
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Reason"
+msgstr "사유"
+
 #: src/pages/RequestsPage.tsx
 #, fuzzy
 msgid "Reason (optional)"
@@ -13040,6 +13113,7 @@ msgstr "파일 다시 연결은 각 권 파일을 읽어 안에 든 챕터를 �
 msgid "Reload"
 msgstr ""
 
+#: src/components/FailedQueueActions.tsx
 #: src/components/settings/AccountSection.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -13095,6 +13169,16 @@ msgstr "챕터를 제거할까요?"
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Remove condition"
 msgstr ""
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Remove failed"
+msgstr "실패 항목 제거"
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Remove failed downloads"
+msgstr "실패한 다운로드 제거"
 
 #: src/components/home/ReadingCardMenu.tsx
 #, fuzzy
@@ -13578,6 +13662,7 @@ msgid "Retried {retryCount}x - next attempt {nextAttemptTime}"
 msgstr "{retryCount}회 재시도함 - 다음 시도 {nextAttemptTime}"
 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
+#: src/components/FailedQueueActions.tsx
 #: src/components/home/AnimeResumeRail.tsx
 #: src/components/import/MihonImport.tsx
 #: src/components/ImportListsSection.tsx
@@ -13609,6 +13694,16 @@ msgstr "대기 중인 다운로드 재시도 및 취소"
 #, fuzzy
 msgid "Retry download"
 msgstr "다운로드 재시도"
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Retry failed"
+msgstr "실패 항목 다시 시도"
+
+#: src/components/FailedQueueActions.tsx
+#, fuzzy
+msgid "Retry failed downloads"
+msgstr "실패한 다운로드 다시 시도"
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -15347,6 +15442,7 @@ msgstr "오래된 순으로 정렬"
 msgid "Sort the library"
 msgstr ""
 
+#: src/components/FailedQueueActions.tsx
 #: src/components/SourceMappingsSection.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/HealthPage.tsx
@@ -15635,6 +15731,11 @@ msgstr "이 추천을 결정하는 항목"
 #, fuzzy
 msgid "Step {stepNumber} of {stepTotal}"
 msgstr "{stepTotal}단계 중 {stepNumber}단계"
+
+#: src/api/queue.ts
+#, fuzzy
+msgid "Still early access"
+msgstr "아직 얼리 액세스 중"
 
 #. {source} is a site name and is never translated.
 #: src/api/queue.ts

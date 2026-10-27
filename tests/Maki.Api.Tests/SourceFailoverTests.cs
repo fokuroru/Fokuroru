@@ -18,7 +18,7 @@ public class SourceFailoverTests
     }
 
     [Theory]
-    [InlineData(DownloadFailureReason.ChallengeNotSolved)]
+    [InlineData("error.download.challengeNotSolved")]
     [InlineData(DownloadFailureReason.Disk)]
     [InlineData(DownloadFailureReason.Unexpected)]
     [InlineData("error.download.noPages")]

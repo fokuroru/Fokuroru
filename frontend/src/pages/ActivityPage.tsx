@@ -82,6 +82,7 @@ import { useSourceLabel } from '../sourceLabels'
 import { formatBytes, formatDate, formatDateTime, formatTime } from '../format'
 import { SurfaceFrame } from '../components/ui/SurfaceFrame'
 import { UpcomingView } from '../components/releases/UpcomingView'
+import { FailedQueueActions } from '../components/FailedQueueActions'
 
 const HISTORY_PAGE_SIZE = 25
 const UPGRADES_PAGE_SIZE = 25
@@ -367,6 +368,7 @@ export default function ActivityPage() {
           canManageQueue ? (
             <Group gap="xs">
               <QueuePauseButton />
+              <FailedQueueActions />
               {queue && queue.total > 0 && (
                 <Button color="var(--danger)" variant="light" leftSection={<IconTrash size={16} />} onClick={() => setClearConfirmOpen(true)}>
                   <Trans>Clear queue</Trans>

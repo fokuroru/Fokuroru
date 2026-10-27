@@ -437,6 +437,14 @@ msgstr "{added} added, {requested} requested, {skipped} skipped, {errors} errors
 msgid "{adds} added by you, {excluded} excluded from taste"
 msgstr "{adds} added by you, {excluded} excluded from taste"
 
+#: src/components/FailedQueueActions.tsx
+msgid "{affected, plural, one {Removed # failed download} other {Removed # failed downloads}}"
+msgstr "{affected, plural, one {Removed # failed download} other {Removed # failed downloads}}"
+
+#: src/components/FailedQueueActions.tsx
+msgid "{affected, plural, one {Retrying # failed download} other {Retrying # failed downloads}}"
+msgstr "{affected, plural, one {Retrying # failed download} other {Retrying # failed downloads}}"
+
 #: src/api/upgrades.ts
 msgid "{alreadyMetCount} already at cutoff"
 msgstr "{alreadyMetCount} already at cutoff"
@@ -923,6 +931,14 @@ msgstr "{markerLabel} Anime adaptation starts here · click to expand"
 #: src/pages/discover/AnimeSignalsSection.tsx
 msgid "{matched} of {total} matched, {positive} positive, {avoided} avoided, {superseded} already yours"
 msgstr "{matched} of {total} matched, {positive} positive, {avoided} avoided, {superseded} already yours"
+
+#: src/components/FailedQueueActions.tsx
+msgid "{matchingCount, plural, one {# failed download will be queued again, ignoring the automatic retry limit.} other {# failed downloads will be queued again, ignoring the automatic retry limit.}}"
+msgstr "{matchingCount, plural, one {# failed download will be queued again, ignoring the automatic retry limit.} other {# failed downloads will be queued again, ignoring the automatic retry limit.}}"
+
+#: src/components/FailedQueueActions.tsx
+msgid "{matchingCount, plural, one {# failed download will be removed from the queue.} other {# failed downloads will be removed from the queue.}}"
+msgstr "{matchingCount, plural, one {# failed download will be removed from the queue.} other {# failed downloads will be removed from the queue.}}"
 
 #: src/components/series/FileQualityBadge.tsx
 #: src/components/series/UpgradeNowResultModal.tsx
@@ -2302,6 +2318,10 @@ msgstr "All optional. Fōkurōru downloads from its own sources without any of t
 msgid "all read"
 msgstr "all read"
 
+#: src/components/FailedQueueActions.tsx
+msgid "All reasons"
+msgstr "All reasons"
+
 #: src/pages/stats/sections/LibrarySection.tsx
 msgid "All requests"
 msgstr "All requests"
@@ -2314,6 +2334,7 @@ msgstr "All roots"
 msgid "All series"
 msgstr "All series"
 
+#: src/components/FailedQueueActions.tsx
 #: src/components/QueuePause.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "All sources"
@@ -3138,6 +3159,7 @@ msgid "Can't read this download"
 msgstr "Can't read this download"
 
 #: src/components/DiscoverPresets.tsx
+#: src/components/FailedQueueActions.tsx
 #: src/components/import/MihonImport.tsx
 #: src/components/layout/PageLayoutEditor.tsx
 #: src/components/layout/SectionProperties.tsx
@@ -4236,6 +4258,10 @@ msgstr "Could not copy to the clipboard. Select the text and copy it by hand."
 msgid "Could not delete the preview"
 msgstr "Could not delete the preview"
 
+#: src/api/queue.ts
+msgid "Could not import a file"
+msgstr "Could not import a file"
+
 #. placeholder {0}: String(error)
 #: src/pages/discover/AnimeSignalsSection.tsx
 #: src/pages/discover/ManageSignalsModal.tsx
@@ -4347,9 +4373,17 @@ msgstr "Couldn't pause the downloads"
 msgid "Couldn't reach {label}."
 msgstr "Couldn't reach {label}."
 
+#: src/components/FailedQueueActions.tsx
+msgid "Couldn't remove the failed downloads"
+msgstr "Couldn't remove the failed downloads"
+
 #: src/components/QueuePause.tsx
 msgid "Couldn't resume the downloads"
 msgstr "Couldn't resume the downloads"
+
+#: src/components/FailedQueueActions.tsx
+msgid "Couldn't retry the failed downloads"
+msgstr "Couldn't retry the failed downloads"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Couldn't run the scan"
@@ -4989,6 +5023,10 @@ msgstr "Dismissed until {until}"
 msgid "Display name"
 msgstr "Display name"
 
+#: src/components/FailedQueueActions.tsx
+msgid "Don't grab removed torrent releases again"
+msgstr "Don't grab removed torrent releases again"
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "Don't want"
 msgstr "Don't want"
@@ -5100,6 +5138,10 @@ msgstr "Download order"
 #: src/pages/SettingsPage.tsx
 msgid "Download order when a series matches several sources, highest first. Language ranking above comes first. Applies to new auto-matches and manual Auto-match runs; other series keep their order. Switching a source off pauses it for every series without touching their own toggles."
 msgstr "Download order when a series matches several sources, highest first. Language ranking above comes first. Applies to new auto-matches and manual Auto-match runs; other series keep their order. Switching a source off pauses it for every series without touching their own toggles."
+
+#: src/api/queue.ts
+msgid "Download path not accessible from Maki"
+msgstr "Download path not accessible from Maki"
 
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Download progress"
@@ -6430,6 +6472,10 @@ msgstr "Height"
 #: src/components/ImportReviewModal.tsx
 msgid "Held back before importing"
 msgstr "Held back before importing"
+
+#: src/api/queue.ts
+msgid "Held back for review"
+msgstr "Held back for review"
 
 #: src/api/queue.ts
 msgid "Held back for review, {file}: {reason}"
@@ -8743,6 +8789,10 @@ msgstr "No chapters read in this period."
 msgid "No checks have run yet. Use Check now."
 msgstr "No checks have run yet. Use Check now."
 
+#: src/api/queue.ts
+msgid "No comics found in the completed download"
+msgstr "No comics found in the completed download"
+
 #: src/pages/discover/TasteTab.tsx
 msgid "No creator shows up often enough yet."
 msgstr "No creator shows up often enough yet."
@@ -9425,6 +9475,10 @@ msgstr "Nothing to recommend yet"
 #: src/components/RelinkFilesModal.tsx
 msgid "Nothing to relink"
 msgstr "Nothing to relink"
+
+#: src/components/FailedQueueActions.tsx
+msgid "Nothing to retry"
+msgstr "Nothing to retry"
 
 #: src/components/LuckyButton.tsx
 msgid "Nothing to roll"
@@ -10595,6 +10649,7 @@ msgstr "Rarely"
 msgid "Rate a few series to compare yourself with the crowd."
 msgstr "Rate a few series to compare yourself with the crowd."
 
+#: src/api/queue.ts
 #: src/components/ui/status.tsx
 msgid "Rate limited"
 msgstr "Rate limited"
@@ -10859,6 +10914,10 @@ msgstr "Ready"
 msgid "Ready to read"
 msgstr "Ready to read"
 
+#: src/components/FailedQueueActions.tsx
+msgid "Reason"
+msgstr "Reason"
+
 #: src/pages/RequestsPage.tsx
 msgid "Reason (optional)"
 msgstr "Reason (optional)"
@@ -11115,6 +11174,7 @@ msgstr "Relink reads each volume file to find the chapters inside it. Anything i
 msgid "Reload"
 msgstr "Reload"
 
+#: src/components/FailedQueueActions.tsx
 #: src/components/settings/AccountSection.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/LibraryPage.tsx
@@ -11162,6 +11222,14 @@ msgstr "Remove chapters?"
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Remove condition"
 msgstr "Remove condition"
+
+#: src/components/FailedQueueActions.tsx
+msgid "Remove failed"
+msgstr "Remove failed"
+
+#: src/components/FailedQueueActions.tsx
+msgid "Remove failed downloads"
+msgstr "Remove failed downloads"
 
 #: src/components/home/ReadingCardMenu.tsx
 msgid "Remove from Continue reading"
@@ -11572,6 +11640,7 @@ msgid "Retried {retryCount}x - next attempt {nextAttemptTime}"
 msgstr "Retried {retryCount}x - next attempt {nextAttemptTime}"
 
 #: src/components/discover/RecommendationFeedbackMenu.tsx
+#: src/components/FailedQueueActions.tsx
 #: src/components/home/AnimeResumeRail.tsx
 #: src/components/import/MihonImport.tsx
 #: src/components/ImportListsSection.tsx
@@ -11599,6 +11668,14 @@ msgstr "Retry and cancel queued downloads"
 #: src/pages/ActivityPage.tsx
 msgid "Retry download"
 msgstr "Retry download"
+
+#: src/components/FailedQueueActions.tsx
+msgid "Retry failed"
+msgstr "Retry failed"
+
+#: src/components/FailedQueueActions.tsx
+msgid "Retry failed downloads"
+msgstr "Retry failed downloads"
 
 #: src/pages/SettingsPage.tsx
 msgid "Retry Handling"
@@ -13092,6 +13169,7 @@ msgstr "Sort oldest first"
 msgid "Sort the library"
 msgstr "Sort the library"
 
+#: src/components/FailedQueueActions.tsx
 #: src/components/SourceMappingsSection.tsx
 #: src/pages/ActivityPage.tsx
 #: src/pages/HealthPage.tsx
@@ -13332,6 +13410,10 @@ msgstr "Steering these picks"
 #: src/components/SetupWizard.tsx
 msgid "Step {stepNumber} of {stepTotal}"
 msgstr "Step {stepNumber} of {stepTotal}"
+
+#: src/api/queue.ts
+msgid "Still early access"
+msgstr "Still early access"
 
 #. {source} is a site name and is never translated.
 #: src/api/queue.ts

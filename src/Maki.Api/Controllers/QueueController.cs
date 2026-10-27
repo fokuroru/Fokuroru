@@ -7,6 +7,7 @@ using Maki.Api.Localization;
 using Maki.Api.Services;
 using Maki.Core.Entities;
 using Maki.Core.Quality;
+using Maki.Core.Security;
 using Maki.Core.Sources;
 using Maki.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -471,15 +472,110 @@ public class QueueController(
     private Task Broadcast(DownloadQueueItem item) =>
         events.QueueUpdated(QueueItemDto.FromEntity(item, chapter: null, item.Series!, "torrent"));
 
+    private async Task BlockReleasesAsync(
+        IEnumerable<(int SeriesId, string? ReleaseInfoJson)> releases, ICurrentUser? user, CancellationToken ct)
+    {
+        int? userId = user is { IsAuthenticated: true } ? user.UserId : null;
+        var now = DateTime.UtcNow;
+        foreach (var (seriesId, json) in releases)
+        {
+            await TorrentUpgradeService.DeclineAsync(db, seriesId, json, userId, now, ct);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Failed rows grouped by failure key and source, for choosing what a bulk retry or remove acts on.
+    /// Counts the whole queue, where the list endpoint is paged.
+    /// </summary>
+    [HttpGet("failed")]
+    public async Task<IActionResult> Failed(CancellationToken ct)
+    {
+        var groups = await db.DownloadQueue
+            .Where(q => q.Status == QueueStatus.Failed)
+            .GroupBy(q => new
+            {
+                q.ErrorKey,
+                Source = q.SourceMapping != null
+                    ? q.SourceMapping.SourceName
+                    : q.Protocol == AcquisitionProtocol.Torrent ? DownloadQueueService.TorrentSourceName : DownloadQueueService.UnknownSourceName
+            })
+            .Select(g => new QueueFailureGroupDto(g.Key.ErrorKey, g.Key.Source, g.Count()))
+            .ToListAsync(ct);
+        return Ok(groups.OrderByDescending(g => g.Count).ThenBy(g => g.SourceName, StringComparer.Ordinal).ToList());
+    }
+
+    /// <summary>
+    /// Retries every Failed scraper item, or the ones matching a failure key and/or a source. Like the
+    /// single retry it ignores the automatic attempt cap and the backoff.
+    /// </summary>
+    [Authorize(Policy = Policies.ManageDownloadQueue)]
+    [HttpPost("retry-failed")]
+    public async Task<IActionResult> RetryFailed([FromBody] QueueFailedActionDto? request, CancellationToken ct)
+    {
+        var retried = await queue.RetryFailedAsync(request?.Reason, request?.Source, ct);
+        return Ok(new QueueBulkResultDto(retried));
+    }
+
+    /// <summary>Removes every Failed item, or the ones matching a failure key and/or a source.</summary>
+    [Authorize(Policy = Policies.ManageDownloadQueue)]
+    [HttpPost("remove-failed")]
+    public async Task<IActionResult> RemoveFailed(
+        [FromBody] QueueFailedActionDto? request, [FromServices] ICurrentUser? user, CancellationToken ct)
+    {
+        var rows = await DownloadQueueService.FailedWhere(db.DownloadQueue.AsNoTracking(), request?.Reason, request?.Source)
+            .Select(q => new { q.Id, q.SeriesId, q.Protocol, q.ReleaseInfoJson })
+            .ToListAsync(ct);
+
+        var removed = new List<(int Id, int SeriesId, string? ReleaseInfoJson, AcquisitionProtocol Protocol)>();
+        foreach (var chunk in rows.Chunk(500))
+        {
+            var ids = chunk.Select(r => r.Id).ToList();
+            // Conditional on Failed: a row retried or completed since the read is not this call's to delete.
+            await db.DownloadQueue.Where(q => ids.Contains(q.Id) && q.Status == QueueStatus.Failed).ExecuteDeleteAsync(ct);
+            var remaining = (await db.DownloadQueue.AsNoTracking()
+                    .Where(q => ids.Contains(q.Id))
+                    .Select(q => q.Id)
+                    .ToListAsync(ct))
+                .ToHashSet();
+            removed.AddRange(chunk
+                .Where(r => !remaining.Contains(r.Id))
+                .Select(r => (r.Id, r.SeriesId, r.ReleaseInfoJson, r.Protocol)));
+        }
+
+        if (request?.BlockReleases ?? true)
+        {
+            await BlockReleasesAsync(
+                removed.Where(r => r.Protocol == AcquisitionProtocol.Torrent).Select(r => (r.SeriesId, r.ReleaseInfoJson)),
+                user, ct);
+        }
+
+        foreach (var row in removed)
+        {
+            await batches.DiscardAsync(row.SeriesId, row.Id);
+        }
+
+        return Ok(new QueueBulkResultDto(removed.Count));
+    }
+
+    /// <param name="blockRelease">
+    /// For a torrent row: also record the release as turned down, so the volume search does not grab it
+    /// again. Removing the row otherwise leaves no trace of it.
+    /// </param>
     [Authorize(Policy = Policies.ManageDownloadQueue)]
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Remove(int id, CancellationToken ct)
+    public async Task<IActionResult> Remove(
+        int id, CancellationToken ct = default, [FromQuery] bool blockRelease = true, [FromServices] ICurrentUser? user = null)
     {
         var item = await db.DownloadQueue.FindAsync([id], ct);
         if (item is null)
         {
             return NotFound();
         }
+
+        var releaseJson = item.ReleaseInfoJson;
+        var wasTorrent = item.Protocol == AcquisitionProtocol.Torrent;
 
         queue.CancelWork(item.Id);
 
@@ -493,6 +589,11 @@ public class QueueController(
         }
 
         await db.SaveChangesAsync(ct);
+
+        if (blockRelease && wasTorrent)
+        {
+            await BlockReleasesAsync([(item.SeriesId, releaseJson)], user, ct);
+        }
 
         // The item will never report an outcome now, so let go of it — otherwise it holds its
         // series' download batch open and the batch's summary never fires.
