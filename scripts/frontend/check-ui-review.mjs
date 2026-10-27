@@ -18,7 +18,8 @@ async function loadFunction(path, name, bindings = {}) {
 }
 
 test('library read filter preserves reading history after files are deleted', async () => {
-  const seriesProgressVisual = await loadFunction('components/ui/status.tsx', 'seriesProgressVisual')
+  const obtainedCount = await loadFunction('lib/chapterCounts.ts', 'obtainedCount')
+  const seriesProgressVisual = await loadFunction('components/ui/status.tsx', 'seriesProgressVisual', { obtainedCount })
   const readPercent = await loadFunction('pages/LibraryPage.tsx', 'readPercent', { seriesProgressVisual })
   const series = { wantedChapterCount: 10, knownChapterCount: 20, chapterFileCount: 0,
     readChapterCount: 0, readMainChapters: 10, mainChapterCount: 20 }
