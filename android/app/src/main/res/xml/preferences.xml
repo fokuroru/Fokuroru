@@ -2,6 +2,15 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <PreferenceCategory app:title="Connection" app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            app:key="offline_mode"
+            app:title="Offline mode"
+            app:summary="Never contacts the server. Opens what is saved on this device."
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="Page turning" app:iconSpaceReserved="false">
         <SwitchPreferenceCompat
             app:key="volume_keys"

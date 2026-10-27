@@ -30,6 +30,7 @@ import dev.fokuroru.reader.data.SavedSeriesGroups
 import dev.fokuroru.reader.data.State
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
+import dev.fokuroru.reader.net.ServerState
 import dev.fokuroru.reader.work.DownloadWorker
 import dev.fokuroru.reader.work.ReadingSync
 import java.util.concurrent.Executors
@@ -119,12 +120,19 @@ class DownloadsActivity : AppCompatActivity() {
     private fun refresh() {
         thread {
             val rows = store.all()
-            val series = SavedSeriesGroups.group(rows)
-            runOnUiThread {
-                adapter.submit(series)
-                empty.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
-                notice.visibility = if (rows.any { it.state == State.FAILED && it.error == "Signed out" }) View.VISIBLE else View.GONE
+            val all = SavedSeriesGroups.group(rows)
+            // Without the server, series with nothing saved yet (only queued or failed chapters) have nothing to open.
+            val onDevice = all.filter { it.saved > 0 }
+            val show = { list: List<SavedSeries> ->
+                runOnUiThread {
+                    adapter.submit(list)
+                    empty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                    notice.visibility = if (rows.any { it.state == State.FAILED && it.error == "Signed out" }) View.VISIBLE else View.GONE
+                }
             }
+            show(onDevice)
+            val series = if (onDevice.size == all.size || runCatching { Api(this).probe() == ServerState.OK }.getOrDefault(false)) all else onDevice
+            if (series !== onDevice) show(series)
             fetchMissingCovers(series)
         }
     }

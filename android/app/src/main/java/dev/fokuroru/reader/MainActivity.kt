@@ -47,6 +47,7 @@ import dev.fokuroru.reader.ui.Layouts
 import dev.fokuroru.reader.ui.ReaderTools
 import dev.fokuroru.reader.ui.SettingsActivity
 import dev.fokuroru.reader.ui.ServersActivity
+import dev.fokuroru.reader.ui.SeriesDownloadsActivity
 import dev.fokuroru.reader.ui.SetupActivity
 import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.web.Offline
@@ -85,7 +86,9 @@ class MainActivity : AppCompatActivity() {
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var swallowStylus = false
     private var lastShellRefresh = 0L
+    private var lastSavedSync = 0L
     private var loadedProfile = -1L
+    private var offlineModeSeen = false
 
     @Volatile private var currentUrl: String? = null
     private var reading = false
@@ -137,6 +140,7 @@ class MainActivity : AppCompatActivity() {
         signInBar = findViewById(R.id.signin_bar)
         findViewById<View>(R.id.signin_back).setOnClickListener { startActivity(Intent(this, ServersActivity::class.java)) }
         offline = newOffline()
+        offlineModeSeen = prefs.offlineMode
 
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val cutout = if (reading && prefs.cutout) 0 else WindowInsetsCompat.Type.displayCutout()
@@ -181,6 +185,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         followProfile()
+        if (prefs.offlineMode != offlineModeSeen) applyOfflineMode()
         applyChrome()
         pushLayout()
         if (Store.get(this).pendingChapterIds().isNotEmpty()) ProgressSync.schedule(this)
@@ -280,6 +285,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
                 if (url.startsWith("chrome-error:")) return
+                if (openSavedSeries(url)) return
                 currentUrl = url
                 routeChanged(url)
             }
@@ -290,6 +296,8 @@ class MainActivity : AppCompatActivity() {
                 refresh.isRefreshing = false
                 pushLayout()
                 installPullGuard()
+                web.evaluateJavascript(QUIET_OFFLINE, null)
+                web.evaluateJavascript(OFFLINE_ICON, null)
                 matchBarsToPage()
                 if (offServer()) {
                     gatewayBanner.visibility = View.GONE
@@ -428,9 +436,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Whenever the server answers, saved chapters get its read state and lose what it deleted; at most every few minutes. */
+    private fun syncSaved() {
+        val now = System.currentTimeMillis()
+        if (now - lastSavedSync < SAVED_SYNC_MS) return
+        lastSavedSync = now
+        runCatching { ProgressSync.syncSaved(this) }
+    }
+
     private fun checkServer() {
         thread {
             val state = offline.probeState()
+            if (state == ServerState.OK) thread { syncSaved() }
             val pairing = if (state == ServerState.OK) Pairing.completePending(this) else null
             if (pairing == PairResult.Done) runOnUiThread { web.loadUrl("${prefs.serverUrl}/") }
             if (pairing == PairResult.Refused) runOnUiThread { Toast.makeText(this, R.string.pair_refused, Toast.LENGTH_LONG).show() }
@@ -501,6 +518,37 @@ class MainActivity : AppCompatActivity() {
         } else if (web.url == null) {
             web.loadUrl("$base/")
         }
+    }
+
+    /** A series page needs the server; offline, the saved chapters of that series open instead. */
+    private fun openSavedSeries(url: String): Boolean {
+        if (!offline.knownUnreachable()) return false
+        val uri = Uri.parse(url)
+        if (uri.host != Uri.parse(prefs.serverUrl ?: return false).host) return false
+        val id = Regex("^/series/(\\d+)/?$").matchEntire(uri.path ?: return false)?.groupValues?.get(1)?.toIntOrNull() ?: return false
+        val saved = Store.get(this).all().filter { it.seriesId == id }
+        if (saved.isEmpty()) return false
+        startActivity(
+            Intent(this, SeriesDownloadsActivity::class.java)
+                .putExtra(SeriesDownloadsActivity.EXTRA_SERIES_ID, id)
+                .putExtra(SeriesDownloadsActivity.EXTRA_TITLE, saved.first().seriesTitle),
+        )
+        if (web.canGoBack()) web.goBack()
+        return true
+    }
+
+    fun toggleOfflineMode() {
+        prefs.offlineMode = !prefs.offlineMode
+        applyOfflineMode()
+    }
+
+    /** Offline mode changed: reload so the page asks again under the new rules. */
+    private fun applyOfflineMode() {
+        offlineModeSeen = prefs.offlineMode
+        offline.forgetReachability()
+        pageFailed = false
+        offlineView.visibility = View.GONE
+        web.reload()
     }
 
     fun serverOffline() = offline.knownUnreachable()
@@ -728,6 +776,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        /** A cloud-off icon beside the header's own icons while the server is away; the reader has none to sit beside. */
+        private const val OFFLINE_ICON = "(function(){if(window.__makiIcon)return;window.__makiIcon=1;" +
+            "var svg='<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"currentColor\">" +
+            "<path d=\"M19.35,10.04C18.67,6.59 15.64,4 12,4c-1.48,0 -2.85,0.43 -4.01,1.17l1.46,1.46C10.21,6.23 11.08,6 12,6c3.04,0 5.5,2.46 5.5,5.5v0.5H19c1.66,0 3,1.34 3,3 0,1.13 -0.64,2.11 -1.56,2.62l1.45,1.45C23.16,18.16 24,16.68 24,15c0,-2.64 -2.05,-4.78 -4.65,-4.96zM3,5.27l2.75,2.74C2.56,8.15 0,10.77 0,14c0,3.31 2.69,6 6,6h11.73l2,2L21,20.73 4.27,4 3,5.27zM7.73,10l8,8H6c-2.21,0 -4,-1.79 -4,-4s1.79,-4 4,-4h1.73z\"/></svg>';" +
+            "setInterval(function(){var el=document.getElementById('maki-offline-icon');" +
+            "if(!(window.MakiNative&&MakiNative.offline())){if(el)el.remove();return}" +
+            "if(el&&el.isConnected)return;" +
+            "var first=[].slice.call(document.querySelectorAll('.mantine-ActionIcon-root')).filter(function(b){var r=b.getBoundingClientRect();return r.top>=0&&r.top<120&&r.width>0})[0];" +
+            "if(!first)return;var c=first.cloneNode(false);c.id='maki-offline-icon';c.removeAttribute('onclick');" +
+            "c.setAttribute('aria-label','Offline');c.onclick=function(){MakiNative.toggleOffline()};c.innerHTML=svg;first.parentNode.insertBefore(c,first)},1000)})()"
+
+        /** Hides the web app's error toasts about the server being away: the offline bar already says so. */
+        private const val QUIET_OFFLINE = "(function(){if(window.__makiQuiet)return;window.__makiQuiet=1;" +
+            "var re=/API 50\\d|offline|failed to fetch|networkerror|load failed|network request failed/i;" +
+            "new MutationObserver(function(){if(!(window.MakiNative&&MakiNative.offline()))return;" +
+            "document.querySelectorAll('.mantine-Notification-root').forEach(function(n){" +
+            "if(re.test(n.textContent))n.style.display='none'})})" +
+            ".observe(document.documentElement,{childList:true,subtree:true,characterData:true})})()"
+
         const val ACTION_OPEN = "dev.fokuroru.reader.OPEN"
         const val ACTION_CONTINUE = "dev.fokuroru.reader.CONTINUE"
         const val ACTION_LATEST = "dev.fokuroru.reader.LATEST"
@@ -736,6 +803,7 @@ class MainActivity : AppCompatActivity() {
         private const val LOGIN_PROBE =
             "!!document.querySelector('input[type=password]') && !document.querySelector('.app-navbar, .reader-root, .lite')"
         private const val STALE_MS = 30 * 60 * 1000L
+        private const val SAVED_SYNC_MS = 2 * 60 * 1000L
         private const val SHELL_REFRESH_MS = 30 * 60 * 1000L
     }
 }

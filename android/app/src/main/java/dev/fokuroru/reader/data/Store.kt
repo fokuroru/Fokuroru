@@ -166,6 +166,13 @@ class Store private constructor(private val context: Context, val profileId: Lon
         }
     }
 
+    /** The server has no read state for this chapter: it is unread there, so it is here too. */
+    fun resetProgress(chapterId: Int) = update(chapterId) {
+        put("last_page", 0)
+        put("completed", 0)
+        put("read_at", 0)
+    }
+
     fun deletable(): List<DownloadedChapter> {
         val pending = pendingChapterIds()
         return all().filter { it.state == State.DONE }

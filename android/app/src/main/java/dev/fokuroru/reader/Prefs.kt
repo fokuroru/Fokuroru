@@ -16,6 +16,11 @@ class Prefs(context: Context) {
     /** The server of the profile in use. Profiles own it now, see [dev.fokuroru.reader.data.Profiles]. */
     val serverUrl: String? get() = dev.fokuroru.reader.data.Profiles.active(appContext)?.url
 
+    /** The person chose to stay off the network: nothing reaches the server until this is turned off. */
+    var offlineMode: Boolean
+        get() = sp.getBoolean("offline_mode", false)
+        set(value) = sp.edit().putBoolean("offline_mode", value).apply()
+
     val volumeKeys get() = sp.getBoolean("volume_keys", true)
     val swapVolumeKeys get() = sp.getBoolean("swap_volume_keys", false)
     var invertTurn: Boolean

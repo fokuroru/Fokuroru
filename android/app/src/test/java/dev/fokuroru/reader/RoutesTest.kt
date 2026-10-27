@@ -32,6 +32,13 @@ class RoutesTest {
     }
 
     @Test
+    fun homeReadsAreStashedAndCoversAreLocalFirst() {
+        assertEquals(Route.Stashed, Routes.parse("/api/v1/series"))
+        assertEquals(Route.Stashed, Routes.parse("/api/v1/home/reading"))
+        assertEquals(Route.Cover(7), Routes.parse("/api/v1/mediacover/7/cover.jpg"))
+    }
+
+    @Test
     fun everythingElsePassesThrough() {
         assertNull(Routes.parse("/api/v1/settings/system"))
         assertNull(Routes.parse("/assets/index-abc.js"))

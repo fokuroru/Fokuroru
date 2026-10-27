@@ -4,6 +4,21 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.47 (75)
+- Whenever the server answers, every saved chapter gets its current read state from the server, and saved chapters whose file was deleted on the server are removed from the device.
+
+## 0.5.46 (74)
+- Offline mode in Settings (or tap the cloud icon in the header): the app stops contacting the server entirely and opens what is saved on the device.
+
+## 0.5.45 (73)
+- Offline, Home is built from the chapters saved on the device when the server has never answered, a cloud icon bar at the top says the app is offline, and the offline error popups are hidden. Saved chapters hides series with nothing saved yet while the server is away.
+
+## 0.5.44 (72)
+- Opens on the saved Home page at once, whatever the server is doing, and updates when it answers. Without the server, Home looks the same but lists only series saved on the device.
+
+## 0.5.43 (71)
+- Saved chapters open from the device first, even when the server is reachable. The server is only used for chapters that aren't saved.
+
 ## 0.5.42 (70)
 - Saving the next chapters automatically now offers the next 5, the next 10, or all chapters on the server. The chapter table can mark an undownloaded chapter read, Download & read only offers wanted chapters, and series that are up to date show a badge.
 

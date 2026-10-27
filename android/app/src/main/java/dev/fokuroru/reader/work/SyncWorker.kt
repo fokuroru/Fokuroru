@@ -52,6 +52,7 @@ object ReadingSync {
             snapshot.items.take(3).forEach { item -> saveAhead(context, api, store, item.chapterId, ahead) }
         }
 
+        ProgressSync.prune(context)
         ProgressSync.pull(context)
         if (prefs.deleteRead) {
             for (id in AutoDelete.plan(store.deletable(), prefs.keepLastRead)) store.delete(id)

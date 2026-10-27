@@ -34,6 +34,7 @@ class Api(context: Context) {
     private fun cookies(): String? = CookieManager.getInstance().getCookie(base)
 
     fun open(path: String, method: String = "GET", body: String? = null, headers: Map<String, String> = emptyMap()): HttpURLConnection {
+        if (prefs.offlineMode) throw IOException("Offline mode")
         val conn = URL(url(path)).openConnection() as HttpURLConnection
         conn.requestMethod = method
         conn.connectTimeout = 10_000

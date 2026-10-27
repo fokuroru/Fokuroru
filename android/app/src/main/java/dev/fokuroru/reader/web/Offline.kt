@@ -5,12 +5,17 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import dev.fokuroru.reader.Prefs
+import dev.fokuroru.reader.data.Covers
 import dev.fokuroru.reader.data.Profiles
+import dev.fokuroru.reader.data.State
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
 import dev.fokuroru.reader.net.Gateway
 import dev.fokuroru.reader.net.ServerState
+import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONTokener
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -27,12 +32,16 @@ import java.security.MessageDigest
  */
 class Offline(private val context: Context) {
     private val api = Api(context)
+    private val prefs = Prefs(context)
     private val store = Store.get(context)
     private val shell = Shell(context, api)
     private val stashDir = File(Profiles.activeDir(context), "stash").apply { mkdirs() }
 
     @Volatile private var reachableAt = 0L
     @Volatile private var state = ServerState.OK
+
+    /** When a real request last failed: the next few seconds go straight to the saved copy instead of waiting out another timeout. */
+    @Volatile private var failedAt = 0L
 
     /** Told when a page needs the server's sign-in state and neither the server nor a saved copy can give it. */
     var onUnavailable: (() -> Unit)? = null
@@ -52,12 +61,15 @@ class Offline(private val context: Context) {
         if (uri.host != server.host || uri.port != server.port) return null
 
         val path = uri.path ?: return null
-        return when (val route = Routes.parse(path)) {
+        val answer = when (val route = Routes.parse(path)) {
             is Route.Page -> page(route)
             is Route.Manifest -> manifest(route)
+            is Route.Cover -> cover(route)
             Route.Stashed -> stashed(request)
             null -> shellFile(request, path)
         }
+        // In offline mode the web view must not reach for the network either.
+        return answer ?: if (prefs.offlineMode) json(503, "{\"error\":\"offline\"}".toByteArray()) else null
     }
 
     /** Build files come from disk once kept; a navigation with no server falls back to the saved entry page. */
@@ -69,7 +81,8 @@ class Offline(private val context: Context) {
         }
         if (request.isForMainFrame) reachableAt = 0
         val isPage = request.isForMainFrame && !path.startsWith("/api/") && !path.substringAfterLast('/').contains('.')
-        if (isPage && shell.hasIndex() && !forceNetwork && !serverReachable()) return shell.index()
+        // The saved entry page opens at once whatever the server is doing; refreshShell() brings it up to date afterwards.
+        if (isPage && shell.hasIndex() && !forceNetwork) return shell.index()
         return null
     }
 
@@ -79,6 +92,7 @@ class Offline(private val context: Context) {
     }
 
     fun isOnline(): Boolean {
+        if (prefs.offlineMode) return false
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
@@ -89,6 +103,10 @@ class Offline(private val context: Context) {
     /** Cached for a few seconds: the reader asks for a dozen things at once. */
     @Synchronized
     fun probeState(): ServerState {
+        if (prefs.offlineMode) {
+            setState(ServerState.UNREACHABLE)
+            return state
+        }
         val now = System.currentTimeMillis()
         // A bad answer is rechecked soon: signing in at a gateway changes it within seconds.
         if (now - reachableAt < if (state == ServerState.OK) 8_000 else 1_500) return state
@@ -107,16 +125,18 @@ class Offline(private val context: Context) {
 
     /** What the last probes found, without probing: the web layer asks on every progress write. */
     fun knownUnreachable(): Boolean =
-        !isOnline() || (state != ServerState.OK && System.currentTimeMillis() - reachableAt < 60_000)
+        prefs.offlineMode || !isOnline() || (state != ServerState.OK && System.currentTimeMillis() - maxOf(reachableAt, failedAt) < 60_000)
 
     fun forgetReachability() {
         reachableAt = 0
+        failedAt = 0
     }
 
     /** The person is about to sign in at the gateway's page: let that load through, not the saved copy. */
     fun signInAgain() {
         forceNetwork = true
         reachableAt = 0
+        failedAt = 0
     }
 
     /** Back on the server's own page after signing in. */
@@ -134,8 +154,8 @@ class Offline(private val context: Context) {
 
     private fun manifest(route: Route.Manifest): WebResourceResponse? {
         val saved = store.get(route.chapterId) ?: return null
+        // Saved chapters are local-first: the server is only asked about chapters that aren't downloaded.
         if (saved.state != "done" || saved.manifest == null) return null
-        if (serverReachable()) return null
 
         val json = JSONObject(saved.manifest)
         val queued = store.queuedProgressFor(route.chapterId)
@@ -163,7 +183,7 @@ class Offline(private val context: Context) {
 
         // Tried whenever there is a network, not only after a probe passed: a slow first connection can fail
         // a short probe while the real request would have gone through, and that must not look like offline.
-        if (isOnline()) {
+        if (!prefs.offlineMode && isOnline() && System.currentTimeMillis() - failedAt > RETRY_AFTER_FAILURE) {
             try {
                 val headers = request.requestHeaders.filterKeys { name ->
                     FORWARD_BLOCKED.none { it.equals(name, true) }
@@ -178,6 +198,7 @@ class Offline(private val context: Context) {
                         setState(ServerState.GATEWAY)
                         throw IOException("gateway")
                     }
+                    failedAt = 0
                     if (status == 401) {
                         stashDir.listFiles()?.forEach { it.delete() }
                     }
@@ -198,16 +219,49 @@ class Offline(private val context: Context) {
                     conn.disconnect()
                 }
             } catch (_: IOException) {
+                failedAt = System.currentTimeMillis()
                 if (state == ServerState.OK) setState(ServerState.UNREACHABLE)
             }
         }
-        if (file.isFile) return json(200, file.readBytes())
+        if (file.isFile) return json(200, savedOnly(request.url.path, file.readBytes()))
         val path = request.url.path
         // Nothing to boot the page from: the server's anonymous start-up answer is the same for everyone, so
         // a stand-in lets the page start, and the missing sign-in state is then reported rather than guessed.
         if (path == "/initialize.json") return json(200, OFFLINE_INITIALIZE.toByteArray())
+        path?.let { OfflineHome.answer(it, store) }?.let { return json(200, it) }
         if (path == "/api/v1/auth/me") onUnavailable?.invoke()
         return json(503, "{\"error\":\"offline\"}".toByteArray())
+    }
+
+    /** A saved cover is used before asking the server; a series without one falls through to the network. */
+    private fun cover(route: Route.Cover): WebResourceResponse? {
+        val file = Covers.file(context, route.seriesId)
+        if (!file.isFile) return null
+        return WebResourceResponse("image/jpeg", null, 200, "OK", mapOf("Cache-Control" to "private, max-age=86400"), FileInputStream(file))
+    }
+
+    /** Without the server only saved series can be opened, so lists drop the rest and the page looks the same, just shorter. */
+    private fun savedOnly(path: String?, bytes: ByteArray): ByteArray = try {
+        val ids = store.all().filter { it.state == State.DONE }.map { it.seriesId }.toSet()
+        val root = JSONTokener(String(bytes)).nextValue()
+        keepSaved(root, ids, path == "/api/v1/series")
+        root.toString().toByteArray()
+    } catch (_: Exception) {
+        bytes
+    }
+
+    /** Drops list entries whose `seriesId` (or, for the library list itself, `id`) is not saved. */
+    private fun keepSaved(node: Any?, ids: Set<Int>, top: Boolean) {
+        when (node) {
+            is JSONObject -> node.keys().forEach { keepSaved(node.opt(it), ids, false) }
+            is JSONArray -> {
+                for (i in node.length() - 1 downTo 0) {
+                    val item = node.opt(i)
+                    val key = if (top) "id" else "seriesId"
+                    if (item is JSONObject && item.has(key) && item.optInt(key, -1) !in ids) node.remove(i) else keepSaved(item, ids, false)
+                }
+            }
+        }
     }
 
     /** The account name goes into the profile list, so two accounts on one server can be told apart. */
@@ -242,6 +296,7 @@ class Offline(private val context: Context) {
     }
 
     private companion object {
+        const val RETRY_AFTER_FAILURE = 20_000L
         val FORWARD_BLOCKED = listOf("Cookie", "Host", "Connection", "Accept-Encoding", "Content-Length")
         const val OFFLINE_INITIALIZE =
             "{\"apiRoot\":\"/api/v1\",\"version\":\"offline\",\"setupNeeded\":false," +

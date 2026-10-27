@@ -32,6 +32,12 @@ class WebBridge(private val activity: MainActivity) {
     @JavascriptInterface
     fun offline(): Boolean = activity.trusted() && activity.serverOffline()
 
+    /** The header's cloud icon: flips offline mode, which stops (or resumes) every request to the server. */
+    @JavascriptInterface
+    fun toggleOffline() {
+        if (activity.trusted()) activity.runOnUiThread { activity.toggleOfflineMode() }
+    }
+
     @JavascriptInterface
     fun layout(): String = activity.layoutJson()
 
