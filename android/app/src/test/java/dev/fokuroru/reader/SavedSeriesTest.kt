@@ -59,4 +59,20 @@ class SavedSeriesTest {
 
         assertEquals("Solo", group.title)
     }
+
+    @Test fun `a series with nothing saved is not listed even when chapters are queued or failed`() {
+        val groups = SavedSeriesGroups.group(
+            listOf(row(1, 7, "Waiting", State.QUEUED), row(2, 8, "Broken", State.FAILED), row(3, 9, "Kept"), row(4, 9, "Kept", State.DOWNLOADING)),
+        )
+
+        assertEquals(listOf(9), SavedSeriesGroups.visible(groups).map { it.seriesId })
+    }
+
+    @Test fun `unread counts saved chapters that are not read`() {
+        val read = row(2, 7, "Solo").copy(completed = true)
+        val group = SavedSeriesGroups.group(listOf(row(1, 7, "Solo"), read, row(3, 7, "Solo", State.QUEUED))).single()
+
+        assertEquals(1, group.unread)
+        assertEquals(2, group.saved)
+    }
 }

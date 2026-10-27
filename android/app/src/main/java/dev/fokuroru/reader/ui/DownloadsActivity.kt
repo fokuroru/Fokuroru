@@ -30,7 +30,6 @@ import dev.fokuroru.reader.data.SavedSeriesGroups
 import dev.fokuroru.reader.data.State
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
-import dev.fokuroru.reader.net.ServerState
 import dev.fokuroru.reader.work.DownloadWorker
 import dev.fokuroru.reader.work.ReadingSync
 import java.util.concurrent.Executors
@@ -120,19 +119,12 @@ class DownloadsActivity : AppCompatActivity() {
     private fun refresh() {
         thread {
             val rows = store.all()
-            val all = SavedSeriesGroups.group(rows)
-            // Without the server, series with nothing saved yet (only queued or failed chapters) have nothing to open.
-            val onDevice = all.filter { it.saved > 0 }
-            val show = { list: List<SavedSeries> ->
-                runOnUiThread {
-                    adapter.submit(list)
-                    empty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-                    notice.visibility = if (rows.any { it.state == State.FAILED && it.error == "Signed out" }) View.VISIBLE else View.GONE
-                }
+            val series = SavedSeriesGroups.visible(SavedSeriesGroups.group(rows))
+            runOnUiThread {
+                adapter.submit(series)
+                empty.visibility = if (series.isEmpty()) View.VISIBLE else View.GONE
+                notice.visibility = if (rows.any { it.state == State.FAILED && it.error == "Signed out" }) View.VISIBLE else View.GONE
             }
-            show(onDevice)
-            val series = if (onDevice.size == all.size || runCatching { Api(this).probe() == ServerState.OK }.getOrDefault(false)) all else onDevice
-            if (series !== onDevice) show(series)
             fetchMissingCovers(series)
         }
     }
@@ -229,6 +221,7 @@ class DownloadsActivity : AppCompatActivity() {
             val notes = buildList {
                 if (series.pending > 0) add(context.getString(R.string.downloads_note_downloading, series.pending))
                 if (series.failed > 0) add(context.getString(R.string.downloads_note_failed, series.failed))
+                if (series.unread > 0) add(context.getString(R.string.downloads_note_unread, series.unread))
             }
             holder.note.visibility = if (notes.isEmpty()) View.GONE else View.VISIBLE
             holder.note.text = notes.joinToString(" · ")

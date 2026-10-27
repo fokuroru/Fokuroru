@@ -9,6 +9,8 @@ data class SavedSeries(
     val saved: Int,
     val pending: Int,
     val failed: Int,
+    /** Saved chapters not yet read. */
+    val unread: Int,
     val bytes: Long,
 )
 
@@ -23,6 +25,7 @@ object SavedSeriesGroups {
                     saved = chapters.count { it.state == State.DONE },
                     pending = chapters.count { it.state == State.QUEUED || it.state == State.DOWNLOADING },
                     failed = chapters.count { it.state == State.FAILED },
+                    unread = chapters.count { it.state == State.DONE && !it.completed },
                     bytes = chapters.filter { it.state == State.DONE }.sumOf { it.bytes },
                 )
             }
@@ -31,4 +34,7 @@ object SavedSeriesGroups {
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
                     .thenBy { it.seriesId },
             )
+
+    /** What the grid lists: a series with nothing saved has nothing to open, whatever is queued or failed for it. */
+    fun visible(groups: List<SavedSeries>): List<SavedSeries> = groups.filter { it.saved > 0 }
 }

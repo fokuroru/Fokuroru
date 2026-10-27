@@ -36,7 +36,7 @@ class ChapterAdapter(
         holder.detail.text = when (row.state) {
             State.DONE -> buildString {
                 append(Strings.bytes(row.bytes))
-                if (row.completed) append(" · read") else if (row.lastPage > 0) append(" · page ${row.lastPage + 1}")
+                if (row.completed) append(" · read") else if (row.lastPage > 0) append(if (row.pageCount > 0) " · page ${row.lastPage + 1} of ${row.pageCount}" else " · page ${row.lastPage + 1}")
             }
             State.DOWNLOADING -> context.getString(R.string.downloads_state_downloading, row.pagesDone, row.pageCount)
             State.FAILED -> context.getString(R.string.downloads_state_failed)

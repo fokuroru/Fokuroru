@@ -46,6 +46,7 @@
     <string name="downloads_series_unknown">Waiting to start</string>
     <string name="downloads_note_downloading">%1$d downloading</string>
     <string name="downloads_note_failed">%1$d failed</string>
+    <string name="downloads_note_unread">%1$d unread</string>
     <string name="downloads_series_delete">Delete all saved chapters</string>
     <string name="downloads_series_delete_title">Delete saved chapters?</string>
     <plurals name="downloads_saved_count">

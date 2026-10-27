@@ -19,7 +19,19 @@ import dev.fokuroru.reader.data.State
 import dev.fokuroru.reader.data.Store
 import dev.fokuroru.reader.net.Api
 import dev.fokuroru.reader.net.AuthExpiredException
+import dev.fokuroru.reader.net.HttpStatusException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 /** Saves one chapter's pages and manifest to private storage. Resumable: pages already on disk are kept. */
 class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
@@ -60,38 +72,65 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
             Events.downloadsChanged()
 
             val version = manifest.optString("pageVersion")
-            var bytes = store.get(chapterId)?.bytes ?: 0L
-            for (page in 0 until pageCount) {
-                if (isStopped) return Result.retry()
-                val file = store.pageFile(chapterId, page)
-                if (!file.isFile) {
-                    val query = if (version.isNotEmpty()) "?v=" + java.net.URLEncoder.encode(version, "UTF-8") else ""
-                    bytes += retrying { api.download("/api/v1/reader/chapter/$chapterId/page/$page$query", file) { isStopped } }
-                }
-                store.pageDone(chapterId, page + 1, bytes)
-                if (page % 4 == 0 || page == pageCount - 1) {
-                    setForeground(foreground(title, page + 1, pageCount))
-                    Events.downloadsChanged()
-                }
+            val query = if (version.isNotEmpty()) "?v=" + java.net.URLEncoder.encode(version, "UTF-8") else ""
+            val bytes = AtomicLong(store.get(chapterId)?.bytes ?: 0L)
+            val done = AtomicInteger(0)
+            val progress = Mutex()
+            // A few pages at a time: one request at a time leaves the connection idle between pages.
+            val slots = Semaphore(PAGE_PARALLELISM)
+            coroutineScope {
+                (0 until pageCount).map { page ->
+                    async(Dispatchers.IO) {
+                        slots.withPermit {
+                            if (isStopped) return@withPermit
+                            val file = store.pageFile(chapterId, page)
+                            if (!file.isFile) {
+                                bytes.addAndGet(retrying { api.download("/api/v1/reader/chapter/$chapterId/page/$page$query", file) { isStopped } })
+                            }
+                            val n = done.incrementAndGet()
+                            if (n % 4 == 0 || n == pageCount) {
+                                progress.withLock {
+                                    store.pageDone(chapterId, n, bytes.get())
+                                    setForeground(foreground(title, n, pageCount))
+                                    Events.downloadsChanged()
+                                }
+                            }
+                        }
+                    }
+                }.awaitAll()
             }
+            if (isStopped) return Result.retry()
+            store.pageDone(chapterId, pageCount, bytes.get())
             store.finish(chapterId)
             Events.downloadsChanged()
             return Result.success()
+        } catch (e: HttpStatusException) {
+            if (e.status == 404 || e.status == 410) {
+                // The server no longer has this chapter, so there is nothing to wait for: drop it rather than
+                // leave a series listed with chapters that can never download.
+                store.delete(chapterId)
+                Events.downloadsChanged()
+                return Result.failure()
+            }
+            return retryOrFail(chapterId, e)
         } catch (e: AuthExpiredException) {
             if (e is dev.fokuroru.reader.net.GatewayException) Notifications.signInNeeded(applicationContext)
             store.fail(chapterId, "Signed out")
             Events.downloadsChanged()
             return Result.failure()
         } catch (e: IOException) {
-            return if (runAttemptCount < MAX_ATTEMPTS) {
-                Result.retry()
-            } else {
-                store.fail(chapterId, e.message)
-                Events.downloadsChanged()
-                Result.failure()
-            }
+            return retryOrFail(chapterId, e)
         }
     }
+
+    private fun retryOrFail(chapterId: Int, e: IOException): Result =
+        if (runAttemptCount < MAX_ATTEMPTS) {
+            Result.retry()
+        } else {
+            store.fail(chapterId, e.message)
+            Events.downloadsChanged()
+            Result.failure()
+        }
 
     private suspend fun <T> retrying(block: () -> T): T {
         var last: IOException? = null
@@ -100,6 +139,11 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 return block()
             } catch (e: AuthExpiredException) {
                 throw e
+            } catch (e: HttpStatusException) {
+                // A missing page will not appear on a second try.
+                if (e.status == 404 || e.status == 410) throw e
+                last = e
+                kotlinx.coroutines.delay(800L * (it + 1))
             } catch (e: IOException) {
                 last = e
                 kotlinx.coroutines.delay(800L * (it + 1))
@@ -113,6 +157,7 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
         const val PROFILE_ID = "profile_id"
         private const val NOTIFICATION_ID = 4101
         private const val MAX_ATTEMPTS = 4
+        private const val PAGE_PARALLELISM = 4
 
         fun enqueue(context: Context, chapterId: Int) {
             val prefs = Prefs(context)

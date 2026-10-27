@@ -188,9 +188,12 @@ class MainActivity : AppCompatActivity() {
         if (prefs.offlineMode != offlineModeSeen) applyOfflineMode()
         applyChrome()
         pushLayout()
-        if (Store.get(this).pendingChapterIds().isNotEmpty()) ProgressSync.schedule(this)
-        if (prefs.serverUrl != null && System.currentTimeMillis() - ReadingSnapshot.load(this).updatedAt > STALE_MS) {
-            SyncWorker.syncNow(this)
+        // Disk reads, so off the UI thread: resuming should not wait on them.
+        thread {
+            if (Store.get(this).pendingChapterIds().isNotEmpty()) ProgressSync.schedule(this)
+            if (prefs.serverUrl != null && System.currentTimeMillis() - ReadingSnapshot.load(this).updatedAt > STALE_MS) {
+                SyncWorker.syncNow(this)
+            }
         }
         checkServer()
         web.onResume()
@@ -803,7 +806,7 @@ class MainActivity : AppCompatActivity() {
         private const val LOGIN_PROBE =
             "!!document.querySelector('input[type=password]') && !document.querySelector('.app-navbar, .reader-root, .lite')"
         private const val STALE_MS = 30 * 60 * 1000L
-        private const val SAVED_SYNC_MS = 2 * 60 * 1000L
+        private const val SAVED_SYNC_MS = 5 * 60 * 1000L
         private const val SHELL_REFRESH_MS = 30 * 60 * 1000L
     }
 }
