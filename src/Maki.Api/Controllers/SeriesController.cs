@@ -681,6 +681,25 @@ public class SeriesController(
         }
 
         file.Size = new FileInfo(path).Length;
+
+        // Saved positions and bookmarks are page indexes into the old order; mirror them so a
+        // chapter resumes on the same page content instead of the opposite end.
+        var pages = PdfReader.PageCount(path);
+        var chapterIds = await db.Chapters.Where(c => c.ChapterFileId == file.Id).Select(c => c.Id).ToListAsync(ct);
+        foreach (var p in await db.ChapterProgress.IgnoreQueryFilters().Where(p => chapterIds.Contains(p.ChapterId)).ToListAsync(ct))
+            p.PageIndex = Math.Clamp(pages - 1 - p.PageIndex, 0, Math.Max(0, pages - 1));
+
+        // Remove and re-add: mirrored values can swap two rows through the unique (user, chapter, page) index.
+        var bookmarks = await db.ReaderBookmarks.IgnoreQueryFilters().Where(b => chapterIds.Contains(b.ChapterId)).ToListAsync(ct);
+        db.ReaderBookmarks.RemoveRange(bookmarks);
+        db.ReaderBookmarks.AddRange(bookmarks
+            .Where(b => b.PageIndex < pages)
+            .Select(b => new ReaderBookmark
+            {
+                UserId = b.UserId, SeriesId = b.SeriesId, ChapterId = b.ChapterId,
+                PageIndex = pages - 1 - b.PageIndex, CreatedAt = b.CreatedAt,
+            }));
+
         await db.SaveChangesAsync(ct);
         archives.Invalidate(file.Id);
         return NoContent();
