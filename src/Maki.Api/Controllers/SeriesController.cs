@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Maki.Api.Auth;
+using Maki.Api.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -654,7 +655,8 @@ public class SeriesController(
     /// <summary>Reverses the page order of a PDF in the library, for one that was published back to front.</summary>
     [Authorize(Policy = Policies.EditMetadata)]
     [HttpPost("{id:int}/files/reverse")]
-    public async Task<IActionResult> ReverseFile(int id, [FromBody] string relativePath, CancellationToken ct)
+    public async Task<IActionResult> ReverseFile(
+        int id, [FromBody] string relativePath, [FromServices] AppPaths appPaths, CancellationToken ct)
     {
         var series = await db.Series.Include(s => s.RootFolder).FirstOrDefaultAsync(s => s.Id == id, ct);
         if (series is null)
@@ -702,6 +704,12 @@ public class SeriesController(
 
         await db.SaveChangesAsync(ct);
         archives.Invalidate(file.Id);
+
+        // Renders are cached by file id and size, and a reversed PDF keeps its size.
+        var cacheDir = Path.Combine(appPaths.ReaderCacheDir, file.Id.ToString());
+        if (Directory.Exists(cacheDir))
+            Directory.Delete(cacheDir, recursive: true);
+
         return NoContent();
     }
 

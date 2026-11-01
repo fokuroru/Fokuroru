@@ -278,7 +278,7 @@ public class ReaderController(
             pinnedProfileId = resolved.PinnedProfileId,
             autoProfileId = resolved.AutoProfileId,
             seriesType = slice.Series.Type,
-            pageVersion = PageVersion(slice.ChapterFileId, slice.ArchiveSize)
+            pageVersion = PageVersion(slice.ChapterFileId, slice.ArchiveSize, slice.ArchivePath)
         });
     }
 
@@ -293,7 +293,7 @@ public class ReaderController(
 
         var entry = slice.Pages[slice.StartPage + page];
 
-        var etag = new EntityTagHeaderValue($"\"{slice.ChapterFileId}-{slice.ArchiveSize}-{slice.StartPage + page}\"");
+        var etag = new EntityTagHeaderValue($"\"{PageVersion(slice.ChapterFileId, slice.ArchiveSize, slice.ArchivePath)}-{slice.StartPage + page}\"");
         if (Request.GetTypedHeaders().IfNoneMatch?.Any(t => t.Compare(etag, useStrongComparison: false)) == true)
         {
             return StatusCode(StatusCodes.Status304NotModified);
@@ -321,7 +321,9 @@ public class ReaderController(
         return File(stream, CbzReader.ContentType(entry), lastModified: null, entityTag: etag);
     }
 
-    private static string PageVersion(int chapterFileId, long archiveSize) => $"{chapterFileId}-{archiveSize}";
+    // The write time is in it because a reversed PDF keeps its byte size, so size alone would leave old pages cached.
+    private static string PageVersion(int chapterFileId, long archiveSize, string path) =>
+        $"{chapterFileId}-{archiveSize}-{System.IO.File.GetLastWriteTimeUtc(path).Ticks}";
 
     /// <summary>
     /// Page URLs are the same before and after a re-download, so a year-long immutable response is
@@ -329,7 +331,7 @@ public class ReaderController(
     /// file on disk. Anything else revalidates against the ETag.
     /// </summary>
     private void SetPageCacheControl(ReaderService.PageSlice slice) =>
-        Response.Headers.CacheControl = Request.Query["v"] == PageVersion(slice.ChapterFileId, slice.ArchiveSize)
+        Response.Headers.CacheControl = Request.Query["v"] == PageVersion(slice.ChapterFileId, slice.ArchiveSize, slice.ArchivePath)
             ? "private, max-age=31536000, immutable"
             : "private, no-cache";
 
