@@ -1,5 +1,12 @@
 import { ActionIcon, Alert, Button, Progress, SegmentedControl, Text, TextInput } from '@mantine/core'
-import { IconDeviceMobileDown, IconDeviceDesktop, IconSearch, IconSettings } from '@tabler/icons-react'
+import {
+  IconDeviceMobileDown,
+  IconDeviceDesktop,
+  IconSearch,
+  IconSettings,
+  IconSortAscending,
+  IconSortDescending,
+} from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
@@ -51,6 +58,7 @@ export default function SimpleHomePage() {
 
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<Sort>('recent')
+  const [reversed, setReversed] = useState(false)
   const [shown, setShown] = useState(PAGE)
   const [held, setHeld] = useState<SheetSeries | null>(null)
   const [heldPreview, setHeldPreview] = useState<RecommendationItem | null>(null)
@@ -102,14 +110,15 @@ export default function SimpleHomePage() {
         s.readingStatus !== 'Completed' &&
         matchesSeriesTitle(s, needle),
     )
-    return list.sort((a, b) => {
+    list.sort((a, b) => {
       if (sort === 'recent') {
         const byRead = (b.lastReadAt ?? '').localeCompare(a.lastReadAt ?? '')
         if (byRead !== 0) return byRead
       }
       return a.sortTitle.localeCompare(b.sortTitle, undefined, { sensitivity: 'base', numeric: true })
     })
-  }, [library.data, query, sort])
+    return reversed ? list.reverse() : list
+  }, [library.data, query, sort, reversed])
 
   const offline = reading.isError || library.isError
 
@@ -242,6 +251,15 @@ export default function SimpleHomePage() {
             ]}
             aria-label={t`Sort the library`}
           />
+          <ActionIcon
+            variant="default"
+            size={30}
+            onClick={() => setReversed((r) => !r)}
+            aria-label={t`Reverse the sort order`}
+            aria-pressed={reversed}
+          >
+            {reversed ? <IconSortAscending size={16} /> : <IconSortDescending size={16} />}
+          </ActionIcon>
         </div>
 
         {library.isPending ? null : books.length === 0 ? (

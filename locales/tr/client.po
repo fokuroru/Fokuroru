@@ -13736,6 +13736,10 @@ msgstr ""
 msgid "Reverse the page order of {fileName}"
 msgstr ""
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Reverse the sort order"
+msgstr ""
+
 #: src/pages/ActivityPage.tsx
 msgid "Revert this upgrade"
 msgstr ""

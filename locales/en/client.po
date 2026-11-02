@@ -11705,6 +11705,10 @@ msgstr "Reverse pages"
 msgid "Reverse the page order of {fileName}"
 msgstr "Reverse the page order of {fileName}"
 
+#: src/pages/SimpleHomePage.tsx
+msgid "Reverse the sort order"
+msgstr "Reverse the sort order"
+
 #: src/pages/ActivityPage.tsx
 msgid "Revert this upgrade"
 msgstr "Revert this upgrade"
