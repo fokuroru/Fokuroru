@@ -223,7 +223,7 @@ function RailPlaceholder({ engine }: { engine: boolean }) {
     <div className="discover-rail" data-engine={engine || undefined} aria-hidden>
       {Array.from({ length: 8 }, (_, i) => (
         <div key={i} className="discover-rail-item">
-          <Skeleton radius="lg" style={{ aspectRatio: '2 / 3' }} />
+          <Skeleton radius="var(--radius-cover)" style={{ aspectRatio: '2 / 3' }} />
         </div>
       ))}
     </div>
@@ -272,7 +272,7 @@ function LibraryRailModal({ rail, onClose }: { rail: CustomRail; onClose: () => 
       ) : !data || isLoading ? (
         <SimpleGrid cols={cols} spacing="md">
           {Array.from({ length: 12 }, (_, i) => (
-            <Skeleton key={i} radius="lg" style={{ aspectRatio: '2 / 3' }} />
+            <Skeleton key={i} radius="var(--radius-cover)" style={{ aspectRatio: '2 / 3' }} />
           ))}
         </SimpleGrid>
       ) : (
