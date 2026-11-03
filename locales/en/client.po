@@ -5071,6 +5071,7 @@ msgid "Disliked it"
 msgstr "Disliked it"
 
 #: src/components/layout/SidebarFooter.tsx
+#: src/components/series/RateHint.tsx
 #: src/components/upgrades/TorrentProposalCard.tsx
 #: src/pages/NotificationsPage.tsx
 msgid "Dismiss"
@@ -10867,6 +10868,10 @@ msgstr "Rate limited"
 msgid "Rate limited by {source}, waiting before the next try"
 msgstr "Rate limited by {source}, waiting before the next try"
 
+#: src/components/series/RateHint.tsx
+msgid "Rate this series"
+msgstr "Rate this series"
+
 #: src/pages/discover/ManageSignalsModal.tsx
 #: src/pages/LibraryPage.tsx
 msgid "Rated"
@@ -16159,6 +16164,10 @@ msgstr "You're caught up"
 #: src/components/SetupWizard.tsx
 msgid "You're set"
 msgstr "You're set"
+
+#: src/components/series/RateHint.tsx
+msgid "You've finished this. How was it?"
+msgstr "You've finished this. How was it?"
 
 #: src/pages/rewind/slides.tsx
 msgid "Your {label}"

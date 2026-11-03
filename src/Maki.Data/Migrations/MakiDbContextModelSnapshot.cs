@@ -2699,6 +2699,9 @@ namespace Maki.Data.Migrations
                     b.Property<double?>("PreviewReadPendingTo")
                         .HasColumnType("REAL");
 
+                    b.Property<DateTime?>("RateHintDismissedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("Rating")
                         .HasColumnType("INTEGER");
 

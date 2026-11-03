@@ -1094,6 +1094,7 @@ public class SeriesController(
             ReadMainChapters = reading?.ReadMain,
             MainChapterCount = reading?.TotalMain,
             PendingProposalId = pendingProposalId,
+            RateHintEligible = await RateHintAsync(db, id, ct),
             ReadTimeEstimate = estimate is null
                 ? null
                 : new ReadingTimeEstimateDto(
@@ -2165,6 +2166,36 @@ public class SeriesController(
         // The scrobble log records what synced.
         scrobbler.QueueRatingPush(currentUser.UserId, series, request.Rating ?? 0);
         return Ok(new { rating = state.Rating });
+    }
+
+    /// <summary>
+    /// Whether the series page asks the caller to rate the series: they finished it, have not rated it and
+    /// have not dismissed the ask. <paramref name="db"/> is the caller's scoped context.
+    /// </summary>
+    internal static async Task<bool> RateHintAsync(MakiDbContext db, int seriesId, CancellationToken ct) =>
+        !await db.UserSeriesStates.AnyAsync(s => s.SeriesId == seriesId && (s.Rating != null || s.RateHintDismissedAt != null), ct) &&
+        await db.ReadingStates.AnyAsync(r => r.SeriesId == seriesId && r.Finished, ct);
+
+    /// <summary>Hides the "finished, rate it?" hint on this series for the caller, on every device.</summary>
+    [HttpPost("{id:int}/rate-hint/dismiss")]
+    public async Task<IActionResult> DismissRateHint(int id, CancellationToken ct)
+    {
+        if (!await db.Series.AnyAsync(s => s.Id == id, ct))
+        {
+            return NotFound();
+        }
+
+        var state = await db.UserSeriesStates.FirstOrDefaultAsync(s => s.SeriesId == id, ct);
+        if (state is null)
+        {
+            state = new UserSeriesState { SeriesId = id };
+            db.UserSeriesStates.Add(state);
+        }
+
+        state.RateHintDismissedAt = DateTime.UtcNow;
+        state.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return NoContent();
     }
 
     /// <summary>One of the <see cref="SeriesNotificationMode"/> names.</summary>

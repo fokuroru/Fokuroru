@@ -200,6 +200,12 @@ public record SeriesDto(
     /// </summary>
     public ReadingTimeEstimateDto? ReadTimeEstimate { get; init; }
 
+    /// <summary>
+    /// The series page should ask this caller to rate it: they finished it, have not rated it and
+    /// have not dismissed the ask. Detail endpoint only.
+    /// </summary>
+    public bool RateHintEligible { get; init; }
+
     /// <summary>The series' own upgrade profile pin. Null means it follows the instance default.</summary>
     public int? UpgradeProfileId { get; init; }
 

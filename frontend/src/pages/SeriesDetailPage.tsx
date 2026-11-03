@@ -90,6 +90,7 @@ import {
   useSetMonitorMode,
   useSetUpgradeProfile,
   useSetRating,
+  useDismissRateHint,
   useToggleChapterWanted,
   useUnlinkChapters,
   useDeleteChapterFiles,
@@ -145,6 +146,7 @@ import { FileQualityBadge } from '../components/series/FileQualityBadge'
 import { SeriesProgress } from '../components/series/SeriesProgress'
 import { SeriesActionsMenu } from '../components/series/SeriesActionsMenu'
 import { UpgradeNowResultModal } from '../components/series/UpgradeNowResultModal'
+import { RateHint } from '../components/series/RateHint'
 import { SeriesHero, SeriesHeroSkeleton } from '../components/series/SeriesHero'
 import { SeriesReviews } from '../components/series/SeriesReviews'
 import { SeriesFilesSection } from '../components/SeriesFilesSection'
@@ -523,6 +525,7 @@ function SeriesDetailBody() {
   const setIncognito = useSetIncognito()
   const setNotificationMode = useSetSeriesNotificationMode()
   const setRating = useSetRating()
+  const dismissRateHint = useDismissRateHint()
   const unlinkChapters = useUnlinkChapters()
   const setChaptersWanted = useSetChaptersWanted()
   const deleteChapters = useDeleteChapters()
@@ -1918,6 +1921,10 @@ function SeriesDetailBody() {
               </Tabs.List>
             }
         />
+
+        {series.rateHintEligible && (
+          <RateHint onRate={submitRating} onDismiss={() => dismissRateHint.mutate(series.id)} />
+        )}
 
         <Tabs.Panel value="progress">
           <div className="series-detail-files">
