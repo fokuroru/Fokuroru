@@ -635,11 +635,6 @@ msgstr "{chaptersRead} de {seriesChapterCount} capítulos descargados leídos"
 msgid "{chaptersRead} of {seriesChapterCount} downloaded chapters read, {seriesWantedCount} in the series"
 msgstr "{chaptersRead} de {seriesChapterCount} capítulos descargados leídos, {seriesWantedCount} en la serie"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "{chaptersRead}/{seriesChapterCount} chapters read"
-#~ msgstr "{chaptersRead}/{seriesChapterCount} capítulos leídos"
-
 #: src/pages/ImportPage.tsx
 #, fuzzy
 msgid "{comicCount, plural, one {# comic} other {# comics}}"
@@ -2837,11 +2832,6 @@ msgstr ""
 msgid "Already read or seen"
 msgstr ""
 
-#: src/components/discover/RecommendationFeedbackMenu.tsx
-#, fuzzy
-#~ msgid "Already read or seen, taste unchanged"
-#~ msgstr "Ya leído o visto, sin cambios en tus gustos"
-
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Already running"
@@ -2886,6 +2876,10 @@ msgstr "Usar también este como mi orden predeterminado"
 #, fuzzy
 msgid "Also match every tag filed under this one"
 msgstr "Incluir también todas las etiquetas agrupadas bajo esta"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Also move the files to the recycle bin"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4537,7 +4531,7 @@ msgid "Clears reader thumbnails and source-comparison samples, removes posters o
 msgstr "Borra las miniaturas del lector y las muestras de comparación de fuentes, elimina los pósteres de las series borradas y vuelve a descargar los pósteres. Las miniaturas se regeneran la próxima vez que abras un capítulo."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgid "Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once."
 msgstr ""
 
 #: src/components/CatalogueRules.tsx
@@ -4981,11 +4975,6 @@ msgstr "Continuo"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-#~ msgid "Continuous layout only, in pixels."
-#~ msgstr "Solo para el diseño continuo, en píxeles."
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
 msgid "Continuous layout only."
 msgstr "Solo con diseño continuo."
 
@@ -5100,11 +5089,6 @@ msgstr "No se pudieron cargar las bibliotecas de Kavita: {kavitaLibrariesErrorMe
 #, fuzzy
 msgid "Could not load library stats"
 msgstr "No se pudieron cargar las estadísticas de la biblioteca"
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "Could not load this chapter."
-#~ msgstr "No se pudo cargar este capítulo."
 
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
@@ -5367,11 +5351,6 @@ msgstr "Creadores que sigues"
 #, fuzzy
 msgid "Creators you return to"
 msgstr "Autores a los que vuelves"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
-#~ msgstr "Las páginas de créditos y las primeras páginas del capítulo siguiente suelen parecerse, así que esto marca el cambio."
 
 #: src/pages/reader/enhanceMethods.ts
 #, fuzzy
@@ -8055,11 +8034,6 @@ msgstr ""
 msgid "How signals work"
 msgstr "Cómo funcionan las señales"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
-#~ msgstr "Cómo abre el lector integrado una serie. Un perfil se aplica automáticamente a los tipos de serie que cubre; las demás usan Predeterminado, incluidas las series cuyos metadatos no se han actualizado desde una mejora. Puedes fijar un perfil o cambiar los ajustes desde el lector."
-
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "How you read"
@@ -8981,11 +8955,6 @@ msgstr "Déjalo vacío para enviar a todos los dispositivos."
 #, fuzzy
 msgid "Leave empty to use this profile only on series you pin it to."
 msgstr "Déjalo vacío para usar este perfil solo en las series que fijes a él."
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Leave empty to use this profile only where you pin it to a series."
-#~ msgstr "Déjalo vacío para usar este perfil solo donde lo fijes a una serie."
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -10147,10 +10116,6 @@ msgstr "Mover hacia arriba"
 msgid "Move up in queue"
 msgstr "Mover hacia arriba en la cola"
 
-#: src/pages/SeriesDetailPage.tsx
-msgid "Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
-msgstr ""
-
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
 msgid "moves onto a volume"
@@ -11008,15 +10973,6 @@ msgstr "No analizado"
 #, fuzzy
 msgid "Not available"
 msgstr "No disponible"
-
-#: src/api/client.ts
-#: src/components/ui/CoverCard.tsx
-#: src/components/ui/SeriesRow.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Not available offline"
-#~ msgstr "No disponible sin conexión"
 
 #: src/components/releases/ReleaseOutlookSummary.tsx
 #, fuzzy
@@ -12804,13 +12760,6 @@ msgstr "Valorado"
 msgid "Rated {rating}/10"
 msgstr "Valorado {rating}/10"
 
-#: src/pages/LibraryPage.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Rated {rating}/10 so far"
-#~ msgstr "Valorada {rating}/10 hasta ahora"
-
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -14442,11 +14391,6 @@ msgstr "Leída con calma"
 msgid "Scale"
 msgstr "Escala"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Scale ({scale}%)"
-#~ msgstr "Escala ({scale}%)"
-
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -15959,11 +15903,6 @@ msgstr "Derivado de {relatedTo}"
 msgid "Split"
 msgstr "Dividir"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Split double-width pages"
-#~ msgstr "Dividir páginas de doble ancho"
-
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Split from the tier above"
 msgstr ""
@@ -16154,6 +16093,10 @@ msgstr "Dejar de mostrar sus títulos nuevos en Inicio y Descubrir"
 #, fuzzy
 msgid "Stopped before finishing"
 msgstr "Dejó de leer antes de terminar"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Storage, metadata, download clients and integrations for your Fōkurōru instance."
@@ -16379,11 +16322,6 @@ msgstr ""
 #, fuzzy
 msgid "Tap zones"
 msgstr "Zonas de toque"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Tap zones (click the page edges to turn)"
-#~ msgstr "Zonas de toque (haz clic en los bordes de la página para pasarla)"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
@@ -16969,11 +16907,6 @@ msgstr ""
 #: src/pages/reader/DownloadSplash.tsx
 msgid "This chapter is not on your server yet."
 msgstr ""
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "This chapter isn't saved on this device."
-#~ msgstr "Este capítulo no está guardado en este dispositivo."
 
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
@@ -19174,26 +19107,11 @@ msgstr "Z:\\downloads (opcional)"
 msgid "Zones"
 msgstr ""
 
-#. placeholder {0}: prefs.scale
-#: src/components/discover/SeriesPreviewReader.tsx
-#~ msgid "Zoom ({0}%)"
-#~ msgstr ""
-
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Zoom ({scale}%)"
 msgstr ""
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom in"
-#~ msgstr "Acercar"
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Zoom in and out"
 msgstr "Acercar y alejar"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom out"
-#~ msgstr "Alejar"

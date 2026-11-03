@@ -321,6 +321,15 @@ public class DownloadQueueService(
         }
 
         var seriesIds = seriesOf.Values.Distinct().ToList();
+        var retired = await db.Series
+            .Where(s => seriesIds.Contains(s.Id) && s.Retired)
+            .Select(s => s.Id)
+            .ToListAsync(ct);
+        if (retired.Count > 0)
+        {
+            error = EnqueueRefusedException.SeriesRetired;
+        }
+
         var reviewed = await db.HealthFiles
             .Where(f => f.SeriesId != null && seriesIds.Contains(f.SeriesId.Value) &&
                         db.HealthOperations.Any(o => o.FileId == f.Id && o.Status != "completed" &&
@@ -349,7 +358,7 @@ public class DownloadQueueService(
         var covered = origin == DownloadOrigin.Manual ? [] : await CoveredVolumeRowsAsync(db, ids, ct);
         var toQueue = ids
             .Where(id => seriesOf.TryGetValue(id, out var seriesId) && !reviewed.Contains(seriesId) &&
-                         mapped.Contains(seriesId) && !active.Contains(id) && !covered.Contains(id))
+                         !retired.Contains(seriesId) && mapped.Contains(seriesId) && !active.Contains(id) && !covered.Contains(id))
             .ToList();
         if (toQueue.Count == 0)
         {
@@ -448,6 +457,8 @@ public class DownloadQueueService(
 
         var chapter = await db.Chapters.FirstOrDefaultAsync(c => c.Id == chapterId, ct)
             ?? throw new EnqueueRefusedException(EnqueueRefusedException.ChapterGone, $"Chapter {chapterId} not found");
+        if (await db.Series.AnyAsync(s => s.Id == chapter.SeriesId && s.Retired, ct))
+            throw new EnqueueRefusedException(EnqueueRefusedException.SeriesRetired, "The series is retired");
         if (await db.HealthOperations.AnyAsync(o => db.HealthFiles.Any(f => f.Id == o.FileId && f.SeriesId == chapter.SeriesId)
             && o.Status != "completed" && o.Status != "failed" && o.Status != "cancelled", ct))
             throw new EnqueueRefusedException(EnqueueRefusedException.HealthReview, "A health review is active for this series");
@@ -1355,6 +1366,7 @@ public sealed class EnqueueRefusedException(string key, string message) : Invali
     public const string ChapterGone = "error.download.chapterGone";
     public const string HealthReview = "error.download.healthReviewActive";
     public const string NoMapping = "error.download.noEnabledMapping";
+    public const string SeriesRetired = "error.series.retired";
 
     public string Key { get; } = key;
 }

@@ -1621,9 +1621,19 @@ export function useDeleteSeries() {
 export function useRetireSeries() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, retire, permanent = false }: { id: number; retire: boolean; permanent?: boolean }) =>
+    mutationFn: ({
+      id,
+      retire,
+      permanent = false,
+      removeFiles = false,
+    }: {
+      id: number
+      retire: boolean
+      permanent?: boolean
+      removeFiles?: boolean
+    }) =>
       api<{ retired: boolean; filesDeleted?: number; onHold?: string[] }>(
-        `/series/${id}/${retire ? `retire?permanent=${permanent}` : 'unretire'}`,
+        `/series/${id}/${retire ? `retire?permanent=${permanent}&removeFiles=${removeFiles}` : 'unretire'}`,
         { method: 'POST' },
       ),
     onSuccess: (_data, { id }) => {

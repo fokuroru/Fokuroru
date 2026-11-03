@@ -635,11 +635,6 @@ msgstr "İndirilen {seriesChapterCount} bölümden {chaptersRead} tanesi okundu"
 msgid "{chaptersRead} of {seriesChapterCount} downloaded chapters read, {seriesWantedCount} in the series"
 msgstr "İndirilen {seriesChapterCount} bölümden {chaptersRead} tanesi okundu, seride {seriesWantedCount} bölüm var"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "{chaptersRead}/{seriesChapterCount} chapters read"
-#~ msgstr "{chaptersRead}/{seriesChapterCount} bölüm okundu"
-
 #: src/pages/ImportPage.tsx
 #, fuzzy
 msgid "{comicCount, plural, one {# comic} other {# comics}}"
@@ -2837,11 +2832,6 @@ msgstr ""
 msgid "Already read or seen"
 msgstr ""
 
-#: src/components/discover/RecommendationFeedbackMenu.tsx
-#, fuzzy
-#~ msgid "Already read or seen, taste unchanged"
-#~ msgstr "Zaten okundu veya görüldü, zevk profili değişmedi"
-
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Already running"
@@ -2886,6 +2876,10 @@ msgstr "Bunu varsayılan sıralamam olarak da ayarla"
 #, fuzzy
 msgid "Also match every tag filed under this one"
 msgstr "Bu etiketin altındaki tüm etiketleri de eşleştir"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Also move the files to the recycle bin"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4537,7 +4531,7 @@ msgid "Clears reader thumbnails and source-comparison samples, removes posters o
 msgstr "Okuyucu küçük resimlerini ve kaynak karşılaştırma örneklerini temizler, silinen serilerin posterlerini kaldırır ve posterleri yeniden indirir. Küçük resimler bir bölüm açıldığında yeniden oluşturulur."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgid "Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once."
 msgstr ""
 
 #: src/components/CatalogueRules.tsx
@@ -4981,11 +4975,6 @@ msgstr "Sürekli"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-#~ msgid "Continuous layout only, in pixels."
-#~ msgstr "Yalnızca sürekli düzende, piksel cinsinden."
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
 msgid "Continuous layout only."
 msgstr "Yalnızca sürekli düzen için."
 
@@ -5100,11 +5089,6 @@ msgstr "Kavita kitaplıkları yüklenemedi: {kavitaLibrariesErrorMessage}"
 #, fuzzy
 msgid "Could not load library stats"
 msgstr "Kitaplık istatistikleri yüklenemedi"
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "Could not load this chapter."
-#~ msgstr "Bu bölüm yüklenemedi."
 
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
@@ -5367,11 +5351,6 @@ msgstr "Takip ettiğiniz yaratıcılar"
 #, fuzzy
 msgid "Creators you return to"
 msgstr "Tekrar okuduğun yaratıcılar"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
-#~ msgstr "Künye sayfalarıyla sonraki bölümün ilk sayfaları sık sık birbirine benzer. Bu işaret sayfa geçişini belirtir."
 
 #: src/pages/reader/enhanceMethods.ts
 #, fuzzy
@@ -8055,11 +8034,6 @@ msgstr ""
 msgid "How signals work"
 msgstr "Sinyaller nasıl çalışır"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
-#~ msgstr "Yerleşik okuyucunun serileri nasıl açacağını belirler. Bir profil, kapsadığı seri türlerine otomatik olarak uygulanır; yükseltmeden sonra üst verileri yenilenmemiş seriler dahil diğer tüm seriler Varsayılan profilini kullanır. Okuyucunun içinden bir profili sabitleyebilir veya ayarları değiştirebilirsiniz."
-
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "How you read"
@@ -8981,11 +8955,6 @@ msgstr "Tüm cihazlara göndermek için boş bırak."
 #, fuzzy
 msgid "Leave empty to use this profile only on series you pin it to."
 msgstr "Bu profili yalnızca sabitlediğiniz serilerde kullanmak için boş bırakın."
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Leave empty to use this profile only where you pin it to a series."
-#~ msgstr "Bu profili yalnızca bir seriye sabitlediğiniz yerde kullanmak için boş bırakın."
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -10147,10 +10116,6 @@ msgstr "Yukarı taşı"
 msgid "Move up in queue"
 msgstr "Kuyrukta yukarı taşı"
 
-#: src/pages/SeriesDetailPage.tsx
-msgid "Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
-msgstr ""
-
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
 msgid "moves onto a volume"
@@ -11008,15 +10973,6 @@ msgstr "Analiz edilmedi"
 #, fuzzy
 msgid "Not available"
 msgstr "Kullanılamıyor"
-
-#: src/api/client.ts
-#: src/components/ui/CoverCard.tsx
-#: src/components/ui/SeriesRow.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Not available offline"
-#~ msgstr "Çevrimdışı kullanılamıyor"
 
 #: src/components/releases/ReleaseOutlookSummary.tsx
 #, fuzzy
@@ -12804,13 +12760,6 @@ msgstr "Derecelendirildi"
 msgid "Rated {rating}/10"
 msgstr "{rating}/10 olarak puanlandı"
 
-#: src/pages/LibraryPage.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Rated {rating}/10 so far"
-#~ msgstr "Şimdiye kadar {rating}/10 puanlandı"
-
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -14442,11 +14391,6 @@ msgstr "Tadını çıkararak okundu"
 msgid "Scale"
 msgstr "Ölçek"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Scale ({scale}%)"
-#~ msgstr "Ölçek (%{scale})"
-
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -15959,11 +15903,6 @@ msgstr "{relatedTo} yan ürünü"
 msgid "Split"
 msgstr "Böl"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Split double-width pages"
-#~ msgstr "Çift genişlikteki sayfaları böl"
-
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Split from the tier above"
 msgstr ""
@@ -16154,6 +16093,10 @@ msgstr "Yeni başlıklarını Ana Sayfa ve Keşfet'te göstermeyi bırak"
 #, fuzzy
 msgid "Stopped before finishing"
 msgstr "Bitirmeden bırakıldı"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Storage, metadata, download clients and integrations for your Fōkurōru instance."
@@ -16379,11 +16322,6 @@ msgstr ""
 #, fuzzy
 msgid "Tap zones"
 msgstr "Dokunma bölgeleri"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Tap zones (click the page edges to turn)"
-#~ msgstr "Dokunma bölgeleri (çevirmek için sayfa kenarlarına tıklayın)"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
@@ -16969,11 +16907,6 @@ msgstr ""
 #: src/pages/reader/DownloadSplash.tsx
 msgid "This chapter is not on your server yet."
 msgstr ""
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "This chapter isn't saved on this device."
-#~ msgstr "Bu bölüm bu cihazda kayıtlı değil."
 
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
@@ -19174,26 +19107,11 @@ msgstr "Z:\\downloads (isteğe bağlı)"
 msgid "Zones"
 msgstr ""
 
-#. placeholder {0}: prefs.scale
-#: src/components/discover/SeriesPreviewReader.tsx
-#~ msgid "Zoom ({0}%)"
-#~ msgstr ""
-
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Zoom ({scale}%)"
 msgstr ""
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom in"
-#~ msgstr "Yakınlaştır"
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Zoom in and out"
 msgstr "Yakınlaştır ve uzaklaştır"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom out"
-#~ msgstr "Uzaklaştır"

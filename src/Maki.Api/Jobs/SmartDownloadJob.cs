@@ -43,7 +43,7 @@ public class SmartDownloadJob(
         // Nothing is Smart-monitored, so there is no work this tick and no reason to read settings
         // or walk the table. One indexed-free scan that stops at the first match, against a job that
         // otherwise fires 288 times a day on an install that never opted in.
-        if (!await db.Series.AnyAsync(s => s.MonitorNewItems == NewChapterMonitorMode.Smart, ct))
+        if (!await db.Series.Active().AnyAsync(s => s.MonitorNewItems == NewChapterMonitorMode.Smart, ct))
         {
             return;
         }
@@ -134,6 +134,7 @@ public class SmartDownloadJob(
         MakiDbContext db, int limit, CancellationToken ct)
     {
         var smartSeries = await db.Series
+            .Active()
             .Where(s => s.MonitorNewItems == NewChapterMonitorMode.Smart)
             .ToListAsync(ct);
 

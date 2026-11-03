@@ -1171,6 +1171,11 @@ msgid "error.series.activeDownloadDelete"
 msgstr ""
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+#. English: This series is retired. Unretire it first.
+msgid "error.series.retired"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 #. English: Series has a download in progress. Wait for it to finish before retiring it.
 msgid "error.series.activeDownloadRetire"
 msgstr ""

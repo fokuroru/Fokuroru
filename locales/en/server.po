@@ -831,6 +831,10 @@ msgid "error.series.activeDownloadDelete"
 msgstr "Series has a download in progress. Wait for it to finish before deleting."
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+msgid "error.series.retired"
+msgstr "This series is retired. Unretire it first."
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 msgid "error.series.activeDownloadRetire"
 msgstr "Series has a download in progress. Wait for it to finish before retiring it."
 

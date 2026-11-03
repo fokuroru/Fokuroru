@@ -575,6 +575,7 @@ function SeriesDetailBody() {
   const [deleteFileIds, setDeleteFileIds] = useState<number[] | null>(null)
   const [deleteSeriesModalOpen, setDeleteSeriesModalOpen] = useState(false)
   const [deleteSeriesFiles, setDeleteSeriesFiles] = useState(false)
+  const [retireRemoveFiles, setRetireRemoveFiles] = useState(false)
   const [removeMode, setRemoveMode] = useState<'retire' | 'remove' | 'restore'>('retire')
   const binDays = useRecycleBinDays(deleteChaptersModalOpen || deleteFileIds !== null || deleteSeriesModalOpen)
   // Which delete dialog the server answered with "the recycle bin cannot take these".
@@ -1651,7 +1652,7 @@ function SeriesDetailBody() {
 
   const retire = (permanent = false) =>
     retireSeries.mutate(
-      { id: series.id, retire: removeMode === 'retire', permanent },
+      { id: series.id, retire: removeMode === 'retire', permanent, removeFiles: retireRemoveFiles },
       {
         onSuccess: () => {
           notify.ok(removeMode === 'retire' ? staticT`Series retired` : staticT`Series brought back`)
@@ -3295,13 +3296,13 @@ function SeriesDetailBody() {
                     <Radio
                         value="restore"
                         label={t`Bring it back`}
-                        description={t`Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on.`}
+                        description={t`Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once.`}
                     />
                 ) : (
                     <Radio
                         value="retire"
                         label={t`Retire`}
-                        description={t`Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept.`}
+                        description={t`Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept.`}
                     />
                 )}
                 <Radio
@@ -3311,6 +3312,13 @@ function SeriesDetailBody() {
                 />
               </Stack>
             </Radio.Group>
+            {removeMode === 'retire' && (
+                <Checkbox
+                    label={t`Also move the files to the recycle bin`}
+                    checked={retireRemoveFiles}
+                    onChange={(e) => setRetireRemoveFiles(e.currentTarget.checked)}
+                />
+            )}
             {removeMode === 'remove' && (
                 <Checkbox
                     label={t`Also delete files on disk`}
@@ -3318,7 +3326,7 @@ function SeriesDetailBody() {
                     onChange={(e) => setDeleteSeriesFiles(e.currentTarget.checked)}
                 />
             )}
-            {(removeMode === 'retire' || (removeMode === 'remove' && deleteSeriesFiles)) && (
+            {((removeMode === 'retire' && retireRemoveFiles) || (removeMode === 'remove' && deleteSeriesFiles)) && (
                 <Text size="sm" c="var(--ink-3)">
                   <Plural
                       value={binDays}

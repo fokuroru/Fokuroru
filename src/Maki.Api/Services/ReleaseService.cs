@@ -70,6 +70,7 @@ public record ReleaseSearchResult(string Query, IReadOnlyList<ReleaseDto> Releas
 public sealed class ReleaseRefusedException(string key, string message) : InvalidOperationException(message)
 {
     public const string SeriesNotFound = "error.release.seriesNotFound";
+    public const string SeriesRetired = "error.series.retired";
     public const string NoDownloadLink = "error.release.noDownloadLink";
     public const string IndexerNotConfigured = "error.release.indexerNotConfigured";
     public const string DownloadClientNotConfigured = "error.release.downloadClientNotConfigured";
@@ -88,6 +89,10 @@ public class ReleaseService(
     {
         var series = await db.Series.FindAsync([seriesId], ct)
             ?? throw new InvalidOperationException("Series not found");
+        if (series.Retired)
+        {
+            throw new ReleaseRefusedException(ReleaseRefusedException.SeriesRetired, "The series is retired");
+        }
 
         var indexerSettings = await GetIndexerSettingsAsync(ct);
         var indexer = indexers.For(indexerSettings.Backend);
@@ -129,9 +134,11 @@ public class ReleaseService(
         int seriesId, ReleaseDto release, DownloadOrigin origin, int? queuedByUserId, string? upgradeInfoJson,
         CancellationToken ct = default)
     {
-        if (!await db.Series.AnyAsync(s => s.Id == seriesId, ct))
+        var target = await db.Series.Where(s => s.Id == seriesId).Select(s => new { s.Retired }).FirstOrDefaultAsync(ct)
+            ?? throw new InvalidOperationException("Series not found");
+        if (target.Retired)
         {
-            throw new InvalidOperationException("Series not found");
+            throw new ReleaseRefusedException(ReleaseRefusedException.SeriesRetired, "The series is retired");
         }
 
         var client = await GetClientSettingsAsync(ct);

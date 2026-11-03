@@ -635,11 +635,6 @@ msgstr "{seriesChapterCount}章中{chaptersRead}章を読了"
 msgid "{chaptersRead} of {seriesChapterCount} downloaded chapters read, {seriesWantedCount} in the series"
 msgstr "{seriesChapterCount}章中{chaptersRead}章を読了、シリーズには{seriesWantedCount}章"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "{chaptersRead}/{seriesChapterCount} chapters read"
-#~ msgstr "{chaptersRead}/{seriesChapterCount}章を読了"
-
 #: src/pages/ImportPage.tsx
 #, fuzzy
 msgid "{comicCount, plural, one {# comic} other {# comics}}"
@@ -2837,11 +2832,6 @@ msgstr ""
 msgid "Already read or seen"
 msgstr ""
 
-#: src/components/discover/RecommendationFeedbackMenu.tsx
-#, fuzzy
-#~ msgid "Already read or seen, taste unchanged"
-#~ msgstr "既読・視聴済み、好みは変更なし"
-
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Already running"
@@ -2886,6 +2876,10 @@ msgstr "これをデフォルトの順序にもする"
 #, fuzzy
 msgid "Also match every tag filed under this one"
 msgstr "このタグの下に分類されたタグもすべて一致させる"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Also move the files to the recycle bin"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4537,7 +4531,7 @@ msgid "Clears reader thumbnails and source-comparison samples, removes posters o
 msgstr "リーダーのサムネイルとソース比較用サンプルを削除し、削除済みシリーズのポスターを消して再ダウンロードします。サムネイルは次回章を開いたときに再生成されます。"
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgid "Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once."
 msgstr ""
 
 #: src/components/CatalogueRules.tsx
@@ -4981,11 +4975,6 @@ msgstr "連続"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-#~ msgid "Continuous layout only, in pixels."
-#~ msgstr "連続レイアウトのみ、ピクセル単位です。"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
 msgid "Continuous layout only."
 msgstr "連続レイアウトのみ。"
 
@@ -5100,11 +5089,6 @@ msgstr "Kavitaからライブラリを読み込めませんでした: {kavitaLib
 #, fuzzy
 msgid "Could not load library stats"
 msgstr "ライブラリ統計を読み込めませんでした"
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "Could not load this chapter."
-#~ msgstr "この章を読み込めませんでした。"
 
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
@@ -5367,11 +5351,6 @@ msgstr "フォロー中のクリエイター"
 #, fuzzy
 msgid "Creators you return to"
 msgstr "よく読むクリエイター"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
-#~ msgstr "クレジットページと次の章の最初のページは似ていることが多いため、ここでページの区切りを指定します。"
 
 #: src/pages/reader/enhanceMethods.ts
 #, fuzzy
@@ -8055,11 +8034,6 @@ msgstr ""
 msgid "How signals work"
 msgstr "シグナルの仕組み"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
-#~ msgstr "組み込みリーダーでシリーズを開く方法です。プロファイルは対象のシリーズ種別に自動適用されます。それ以外や、アップグレード後にメタデータを更新していないシリーズは既定の設定を使います。プロファイルを固定するか、リーダー内で設定を上書きできます。"
-
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "How you read"
@@ -8981,11 +8955,6 @@ msgstr "すべてのデバイスに送信する場合は空欄にします。"
 #, fuzzy
 msgid "Leave empty to use this profile only on series you pin it to."
 msgstr "空欄にすると、このプロファイルは固定したシリーズにだけ使います。"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Leave empty to use this profile only where you pin it to a series."
-#~ msgstr "シリーズに固定した場所だけでこのプロファイルを使う場合は空欄にしてください。"
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -10147,10 +10116,6 @@ msgstr "上へ移動"
 msgid "Move up in queue"
 msgstr "キュー内で上へ移動"
 
-#: src/pages/SeriesDetailPage.tsx
-msgid "Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
-msgstr ""
-
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
 msgid "moves onto a volume"
@@ -11008,15 +10973,6 @@ msgstr "未分析"
 #, fuzzy
 msgid "Not available"
 msgstr "利用できません"
-
-#: src/api/client.ts
-#: src/components/ui/CoverCard.tsx
-#: src/components/ui/SeriesRow.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Not available offline"
-#~ msgstr "オフラインでは利用できません"
 
 #: src/components/releases/ReleaseOutlookSummary.tsx
 #, fuzzy
@@ -12804,13 +12760,6 @@ msgstr "評価済み"
 msgid "Rated {rating}/10"
 msgstr "{rating}/10と評価"
 
-#: src/pages/LibraryPage.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Rated {rating}/10 so far"
-#~ msgstr "途中経過で{rating}/10と評価"
-
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -14442,11 +14391,6 @@ msgstr "じっくり読んだ"
 msgid "Scale"
 msgstr "倍率"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Scale ({scale}%)"
-#~ msgstr "倍率（{scale}%）"
-
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -15959,11 +15903,6 @@ msgstr "{relatedTo}のスピンオフ"
 msgid "Split"
 msgstr "分割"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Split double-width pages"
-#~ msgstr "見開きページを分割"
-
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Split from the tier above"
 msgstr ""
@@ -16154,6 +16093,10 @@ msgstr "新作品を「ホーム」と「見つける」に表示しません"
 #, fuzzy
 msgid "Stopped before finishing"
 msgstr "完読前に中断"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Storage, metadata, download clients and integrations for your Fōkurōru instance."
@@ -16379,11 +16322,6 @@ msgstr ""
 #, fuzzy
 msgid "Tap zones"
 msgstr "タップゾーン"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Tap zones (click the page edges to turn)"
-#~ msgstr "タップゾーン（ページ端をクリックしてめくる）"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
@@ -16969,11 +16907,6 @@ msgstr ""
 #: src/pages/reader/DownloadSplash.tsx
 msgid "This chapter is not on your server yet."
 msgstr ""
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "This chapter isn't saved on this device."
-#~ msgstr "この章はこの端末に保存されていません。"
 
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
@@ -19174,26 +19107,11 @@ msgstr "Z:\\downloads（任意）"
 msgid "Zones"
 msgstr ""
 
-#. placeholder {0}: prefs.scale
-#: src/components/discover/SeriesPreviewReader.tsx
-#~ msgid "Zoom ({0}%)"
-#~ msgstr ""
-
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Zoom ({scale}%)"
 msgstr ""
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom in"
-#~ msgstr "拡大"
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Zoom in and out"
 msgstr "拡大・縮小"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom out"
-#~ msgstr "縮小"

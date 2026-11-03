@@ -635,11 +635,6 @@ msgstr "다운로드된 챕터 {seriesChapterCount}개 중 {chaptersRead}개를 
 msgid "{chaptersRead} of {seriesChapterCount} downloaded chapters read, {seriesWantedCount} in the series"
 msgstr "다운로드된 챕터 {seriesChapterCount}개 중 {chaptersRead}개를 읽음, 시리즈 내 {seriesWantedCount}개"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "{chaptersRead}/{seriesChapterCount} chapters read"
-#~ msgstr "읽은 챕터 {chaptersRead}/{seriesChapterCount}개"
-
 #: src/pages/ImportPage.tsx
 #, fuzzy
 msgid "{comicCount, plural, one {# comic} other {# comics}}"
@@ -2837,11 +2832,6 @@ msgstr ""
 msgid "Already read or seen"
 msgstr ""
 
-#: src/components/discover/RecommendationFeedbackMenu.tsx
-#, fuzzy
-#~ msgid "Already read or seen, taste unchanged"
-#~ msgstr "이미 읽었거나 봤음, 취향은 변경되지 않음"
-
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Already running"
@@ -2886,6 +2876,10 @@ msgstr "이 순서를 기본 순서로 설정"
 #, fuzzy
 msgid "Also match every tag filed under this one"
 msgstr "이 태그에 속한 태그도 모두 일치시킵니다"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Also move the files to the recycle bin"
+msgstr ""
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4537,7 +4531,7 @@ msgid "Clears reader thumbnails and source-comparison samples, removes posters o
 msgstr "리더 썸네일과 소스 비교 샘플을 지우고 삭제된 시리즈의 포스터를 제거한 뒤 포스터를 다시 다운로드합니다. 챕터를 열면 썸네일이 다시 생성됩니다."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgid "Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once."
 msgstr ""
 
 #: src/components/CatalogueRules.tsx
@@ -4981,11 +4975,6 @@ msgstr "연속"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-#~ msgid "Continuous layout only, in pixels."
-#~ msgstr "연속 레이아웃 전용, 픽셀 단위."
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
 msgid "Continuous layout only."
 msgstr "연속 레이아웃에서만 사용합니다."
 
@@ -5100,11 +5089,6 @@ msgstr "Kavita 라이브러리를 불러오지 못했습니다: {kavitaLibraries
 #, fuzzy
 msgid "Could not load library stats"
 msgstr "라이브러리 통계를 불러오지 못했습니다."
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "Could not load this chapter."
-#~ msgstr "이 챕터를 불러오지 못했습니다."
 
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
@@ -5367,11 +5351,6 @@ msgstr "팔로우 중인 창작자"
 #, fuzzy
 msgid "Creators you return to"
 msgstr "다시 찾는 작가"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
-#~ msgstr "작가 후기 페이지와 다음 챕터의 첫 페이지는 서로 비슷한 경우가 많으므로, 이 설정으로 페이지 전환 지점을 표시합니다."
 
 #: src/pages/reader/enhanceMethods.ts
 #, fuzzy
@@ -8055,11 +8034,6 @@ msgstr ""
 msgid "How signals work"
 msgstr "신호 작동 방식"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
-#~ msgstr "내장 리더에서 시리즈를 여는 방식을 설정합니다. 프로필은 해당하는 시리즈 유형에 자동 적용됩니다. 업그레이드 후 메타데이터를 새로 고치지 않은 시리즈를 포함해 나머지는 기본값을 사용합니다. 리더 안에서 프로필을 고정하거나 설정을 변경할 수 있습니다."
-
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "How you read"
@@ -8981,11 +8955,6 @@ msgstr "모든 기기에 전송하려면 비워 두세요."
 #, fuzzy
 msgid "Leave empty to use this profile only on series you pin it to."
 msgstr "비워 두면 고정한 시리즈에만 이 프로필을 사용합니다."
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Leave empty to use this profile only where you pin it to a series."
-#~ msgstr "이 시리즈에 고정한 경우에만 이 프로필을 사용하려면 비워 두세요."
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -10147,10 +10116,6 @@ msgstr "위로 이동"
 msgid "Move up in queue"
 msgstr "대기열에서 위로 이동"
 
-#: src/pages/SeriesDetailPage.tsx
-msgid "Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
-msgstr ""
-
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
 msgid "moves onto a volume"
@@ -11008,15 +10973,6 @@ msgstr "분석되지 않음"
 #, fuzzy
 msgid "Not available"
 msgstr "사용할 수 없음"
-
-#: src/api/client.ts
-#: src/components/ui/CoverCard.tsx
-#: src/components/ui/SeriesRow.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Not available offline"
-#~ msgstr "오프라인에서는 사용할 수 없음"
 
 #: src/components/releases/ReleaseOutlookSummary.tsx
 #, fuzzy
@@ -12804,13 +12760,6 @@ msgstr "평가함"
 msgid "Rated {rating}/10"
 msgstr "{rating}/10점"
 
-#: src/pages/LibraryPage.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#, fuzzy
-#~ msgid "Rated {rating}/10 so far"
-#~ msgstr "지금까지 {rating}/10점으로 평가함"
-
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -14442,11 +14391,6 @@ msgstr "음미하며 읽음"
 msgid "Scale"
 msgstr "크기 조정"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Scale ({scale}%)"
-#~ msgstr "크기 조정 ({scale}%)"
-
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -15959,11 +15903,6 @@ msgstr "{relatedTo}의 스핀오프"
 msgid "Split"
 msgstr "분할"
 
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Split double-width pages"
-#~ msgstr "두 페이지 너비 분할"
-
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Split from the tier above"
 msgstr ""
@@ -16154,6 +16093,10 @@ msgstr "홈과 탐색에서 이들의 신작 표시 중지"
 #, fuzzy
 msgid "Stopped before finishing"
 msgstr "완결 전에 중단함"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Storage, metadata, download clients and integrations for your Fōkurōru instance."
@@ -16379,11 +16322,6 @@ msgstr ""
 #, fuzzy
 msgid "Tap zones"
 msgstr "탭 영역"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#, fuzzy
-#~ msgid "Tap zones (click the page edges to turn)"
-#~ msgstr "탭 영역 (페이지 가장자리를 클릭하여 넘김)"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
@@ -16969,11 +16907,6 @@ msgstr ""
 #: src/pages/reader/DownloadSplash.tsx
 msgid "This chapter is not on your server yet."
 msgstr ""
-
-#: src/pages/reader/ReaderPage.tsx
-#, fuzzy
-#~ msgid "This chapter isn't saved on this device."
-#~ msgstr "이 챕터는 이 기기에 저장되어 있지 않습니다."
 
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
@@ -19174,26 +19107,11 @@ msgstr "Z:\\downloads (선택 사항)"
 msgid "Zones"
 msgstr ""
 
-#. placeholder {0}: prefs.scale
-#: src/components/discover/SeriesPreviewReader.tsx
-#~ msgid "Zoom ({0}%)"
-#~ msgstr ""
-
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Zoom ({scale}%)"
 msgstr ""
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom in"
-#~ msgstr "확대"
 
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Zoom in and out"
 msgstr "확대 및 축소"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#, fuzzy
-#~ msgid "Zoom out"
-#~ msgstr "축소"

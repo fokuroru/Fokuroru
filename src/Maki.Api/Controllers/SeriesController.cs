@@ -193,9 +193,15 @@ public class SeriesController(
     [HttpPost("{id:int}/refresh")]
     public async Task<IActionResult> Refresh(int id, CancellationToken ct)
     {
-        if (!await db.Series.AnyAsync(s => s.Id == id, ct))
+        var target = await db.Series.Where(s => s.Id == id).Select(s => new { s.Retired }).FirstOrDefaultAsync(ct);
+        if (target is null)
         {
             return NotFound();
+        }
+
+        if (target.Retired)
+        {
+            return this.Conflict(localizer, "error.series.retired");
         }
 
         var newChapters = await chapterSyncService.SyncSeriesAsync(id, ct);
@@ -1245,14 +1251,16 @@ public class SeriesController(
     }
 
     /// <summary>
-    /// Sets the series aside instead of removing it: every downloaded file goes from disk, monitoring
-    /// stops, queued downloads are cancelled, and the user's trackers get it as on hold. The row, its
-    /// chapters and the reading history stay.
+    /// Sets the series aside instead of removing it: it stops talking to sources and the download queue,
+    /// queued downloads are cancelled, and the user's trackers get it as on hold. With
+    /// <paramref name="removeFiles"/> every downloaded file also goes from disk. The row, its chapters,
+    /// the monitoring mode and the reading history stay.
     /// </summary>
     [Authorize(Policy = Policies.DeleteSeries)]
     [HttpPost("{id:int}/retire")]
     public async Task<IActionResult> Retire(
-        int id, [FromServices] ChapterFileDeletion deletion, CancellationToken ct, [FromQuery] bool permanent = false)
+        int id, [FromServices] ChapterFileDeletion deletion, CancellationToken ct, [FromQuery] bool permanent = false,
+        [FromQuery] bool removeFiles = false)
     {
         var series = await db.Series.Include(s => s.RootFolder).FirstOrDefaultAsync(s => s.Id == id, ct);
         if (series is null)
@@ -1267,7 +1275,7 @@ public class SeriesController(
             return this.Conflict(localizer, "error.series.activeDownloadRetire");
         }
 
-        var diskPlan = series.RootFolder is null ? null : await PlanSeriesDiskDeleteAsync(series, true, ct);
+        var diskPlan = !removeFiles || series.RootFolder is null ? null : await PlanSeriesDiskDeleteAsync(series, true, ct);
 
         // Saved with the row changes below, so a failed save leaves both, and moved only after it.
         var binned = new List<RecycleBinEntry>();
@@ -1294,8 +1302,10 @@ public class SeriesController(
             }
         }
 
-        var files = await db.ChapterFiles.Where(f => f.SeriesId == id).ToListAsync(ct);
-        var linked = await db.Chapters.Where(c => c.SeriesId == id && c.ChapterFileId != null).ToListAsync(ct);
+        var files = removeFiles ? await db.ChapterFiles.Where(f => f.SeriesId == id).ToListAsync(ct) : [];
+        var linked = removeFiles
+            ? await db.Chapters.Where(c => c.SeriesId == id && c.ChapterFileId != null).ToListAsync(ct)
+            : [];
         foreach (var chapter in linked)
         {
             chapter.ChapterFileId = null;
@@ -1316,7 +1326,6 @@ public class SeriesController(
         }
 
         series.Retired = true;
-        series.MonitorNewItems = NewChapterMonitorMode.None;
         await db.SaveChangesAsync(ct);
         if (diskPlan is not null)
         {
@@ -1327,10 +1336,14 @@ public class SeriesController(
         return Ok(new { retired = true, filesDeleted = files.Count, onHold = trackers });
     }
 
-    /// <summary>Brings a retired series back. Files are not restored and monitoring stays off until the user turns it on.</summary>
+    /// <summary>
+    /// Brings a retired series back with its old monitoring mode. Files are not restored. A refresh runs in
+    /// the background, so chapters released meanwhile are held and announced instead of downloaded at once.
+    /// </summary>
     [Authorize(Policy = Policies.DeleteSeries)]
     [HttpPost("{id:int}/unretire")]
-    public async Task<IActionResult> Unretire(int id, CancellationToken ct)
+    public async Task<IActionResult> Unretire(
+        int id, [FromServices] IServiceScopeFactory scopeFactory, CancellationToken ct)
     {
         var series = await db.Series.FindAsync([id], ct);
         if (series is null)
@@ -1339,7 +1352,22 @@ public class SeriesController(
         }
 
         series.Retired = false;
+        series.RestoredAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = scopeFactory.CreateScope();
+                var refresh = ActivatorUtilities.CreateInstance<Maki.Api.Jobs.RefreshMonitoredSeriesJob>(scope.ServiceProvider);
+                await refresh.RefreshSeriesAsync(id, CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Refresh after unretiring series {Id} failed", id);
+            }
+        }, CancellationToken.None);
         return Ok(new { retired = false });
     }
 

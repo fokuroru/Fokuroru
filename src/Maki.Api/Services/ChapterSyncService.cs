@@ -116,6 +116,8 @@ public class ChapterSyncService(
                 // of its new links are releases and which are a catalogue arriving all at once.
                 var firstSnapshot = mapping.ChapterSnapshotAt is null && mapping.ChapterLinks.Count == 0;
                 var listedUpTo = mapping.ChapterLinks.Max(l => l.Chapter?.Number);
+                var unwatched = firstSnapshot
+                    || series.RestoredAt is { } restoredAt && (mapping.ChapterSnapshotAt is null || mapping.ChapterSnapshotAt < restoredAt);
 
                 chapterLists.Store(source, mapping.SourceSeriesId, mapping.LanguageFilter, sourceChapters);
                 numbersBySource[mapping.SourceName] = sourceChapters.Select(sc => sc.Number).ToList();
@@ -179,7 +181,7 @@ public class ChapterSyncService(
 
                 var fileGroups = ReplaceSnapshot(
                     mapping, snapshotLinks, ChapterFileQualityService.SiteGroup(source),
-                    firstSnapshot ? null : listedUpTo ?? decimal.MinValue);
+                    unwatched ? null : listedUpTo ?? decimal.MinValue);
                 await BackfillFileGroupsAsync(mapping.SourceName, fileGroups, ct);
 
                 mapping.LastRefresh = DateTime.UtcNow;
