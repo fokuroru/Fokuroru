@@ -8572,6 +8572,10 @@ msgstr ""
 msgid "Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
 msgstr ""
 
+#: src/components/series/RateHint.tsx
+msgid "Keep {soFar}"
+msgstr ""
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Keep a local copy of MangaBaka"
@@ -9406,6 +9410,10 @@ msgstr "основной"
 
 #: src/components/settings/PairAppModal.tsx
 msgid "Make a new code"
+msgstr ""
+
+#: src/components/series/SeriesHero.tsx
+msgid "Make this my rating"
 msgstr ""
 
 #: src/components/QueuePause.tsx
@@ -12774,6 +12782,10 @@ msgstr "Оценено"
 msgid "Rated {rating}/10"
 msgstr "Оценка: {rating}/10"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Rated {rating}/10 so far"
+msgstr ""
+
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -15742,6 +15754,14 @@ msgstr "Снимок на диске: {snapshotSize}, обновлён {refreshe
 #, fuzzy
 msgid "Snapshot on disk: {snapshotSize}, refreshed at an unknown time"
 msgstr "Снимок на диске: {snapshotSize}, время обновления неизвестно"
+
+#: src/components/series/SeriesHero.tsx
+msgid "so far"
+msgstr ""
+
+#: src/components/series/SeriesHero.tsx
+msgid "so far, at ch. {soFarChapter}"
+msgstr ""
 
 #: src/api/inbox.ts
 #, fuzzy
@@ -18894,6 +18914,10 @@ msgstr "Ты досмотрел {animeTitle}. Аниме охватывает г
 #, fuzzy
 msgid "You follow nobody yet. Open a creator or studio and press Follow."
 msgstr "Вы пока ни на кого не подписаны. Откройте страницу создателя или студии и нажмите «Подписаться»."
+
+#: src/components/series/RateHint.tsx
+msgid "You had this at {soFar} so far. Keep it?"
+msgstr ""
 
 #: src/components/AnimeCoverageBar.tsx
 #, fuzzy

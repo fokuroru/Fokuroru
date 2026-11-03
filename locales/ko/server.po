@@ -1171,6 +1171,11 @@ msgid "error.series.activeDownloadDelete"
 msgstr ""
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+#. English: This series has no so far rating to finalize.
+msgid "error.series.noProvisionalRating"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 #. English: This series is retired. Unretire it first.
 msgid "error.series.retired"
 msgstr ""

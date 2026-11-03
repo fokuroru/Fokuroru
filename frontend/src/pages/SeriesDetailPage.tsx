@@ -89,7 +89,8 @@ import {
   useSetSeriesNotificationMode,
   useSetMonitorMode,
   useSetUpgradeProfile,
-  useSetRating,
+  useRateSeries,
+  useFinalizeRating,
   useDismissRateHint,
   useToggleChapterWanted,
   useUnlinkChapters,
@@ -524,7 +525,8 @@ function SeriesDetailBody() {
   const [upgradeNowModalOpen, setUpgradeNowModalOpen] = useState(false)
   const setIncognito = useSetIncognito()
   const setNotificationMode = useSetSeriesNotificationMode()
-  const setRating = useSetRating()
+  const rateSeries = useRateSeries()
+  const finalizeRating = useFinalizeRating()
   const dismissRateHint = useDismissRateHint()
   const unlinkChapters = useUnlinkChapters()
   const setChaptersWanted = useSetChaptersWanted()
@@ -1484,12 +1486,24 @@ function SeriesDetailBody() {
     queueAllWanted()
   }
 
-  const submitRating = (rating: number | null) =>
-      setRating.mutate(
-          { seriesId, rating },
+  const submitRating = (rating: number | null) => {
+    if (!series) return
+    rateSeries.rate(series, rating, (soFar) =>
+        notify.ok(
+            rating === null
+                ? staticT`Rating cleared`
+                : soFar ? staticT`Rated ${rating}/10 so far` : staticT`Rated ${rating}/10`,
+        ),
+    )
+  }
+
+  const keepRating = () =>
+      finalizeRating.mutate(
+          { seriesId },
           {
-            onSuccess: () =>
-                notify.ok(rating === null ? staticT`Rating cleared` : staticT`Rated ${rating}/10`),
+            onSuccess: ({ rating }) => {
+              if (rating != null) notify.ok(staticT`Rated ${rating}/10`)
+            },
           },
       )
 
@@ -1695,6 +1709,7 @@ function SeriesDetailBody() {
         <SeriesHero
             series={series}
             onRate={submitRating}
+            onFinalize={keepRating}
             actions={
               <>
                 {continueAt && !continueAt.downloaded && (
@@ -1923,7 +1938,12 @@ function SeriesDetailBody() {
         />
 
         {series.rateHintEligible && (
-          <RateHint onRate={submitRating} onDismiss={() => dismissRateHint.mutate(series.id)} />
+          <RateHint
+            soFar={series.provisionalRating ?? null}
+            onRate={submitRating}
+            onKeep={keepRating}
+            onDismiss={() => dismissRateHint.mutate(series.id)}
+          />
         )}
 
         <Tabs.Panel value="progress">

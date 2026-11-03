@@ -7290,6 +7290,10 @@ msgstr "Kavita, the trackers Fōkurōru scrobbles to, and Discord and webhook al
 msgid "Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
 msgstr "Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
 
+#: src/components/series/RateHint.tsx
+msgid "Keep {soFar}"
+msgstr "Keep {soFar}"
+
 #: src/components/SetupWizard.tsx
 msgid "Keep a local copy of MangaBaka"
 msgstr "Keep a local copy of MangaBaka"
@@ -7995,6 +7999,10 @@ msgstr "mainstream"
 #: src/components/settings/PairAppModal.tsx
 msgid "Make a new code"
 msgstr "Make a new code"
+
+#: src/components/series/SeriesHero.tsx
+msgid "Make this my rating"
+msgstr "Make this my rating"
 
 #: src/components/QueuePause.tsx
 msgid "Maki stops starting new downloads. Chapters already downloading finish, and nothing is removed from the queue. Torrents already handed to the download client keep downloading."
@@ -10881,6 +10889,10 @@ msgstr "Rated"
 msgid "Rated {rating}/10"
 msgstr "Rated {rating}/10"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Rated {rating}/10 so far"
+msgstr "Rated {rating}/10 so far"
+
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Rating"
@@ -13416,6 +13428,14 @@ msgstr "Snapshot on disk: {snapshotSize}, refreshed {refreshedAtLabel}"
 #: src/pages/SettingsPage.tsx
 msgid "Snapshot on disk: {snapshotSize}, refreshed at an unknown time"
 msgstr "Snapshot on disk: {snapshotSize}, refreshed at an unknown time"
+
+#: src/components/series/SeriesHero.tsx
+msgid "so far"
+msgstr "so far"
+
+#: src/components/series/SeriesHero.tsx
+msgid "so far, at ch. {soFarChapter}"
+msgstr "so far, at ch. {soFarChapter}"
 
 #: src/api/inbox.ts
 msgid "Somebody filed a request"
@@ -16111,6 +16131,10 @@ msgstr "You finished {animeTitle}. The anime covers up to ch. {coveredTo}. Start
 #: src/components/discover/FollowingRail.tsx
 msgid "You follow nobody yet. Open a creator or studio and press Follow."
 msgstr "You follow nobody yet. Open a creator or studio and press Follow."
+
+#: src/components/series/RateHint.tsx
+msgid "You had this at {soFar} so far. Keep it?"
+msgstr "You had this at {soFar} so far. Keep it?"
 
 #: src/components/AnimeCoverageBar.tsx
 msgid "You have read to ch. {readChapter}"

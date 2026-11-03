@@ -100,6 +100,7 @@ import { isUnfinished } from '../lib/lucky'
 import { useWindowedRows, WINDOW_MIN_ITEMS } from '../components/ui/useWindowedRows'
 import { TagManagerModal } from '../components/TagManagerModal'
 import { POSTER_COLS_BY_DENSITY, useDensityOptions } from '../components/ui/viewPrefs'
+import { shownRating } from '../lib/rating'
 import { formatNumber } from '../format'
 
 const SORT_VALUES = ['added', 'lastRead', 'downloaded', 'rating', 'readPercent', 'title', 'incomplete', 'status', 'chapters'] as const
@@ -409,8 +410,8 @@ export default function LibraryPage() {
     if (noFilesFilter === 'only') list = list.filter((s) => s.chapterFileCount === 0)
     if (retiredFilter === 'hide') list = list.filter((s) => !s.retired)
     if (retiredFilter === 'only') list = list.filter((s) => s.retired)
-    if (ratedFilter === 'rated') list = list.filter((s) => s.rating != null)
-    if (ratedFilter === 'unrated') list = list.filter((s) => s.rating == null)
+    if (ratedFilter === 'rated') list = list.filter((s) => shownRating(s) != null)
+    if (ratedFilter === 'unrated') list = list.filter((s) => shownRating(s) == null)
     if (readingStatusFilter === 'upToDate') list = list.filter((s) => s.readingStatus === 'UpToDate')
     if (readingStatusFilter === 'hideUpToDate') list = list.filter((s) => s.readingStatus !== 'UpToDate')
     if (completeness !== 'all') {
@@ -458,7 +459,7 @@ export default function LibraryPage() {
             new Date(b.added).getTime() - new Date(a.added).getTime()
           )
         case 'rating':
-          return (b.rating ?? 0) - (a.rating ?? 0) || a.sortTitle.localeCompare(b.sortTitle)
+          return (shownRating(b) ?? 0) - (shownRating(a) ?? 0) || a.sortTitle.localeCompare(b.sortTitle)
         case 'chapters':
           return b.chapterFileCount - a.chapterFileCount || a.sortTitle.localeCompare(b.sortTitle)
         default:
