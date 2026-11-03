@@ -4659,6 +4659,7 @@ msgstr "{lineLabel} einklappen"
 msgid "Collection"
 msgstr "Sammlung"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5381,6 +5382,7 @@ msgstr "Creators, zu denen du zurückkehrst"
 msgid "Crisp line art (server)"
 msgstr "Scharfe Linienzeichnung (Server)"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5881,6 +5883,7 @@ msgid "Dim"
 msgstr "Abdunkeln"
 
 #. placeholder {0}: prefs.dim
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Dim ({0}%)"
@@ -6535,6 +6538,7 @@ msgstr "Englisch"
 msgid "English (provider default)"
 msgstr "Englisch (Anbietervorgabe)"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -7648,6 +7652,7 @@ msgstr "Von {indexer} abgerufen"
 msgid "Grabbed from {indexer}: {releaseName}"
 msgstr "Von {indexer} abgerufen: {releaseName}"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Gray"
@@ -8469,6 +8474,7 @@ msgstr ""
 msgid "Integrations"
 msgstr "Integrationen"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -10948,6 +10954,7 @@ msgstr "Niemand mit diesem Namen ist in der lokalen MangaBaka-Datenbank als Mitw
 msgid "none"
 msgstr "keine"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
@@ -15061,6 +15068,7 @@ msgstr ""
 msgid "Sent to the download client: {title}"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy

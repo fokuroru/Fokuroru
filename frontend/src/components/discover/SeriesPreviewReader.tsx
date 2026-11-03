@@ -38,6 +38,9 @@ import {
   type ReaderPrefs,
 } from '../../pages/reader/prefs'
 import { usePreload } from '../../pages/reader/usePageUrls'
+import { BROWSER_ENHANCE_METHODS, ENHANCE_LEVELS, isServerMethod } from '../../pages/reader/enhanceMethods'
+import { toneFilter } from '../../pages/reader/prefs'
+import { useLabel } from '../../i18n-context'
 import { spreadIndexOf, usePageAspects, useSpreads } from '../../pages/reader/useSpreads'
 import { useTapZones } from '../../api/tapZones'
 import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
@@ -100,6 +103,13 @@ export function SeriesPreviewReader({
     [wideWindow, savedPrefs],
   )
   const mode = prefs.mode
+  const renderLabel = useLabel()
+  const tone = toneFilter(prefs)
+  // A preview is not a library file, so the server tier has nothing to upscale: a server method
+  // falls back to its browser preset, or to the plain page.
+  const serverMethod = isServerMethod(prefs.enhanceMethod)
+  const enhance = serverMethod && prefs.enhanceFallback === 'off' ? 'off' : prefs.enhance
+  const enhanceMethod = serverMethod ? (prefs.enhanceFallback === 'off' ? 'a4k-m' : prefs.enhanceFallback) : prefs.enhanceMethod
   const vertical = navigatesVertically(prefs)
 
   const pageCount = preview?.pageCount ?? 0
@@ -535,6 +545,10 @@ export function SeriesPreviewReader({
               scale={prefs.scale}
               gap={prefs.pageGap}
               label={label}
+              tone={tone}
+              enhance={enhance}
+              enhanceMethod={enhanceMethod}
+              enhanceFallback={prefs.enhanceFallback}
             />
             {!complete && (
               <Center py="xl">
@@ -552,6 +566,11 @@ export function SeriesPreviewReader({
             scale={prefs.scale}
             label={label}
             onMeasure={measure}
+            cropBorders={prefs.cropBorders}
+            tone={tone}
+            enhance={enhance}
+            enhanceMethod={enhanceMethod}
+            enhanceFallback={prefs.enhanceFallback}
           />
         )}
       </div>
@@ -663,7 +682,7 @@ export function SeriesPreviewReader({
                   <IconSettings size={18} />
                 </ActionIcon>
               </Popover.Target>
-              <Popover.Dropdown>
+              <Popover.Dropdown style={{ maxHeight: 'calc(100dvh - 72px)', overflowY: 'auto' }}>
                 <Stack gap="sm">
                   <div>
                     <Text fz="xs" c="var(--ink-3)" mb={4}>
@@ -769,6 +788,64 @@ export function SeriesPreviewReader({
                       ]}
                     />
                   </div>
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Dim ({prefs.dim}%)</Trans>
+                    </Text>
+                    <Slider
+                      size="xs"
+                      min={0}
+                      max={80}
+                      step={5}
+                      label={null}
+                      value={prefs.dim}
+                      onChange={(value) => update({ dim: value })}
+                    />
+                  </div>
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Colour filter</Trans>
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={prefs.filter}
+                      onChange={(value) => update({ filter: value as ReaderPrefs['filter'] })}
+                      data={[
+                        { label: t`None`, value: 'none' },
+                        { label: t`Gray`, value: 'grayscale' },
+                        { label: t`Sepia`, value: 'sepia' },
+                        { label: t`Invert`, value: 'invert' },
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <Text fz="xs" c="var(--ink-3)" mb={4}>
+                      <Trans>Enhance</Trans>
+                    </Text>
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={prefs.enhance}
+                      onChange={(value) => update({ enhance: value as ReaderPrefs['enhance'] })}
+                      data={ENHANCE_LEVELS.map((level) => ({ label: renderLabel(level.label), value: level.value }))}
+                    />
+                  </div>
+                  {prefs.enhance !== 'off' && (
+                    <SegmentedControl
+                      fullWidth
+                      size="xs"
+                      value={enhanceMethod}
+                      onChange={(value) => update({ enhanceMethod: value as ReaderPrefs['enhanceMethod'] })}
+                      data={BROWSER_ENHANCE_METHODS.map((m) => ({ label: renderLabel(m.label), value: m.id }))}
+                    />
+                  )}
+                  <Switch
+                    size="xs"
+                    label={t`Crop borders`}
+                    checked={prefs.cropBorders}
+                    onChange={(event) => update({ cropBorders: event.currentTarget.checked })}
+                  />
                   <Switch
                     size="xs"
                     label={t`Tap zones`}

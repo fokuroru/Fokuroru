@@ -4659,6 +4659,7 @@ msgstr "收起 {lineLabel}"
 msgid "Collection"
 msgstr "收藏"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5381,6 +5382,7 @@ msgstr "反复阅读的创作者"
 msgid "Crisp line art (server)"
 msgstr "锐利线稿（服务器）"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5881,6 +5883,7 @@ msgid "Dim"
 msgstr "变暗"
 
 #. placeholder {0}: prefs.dim
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Dim ({0}%)"
@@ -6535,6 +6538,7 @@ msgstr "英语"
 msgid "English (provider default)"
 msgstr "英语（提供方默认）"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -7648,6 +7652,7 @@ msgstr "已从 {indexer} 抓取"
 msgid "Grabbed from {indexer}: {releaseName}"
 msgstr "已从 {indexer} 抓取：{releaseName}"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Gray"
@@ -8469,6 +8474,7 @@ msgstr ""
 msgid "Integrations"
 msgstr "集成"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -10948,6 +10954,7 @@ msgstr "本地 MangaBaka 数据库中没有以该名字署名的人。"
 msgid "none"
 msgstr "无"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
@@ -15061,6 +15068,7 @@ msgstr ""
 msgid "Sent to the download client: {title}"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy

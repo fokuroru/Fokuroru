@@ -3956,6 +3956,7 @@ msgstr "Collapse {lineLabel}"
 msgid "Collection"
 msgstr "Collection"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Colour filter"
@@ -4571,6 +4572,7 @@ msgstr "Creators you return to"
 msgid "Crisp line art (server)"
 msgstr "Crisp line art (server)"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Crop borders"
@@ -5012,6 +5014,7 @@ msgid "Dim"
 msgstr "Dim"
 
 #. placeholder {0}: prefs.dim
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Dim ({0}%)"
 msgstr "Dim ({0}%)"
@@ -5569,6 +5572,7 @@ msgstr "English"
 msgid "English (provider default)"
 msgstr "English (provider default)"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Enhance"
@@ -6505,6 +6509,7 @@ msgstr "Grabbed from {indexer}"
 msgid "Grabbed from {indexer}: {releaseName}"
 msgstr "Grabbed from {indexer}: {releaseName}"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Gray"
 msgstr "Gray"
@@ -7201,6 +7206,7 @@ msgstr "Instance default"
 msgid "Integrations"
 msgstr "Integrations"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Invert"
@@ -9313,6 +9319,7 @@ msgstr "Nobody by that name is credited in the local MangaBaka database."
 msgid "none"
 msgstr "none"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
@@ -12837,6 +12844,7 @@ msgstr "Sends grabbed releases to your torrent client. Finished torrents import 
 msgid "Sent to the download client: {title}"
 msgstr "Sent to the download client: {title}"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "Sepia"

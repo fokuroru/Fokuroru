@@ -4659,6 +4659,7 @@ msgstr "{lineLabel}を折りたたむ"
 msgid "Collection"
 msgstr "コレクション"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5381,6 +5382,7 @@ msgstr "よく読むクリエイター"
 msgid "Crisp line art (server)"
 msgstr "くっきりした線画（サーバー）"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5881,6 +5883,7 @@ msgid "Dim"
 msgstr "暗く"
 
 #. placeholder {0}: prefs.dim
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Dim ({0}%)"
@@ -6535,6 +6538,7 @@ msgstr "英語"
 msgid "English (provider default)"
 msgstr "英語（プロバイダーの既定値）"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -7648,6 +7652,7 @@ msgstr "{indexer}から取得"
 msgid "Grabbed from {indexer}: {releaseName}"
 msgstr "{indexer}から取得：{releaseName}"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Gray"
@@ -8469,6 +8474,7 @@ msgstr ""
 msgid "Integrations"
 msgstr "連携"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -10948,6 +10954,7 @@ msgstr "ローカルMangaBakaデータベースにその名前でクレジット
 msgid "none"
 msgstr "なし"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
@@ -15061,6 +15068,7 @@ msgstr ""
 msgid "Sent to the download client: {title}"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy

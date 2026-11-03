@@ -4659,6 +4659,7 @@ msgstr "{lineLabel} daralt"
 msgid "Collection"
 msgstr "Koleksiyon"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5381,6 +5382,7 @@ msgstr "Tekrar okuduğun yaratıcılar"
 msgid "Crisp line art (server)"
 msgstr "Net çizgi sanatı (sunucu)"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -5881,6 +5883,7 @@ msgid "Dim"
 msgstr "Karart"
 
 #. placeholder {0}: prefs.dim
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Dim ({0}%)"
@@ -6535,6 +6538,7 @@ msgstr "İngilizce"
 msgid "English (provider default)"
 msgstr "İngilizce (sağlayıcı varsayılanı)"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -7648,6 +7652,7 @@ msgstr "{indexer}'dan alındı"
 msgid "Grabbed from {indexer}: {releaseName}"
 msgstr "{indexer}'dan alındı: {releaseName}"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Gray"
@@ -8469,6 +8474,7 @@ msgstr ""
 msgid "Integrations"
 msgstr "Entegrasyonlar"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -10948,6 +10954,7 @@ msgstr "Yerel MangaBaka veritabanında bu adla kayıtlı kimse yok."
 msgid "none"
 msgstr "yok"
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
@@ -15061,6 +15068,7 @@ msgstr ""
 msgid "Sent to the download client: {title}"
 msgstr ""
 
+#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
