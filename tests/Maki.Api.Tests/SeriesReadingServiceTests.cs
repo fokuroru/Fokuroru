@@ -131,6 +131,25 @@ public class SeriesReadingServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task A_fully_read_series_with_nothing_wanted_is_still_up_to_date()
+    {
+        var (id, _) = Seed(SeriesStatus.Hiatus, 5, Upto(5));
+        using (var db = _db.NewContext())
+        {
+            foreach (var chapter in db.Chapters.Where(c => c.SeriesId == id))
+            {
+                chapter.Wanted = false;
+            }
+
+            db.SaveChanges();
+        }
+
+        var reading = await For(id, SeriesStatus.Hiatus);
+
+        Assert.Equal(ReadingStatus.UpToDate, reading!.Status);
+    }
+
+    [Fact]
     public async Task Nothing_read_has_no_entry() =>
         Assert.Null(await For(Seed(SeriesStatus.Ongoing, 5, []).SeriesId, SeriesStatus.Ongoing));
 

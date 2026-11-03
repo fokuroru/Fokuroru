@@ -69,7 +69,8 @@ public static class SeriesReadingService
             {
                 var (main, wanted) = listed.GetValueOrDefault(r.Key, ([], []));
                 return new SeriesReading(
-                    ReadingStatuses.For(statuses[r.Key], wanted, r.Value),
+                    // Nothing wanted (a series monitored off) has no wanted releases to judge by, so use them all.
+                    ReadingStatuses.For(statuses[r.Key], wanted.Count > 0 ? wanted : main, r.Value),
                     r.Value.Count(main.Contains),
                     main.Count);
             });
