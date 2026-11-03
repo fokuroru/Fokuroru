@@ -4,10 +4,13 @@ using Maki.Api.Dtos;
 using Maki.Api.Jobs;
 using Maki.Api.Localization;
 using Maki.Api.Services;
+using Maki.Api.Services.Upscaling;
 using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Images;
+using Maki.Core.Images.Upscaling;
 using Maki.Core.Progress;
+using Maki.Core.Quality;
 using Maki.Core.Reading;
 using Maki.Core.Security;
 using Maki.Data;
@@ -43,6 +46,12 @@ public record SeriesReadingProfileRequest(int? ProfileId);
 /// </para>
 /// </summary>
 public record SetChaptersStateRequest(int[] ChapterIds, string State, bool MarkUnwanted = false);
+
+/// <summary>
+/// Pages of a chapter to upscale on the server, current page first, plus the first pages of the
+/// next chapter once the window runs past the last page. See <see cref="ReaderController.Enhance"/>.
+/// </summary>
+public record EnhancePagesRequest(string? Model, int[]? Pages, int? NextChapterId = null, int[]? NextPages = null);
 
 /// <summary>
 /// Serves pages out of the library's CBZ files and records what has been read.
@@ -192,7 +201,7 @@ public class ReaderController(
     }
 
     [HttpGet("chapter/{id:int}")]
-    public async Task<IActionResult> Manifest(int id, [FromServices] DownloadQueueService queue, [FromServices] SettingsService settings, [FromServices] IAppSettings appSettings, CancellationToken ct)
+    public async Task<IActionResult> Manifest(int id, [FromServices] DownloadQueueService queue, [FromServices] SettingsService settings, [FromServices] IAppSettings appSettings, [FromServices] EnhanceAvailability enhanceAvailability, CancellationToken ct)
     {
         var slice = await reader.SliceAsync(id, ct);
         if (slice is null)
@@ -250,6 +259,12 @@ public class ReaderController(
             ? await db.Chapters.AsNoTracking().FirstOrDefaultAsync(c => c.Id == nextId, ct)
             : null;
 
+        var enhanceServer = await enhanceAvailability.GetAsync(ct);
+        var tier = await db.ChapterFiles.AsNoTracking()
+            .Where(f => f.Id == slice.ChapterFileId)
+            .Select(f => f.Tier)
+            .FirstOrDefaultAsync(ct);
+
         return Ok(new
         {
             chapterId = slice.Chapter.Id,
@@ -278,7 +293,9 @@ public class ReaderController(
             pinnedProfileId = resolved.PinnedProfileId,
             autoProfileId = resolved.AutoProfileId,
             seriesType = slice.Series.Type,
-            pageVersion = PageVersion(slice.ChapterFileId, slice.ArchiveSize, slice.ArchivePath)
+            pageVersion = PageVersion(slice.ChapterFileId, slice.ArchiveSize, slice.ArchivePath),
+            tier = QualitySnapshot.TierName(tier),
+            enhanceServer
         });
     }
 
@@ -386,6 +403,133 @@ public class ReaderController(
         }
 
         return cached;
+    }
+
+    /// <summary>
+    /// Asks for server upscales of a window of pages. Pages already cached answer <c>ready</c>; a page
+    /// that just failed or was skipped answers that instead of queueing again. The rest become this
+    /// reader's pending work, replacing what they had pending for another chapter or model. Each one
+    /// is pushed as <c>pageEnhanced</c> when the worker starts it (<c>working</c>) and when it finishes.
+    /// Pages of the next chapter queue after them in whatever room is left under the cap, so the next
+    /// chapter opens on pages already upscaled. They are not answered here; that chapter's own request
+    /// picks them up.
+    /// </summary>
+    [HttpPost("chapter/{id:int}/enhance")]
+    public async Task<IActionResult> Enhance(
+        int id,
+        [FromBody] EnhancePagesRequest request,
+        [FromServices] UpscaleModelStore store,
+        [FromServices] UpscaleQueue queue,
+        [FromServices] UpscaleCache cache,
+        CancellationToken ct)
+    {
+        var (refusal, model) = await EnhanceAvailability.CheckAsync(appSettings, store, request.Model, ct);
+        if (refusal is not null)
+        {
+            return this.Conflict(localizer, refusal);
+        }
+
+        var slice = await reader.PageSliceAsync(id, ct);
+        if (slice is null)
+        {
+            return NotFound();
+        }
+
+        var pages = (request.Pages ?? []).Distinct().Take(UpscaleQueue.MaxPendingPerUser).ToList();
+        var states = new string[pages.Count];
+        var wanted = new List<(int Index, UpscaleRequestItem Item)>();
+        for (var i = 0; i < pages.Count; i++)
+        {
+            var page = pages[i];
+            if (page < 0 || page >= slice.PageCount)
+            {
+                states[i] = "skipped";
+                continue;
+            }
+
+            var key = new UpscaleWorkKey(slice.ChapterFileId, slice.ArchiveVersion, slice.StartPage + page, model.Value);
+            if (cache.TryGet(key) is not null)
+            {
+                states[i] = "ready";
+                continue;
+            }
+
+            switch (queue.RecentOutcome(key))
+            {
+                case UpscaleOutcome.Failed:
+                    states[i] = "failed";
+                    continue;
+                case UpscaleOutcome.Skipped:
+                    states[i] = "skipped";
+                    continue;
+            }
+
+            wanted.Add((i, new UpscaleRequestItem(key, new UpscaleTarget(id, page), slice)));
+        }
+
+        var items = wanted.Select(w => w.Item).ToList();
+        var room = UpscaleQueue.MaxPendingPerUser - items.Count;
+        if (request.NextChapterId is { } nextId && nextId != id && request.NextPages is { Length: > 0 } nextPages && room > 0
+            && await reader.PageSliceAsync(nextId, ct) is { } next)
+        {
+            // Two chapters served from one whole archive share keys; the page asked for as this chapter's keeps its waiter.
+            var asked = items.Select(item => item.Key).ToHashSet();
+            items.AddRange(nextPages
+                .Distinct()
+                .Where(page => page >= 0 && page < next.PageCount)
+                .Select(page => new UpscaleRequestItem(
+                    new UpscaleWorkKey(next.ChapterFileId, next.ArchiveVersion, next.StartPage + page, model.Value),
+                    new UpscaleTarget(nextId, page), next))
+                .Where(item => !asked.Contains(item.Key) && cache.TryGet(item.Key) is null && queue.RecentOutcome(item.Key) is null)
+                .Take(room));
+        }
+
+        var queued = queue.Replace(currentUser.UserId, id, model.Value, items);
+        for (var i = 0; i < wanted.Count; i++)
+        {
+            states[wanted[i].Index] = queued[i] == UpscaleJobState.Working ? "working" : "queued";
+        }
+
+        return Ok(new { pages = pages.Select((page, i) => new { page, state = states[i] }).ToList() });
+    }
+
+    /// <summary>A server upscale from the cache. 404 until it is there; this never queues one.</summary>
+    [HttpGet("chapter/{id:int}/page/{page:int}/enhanced")]
+    public async Task<IActionResult> EnhancedPage(
+        int id,
+        int page,
+        [FromQuery] string? model,
+        [FromServices] UpscaleModelStore store,
+        [FromServices] UpscaleCache cache,
+        CancellationToken ct)
+    {
+        var (refusal, modelId) = await EnhanceAvailability.CheckAsync(appSettings, store, model, ct);
+        if (refusal is not null)
+        {
+            return this.Conflict(localizer, refusal);
+        }
+
+        var slice = await reader.PageSliceAsync(id, ct);
+        if (slice is null || page < 0 || page >= slice.PageCount)
+        {
+            return NotFound();
+        }
+
+        var key = new UpscaleWorkKey(slice.ChapterFileId, slice.ArchiveVersion, slice.StartPage + page, modelId.Value);
+        var cached = cache.TryGet(key);
+        if (cached is null)
+        {
+            return NotFound();
+        }
+
+        var etag = new EntityTagHeaderValue($"\"{key.ChapterFileId}-{key.ArchiveVersion}-{key.AbsIndex}-{key.Model}\"");
+        SetPageCacheControl(slice);
+        if (Request.GetTypedHeaders().IfNoneMatch?.Any(t => t.Compare(etag, useStrongComparison: false)) == true)
+        {
+            return StatusCode(StatusCodes.Status304NotModified);
+        }
+
+        return PhysicalFile(cached, UpscaleCache.ContentType(cached), lastModified: null, entityTag: etag, enableRangeProcessing: false);
     }
 
     [HttpGet("chapter/{id:int}/thumb/{page:int}")]

@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using Maki.Core.Images.Upscaling;
 using NetVips;
 using VipsImage = NetVips.Image;
 
@@ -199,6 +200,81 @@ public static class ImageCodec
         }
 
         return grey;
+    }
+
+    /// <summary>
+    /// Decodes a page for an upscale model, or returns a reason it cannot be: the bytes do not decode
+    /// cleanly (<see cref="UpscaleReasons.Unreadable"/>), more than 8 bits per channel, or over
+    /// <see cref="MaxWebpEdge"/> or <see cref="Reading.ArchiveHealthAnalyzer.MaxPixels"/>.
+    /// Orientation is applied, CMYK and greyscale become sRGB, transparency lands on white, and the
+    /// result always has 3 bands.
+    /// </summary>
+    public static (Raster? Raster, string? SkipReason) DecodeForUpscale(byte[] source)
+    {
+        try
+        {
+            using var loaded = VipsImage.NewFromBuffer(source, failOn: Enums.FailOn.Error);
+            if (loaded.Format != Enums.BandFormat.Uchar)
+            {
+                return (null, UpscaleReasons.HighBitDepth);
+            }
+
+            if (Math.Max(loaded.Width, loaded.Height) > MaxWebpEdge ||
+                (long)loaded.Width * loaded.Height > Reading.ArchiveHealthAnalyzer.MaxPixels)
+            {
+                return (null, UpscaleReasons.TooLarge);
+            }
+
+            using var rotated = loaded.Autorot();
+            using var flat = rotated.HasAlpha() ? rotated.Flatten(background: [255, 255, 255]) : rotated.Copy();
+            using var srgb = flat.Interpretation == Enums.Interpretation.Cmyk
+                ? flat.Colourspace(Enums.Interpretation.Srgb)
+                : flat.Copy();
+            using var rgb = srgb.Bands switch
+            {
+                1 => srgb.Bandjoin(srgb, srgb),
+                3 => srgb.Copy(),
+                _ => srgb.ExtractBand(0, n: 3)
+            };
+            using var bytes = rgb.Format == Enums.BandFormat.Uchar ? rgb.Copy() : rgb.Cast(Enums.BandFormat.Uchar);
+            return (Raster.Wrap(bytes.Width, bytes.Height, 3, bytes.WriteToMemory<byte>()), null);
+        }
+        catch (VipsException)
+        {
+            return (null, UpscaleReasons.Unreadable);
+        }
+    }
+
+    /// <summary>
+    /// Resizes interleaved 8-bit RGB by <paramref name="scale"/> with Lanczos3, for a 4× model whose
+    /// output the reader gets at 2×.
+    /// </summary>
+    public static (byte[] Rgb, int Width, int Height) ResizeRgb(byte[] rgb, int width, int height, double scale)
+    {
+        using var image = FromMemory(rgb, width, height, 3);
+        using var resized = image.Resize(scale, kernel: Enums.Kernel.Lanczos3);
+        return (resized.WriteToMemory<byte>(), resized.Width, resized.Height);
+    }
+
+    /// <summary>WebP's hard limit on either edge; an upscaled page past it is saved as JPEG.</summary>
+    public const int MaxWebpEdge = 16383;
+
+    /// <summary>
+    /// Encodes an upscaled page from interleaved 8-bit RGB: WebP q85, or JPEG q90 when either edge is
+    /// over <see cref="MaxWebpEdge"/>. A <paramref name="grey"/> page is saved with one band. The caller
+    /// decides that from the source page: models tint flat screentone, so the output can fail the test.
+    /// </summary>
+    public static UpscaledImage EncodeUpscaled(byte[] rgb, int width, int height, bool grey)
+    {
+        var pixels = grey ? UpscalePixels.ToSingleBand(rgb) : rgb;
+        var bands = grey ? 1 : 3;
+        using var raw = FromMemory(pixels, width, height, bands);
+        using var image = raw.Copy(interpretation: grey ? Enums.Interpretation.Bw : Enums.Interpretation.Srgb);
+        return Math.Max(width, height) > MaxWebpEdge
+            ? new UpscaledImage(image.JpegsaveBuffer(q: 90, subsampleMode: Enums.ForeignSubsample.On,
+                keep: Enums.ForeignKeep.None), "jpg", width, height, bands)
+            : new UpscaledImage(image.WebpsaveBuffer(q: 85, effort: 4, smartSubsample: !grey,
+                keep: Enums.ForeignKeep.None), "webp", width, height, bands);
     }
 
     internal static VipsImage Open(byte[] bytes) => VipsImage.NewFromBuffer(bytes, access: Enums.Access.Sequential);

@@ -138,6 +138,7 @@ RUN NODE_ARCH="$([ "$(uname -m)" = "aarch64" ] && echo linux-arm64 || echo linux
 
 # The app itself goes in last: it changes on every build, and everything above it is then reused.
 COPY --from=trimmed-publish /app ./
+COPY THIRD_PARTY_NOTICES.md ./
 COPY --from=frontend /src/frontend/dist ./wwwroot/
 COPY distribution/docker/entrypoint.sh /entrypoint.sh
 # The app runs as PUID via gosu, so build-context files with owner-only modes (a source tree copied

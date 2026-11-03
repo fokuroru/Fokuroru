@@ -5044,3 +5044,59 @@ msgstr ""
 #. English: Import waiting for a decision
 msgid "notify.import.awaiting.title"
 msgstr ""
+
+#: src/Maki.Api/Controllers/ReaderController.cs
+#. English: Server page enhancement is turned off on this server.
+#, fuzzy
+msgid "error.enhance.disabled"
+msgstr "此服务器已关闭服务器端页面增强。"
+
+#. The reader asked for a server model the admin has not enabled or that has not finished downloading.
+#: src/Maki.Api/Controllers/ReaderController.cs
+#. English: This enhancement model is not available on the server.
+#, fuzzy
+msgid "error.enhance.modelUnavailable"
+msgstr "此服务器上没有该增强模型。"
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: The speed test could not run the sample page through this model.
+#, fuzzy
+msgid "error.upscaling.benchmarkFailed"
+msgstr "速度测试无法使用此模型处理示例页面。"
+
+#: src/Maki.Api/Services/Upscaling/UpscaleModelStore.cs
+#. English: The downloaded model did not match its checksum, so it was deleted. Try the download again.
+#, fuzzy
+msgid "error.upscaling.checksumMismatch"
+msgstr "下载的模型与其校验和不匹配，因此已删除。请重新下载。"
+
+#: src/Maki.Api/Services/Upscaling/UpscaleModelStore.cs
+#. English: The model could not be downloaded. Check that this server can reach GitHub, then try again.
+#, fuzzy
+msgid "error.upscaling.downloadFailed"
+msgstr "无法下载模型。请检查此服务器能否访问 GitHub，然后重试。"
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: The cache size must be between {min} and {max} MB.
+#, fuzzy
+msgid "error.upscaling.invalidCache"
+msgstr "缓存大小必须在 {min} 到 {max} MB 之间。"
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: Threads must be between {min} and {max}.
+#, fuzzy
+msgid "error.upscaling.invalidThreads"
+msgstr "线程数必须在 {min} 到 {max} 之间。"
+
+#. Deleting a model whose file is still open because a page is being upscaled with it right now.
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: The model is busy with a page right now. Try again in a moment.
+#, fuzzy
+msgid "error.upscaling.modelInUse"
+msgstr "该模型目前正在处理一个页面。请稍后再试。"
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: Maki does not know that model.
+#, fuzzy
+msgid "error.upscaling.unknownModel"
+msgstr "Maki 不认识该模型。"

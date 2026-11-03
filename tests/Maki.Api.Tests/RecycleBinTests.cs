@@ -586,6 +586,7 @@ public class RecycleBinTests : IDisposable
         {
             var job = new HousekeepingJob(db, new AppPaths(),
                 new UpgradeTrashService(db, _settings, NullLogger<UpgradeTrashService>.Instance),
+                new Maki.Api.Services.Upscaling.UpscaleCache(new AppPaths(), _settings, NullLogger<Maki.Api.Services.Upscaling.UpscaleCache>.Instance),
                 NullLogger<HousekeepingJob>.Instance);
             await job.Execute(new TestJobContext());
         }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Maki.Core.Quality;
 
 namespace Maki.Core.Reading;
 
@@ -45,8 +46,47 @@ public record ReaderPrefsSpec(
     /// </summary>
     string Navigation = ReaderPrefsSpec.NavAuto,
     /// <summary>Animate the screen-sized steps of vertical navigation instead of jumping.</summary>
-    bool SmoothScroll = true)
+    bool SmoothScroll = true,
+    /// <summary>
+    /// What single-page mode does with a page wider than it is tall: <c>off</c> shows it whole,
+    /// <c>split</c> shows its halves one after the other in reading order, <c>rotate</c> turns it a
+    /// quarter so it fills a portrait screen. Halves are a display concern only: progress still
+    /// counts the archive's pages.
+    /// </summary>
+    string SplitWide = ReaderPrefsSpec.SplitOff,
+    /// <summary>Trim uniform white or black margins off each page, measured in the browser.</summary>
+    bool CropBorders = false,
+    /// <summary>
+    /// Open a chapter whose pages are mostly very tall in continuous mode. Null means "not set on
+    /// this layer": the global defaults treat that as on, and a profile or series override as off,
+    /// because choosing a layout there is the explicit choice the detection must not override.
+    /// See <see cref="WithAutoWebtoon"/>.
+    /// </summary>
+    bool? AutoWebtoon = null,
+    /// <summary>Sharpen low-resolution pages: <c>off</c>, <c>auto</c> (only when a page is shown larger than its source or measures soft in the browser) or <c>always</c>.</summary>
+    string Enhance = ReaderPrefsSpec.EnhanceOff,
+    /// <summary>
+    /// How <see cref="Enhance"/> is done: a browser shader preset (<c>a4k-*</c>) or a server model
+    /// (<c>server:*</c>). A server method is kept even when the server tier is off, so the choice
+    /// survives an admin toggling it; the client decides the fallback.
+    /// </summary>
+    string EnhanceMethod = ReaderPrefsSpec.EnhanceMethodDefault,
+    /// <summary>
+    /// The browser preset a server <see cref="EnhanceMethod"/> shows until its upscale is ready, and
+    /// whenever the server tier cannot be used: an <c>a4k-*</c> preset, or <c>off</c> for the plain page.
+    /// </summary>
+    string EnhanceFallback = ReaderPrefsSpec.EnhanceMethodDefault,
+    /// <summary>
+    /// Quality tiers (<c>QualityTier</c> names in lower case) whose chapters are never enhanced,
+    /// whatever <see cref="Enhance"/> says. Null means unset and becomes <see cref="DefaultEnhanceSkipTiers"/>:
+    /// a digital volume is already clean, and sharpening it only adds artefacts.
+    /// </summary>
+    IReadOnlyList<string>? EnhanceSkipTiers = null)
 {
+    public const string SplitOff = "off";
+    public const string EnhanceOff = "off";
+    public const string EnhanceMethodDefault = "a4k-m";
+
     public const string NavAuto = "auto";
     public const string NavHorizontal = "horizontal";
     public const string NavVertical = "vertical";
@@ -80,6 +120,14 @@ public record ReaderPrefsSpec(
     private static readonly string[] Directions = [DirectionLtr, DirectionRtl];
     private static readonly string[] Fits = [FitWidth, FitHeight, FitScreen, FitOriginal];
     private static readonly string[] Navigations = [NavAuto, NavHorizontal, NavVertical];
+    private static readonly string[] SplitModes = [SplitOff, "split", "rotate"];
+    private static readonly string[] EnhanceModes = [EnhanceOff, "auto", "always"];
+    private static readonly string[] EnhanceMethods =
+        ["a4k-s", EnhanceMethodDefault, "a4k-a", "server:span-s", "server:realesrgan-av3"];
+    private static readonly string[] EnhanceFallbacks = ["a4k-s", EnhanceMethodDefault, "a4k-a", EnhanceOff];
+    private static readonly string[] Tiers = [.. Enum.GetValues<QualityTier>().Select(QualitySnapshot.TierName)];
+
+    public static readonly IReadOnlyList<string> DefaultEnhanceSkipTiers = ["volume"];
 
     /// <summary>Clamps free-text fields back onto known values so a bad write can't wedge the reader.</summary>
     public ReaderPrefsSpec Sanitized() => this with
@@ -88,17 +136,27 @@ public record ReaderPrefsSpec(
         Direction = Directions.Contains(Direction) ? Direction : DirectionRtl,
         Fit = Fits.Contains(Fit) ? Fit : FitHeight,
         Navigation = Navigations.Contains(Navigation) ? Navigation : NavAuto,
+        SplitWide = SplitModes.Contains(SplitWide) ? SplitWide : SplitOff,
+        Enhance = EnhanceModes.Contains(Enhance) ? Enhance : EnhanceOff,
+        EnhanceMethod = EnhanceMethods.Contains(EnhanceMethod) ? EnhanceMethod : EnhanceMethodDefault,
+        EnhanceFallback = EnhanceFallbacks.Contains(EnhanceFallback) ? EnhanceFallback : EnhanceMethodDefault,
+        EnhanceSkipTiers = EnhanceSkipTiers is null
+            ? DefaultEnhanceSkipTiers
+            : [.. Tiers.Where(EnhanceSkipTiers.Contains)],
         PageGap = Math.Clamp(PageGap, 0, 64),
         Preload = Math.Clamp(Preload, 0, 10),
         Scale = Math.Clamp(Scale, 25, 400),
     };
 
     /// <summary>Reads a stored blob, falling back to defaults for null/blank/unparseable JSON.</summary>
+    /// <summary>Fills an unset <see cref="AutoWebtoon"/> with the layer's default: on for the global defaults only.</summary>
+    public ReaderPrefsSpec WithAutoWebtoon(bool globalLayer) => this with { AutoWebtoon = AutoWebtoon ?? globalLayer };
+
     public static ReaderPrefsSpec Parse(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
-            return new ReaderPrefsSpec();
+            return new ReaderPrefsSpec().Sanitized();
         }
 
         try
@@ -107,7 +165,7 @@ public record ReaderPrefsSpec(
         }
         catch (JsonException)
         {
-            return new ReaderPrefsSpec();
+            return new ReaderPrefsSpec().Sanitized();
         }
     }
 

@@ -5044,3 +5044,59 @@ msgstr ""
 #. English: Import waiting for a decision
 msgid "notify.import.awaiting.title"
 msgstr ""
+
+#: src/Maki.Api/Controllers/ReaderController.cs
+#. English: Server page enhancement is turned off on this server.
+#, fuzzy
+msgid "error.enhance.disabled"
+msgstr "Poprawianie stron na serwerze jest wyłączone."
+
+#. The reader asked for a server model the admin has not enabled or that has not finished downloading.
+#: src/Maki.Api/Controllers/ReaderController.cs
+#. English: This enhancement model is not available on the server.
+#, fuzzy
+msgid "error.enhance.modelUnavailable"
+msgstr "Ten model poprawiania nie jest dostępny na serwerze."
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: The speed test could not run the sample page through this model.
+#, fuzzy
+msgid "error.upscaling.benchmarkFailed"
+msgstr "Test szybkości nie mógł przepuścić strony próbnej przez ten model."
+
+#: src/Maki.Api/Services/Upscaling/UpscaleModelStore.cs
+#. English: The downloaded model did not match its checksum, so it was deleted. Try the download again.
+#, fuzzy
+msgid "error.upscaling.checksumMismatch"
+msgstr "Pobrany model nie zgadzał się z sumą kontrolną, więc został usunięty. Spróbuj pobrać go ponownie."
+
+#: src/Maki.Api/Services/Upscaling/UpscaleModelStore.cs
+#. English: The model could not be downloaded. Check that this server can reach GitHub, then try again.
+#, fuzzy
+msgid "error.upscaling.downloadFailed"
+msgstr "Nie udało się pobrać modelu. Sprawdź, czy ten serwer ma dostęp do GitHub, i spróbuj ponownie."
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: The cache size must be between {min} and {max} MB.
+#, fuzzy
+msgid "error.upscaling.invalidCache"
+msgstr "Rozmiar pamięci podręcznej musi wynosić od {min} do {max} MB."
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: Threads must be between {min} and {max}.
+#, fuzzy
+msgid "error.upscaling.invalidThreads"
+msgstr "Liczba wątków musi wynosić od {min} do {max}."
+
+#. Deleting a model whose file is still open because a page is being upscaled with it right now.
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: The model is busy with a page right now. Try again in a moment.
+#, fuzzy
+msgid "error.upscaling.modelInUse"
+msgstr "Model jest teraz zajęty stroną. Spróbuj ponownie za chwilę."
+
+#: src/Maki.Api/Controllers/UpscalingController.cs
+#. English: Maki does not know that model.
+#, fuzzy
+msgid "error.upscaling.unknownModel"
+msgstr "Maki nie zna tego modelu."

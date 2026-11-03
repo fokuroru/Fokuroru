@@ -11,6 +11,21 @@ public interface IAppSettings
 
 public static class SettingKeys
 {
+    /// <summary>"true" turns on server-side page enhancement (ONNX upscaling). Unset is off.</summary>
+    public const string UpscalingEnabled = "library.upscaling.enabled";
+
+    /// <summary>CSV of the model ids readers may pick. Unset or empty means none.</summary>
+    public const string UpscalingModels = "library.upscaling.models";
+
+    /// <summary>ONNX Runtime intra-op threads per run. Unset is half the cores, between 1 and 4.</summary>
+    public const string UpscalingThreads = "library.upscaling.threads";
+
+    /// <summary>Cap of the upscaled page cache in MB. Unset is 1024.</summary>
+    public const string UpscalingCacheMb = "library.upscaling.cachemb";
+
+    /// <summary>Where to read the model manifest instead of the GitHub release: an http(s) or file URL, or a path.</summary>
+    public const string UpscalingManifestUrl = "library.upscaling.manifesturl";
+
     public const string FlareSolverrUrl = "flaresolverr.url";
 
     /// <summary>

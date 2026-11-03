@@ -92,7 +92,12 @@ public class ReaderService(
         long ArchiveSize,
         IReadOnlyList<string> Pages,
         int StartPage,
-        int PageCount);
+        int PageCount,
+        long ArchiveStamp = 0)
+    {
+        // shortcut: one stat per call unless a stamp is given, fine while only the upscale queue reads it.
+        public string ArchiveVersion => $"{ArchiveSize}-{(ArchiveStamp != 0 ? ArchiveStamp : System.IO.File.GetLastWriteTimeUtc(ArchivePath).Ticks)}";
+    }
 
     /// <summary>
     /// <see cref="SliceAsync"/> for the page, thumbnail and OPDS page endpoints, which run hundreds
