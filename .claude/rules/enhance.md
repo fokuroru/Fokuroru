@@ -39,7 +39,7 @@ User-facing summary in `docs/features.md`. Two tiers share one reader setting: `
 - `UpscaleCache.Generation` (`g2`) is part of every cached name. Raise it, with the regex, whenever the pipeline's output changes: old names are then never served and housekeeping prunes them. Without it, tinted pages made by an older build keep being served.
 - The browser's final resample takes luma from the shader chain and chroma from the source tile. Restore CNN tints screentone the same way; a grey page must come out grey.
 - `manifesturl` has no API. In dev it is a row in the `AppConfig` table of the config dir's SQLite database (key `library.upscaling.manifesturl`).
-- Server tiling is 384 px with a 16 px context pad. Browser tiling is `min(MAX_TEXTURE_SIZE, 4096)/2` with a 16 px overlap.
+- Server tiling takes `ceil(n / 384)` tiles per axis, split into equal spans, with a 16 px context pad; every tile of a page shares one context shape (rounded to the model multiple), so ORT plans one memory pattern and IoBinding binds one shape. Browser tiling is `min(MAX_TEXTURE_SIZE, 4096)/2` with a 16 px overlap.
 - The browser hook sizing stays at 2x (`OUTPUT` is 2w x 2h) and `//!WHEN` is not parsed. The reader's Auto gate (display at 1.2x source, or a soft page) replaces it.
 - `UpscaleModelStore.DeleteAsync` throws if the ORT session still holds the file. Call `OnnxPageUpscaler.ReleaseModel` first.
 - `UpscaleOptions.Threads` is read per run. The session is rebuilt on the next idle run when it changes.
