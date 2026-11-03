@@ -4234,6 +4234,10 @@ msgstr "확인된 챕터"
 msgid "Chapters not listed by another enabled source will be removed. Files downloaded from this source will be detached so they cannot be read as the correct chapter."
 msgstr "활성화된 다른 소스에 목록에 없는 챕터는 제거됩니다. 이 소스에서 다운로드한 파일은 올바른 챕터로 읽을 수 없도록 연결이 해제됩니다."
 
+#: src/pages/LibraryPage.tsx
+msgid "Chapters on disk"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Chapters per page"
@@ -5465,6 +5469,10 @@ msgstr "기본 대소문자"
 #, fuzzy
 msgid "Default cleared"
 msgstr "기본값 지움"
+
+#: src/pages/LibraryPage.tsx
+msgid "Default order"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Default profile"
@@ -13736,8 +13744,13 @@ msgstr ""
 msgid "Reverse the page order of {fileName}"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "Reverse the sort order"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Reversed order"
 msgstr ""
 
 #: src/pages/ActivityPage.tsx

@@ -4234,6 +4234,10 @@ msgstr "Znane rozdziały"
 msgid "Chapters not listed by another enabled source will be removed. Files downloaded from this source will be detached so they cannot be read as the correct chapter."
 msgstr "Rozdziały niewymienione przez żadne inne włączone źródło zostaną usunięte. Pliki pobrane z tego źródła zostaną odłączone, aby nie były odczytywane jako właściwy rozdział."
 
+#: src/pages/LibraryPage.tsx
+msgid "Chapters on disk"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Chapters per page"
@@ -5465,6 +5469,10 @@ msgstr "Domyślna wielkość liter"
 #, fuzzy
 msgid "Default cleared"
 msgstr "Usunięto ustawienie domyślne"
+
+#: src/pages/LibraryPage.tsx
+msgid "Default order"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Default profile"
@@ -13736,8 +13744,13 @@ msgstr ""
 msgid "Reverse the page order of {fileName}"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "Reverse the sort order"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Reversed order"
 msgstr ""
 
 #: src/pages/ActivityPage.tsx

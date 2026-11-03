@@ -4234,6 +4234,10 @@ msgstr "Capítulos conhecidos"
 msgid "Chapters not listed by another enabled source will be removed. Files downloaded from this source will be detached so they cannot be read as the correct chapter."
 msgstr "Capítulos não listados por outra fonte ativada serão removidos. Arquivos baixados desta fonte serão desvinculados para que não possam ser lidos como o capítulo correto."
 
+#: src/pages/LibraryPage.tsx
+msgid "Chapters on disk"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Chapters per page"
@@ -5465,6 +5469,10 @@ msgstr "Capitalização padrão"
 #, fuzzy
 msgid "Default cleared"
 msgstr "Padrão limpo"
+
+#: src/pages/LibraryPage.tsx
+msgid "Default order"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Default profile"
@@ -13736,8 +13744,13 @@ msgstr ""
 msgid "Reverse the page order of {fileName}"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "Reverse the sort order"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Reversed order"
 msgstr ""
 
 #: src/pages/ActivityPage.tsx

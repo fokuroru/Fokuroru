@@ -4234,6 +4234,10 @@ msgstr "Chapitres connus"
 msgid "Chapters not listed by another enabled source will be removed. Files downloaded from this source will be detached so they cannot be read as the correct chapter."
 msgstr "Les chapitres non listés par une autre source activée seront supprimés. Les fichiers téléchargés depuis cette source seront détachés afin de ne pas être lus comme le bon chapitre."
 
+#: src/pages/LibraryPage.tsx
+msgid "Chapters on disk"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Chapters per page"
@@ -5465,6 +5469,10 @@ msgstr "Casse par défaut"
 #, fuzzy
 msgid "Default cleared"
 msgstr "Valeur par défaut effacée"
+
+#: src/pages/LibraryPage.tsx
+msgid "Default order"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Default profile"
@@ -13736,8 +13744,13 @@ msgstr ""
 msgid "Reverse the page order of {fileName}"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "Reverse the sort order"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Reversed order"
 msgstr ""
 
 #: src/pages/ActivityPage.tsx

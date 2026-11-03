@@ -4234,6 +4234,10 @@ msgstr "已知章节"
 msgid "Chapters not listed by another enabled source will be removed. Files downloaded from this source will be detached so they cannot be read as the correct chapter."
 msgstr "其他已启用来源未列出的章节将被移除。从此来源下载的文件会取消关联，避免被当作正确章节读取。"
 
+#: src/pages/LibraryPage.tsx
+msgid "Chapters on disk"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "Chapters per page"
@@ -5465,6 +5469,10 @@ msgstr "默认大小写"
 #, fuzzy
 msgid "Default cleared"
 msgstr "默认设置已清除"
+
+#: src/pages/LibraryPage.tsx
+msgid "Default order"
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Default profile"
@@ -13736,8 +13744,13 @@ msgstr ""
 msgid "Reverse the page order of {fileName}"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "Reverse the sort order"
+msgstr ""
+
+#: src/pages/LibraryPage.tsx
+msgid "Reversed order"
 msgstr ""
 
 #: src/pages/ActivityPage.tsx

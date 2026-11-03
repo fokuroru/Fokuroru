@@ -38,6 +38,8 @@ import {
   IconPlus,
   IconRefresh,
   IconSearch,
+  IconSortAscending,
+  IconSortDescending,
   IconBell,
   IconSettings,
   IconTag,
@@ -100,7 +102,7 @@ import { TagManagerModal } from '../components/TagManagerModal'
 import { POSTER_COLS_BY_DENSITY, useDensityOptions } from '../components/ui/viewPrefs'
 import { formatNumber } from '../format'
 
-const SORT_VALUES = ['added', 'lastRead', 'readPercent', 'title', 'incomplete', 'status'] as const
+const SORT_VALUES = ['added', 'lastRead', 'readPercent', 'title', 'incomplete', 'status', 'chapters'] as const
 
 const SORT_LABELS: Record<string, MessageDescriptor> = {
   added: msg`Recently added`,
@@ -109,6 +111,7 @@ const SORT_LABELS: Record<string, MessageDescriptor> = {
   title: msg`Title A–Z`,
   incomplete: msg`Most missing`,
   status: msg`Status`,
+  chapters: msg`Chapters on disk`,
 }
 
 type ViewMode = 'grid' | 'list'
@@ -308,7 +311,10 @@ export default function LibraryPage() {
   // Re-filtering (and re-sorting) a few thousand series on every keystroke is what made typing
   // in here feel sticky: the input itself stays instant, the grid catches up a frame later.
   const [debouncedQuery] = useDebouncedValue(query, 200)
+  // A leading '-' reverses the order, so a saved preset carries the direction in its one sort string.
   const [sort, setSort] = usePageState(`${MEM}:sort`, 'added')
+  const sortReversed = sort.startsWith('-')
+  const sortKey = sortReversed ? sort.slice(1) : sort
   const [statusFilter, setStatusFilter] = usePageState(`${MEM}:status`, 'all')
   const [typeFilter, setTypeFilter] = usePageState<string[]>(`${MEM}:types`, [])
   // Tag ids live as strings because that's what MultiSelect speaks.
@@ -423,8 +429,8 @@ export default function LibraryPage() {
         return pct >= readRange[0] && pct <= readRange[1]
       })
     }
-    list.sort((a, b) => {
-      switch (sort) {
+    const compare = (a: (typeof list)[number], b: (typeof list)[number]): number => {
+      switch (sortKey) {
         case 'title':
           return a.sortTitle.localeCompare(b.sortTitle)
         case 'incomplete':
@@ -439,14 +445,18 @@ export default function LibraryPage() {
             (b.lastReadAt ?? '').localeCompare(a.lastReadAt ?? '') ||
             new Date(b.added).getTime() - new Date(a.added).getTime()
           )
+        case 'chapters':
+          return b.chapterFileCount - a.chapterFileCount || a.sortTitle.localeCompare(b.sortTitle)
         default:
           return new Date(b.added).getTime() - new Date(a.added).getTime()
       }
-    })
+    }
+    const direction = sortReversed ? -1 : 1
+    list.sort((a, b) => direction * compare(a, b))
     return list
   }, [
     series, debouncedQuery, statusFilter, typeFilter, tagFilter, tagMatch, genreFilter, genreMatch,
-    metaTagFilter, metaTagMatch, monitoredFilter, completeness, readRange, sort, contentRatingFilter,
+    metaTagFilter, metaTagMatch, monitoredFilter, completeness, readRange, sortKey, sortReversed, contentRatingFilter,
     sourceFilter, sourceMatch, sourceState, fileSourceFilter, fileSourceMatch,
     chapterMin, chapterMax, chapterMode, qualityProfileFilter, readingStatusFilter, retiredFilter, noFilesFilter,
   ])
@@ -1037,10 +1047,21 @@ export default function LibraryPage() {
                   className="library-sort"
                   aria-label={t`Sort the library`}
                   data={sortOptions}
-                  value={sort}
-                  onChange={(v) => setSort(v ?? 'added')}
+                  value={sortKey}
+                  onChange={(v) => setSort((sortReversed ? '-' : '') + (v ?? 'added'))}
                   comboboxProps={{ withinPortal: true }}
                 />
+                <Tooltip label={sortReversed ? t`Reversed order` : t`Default order`} withArrow>
+                  <ActionIcon
+                    variant="default"
+                    size={34}
+                    onClick={() => setSort(sortReversed ? sortKey : `-${sortKey}`)}
+                    aria-label={t`Reverse the sort order`}
+                    aria-pressed={sortReversed}
+                  >
+                    {sortReversed ? <IconSortDescending size={16} /> : <IconSortAscending size={16} />}
+                  </ActionIcon>
+                </Tooltip>
                 <LuckyButton
                   candidates={luckyPool}
                   onPick={(id) => navigate(`/series/${id}`, { state: { lucky: true } })}

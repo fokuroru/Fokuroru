@@ -3600,6 +3600,10 @@ msgstr "Chapters known"
 msgid "Chapters not listed by another enabled source will be removed. Files downloaded from this source will be detached so they cannot be read as the correct chapter."
 msgstr "Chapters not listed by another enabled source will be removed. Files downloaded from this source will be detached so they cannot be read as the correct chapter."
 
+#: src/pages/LibraryPage.tsx
+msgid "Chapters on disk"
+msgstr "Chapters on disk"
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "Chapters per page"
 msgstr "Chapters per page"
@@ -4651,6 +4655,10 @@ msgstr "Default Case"
 #: src/pages/DiscoverPage.tsx
 msgid "Default cleared"
 msgstr "Default cleared"
+
+#: src/pages/LibraryPage.tsx
+msgid "Default order"
+msgstr "Default order"
 
 #: src/pages/SettingsPage.tsx
 msgid "Default profile"
@@ -11705,9 +11713,14 @@ msgstr "Reverse pages"
 msgid "Reverse the page order of {fileName}"
 msgstr "Reverse the page order of {fileName}"
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/SimpleHomePage.tsx
 msgid "Reverse the sort order"
 msgstr "Reverse the sort order"
+
+#: src/pages/LibraryPage.tsx
+msgid "Reversed order"
+msgstr "Reversed order"
 
 #: src/pages/ActivityPage.tsx
 msgid "Revert this upgrade"
