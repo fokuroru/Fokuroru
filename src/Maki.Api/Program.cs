@@ -871,6 +871,11 @@ try
     builder.Services.AddScoped<FileRelinkPlanner>();
     builder.Services.AddSingleton<ChapterFileQualityService>();
     builder.Services.AddScoped<ChapterFileMeasureService>();
+    builder.Services.AddScoped<PageConversionService>();
+    builder.Services.AddScoped<PageConversionPlanService>();
+    builder.Services.AddScoped<PageConversionUndoService>();
+    builder.Services.AddSingleton<PageConversionWorker>();
+    builder.Services.AddHostedService(sp => sp.GetRequiredService<PageConversionWorker>());
     builder.Services.AddScoped<UpgradeEvaluationService>();
     builder.Services.AddScoped<UpgradeProfileSeeder>();
     builder.Services.AddScoped<SourceQualitySeeder>();

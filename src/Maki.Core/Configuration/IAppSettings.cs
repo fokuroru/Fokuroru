@@ -469,6 +469,27 @@ public static class SettingKeys
     /// <summary>Days a file the user deleted stays in the recycle bin (<c>.maki-trash/bin</c>). Default 14; 0 purges on the next housekeeping run.</summary>
     public const string RecycleBinRetentionDays = "library.recyclebindays";
 
+    /// <summary>"webp" or "avif" converts the pages of new downloads and lets the library pass run. Unset is off.</summary>
+    public const string PageConversionFormat = "library.pageconversion.format";
+
+    /// <summary>"smallest", "compact", "balanced", "high" or "lossless". Unset is <c>PageConversionSettings.DefaultStop</c>.</summary>
+    public const string PageConversionStop = "library.pageconversion.stop";
+
+    /// <summary>"true" keeps PNG pages lossless at every stop. Unset is off.</summary>
+    public const string PageConversionPngLossless = "library.pageconversion.pnglossless";
+
+    /// <summary>
+    /// Pages converted at once, 1 to the core count, across the library pass and downloads
+    /// (<c>ImageWorkGate.ConversionLimit</c>). Unset is <c>ImageWorkGate.Parallelism</c>.
+    /// </summary>
+    public const string PageConversionParallel = "library.pageconversion.parallel";
+
+    /// <summary>"running" or "paused" while the library pass has work left; unset when idle.</summary>
+    public const string PageConversionPass = "library.pageconversion.pass";
+
+    /// <summary>JSON totals of the last library pass, for the settings card.</summary>
+    public const string PageConversionLastPass = "library.pageconversion.lastpass";
+
     /// <summary>"false" leaves incognito series out of the upgrade scan. Default on.</summary>
     public const string UpgradesScanIncognito = "upgrades.scanIncognito";
 

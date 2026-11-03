@@ -5110,3 +5110,38 @@ msgstr "Model şu anda bir sayfayla meşgul. Birazdan yeniden deneyin."
 #, fuzzy
 msgid "error.upscaling.unknownModel"
 msgstr "Maki bu modeli tanımıyor."
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose WebP, AVIF or off
+msgid "error.pageConversion.formatInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose a format for page conversion first
+msgid "error.pageConversion.off"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Pages converted at once must be between 1 and {max}
+msgid "error.pageConversion.parallelInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: One of the rules is not valid. Check its conditions and what it does.
+msgid "error.pageConversion.ruleInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose Smallest, Compact, Balanced, High or Lossless
+msgid "error.pageConversion.stopInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose either to convert the files again or to set the series to Never, not both
+msgid "error.pageConversion.undoConflict"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Page conversion must be Default, Never, Smallest, Compact, Balanced, High or Lossless
+msgid "error.series.invalidPageConversion"
+msgstr ""

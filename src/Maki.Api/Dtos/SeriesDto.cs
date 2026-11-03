@@ -209,6 +209,9 @@ public record SeriesDto(
     /// <summary>The series' own upgrade profile pin. Null means it follows the instance default.</summary>
     public int? UpgradeProfileId { get; init; }
 
+    /// <summary>"Default" (follow the rules), "Never", or a stop every file of the series is converted at.</summary>
+    public string PageConversion { get; init; } = nameof(PageConversionOverride.Default);
+
     /// <summary>The caller's "so far" score (1–10), or null. Never set alongside <see cref="Rating"/>.</summary>
     public int? ProvisionalRating { get; init; }
 
@@ -322,6 +325,7 @@ public record SeriesDto(
         s.SpineColor)
     {
         UpgradeProfileId = s.UpgradeProfileId,
+        PageConversion = s.PageConversion.ToString(),
         Retired = s.Retired,
         LastUpgradeScan = s.LastUpgradeScanUtc is { } at
             ? new LastUpgradeScanDto(at, s.LastUpgradeScanProbed ?? 0, s.LastUpgradeScanQueued ?? 0,

@@ -109,6 +109,11 @@ msgstr ""
 msgid "{0, plural, one {# failed} other {# failed}}"
 msgstr ""
 
+#. placeholder {0}: status.library.convertedFiles
+#: src/pages/settings/PageConversionSection.tsx
+msgid "{0, plural, one {# file converted, saving} other {# files converted, saving}}"
+msgstr ""
+
 #. placeholder {0}: r.failed
 #: src/components/RelinkFilesModal.tsx
 #, fuzzy
@@ -120,6 +125,11 @@ msgstr "{0, plural, one {# dosya silinemedi (kilitli veya izin reddedildi)} othe
 #, fuzzy
 msgid "{0, plural, one {# file deleted} other {# files deleted}}"
 msgstr "{0, plural, one {# dosya silindi} other {# dosya silindi}}"
+
+#. placeholder {0}: status.library.pendingFiles
+#: src/pages/settings/PageConversionSection.tsx
+msgid "{0, plural, one {# file left to check.} other {# files left to check.}}"
+msgstr ""
 
 #. placeholder {0}: entries.length
 #: src/pages/settings/RecycleBinSection.tsx
@@ -3442,6 +3452,10 @@ msgstr "dengeli"
 msgid "Balanced"
 msgstr "Dengeli"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Balanced: fine at fit-to-screen"
+msgstr ""
+
 #: src/components/series/SeriesProgress.tsx
 #: src/pages/SeriesDetailPage.tsx
 msgid "Banked"
@@ -4687,6 +4701,10 @@ msgstr ""
 msgid "Compact"
 msgstr "Sıkışık"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Compact: screentone gets lighter"
+msgstr ""
+
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
 msgid "Compare"
@@ -4987,6 +5005,10 @@ msgstr "Sürekli dikey (webtoon)"
 #, fuzzy
 msgid "Continuous, because this chapter's pages are very tall."
 msgstr "Sürekli, çünkü bu bölümün sayfaları çok uzun."
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Convert library"
+msgstr ""
 
 #: src/components/settings/AccountSection.tsx
 #, fuzzy
@@ -6774,6 +6796,10 @@ msgstr "Zevk profilinden çıkarıldı"
 msgid "Existing folders on import"
 msgstr "İçe aktarırken var olan klasörler"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Existing library"
+msgstr ""
+
 #: src/components/layout/PageLayoutEditor.tsx
 #, fuzzy
 msgid "Exit editing"
@@ -7358,6 +7384,10 @@ msgstr "Klasördeki posteri kullanan Komga ve Kavita gibi okuyucular içindir. A
 msgid "For scripts and third-party clients. A key acts as you through the <0>X-Api-Key</0> header. Your OPDS feed URL is managed on the OPDS card."
 msgstr "Betikler ve üçüncü taraf istemciler içindir. Bir anahtar, <0>X-Api-Key</0> başlığıyla sizin adınıza işlem yapar. OPDS akışı URL'nizi OPDS kartından yönetebilirsiniz."
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Format"
+msgstr ""
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Format created"
 msgstr ""
@@ -7882,6 +7912,10 @@ msgstr "Yüksek güven"
 
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "High quality"
+msgstr ""
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "High: no difference we could see"
 msgstr ""
 
 #: src/components/discover/DiscoverDetailModal.tsx
@@ -8611,6 +8645,10 @@ msgstr ""
 msgid "Keep manual priority, but renumber it to follow the measured order."
 msgstr ""
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Keep PNG pages lossless"
+msgstr ""
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Keep taking better scoring copies once the cutoff is reached, until a file scores this much. 0 stops at the cutoff. Set it very high to never stop."
 msgstr ""
@@ -9320,6 +9358,10 @@ msgstr ""
 #, fuzzy
 msgid "loose"
 msgstr "gevşek"
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Lossless: identical pixels"
+msgstr ""
 
 #: src/components/releases/outlookText.ts
 #, fuzzy
@@ -11496,6 +11538,7 @@ msgstr "okuma süresinin"
 #: src/components/ui/incognito.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
 #: src/pages/reader/enhanceMethods.ts
+#: src/pages/settings/PageConversionSection.tsx
 #, fuzzy
 msgid "Off"
 msgstr "Kapalı"
@@ -11888,6 +11931,12 @@ msgstr "Orijinal boyut (1:1)"
 msgid "Original title"
 msgstr "Orijinal başlık"
 
+#. placeholder {0}: status.library.trashDays
+#. placeholder {1}: formatBytes(status.library.trashBytes)
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Originals wait {0} days in the upgrade trash ({1}) and can be restored from the series."
+msgstr ""
+
 #: src/api/readingProfiles.ts
 #: src/components/CatalogueFilters.tsx
 #: src/components/TagBuckets.tsx
@@ -11975,6 +12024,16 @@ msgstr "Sayfa {pageIndex}/{pageCount}"
 #, fuzzy
 msgid "Page {pageNumber} of {pageCount}"
 msgstr "Sayfa {pageNumber} / {pageCount}"
+
+#: src/pages/settings/PageConversionSection.tsx
+#: src/pages/settings/registry.ts
+msgid "Page conversion"
+msgstr ""
+
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "page conversion, webp, avif, convert pages, compress, disk space, file size, re-encode, image format, quality, lossless"
+msgstr ""
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Page Down"
@@ -12150,6 +12209,7 @@ msgid "Path mapping - Kavita side"
 msgstr "Yol eşleme - Kavita tarafı"
 
 #: src/components/QueuePause.tsx
+#: src/pages/settings/PageConversionSection.tsx
 msgid "Pause"
 msgstr ""
 
@@ -12621,6 +12681,7 @@ msgstr ""
 
 #: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
+#: src/pages/settings/PageConversionSection.tsx
 msgid "Quality"
 msgstr ""
 
@@ -13909,6 +13970,7 @@ msgstr ""
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
 #: src/components/QueuePause.tsx
+#: src/pages/settings/PageConversionSection.tsx
 #: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sections/HabitsSection.tsx
 #, fuzzy
@@ -14256,6 +14318,7 @@ msgstr "Örnek bölüm"
 #: src/components/TagManagerModal.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
+#: src/pages/settings/PageConversionSection.tsx
 #: src/pages/settings/SettingsSection.tsx
 #, fuzzy
 msgid "Save"
@@ -15718,6 +15781,10 @@ msgstr ""
 msgid "Small"
 msgstr ""
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Smallest: screentone is smoothed away"
+msgstr ""
+
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
 msgid "smart"
@@ -16134,6 +16201,10 @@ msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Storage, metadata, download clients and integrations for your Fōkurōru instance."
+msgstr ""
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Stores chapter pages in a smaller image format. New downloads are converted as they arrive."
 msgstr ""
 
 #: src/components/CreditPicker.tsx
@@ -18485,6 +18556,10 @@ msgstr "Webhook"
 #, fuzzy
 msgid "Webhook URL"
 msgstr "Webhook URL'si"
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "WebP opens in every reader. AVIF does not open in KOReader or on iOS before 16."
+msgstr ""
 
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy

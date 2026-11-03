@@ -41,6 +41,21 @@ public static class SeriesTypes
     }
 }
 
+/// <summary>
+/// A series' own page conversion choice. Default follows the rules and the default stop, Never
+/// leaves its files alone, and the rest convert every file at that stop.
+/// </summary>
+public enum PageConversionOverride
+{
+    Default = 0,
+    Never = 1,
+    Smallest = 2,
+    Compact = 3,
+    Balanced = 4,
+    High = 5,
+    Lossless = 6
+}
+
 public enum NewChapterMonitorMode
 {
     All = 0,

@@ -93,6 +93,7 @@ public class CbzLinkService(
                 if (chapterFile.Size != size)
                 {
                     chapterFile.MeasuredAtUtc = null;
+                    chapterFile.ResetConversion();
                 }
 
                 chapterFile.Size = size;
@@ -263,6 +264,7 @@ public class CbzLinkService(
             {
                 known.Size = new FileInfo(file.AbsolutePath).Length;
                 known.MeasuredAtUtc = null;
+                known.ResetConversion();
                 archives.Invalidate(known.Id);
             }
         }
