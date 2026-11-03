@@ -89,7 +89,9 @@ import {
   useSetSeriesNotificationMode,
   useSetMonitorMode,
   useSetUpgradeProfile,
-  useSetRating,
+  useRateSeries,
+  useFinalizeRating,
+  useDismissRateHint,
   useToggleChapterWanted,
   useUnlinkChapters,
   useDeleteChapterFiles,
@@ -145,6 +147,7 @@ import { FileQualityBadge } from '../components/series/FileQualityBadge'
 import { SeriesProgress } from '../components/series/SeriesProgress'
 import { SeriesActionsMenu } from '../components/series/SeriesActionsMenu'
 import { UpgradeNowResultModal } from '../components/series/UpgradeNowResultModal'
+import { RateHint } from '../components/series/RateHint'
 import { SeriesHero, SeriesHeroSkeleton } from '../components/series/SeriesHero'
 import { SeriesReviews } from '../components/series/SeriesReviews'
 import { SeriesFilesSection } from '../components/SeriesFilesSection'
@@ -522,7 +525,9 @@ function SeriesDetailBody() {
   const [upgradeNowModalOpen, setUpgradeNowModalOpen] = useState(false)
   const setIncognito = useSetIncognito()
   const setNotificationMode = useSetSeriesNotificationMode()
-  const setRating = useSetRating()
+  const rateSeries = useRateSeries()
+  const finalizeRating = useFinalizeRating()
+  const dismissRateHint = useDismissRateHint()
   const unlinkChapters = useUnlinkChapters()
   const setChaptersWanted = useSetChaptersWanted()
   const deleteChapters = useDeleteChapters()
@@ -575,6 +580,7 @@ function SeriesDetailBody() {
   const [deleteFileIds, setDeleteFileIds] = useState<number[] | null>(null)
   const [deleteSeriesModalOpen, setDeleteSeriesModalOpen] = useState(false)
   const [deleteSeriesFiles, setDeleteSeriesFiles] = useState(false)
+  const [retireRemoveFiles, setRetireRemoveFiles] = useState(false)
   const [removeMode, setRemoveMode] = useState<'retire' | 'remove' | 'restore'>('retire')
   const binDays = useRecycleBinDays(deleteChaptersModalOpen || deleteFileIds !== null || deleteSeriesModalOpen)
   // Which delete dialog the server answered with "the recycle bin cannot take these".
@@ -1480,12 +1486,24 @@ function SeriesDetailBody() {
     queueAllWanted()
   }
 
-  const submitRating = (rating: number | null) =>
-      setRating.mutate(
-          { seriesId, rating },
+  const submitRating = (rating: number | null) => {
+    if (!series) return
+    rateSeries.rate(series, rating, (soFar) =>
+        notify.ok(
+            rating === null
+                ? staticT`Rating cleared`
+                : soFar ? staticT`Rated ${rating}/10 so far` : staticT`Rated ${rating}/10`,
+        ),
+    )
+  }
+
+  const keepRating = () =>
+      finalizeRating.mutate(
+          { seriesId },
           {
-            onSuccess: () =>
-                notify.ok(rating === null ? staticT`Rating cleared` : staticT`Rated ${rating}/10`),
+            onSuccess: ({ rating }) => {
+              if (rating != null) notify.ok(staticT`Rated ${rating}/10`)
+            },
           },
       )
 
@@ -1651,7 +1669,7 @@ function SeriesDetailBody() {
 
   const retire = (permanent = false) =>
     retireSeries.mutate(
-      { id: series.id, retire: removeMode === 'retire', permanent },
+      { id: series.id, retire: removeMode === 'retire', permanent, removeFiles: retireRemoveFiles },
       {
         onSuccess: () => {
           notify.ok(removeMode === 'retire' ? staticT`Series retired` : staticT`Series brought back`)
@@ -1691,6 +1709,7 @@ function SeriesDetailBody() {
         <SeriesHero
             series={series}
             onRate={submitRating}
+            onFinalize={keepRating}
             actions={
               <>
                 {continueAt && !continueAt.downloaded && (
@@ -1917,6 +1936,15 @@ function SeriesDetailBody() {
               </Tabs.List>
             }
         />
+
+        {series.rateHintEligible && (
+          <RateHint
+            soFar={series.provisionalRating ?? null}
+            onRate={submitRating}
+            onKeep={keepRating}
+            onDismiss={() => dismissRateHint.mutate(series.id)}
+          />
+        )}
 
         <Tabs.Panel value="progress">
           <div className="series-detail-files">
@@ -3295,13 +3323,13 @@ function SeriesDetailBody() {
                     <Radio
                         value="restore"
                         label={t`Bring it back`}
-                        description={t`Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on.`}
+                        description={t`Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once.`}
                     />
                 ) : (
                     <Radio
                         value="retire"
                         label={t`Retire`}
-                        description={t`Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept.`}
+                        description={t`Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept.`}
                     />
                 )}
                 <Radio
@@ -3311,6 +3339,13 @@ function SeriesDetailBody() {
                 />
               </Stack>
             </Radio.Group>
+            {removeMode === 'retire' && (
+                <Checkbox
+                    label={t`Also move the files to the recycle bin`}
+                    checked={retireRemoveFiles}
+                    onChange={(e) => setRetireRemoveFiles(e.currentTarget.checked)}
+                />
+            )}
             {removeMode === 'remove' && (
                 <Checkbox
                     label={t`Also delete files on disk`}
@@ -3318,7 +3353,7 @@ function SeriesDetailBody() {
                     onChange={(e) => setDeleteSeriesFiles(e.currentTarget.checked)}
                 />
             )}
-            {(removeMode === 'retire' || (removeMode === 'remove' && deleteSeriesFiles)) && (
+            {((removeMode === 'retire' && retireRemoveFiles) || (removeMode === 'remove' && deleteSeriesFiles)) && (
                 <Text size="sm" c="var(--ink-3)">
                   <Plural
                       value={binDays}

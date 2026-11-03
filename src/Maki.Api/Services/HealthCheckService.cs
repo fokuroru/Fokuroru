@@ -88,6 +88,7 @@ public class HealthCheckService(
         // Only worth flagging when the series is actually monitored — a "Monitor: none" series
         // with no source isn't waiting on anything.
         var noMappings = await db.Series
+            .Active()
             .Where(s => s.MonitorNewItems != NewChapterMonitorMode.None &&
                         !s.SourceMappings.Any(m => m.Enabled && !disabledSources.Contains(m.SourceName)))
             .Select(s => new { s.Id, s.Title })

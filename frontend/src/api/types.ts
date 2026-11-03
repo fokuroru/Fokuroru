@@ -64,6 +64,12 @@ export interface SeriesDto {
   publisher: string | null
   /** The user's own rating on a 1–10 scale, or null if unrated. */
   rating: number | null
+  /** The user's "so far" score while partway through, or null. Never set alongside `rating`. Absent on older responses. */
+  provisionalRating?: number | null
+  /** The highest chapter number read when `provisionalRating` was set. */
+  provisionalAtChapter?: number | null
+  /** You finished this series. The stars set a "so far" score only while it is part-read. */
+  finished?: boolean
   mangaBakaId: number | null
   aniListId: number | null
   malId: number | null
@@ -120,6 +126,10 @@ export interface SeriesDto {
   retired?: boolean
   /** When you last read any chapter of it, ISO. Null if never. */
   lastReadAt?: string | null
+  /** When the newest chapter file landed, or null with no files. Library list endpoint only. */
+  lastDownloadedAt?: string | null
+  /** You finished this series and have not rated it or dismissed the ask. Detail endpoint only. */
+  rateHintEligible?: boolean
   /**
    * Main releases you have read, from history: a chapter whose file auto-delete removed still
    * counts. `readChapterCount` is the on-disk count and drops with each deleted file.
@@ -228,6 +238,8 @@ export interface LibraryFilterSpec {
   readingStatus?: string
   /** "all" | "hide" | "only". Absent on older presets. */
   retired?: string
+  /** "all" | "rated" | "unrated" by your own rating. */
+  rated?: string
   /** "all" | "hide" | "only": series with no chapter files on disk. Absent on older presets. */
   noFiles?: string
 }

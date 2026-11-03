@@ -1171,6 +1171,16 @@ msgid "error.series.activeDownloadDelete"
 msgstr ""
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+#. English: This series has no so far rating to finalize.
+msgid "error.series.noProvisionalRating"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SeriesController.cs
+#. English: This series is retired. Unretire it first.
+msgid "error.series.retired"
+msgstr ""
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 #. English: Series has a download in progress. Wait for it to finish before retiring it.
 msgid "error.series.activeDownloadRetire"
 msgstr ""
@@ -5100,3 +5110,38 @@ msgstr "このモデルは今ページの処理に使われています。少し
 #, fuzzy
 msgid "error.upscaling.unknownModel"
 msgstr "Makiはそのモデルを知りません。"
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose WebP, AVIF or off
+msgid "error.pageConversion.formatInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose a format for page conversion first
+msgid "error.pageConversion.off"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Pages converted at once must be between 1 and {max}
+msgid "error.pageConversion.parallelInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: One of the rules is not valid. Check its conditions and what it does.
+msgid "error.pageConversion.ruleInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose Smallest, Compact, Balanced, High or Lossless
+msgid "error.pageConversion.stopInvalid"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Choose either to convert the files again or to set the series to Never, not both
+msgid "error.pageConversion.undoConflict"
+msgstr ""
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+#. English: Page conversion must be Default, Never, Smallest, Compact, Balanced, High or Lossless
+msgid "error.series.invalidPageConversion"
+msgstr ""

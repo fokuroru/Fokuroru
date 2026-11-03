@@ -135,6 +135,16 @@ public class Series
     /// </summary>
     public bool Retired { get; set; }
 
+    /// <summary>Overrides the page conversion rules for this series' files; see <c>PageConversionPlan</c>.</summary>
+    public PageConversionOverride PageConversion { get; set; }
+
+    /// <summary>
+    /// When the series last came back from <see cref="Retired"/>. Each mapping's first sync after this
+    /// stamps no <see cref="ChapterSourceLink.FirstSeenAt"/>, so chapters released while nobody looked
+    /// do not read as a release burst. Never cleared.
+    /// </summary>
+    public DateTime? RestoredAt { get; set; }
+
     /// <summary>
     /// <see cref="IncognitoMode.ScrobbleOnly"/> excludes this series from scrobbling. <see
     /// cref="IncognitoMode.Full"/> also excludes it from Rewind/reading-history <c>StatsEvent</c>s.

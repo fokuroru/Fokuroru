@@ -95,6 +95,11 @@ msgstr "{0, plural, one {# could not be moved (locked or permission denied)} oth
 msgid "{0, plural, one {# failed} other {# failed}}"
 msgstr "{0, plural, one {# failed} other {# failed}}"
 
+#. placeholder {0}: status.library.convertedFiles
+#: src/pages/settings/PageConversionSection.tsx
+msgid "{0, plural, one {# file converted, saving} other {# files converted, saving}}"
+msgstr "{0, plural, one {# file converted, saving} other {# files converted, saving}}"
+
 #. placeholder {0}: r.failed
 #: src/components/RelinkFilesModal.tsx
 msgid "{0, plural, one {# file could not be deleted (locked or permission denied)} other {# files could not be deleted (locked or permission denied)}}"
@@ -104,6 +109,11 @@ msgstr "{0, plural, one {# file could not be deleted (locked or permission denie
 #: src/components/RelinkFilesModal.tsx
 msgid "{0, plural, one {# file deleted} other {# files deleted}}"
 msgstr "{0, plural, one {# file deleted} other {# files deleted}}"
+
+#. placeholder {0}: status.library.pendingFiles
+#: src/pages/settings/PageConversionSection.tsx
+msgid "{0, plural, one {# file left to check.} other {# files left to check.}}"
+msgstr "{0, plural, one {# file left to check.} other {# files left to check.}}"
 
 #. placeholder {0}: entries.length
 #: src/pages/settings/RecycleBinSection.tsx
@@ -557,10 +567,6 @@ msgstr "{chaptersRead} of {seriesChapterCount} downloaded chapters read"
 #: src/pages/reader/ReaderToolbar.tsx
 msgid "{chaptersRead} of {seriesChapterCount} downloaded chapters read, {seriesWantedCount} in the series"
 msgstr "{chaptersRead} of {seriesChapterCount} downloaded chapters read, {seriesWantedCount} in the series"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#~ msgid "{chaptersRead}/{seriesChapterCount} chapters read"
-#~ msgstr "{chaptersRead}/{seriesChapterCount} chapters read"
 
 #: src/pages/ImportPage.tsx
 msgid "{comicCount, plural, one {# comic} other {# comics}}"
@@ -2418,10 +2424,6 @@ msgstr "Already queued"
 msgid "Already read or seen"
 msgstr "Already read or seen"
 
-#: src/components/discover/RecommendationFeedbackMenu.tsx
-#~ msgid "Already read or seen, taste unchanged"
-#~ msgstr "Already read or seen, taste unchanged"
-
 #: src/pages/SettingsPage.tsx
 msgid "Already running"
 msgstr "Already running"
@@ -2457,6 +2459,10 @@ msgstr "Also make this my default order"
 #: src/components/CatalogueRules.tsx
 msgid "Also match every tag filed under this one"
 msgstr "Also match every tag filed under this one"
+
+#: src/pages/SeriesDetailPage.tsx
+msgid "Also move the files to the recycle bin"
+msgstr "Also move the files to the recycle bin"
 
 #: src/pages/SeriesDetailPage.tsx
 msgid "Alt titles"
@@ -2930,6 +2936,10 @@ msgstr "balanced"
 #: src/pages/reader/enhanceMethods.ts
 msgid "Balanced"
 msgstr "Balanced"
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Balanced: fine at fit-to-screen"
+msgstr "Balanced: fine at fit-to-screen"
 
 #: src/components/series/SeriesProgress.tsx
 #: src/pages/SeriesDetailPage.tsx
@@ -3852,8 +3862,8 @@ msgid "Clears reader thumbnails and source-comparison samples, removes posters o
 msgstr "Clears reader thumbnails and source-comparison samples, removes posters of deleted series, and re-downloads posters. Thumbnails regenerate the next time a chapter opens."
 
 #: src/pages/SeriesDetailPage.tsx
-msgid "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
-msgstr "Clears the Retired badge. Files are not restored and monitoring stays off until you turn it on."
+msgid "Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once."
+msgstr "Clears the Retired badge and brings back the old monitoring mode. Files are not restored. Chapters released meanwhile are held, not downloaded all at once."
 
 #: src/components/CatalogueRules.tsx
 msgid "Click a genre once to require it, twice to exclude it."
@@ -3983,6 +3993,10 @@ msgstr "Comma-separated IPs or CIDR networks. Only these are trusted to set X-Fo
 #: src/components/ui/viewPrefs.tsx
 msgid "Compact"
 msgstr "Compact"
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Compact: screentone gets lighter"
+msgstr "Compact: screentone gets lighter"
 
 #: src/components/SourceMappingsSection.tsx
 msgid "Compare"
@@ -4231,10 +4245,6 @@ msgid "Continuous"
 msgstr "Continuous"
 
 #: src/components/settings/ReadingProfilesSection.tsx
-#~ msgid "Continuous layout only, in pixels."
-#~ msgstr "Continuous layout only, in pixels."
-
-#: src/components/settings/ReadingProfilesSection.tsx
 msgid "Continuous layout only."
 msgstr "Continuous layout only."
 
@@ -4245,6 +4255,10 @@ msgstr "Continuous vertical (webtoon)"
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Continuous, because this chapter's pages are very tall."
 msgstr "Continuous, because this chapter's pages are very tall."
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Convert library"
+msgstr "Convert library"
 
 #: src/components/settings/AccountSection.tsx
 msgid "Copied"
@@ -4331,10 +4345,6 @@ msgstr "Could not load libraries from Kavita: {kavitaLibrariesErrorMessage}"
 #: src/pages/stats/sections/LibrarySection.tsx
 msgid "Could not load library stats"
 msgstr "Could not load library stats"
-
-#: src/pages/reader/ReaderPage.tsx
-#~ msgid "Could not load this chapter."
-#~ msgstr "Could not load this chapter."
 
 #: src/pages/stats/sections/ProgressSection.tsx
 msgid "Could not load your progress. The server logs will say why."
@@ -4559,10 +4569,6 @@ msgstr "Creators you follow"
 #: src/pages/stats/sections/TasteSection.tsx
 msgid "Creators you return to"
 msgstr "Creators you return to"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#~ msgid "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
-#~ msgstr "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
 
 #: src/pages/reader/enhanceMethods.ts
 msgid "Crisp line art (server)"
@@ -5087,6 +5093,7 @@ msgid "Disliked it"
 msgstr "Disliked it"
 
 #: src/components/layout/SidebarFooter.tsx
+#: src/components/series/RateHint.tsx
 #: src/components/upgrades/TorrentProposalCard.tsx
 #: src/pages/NotificationsPage.tsx
 msgid "Dismiss"
@@ -5783,6 +5790,10 @@ msgstr "Excluded from taste"
 msgid "Existing folders on import"
 msgstr "Existing folders on import"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Existing library"
+msgstr "Existing library"
+
 #: src/components/layout/PageLayoutEditor.tsx
 msgid "Exit editing"
 msgstr "Exit editing"
@@ -6279,6 +6290,10 @@ msgstr "For readers like Komga and Kavita that pick up a poster from the folder.
 msgid "For scripts and third-party clients. A key acts as you through the <0>X-Api-Key</0> header. Your OPDS feed URL is managed on the OPDS card."
 msgstr "For scripts and third-party clients. A key acts as you through the <0>X-Api-Key</0> header. Your OPDS feed URL is managed on the OPDS card."
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Format"
+msgstr "Format"
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Format created"
 msgstr "Format created"
@@ -6722,6 +6737,10 @@ msgstr "High confidence"
 msgid "High quality"
 msgstr "High quality"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "High: no difference we could see"
+msgstr "High: no difference we could see"
+
 #: src/components/discover/DiscoverDetailModal.tsx
 msgid "Higher for readers like you"
 msgstr "Higher for readers like you"
@@ -6849,10 +6868,6 @@ msgstr "How often one appears"
 #: src/pages/discover/FeedbackLab.tsx
 msgid "How signals work"
 msgstr "How signals work"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#~ msgid "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
-#~ msgstr "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
 
 #: src/pages/discover/TasteTab.tsx
 msgid "How you read"
@@ -7309,6 +7324,10 @@ msgstr "Kavita, the trackers Fōkurōru scrobbles to, and Discord and webhook al
 msgid "Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
 msgstr "Kavita's reading belongs to one Fōkurōru account, and it isn't yours. An admin can change that under Settings → Integrations → Kavita."
 
+#: src/components/series/RateHint.tsx
+msgid "Keep {soFar}"
+msgstr "Keep {soFar}"
+
 #: src/components/SetupWizard.tsx
 msgid "Keep a local copy of MangaBaka"
 msgstr "Keep a local copy of MangaBaka"
@@ -7340,6 +7359,10 @@ msgstr "Keep folder name, but put new downloads in a Fōkurōru standard folder"
 #: src/components/SourceMeasurePanel.tsx
 msgid "Keep manual priority, but renumber it to follow the measured order."
 msgstr "Keep manual priority, but renumber it to follow the measured order."
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Keep PNG pages lossless"
+msgstr "Keep PNG pages lossless"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Keep taking better scoring copies once the cutoff is reached, until a file scores this much. 0 stops at the cutoff. Set it very high to never stop."
@@ -7504,6 +7527,10 @@ msgstr "Last chapter to mark watched"
 msgid "Last download failed: {lastError}. The next scheduled run retries."
 msgstr "Last download failed: {lastError}. The next scheduled run retries."
 
+#: src/pages/LibraryPage.tsx
+msgid "Last downloaded"
+msgstr "Last downloaded"
+
 #: src/components/RecommendationModelSwitch.tsx
 msgid "Last error: {lastError}"
 msgstr "Last error: {lastError}"
@@ -7638,10 +7665,6 @@ msgstr "Leave empty to send to every device."
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "Leave empty to use this profile only on series you pin it to."
 msgstr "Leave empty to use this profile only on series you pin it to."
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#~ msgid "Leave empty to use this profile only where you pin it to a series."
-#~ msgstr "Leave empty to use this profile only where you pin it to a series."
 
 #: src/components/rails/CustomRailEditor.tsx
 msgid "Leave out series in your library"
@@ -7939,6 +7962,10 @@ msgstr "Looks like a year, not a chapter"
 msgid "loose"
 msgstr "loose"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Lossless: identical pixels"
+msgstr "Lossless: identical pixels"
+
 #: src/components/releases/outlookText.ts
 msgid "Low confidence"
 msgstr "Low confidence"
@@ -8014,6 +8041,10 @@ msgstr "mainstream"
 #: src/components/settings/PairAppModal.tsx
 msgid "Make a new code"
 msgstr "Make a new code"
+
+#: src/components/series/SeriesHero.tsx
+msgid "Make this my rating"
+msgstr "Make this my rating"
 
 #: src/components/QueuePause.tsx
 msgid "Maki stops starting new downloads. Chapters already downloading finish, and nothing is removed from the queue. Torrents already handed to the download client keep downloading."
@@ -8628,10 +8659,6 @@ msgstr "Move up"
 msgid "Move up in queue"
 msgstr "Move up in queue"
 
-#: src/pages/SeriesDetailPage.tsx
-msgid "Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
-msgstr "Moves all downloaded files to the recycle bin, stops monitoring, and puts it on hold on your trackers. Chapters and reading history are kept."
-
 #: src/components/RelinkFilesModal.tsx
 msgid "moves onto a volume"
 msgstr "moves onto a volume"
@@ -8661,6 +8688,10 @@ msgstr "My Discord server"
 #: src/components/NotificationsSection.tsx
 msgid "My phone"
 msgstr "My phone"
+
+#: src/pages/LibraryPage.tsx
+msgid "My rating"
+msgstr "My rating"
 
 #: src/components/import/mihonRows.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
@@ -9363,14 +9394,6 @@ msgstr "Not analyzed"
 msgid "Not available"
 msgstr "Not available"
 
-#: src/api/client.ts
-#: src/components/ui/CoverCard.tsx
-#: src/components/ui/SeriesRow.tsx
-#: src/pages/reader/ReaderPage.tsx
-#: src/pages/SeriesDetailPage.tsx
-#~ msgid "Not available offline"
-#~ msgstr "Not available offline"
-
 #: src/components/releases/ReleaseOutlookSummary.tsx
 msgid "Not checked for new chapters: it is finished and complete, or has no source switched on."
 msgstr "Not checked for new chapters: it is finished and complete, or has no source switched on."
@@ -9791,6 +9814,7 @@ msgstr "of reading time"
 #: src/components/ui/incognito.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
 #: src/pages/reader/enhanceMethods.ts
+#: src/pages/settings/PageConversionSection.tsx
 msgid "Off"
 msgstr "Off"
 
@@ -10127,6 +10151,12 @@ msgstr "Original size (1:1)"
 msgid "Original title"
 msgstr "Original title"
 
+#. placeholder {0}: status.library.trashDays
+#. placeholder {1}: formatBytes(status.library.trashBytes)
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Originals wait {0} days in the upgrade trash ({1}) and can be restored from the series."
+msgstr "Originals wait {0} days in the upgrade trash ({1}) and can be restored from the series."
+
 #: src/api/readingProfiles.ts
 #: src/components/CatalogueFilters.tsx
 #: src/components/TagBuckets.tsx
@@ -10201,6 +10231,16 @@ msgstr "Page {pageIndex}/{pageCount}"
 #: src/components/home/ReadingRail.tsx
 msgid "Page {pageNumber} of {pageCount}"
 msgstr "Page {pageNumber} of {pageCount}"
+
+#: src/pages/settings/PageConversionSection.tsx
+#: src/pages/settings/registry.ts
+msgid "Page conversion"
+msgstr "Page conversion"
+
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "page conversion, webp, avif, convert pages, compress, disk space, file size, re-encode, image format, quality, lossless"
+msgstr "page conversion, webp, avif, convert pages, compress, disk space, file size, re-encode, image format, quality, lossless"
 
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Page Down"
@@ -10354,6 +10394,7 @@ msgid "Path mapping - Kavita side"
 msgstr "Path mapping - Kavita side"
 
 #: src/components/QueuePause.tsx
+#: src/pages/settings/PageConversionSection.tsx
 msgid "Pause"
 msgstr "Pause"
 
@@ -10764,6 +10805,7 @@ msgstr "QR code for pairing the Android app"
 
 #: src/components/SeriesFilesSection.tsx
 #: src/components/SourceMappingsSection.tsx
+#: src/pages/settings/PageConversionSection.tsx
 msgid "Quality"
 msgstr "Quality"
 
@@ -10895,7 +10937,12 @@ msgstr "Rate limited"
 msgid "Rate limited by {source}, waiting before the next try"
 msgstr "Rate limited by {source}, waiting before the next try"
 
+#: src/components/series/RateHint.tsx
+msgid "Rate this series"
+msgstr "Rate this series"
+
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/LibraryPage.tsx
 msgid "Rated"
 msgstr "Rated"
 
@@ -10903,11 +10950,9 @@ msgstr "Rated"
 msgid "Rated {rating}/10"
 msgstr "Rated {rating}/10"
 
-#: src/pages/LibraryPage.tsx
-#: src/pages/reader/ReaderPage.tsx
 #: src/pages/SeriesDetailPage.tsx
-#~ msgid "Rated {rating}/10 so far"
-#~ msgstr "Rated {rating}/10 so far"
+msgid "Rated {rating}/10 so far"
+msgstr "Rated {rating}/10 so far"
 
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
@@ -11861,6 +11906,7 @@ msgstr "Restrict release searches to specific indexers and categories. With noth
 #: src/components/home/ContinueLead.tsx
 #: src/components/home/ReadingRail.tsx
 #: src/components/QueuePause.tsx
+#: src/pages/settings/PageConversionSection.tsx
 #: src/pages/SimpleHomePage.tsx
 #: src/pages/stats/sections/HabitsSection.tsx
 msgid "Resume"
@@ -12162,6 +12208,7 @@ msgstr "Sample chapter"
 #: src/components/TagManagerModal.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
+#: src/pages/settings/PageConversionSection.tsx
 #: src/pages/settings/SettingsSection.tsx
 msgid "Save"
 msgstr "Save"
@@ -12301,10 +12348,6 @@ msgstr "Savoured"
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "Scale"
 msgstr "Scale"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#~ msgid "Scale ({scale}%)"
-#~ msgstr "Scale ({scale}%)"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -13418,6 +13461,10 @@ msgstr "Slot in"
 msgid "Small"
 msgstr "Small"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Smallest: screentone is smoothed away"
+msgstr "Smallest: screentone is smoothed away"
+
 #: src/pages/SeriesDetailPage.tsx
 msgid "smart"
 msgstr "smart"
@@ -13448,6 +13495,14 @@ msgstr "Snapshot on disk: {snapshotSize}, refreshed {refreshedAtLabel}"
 #: src/pages/SettingsPage.tsx
 msgid "Snapshot on disk: {snapshotSize}, refreshed at an unknown time"
 msgstr "Snapshot on disk: {snapshotSize}, refreshed at an unknown time"
+
+#: src/components/series/SeriesHero.tsx
+msgid "so far"
+msgstr "so far"
+
+#: src/components/series/SeriesHero.tsx
+msgid "so far, at ch. {soFarChapter}"
+msgstr "so far, at ch. {soFarChapter}"
 
 #: src/api/inbox.ts
 msgid "Somebody filed a request"
@@ -13595,10 +13650,6 @@ msgstr "Spin-off of {relatedTo}"
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Split"
 msgstr "Split"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#~ msgid "Split double-width pages"
-#~ msgstr "Split double-width pages"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Split from the tier above"
@@ -13759,9 +13810,17 @@ msgstr "Stop showing their new titles on Home and Discover"
 msgid "Stopped before finishing"
 msgstr "Stopped before finishing"
 
+#: src/pages/SeriesDetailPage.tsx
+msgid "Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept."
+msgstr "Stops checking sources and downloading, and puts it on hold on your trackers. Chapters, reading history and the monitoring mode are kept."
+
 #: src/pages/SettingsPage.tsx
 msgid "Storage, metadata, download clients and integrations for your Fōkurōru instance."
 msgstr "Storage, metadata, download clients and integrations for your Fōkurōru instance."
+
+#: src/pages/settings/PageConversionSection.tsx
+msgid "Stores chapter pages in a smaller image format. New downloads are converted as they arrive."
+msgstr "Stores chapter pages in a smaller image format. New downloads are converted as they arrive."
 
 #: src/components/CreditPicker.tsx
 #: src/components/discover/DiscoverGlance.tsx
@@ -13947,10 +14006,6 @@ msgstr "Tap the page to see what a tap does."
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Tap zones"
 msgstr "Tap zones"
-
-#: src/components/settings/ReadingProfilesSection.tsx
-#~ msgid "Tap zones (click the page edges to turn)"
-#~ msgstr "Tap zones (click the page edges to turn)"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 msgid "Tap zones (click the page edges to turn), paged layouts only"
@@ -14459,10 +14514,6 @@ msgstr "This chapter is not downloaded, and your account cannot download chapter
 #: src/pages/reader/DownloadSplash.tsx
 msgid "This chapter is not on your server yet."
 msgstr "This chapter is not on your server yet."
-
-#: src/pages/reader/ReaderPage.tsx
-#~ msgid "This chapter isn't saved on this device."
-#~ msgstr "This chapter isn't saved on this device."
 
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
@@ -15108,6 +15159,7 @@ msgstr "Unofficial build, update checks are skipped."
 msgid "Unplace"
 msgstr "Unplace"
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/stats/labels.ts
 msgid "Unrated"
 msgstr "Unrated"
@@ -15788,6 +15840,10 @@ msgstr "Webhook"
 msgid "Webhook URL"
 msgstr "Webhook URL"
 
+#: src/pages/settings/PageConversionSection.tsx
+msgid "WebP opens in every reader. AVIF does not open in KOReader or on iOS before 16."
+msgstr "WebP opens in every reader. AVIF does not open in KOReader or on iOS before 16."
+
 #: src/pages/settings/ManageSourcesModal.tsx
 msgid "Webtoon"
 msgstr "Webtoon"
@@ -16151,6 +16207,10 @@ msgstr "You finished {animeTitle}. The anime covers up to ch. {coveredTo}. Start
 msgid "You follow nobody yet. Open a creator or studio and press Follow."
 msgstr "You follow nobody yet. Open a creator or studio and press Follow."
 
+#: src/components/series/RateHint.tsx
+msgid "You had this at {soFar} so far. Keep it?"
+msgstr "You had this at {soFar} so far. Keep it?"
+
 #: src/components/AnimeCoverageBar.tsx
 msgid "You have read to ch. {readChapter}"
 msgstr "You have read to ch. {readChapter}"
@@ -16203,6 +16263,10 @@ msgstr "You're caught up"
 #: src/components/SetupWizard.tsx
 msgid "You're set"
 msgstr "You're set"
+
+#: src/components/series/RateHint.tsx
+msgid "You've finished this. How was it?"
+msgstr "You've finished this. How was it?"
 
 #: src/pages/rewind/slides.tsx
 msgid "Your {label}"
@@ -16343,23 +16407,10 @@ msgstr "Z:\\downloads (optional)"
 msgid "Zones"
 msgstr "Zones"
 
-#. placeholder {0}: prefs.scale
-#: src/components/discover/SeriesPreviewReader.tsx
-#~ msgid "Zoom ({0}%)"
-#~ msgstr "Zoom ({0}%)"
-
 #: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Zoom ({scale}%)"
 msgstr "Zoom ({scale}%)"
 
-#: src/pages/reader/ReaderToolbar.tsx
-#~ msgid "Zoom in"
-#~ msgstr "Zoom in"
-
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Zoom in and out"
 msgstr "Zoom in and out"
-
-#: src/pages/reader/ReaderToolbar.tsx
-#~ msgid "Zoom out"
-#~ msgstr "Zoom out"

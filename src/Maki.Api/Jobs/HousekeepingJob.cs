@@ -151,6 +151,34 @@ public class HousekeepingJob(
             }
         }
 
+        // Page conversion's scratch files (converted copies of downloads, the Windows source copy, the
+        // hardlink probe) left in a library share's .maki/tmp by a process that died mid-write.
+        var convCutoff = DateTime.UtcNow.AddDays(-1);
+        foreach (var rootPath in await db.RootFolders.Select(r => r.Path).ToListAsync(ct))
+        {
+            var tmpDir = Path.Combine(rootPath, ".maki", "tmp");
+            if (!Directory.Exists(tmpDir))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(tmpDir, "*.cbz.converted*").Concat(Directory.EnumerateFiles(tmpDir, "conv-*")))
+            {
+                try
+                {
+                    if (File.GetLastWriteTimeUtc(file) < convCutoff)
+                    {
+                        File.Delete(file);
+                    }
+                }
+                // One file still held open must not keep the rest of the folder from being swept.
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    logger.LogDebug(ex, "Could not delete {File}", file);
+                }
+            }
+        }
+
         try
         {
             var purged = await upgradeTrash.PurgeAsync(ct);

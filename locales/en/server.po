@@ -831,6 +831,14 @@ msgid "error.series.activeDownloadDelete"
 msgstr "Series has a download in progress. Wait for it to finish before deleting."
 
 #: src/Maki.Api/Controllers/SeriesController.cs
+msgid "error.series.noProvisionalRating"
+msgstr "This series has no so far rating to finalize."
+
+#: src/Maki.Api/Controllers/SeriesController.cs
+msgid "error.series.retired"
+msgstr "This series is retired. Unretire it first."
+
+#: src/Maki.Api/Controllers/SeriesController.cs
 msgid "error.series.activeDownloadRetire"
 msgstr "Series has a download in progress. Wait for it to finish before retiring it."
 
@@ -3692,3 +3700,31 @@ msgstr "The model is busy with a page right now. Try again in a moment."
 #: src/Maki.Api/Controllers/UpscalingController.cs
 msgid "error.upscaling.unknownModel"
 msgstr "Maki does not know that model."
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+msgid "error.pageConversion.formatInvalid"
+msgstr "Choose WebP, AVIF or off"
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+msgid "error.pageConversion.off"
+msgstr "Choose a format for page conversion first"
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+msgid "error.pageConversion.parallelInvalid"
+msgstr "Pages converted at once must be between 1 and {max}"
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+msgid "error.pageConversion.ruleInvalid"
+msgstr "One of the rules is not valid. Check its conditions and what it does."
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+msgid "error.pageConversion.stopInvalid"
+msgstr "Choose Smallest, Compact, Balanced, High or Lossless"
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+msgid "error.pageConversion.undoConflict"
+msgstr "Choose either to convert the files again or to set the series to Never, not both"
+
+#: src/Maki.Api/Controllers/PageConversionController.cs
+msgid "error.series.invalidPageConversion"
+msgstr "Page conversion must be Default, Never, Smallest, Compact, Balanced, High or Lossless"

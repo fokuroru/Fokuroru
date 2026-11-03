@@ -23,6 +23,13 @@ public static class HardLinks
                 return GetFileInformationByHandle(handle, out var info) ? (int)info.NumberOfLinks : null;
             }
 
+            if (OperatingSystem.IsMacOS())
+            {
+                // struct stat on 64-bit macOS: st_dev (4), st_mode (2), then a 16-bit st_nlink.
+                var buffer = new byte[256];
+                return stat(path, buffer) != 0 ? null : BitConverter.ToUInt16(buffer, 6);
+            }
+
             if (OperatingSystem.IsLinux())
             {
                 // struct stat differs by architecture: x86_64 has a 64-bit st_nlink at offset 16,

@@ -62,6 +62,7 @@ public class SourceMatchWorkerHostedService(
             var db = scope.ServiceProvider.GetRequiredService<MakiDbContext>();
 
             var pending = await db.Series
+                .Active()
                 .Where(s => s.SourceMatchPending)
                 .Select(s => s.Id)
                 .ToListAsync(ct);

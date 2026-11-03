@@ -8,6 +8,7 @@ using Maki.Core.ComicInfo;
 using Maki.Core.Download;
 using Maki.Core.Entities;
 using Maki.Core.Http;
+using Maki.Core.Images;
 using Maki.Core.Inbox;
 using Maki.Core.Naming;
 using Maki.Core.Notifications;
@@ -269,12 +270,20 @@ public class ChapterDownloadProcessor(
             await SetStatusAsync(item, QueueStatus.Importing, ct);
             var desiredPath = await naming.BuildChapterRelativePathAsync(series, chapter, ct);
 
+            // Converted before the lock, since it is the slow part. An upgrade is judged on the archive as
+            // downloaded, so its converted copy stays beside it and is what moves into place.
+            var conversion = await ConvertPackagedAsync(item, series.Id, source, mapping.SourceName, tmpCbz, ct);
+            if (item.UpgradeInfoJson is null && conversion is { Result.Outcome: ArchiveConversionOutcome.Converted })
+            {
+                File.Move(conversion.Path, tmpCbz, overwrite: true);
+            }
+
             // Released right after the save below; the using covers every other way out.
             using var seriesLock = await SeriesLocks.SeriesAsync(series.Id, ct);
             if (item.UpgradeInfoJson is not null)
             {
                 return await ApplyUpgradeAsync(item, chapter, series, rootFolder, mapping, source, sourceChapterId,
-                    tmpCbz, workingDir, ct);
+                    tmpCbz, workingDir, conversion, ct);
             }
 
             var seriesFiles = await db.ChapterFiles.Where(f => f.SeriesId == series.Id).ToListAsync(ct);
@@ -325,6 +334,7 @@ public class ChapterDownloadProcessor(
                 chapterFile.Tier = QualityTier.Unknown;
                 chapterFile.Group = null;
                 chapterFile.MeasuredAtUtc = null;
+                chapterFile.ResetConversion();
 
                 // Same row id, different archive behind it. The reader caches its page list per
                 // ChapterFile, so without this the reader serves the old rip's page names.
@@ -340,9 +350,15 @@ public class ChapterDownloadProcessor(
             // pages were validated moments ago and a full second read would only repeat that work.
             quality.Stamp(chapterFile, finalPath, source.Kind, linkGroup ?? ChapterFileQualityService.SiteGroup(source),
                 ChapterFileMeasureService.SampleSize, CancellationToken.None);
+            if (conversion is { } converted)
+            {
+                PageConversionOptions.Apply(chapterFile, converted.Result, converted.Measured.ImageFormat,
+                    converted.CheckedWith, DateTime.UtcNow);
+            }
+
             await SourceQualitySamples.RecordAsync(db, mapping, chapter.Id, SourceQualityOrigin.Download,
-                chapterFile.PageCount, chapterFile.MedianWidth, chapterFile.MedianHeight, chapterFile.Size,
-                chapterFile.ImageFormat, DateTime.UtcNow, CancellationToken.None);
+                chapterFile.PageCount, chapterFile.MedianWidth, chapterFile.MedianHeight, chapterFile.QualitySize,
+                chapterFile.QualityImageFormat, DateTime.UtcNow, CancellationToken.None);
 
             // Only a chapter the library didn't already have counts. A re-download replaces bytes
             // at a path that was already there, so recording it again inflates the instance's
@@ -521,9 +537,62 @@ public class ChapterDownloadProcessor(
     /// <c>.maki-trash</c> and puts the new one at the same relative path, then updates the same
     /// <see cref="ChapterFile"/> row. Nothing is overwritten in place and no StatsEvent is written.
     /// </summary>
+    private static string ConvertedPath(string tmpCbz) => tmpCbz + ".converted";
+
+    /// <summary>
+    /// What the conversion plan made of a packaged archive. <see cref="Result"/> is null when the plan
+    /// said to leave it as it is; a result other than Converted has nothing at <see cref="Path"/>.
+    /// <see cref="Measured"/> is the archive as it was packaged, before any conversion.
+    /// </summary>
+    private sealed record PackagedConversion(
+        string CheckedWith, ChapterFileMeasurement Measured, string Path, ArchiveConversionResult? Result);
+
+    /// <summary>
+    /// Decides the packaged archive by the conversion plan and converts it beside itself when the plan
+    /// says so. Null while conversion is off, or when it failed for a reason outside the pages, which
+    /// leaves the chapter for the library pass.
+    /// </summary>
+    private async Task<PackagedConversion?> ConvertPackagedAsync(DownloadQueueItem item, int seriesId, ISource source,
+        string sourceName, string tmpCbz, CancellationToken ct)
+    {
+        if (await PageConversionOptions.LoadPlanAsync(db, ct) is not { } plan)
+        {
+            return null;
+        }
+
+        var target = ConvertedPath(tmpCbz);
+        try
+        {
+            var measured = ChapterFileMeasurer.MeasureArchive(tmpCbz, ChapterFileMeasureService.SampleSize, ct);
+            var candidate = await PageConversionPlanService.ForDownloadAsync(db, seriesId, source.Kind, sourceName, measured,
+                new FileInfo(tmpCbz).Length, ct);
+            var action = plan.Resolve(candidate);
+            if (action is not PlanAction.Convert { Settings: var settings })
+            {
+                return new PackagedConversion(action.Name, measured, target, null);
+            }
+
+            var result = await ArchivePageConverter.ConvertAsync(tmpCbz, target, settings, ct);
+            if (result.Outcome == ArchiveConversionOutcome.Converted)
+            {
+                logger.LogDebug("Converted the pages of queue item {Id}: {Before} to {After} bytes",
+                    item.Id, result.SourceBytes, result.ResultBytes);
+            }
+
+            return new PackagedConversion(action.Name, measured, target, result);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not convert the pages of queue item {Id}; keeping them as downloaded", item.Id);
+            TryDeleteFile(target);
+            return null;
+        }
+    }
+
     private async Task<DownloadOutcome> ApplyUpgradeAsync(
         DownloadQueueItem item, Chapter chapter, Series series, RootFolder rootFolder, SourceMapping mapping,
-        ISource source, string sourceChapterId, string tmpCbz, string workingDir, CancellationToken ct)
+        ISource source, string sourceChapterId, string tmpCbz, string workingDir, PackagedConversion? conversion,
+        CancellationToken ct)
     {
         var info = UpgradeInfo.Parse(item.UpgradeInfoJson);
         var current = info is null || chapter.ChapterFileId != info.ChapterFileId
@@ -619,9 +688,10 @@ public class ChapterDownloadProcessor(
             return DownloadOutcome.Settled;
         }
 
+        var placed = conversion is { Result.Outcome: ArchiveConversionOutcome.Converted } ? conversion.Path : tmpCbz;
         try
         {
-            File.Move(tmpCbz, finalPath);
+            File.Move(placed, finalPath);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -667,6 +737,12 @@ public class ChapterDownloadProcessor(
         current.MedianWidth = measurement.MedianWidth;
         current.MedianHeight = measurement.MedianHeight;
         current.ImageFormat = measurement.ImageFormat;
+        current.ResetConversion();
+        if (conversion is not null)
+        {
+            PageConversionOptions.Apply(current, conversion.Result, measurement.ImageFormat, conversion.CheckedWith, now);
+        }
+
         current.MeasuredAtUtc = now;
         current.ReplacedAtUtc = now;
         current.ReleaseName = null;

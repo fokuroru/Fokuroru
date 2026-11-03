@@ -66,9 +66,9 @@ public class SourceMappingController(
 
         // Through db.Series, whose query filter hides series in root folders the caller holds no
         // grant for. The insert below would not check that on its own.
-        if (!await db.Series.AnyAsync(s => s.Id == request.SeriesId, ct))
+        if (await MissingOrRetiredAsync(request.SeriesId, ct) is { } blocked)
         {
-            return NotFound();
+            return blocked;
         }
 
         // Linking a globally switched-off source would create a mapping that never runs;
@@ -154,9 +154,9 @@ public class SourceMappingController(
     public async Task<IActionResult> RefreshSnapshots(
         [FromBody] RefreshSnapshotsRequest request, CancellationToken ct)
     {
-        if (!await db.Series.AnyAsync(s => s.Id == request.SeriesId, ct))
+        if (await MissingOrRetiredAsync(request.SeriesId, ct) is { } blocked)
         {
-            return NotFound();
+            return blocked;
         }
 
         var disabled = await sourceAvailability.DisabledAsync(ct);
@@ -202,9 +202,9 @@ public class SourceMappingController(
     {
         // Resolved through EF so the series' global query filter decides visibility, exactly as in
         // MediaCoverController: a series outside the caller's root folders is a 404, not a 403.
-        if (!await db.Series.AnyAsync(s => s.Id == request.SeriesId, ct))
+        if (await MissingOrRetiredAsync(request.SeriesId, ct) is { } blocked)
         {
-            return NotFound();
+            return blocked;
         }
 
         var disabled = await sourceAvailability.DisabledAsync(ct);
@@ -233,9 +233,9 @@ public class SourceMappingController(
     public async Task<IActionResult> Quality(
         [FromQuery] int seriesId, [FromServices] UpgradeEvaluationService upgrades, CancellationToken ct)
     {
-        if (!await db.Series.AnyAsync(s => s.Id == seriesId, ct))
+        if (await MissingOrRetiredAsync(seriesId, ct) is { } blocked)
         {
-            return NotFound();
+            return blocked;
         }
 
         var estimates = await SourceQualitySamples.EstimatesAsync(db, seriesId, ct);
@@ -271,9 +271,9 @@ public class SourceMappingController(
     [HttpPost("scout")]
     public async Task<IActionResult> Scout([FromBody] ScoutRequest request, CancellationToken ct)
     {
-        if (!await db.Series.AnyAsync(s => s.Id == request.SeriesId, ct))
+        if (await MissingOrRetiredAsync(request.SeriesId, ct) is { } blocked)
         {
-            return NotFound();
+            return blocked;
         }
 
         return Accepted(scout.Start(request.SeriesId));
@@ -306,9 +306,9 @@ public class SourceMappingController(
     public async Task<IActionResult> Compare(
         [FromQuery] int seriesId, [FromServices] UpgradeEvaluationService upgrades, CancellationToken ct)
     {
-        if (!await db.Series.AnyAsync(s => s.Id == seriesId, ct))
+        if (await MissingOrRetiredAsync(seriesId, ct) is { } blocked)
         {
-            return NotFound();
+            return blocked;
         }
 
         return comparePreviews.Snapshot(seriesId, localizer) is { } snapshot
@@ -409,6 +409,17 @@ public class SourceMappingController(
     /// A source publishing none of the enabled languages is never auto-matched at all, so it ranks
     /// after every source that is, keeping base order among its own kind.
     /// </summary>
+    private async Task<IActionResult?> MissingOrRetiredAsync(int seriesId, CancellationToken ct)
+    {
+        var target = await db.Series.Where(s => s.Id == seriesId).Select(s => new { s.Retired }).FirstOrDefaultAsync(ct);
+        if (target is null)
+        {
+            return NotFound();
+        }
+
+        return target.Retired ? this.Conflict(localizer, "error.series.retired") : null;
+    }
+
     private async Task<int> PriorityForAsync(string sourceName, CancellationToken ct)
     {
         var baseOrder = SourceMatchService.OrderSources(

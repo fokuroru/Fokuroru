@@ -93,6 +93,8 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
     public DbSet<SourceQualitySample> SourceQualitySamples => Set<SourceQualitySample>();
     public DbSet<UpgradeHistory> UpgradeHistory => Set<UpgradeHistory>();
     public DbSet<RecycleBinEntry> RecycleBin => Set<RecycleBinEntry>();
+    public DbSet<PageConversionRule> PageConversionRules => Set<PageConversionRule>();
+    public DbSet<PageConversionHistory> PageConversionHistory => Set<PageConversionHistory>();
     public DbSet<TorrentProposal> TorrentProposals => Set<TorrentProposal>();
 
     public override int SaveChanges()
@@ -580,6 +582,15 @@ public class MakiDbContext(DbContextOptions<MakiDbContext> options, DataScope? s
             e.HasOne<Chapter>().WithMany().HasForeignKey(h => h.ChapterId).OnDelete(DeleteBehavior.Cascade);
             // No FK to ChapterFile: a torrent replacement removes the superseded file's row and its
             // history has to outlive it so the group can be reverted.
+        });
+
+        modelBuilder.Entity<PageConversionHistory>(e =>
+        {
+            e.HasQueryFilter(h => _scope.Unrestricted || Series.Any(s => s.Id == h.SeriesId));
+            e.HasIndex(h => new { h.SeriesId, h.UndoneAtUtc });
+            e.HasOne<Series>().WithMany().HasForeignKey(h => h.SeriesId).OnDelete(DeleteBehavior.Cascade);
+            // No FK to ChapterFile or Chapter: the original in the trash outlives both, and the purge
+            // still has to find it by this row.
         });
 
         modelBuilder.Entity<RecycleBinEntry>(e =>
