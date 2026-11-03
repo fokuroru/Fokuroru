@@ -20,7 +20,7 @@ public static class HomeSections
     public const string FromAnime = "fromanime";
     public const string Recommended = "recommended";
 
-    /// <summary>Random series with unread chapters the reader has not touched for a while.</summary>
+    /// <summary>Series with unread chapters, ordered by how long ago the reader last read from them.</summary>
     public const string Revisit = "revisit";
 
     /// <summary>The newest titles from the creators and studios the reader follows.</summary>

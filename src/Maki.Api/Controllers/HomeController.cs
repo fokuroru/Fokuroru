@@ -80,8 +80,6 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
     /// </summary>
     private const int RecentProgressScan = 2000;
 
-    private static readonly TimeSpan RevisitAfter = TimeSpan.FromDays(60);
-
     /// <summary>
     /// The two reading rails. "Continue reading" is series with a chapter part-way through;
     /// "Jump back in" is series last touched by a <em>finished</em> chapter that still have
@@ -401,14 +399,13 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
         Ok(await fresh.RailAsync(DateTime.UtcNow, Math.Clamp(limit, 1, 40), ct));
 
     /// <summary>
-    /// A random pick of series the reader has read from before, has unread chapters in, and has not
-    /// read from for <see cref="RevisitAfter"/>. Watched ticks are not reading.
+    /// Series the reader has read from before and still has unread chapters in, longest untouched
+    /// first. Watched ticks are not reading.
     /// </summary>
     [HttpGet("revisit")]
     public async Task<IActionResult> Revisit([FromQuery] int limit = 12, CancellationToken ct = default)
     {
         limit = Math.Clamp(limit, 1, 40);
-        var cutoff = DateTime.UtcNow - RevisitAfter;
 
         var lapsed = await db.ChapterProgress
             .AsNoTracking()
@@ -416,7 +413,7 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
             .Where(p => !p.Watched)
             .GroupBy(p => p.SeriesId)
             .Select(g => new { SeriesId = g.Key, Last = g.Max(p => p.UpdatedAt) })
-            .Where(x => x.Last < cutoff)
+            .OrderBy(x => x.Last)
             .ToListAsync(ct);
 
         var hidden = await db.UserSeriesStates
@@ -425,11 +422,10 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
             .Select(s => s.SeriesId)
             .ToListAsync(ct);
 
-        // Over-fetch: candidates with nothing downloaded and unread are dropped by NextForAsync.
+        // Over-fetch: the oldest reads are often finished series, which NextForAsync drops.
         var picked = lapsed
             .Where(x => !hidden.Contains(x.SeriesId))
-            .OrderBy(_ => Random.Shared.Next())
-            .Take(limit * 4)
+            .Take(limit * 10)
             .ToList();
         if (picked.Count == 0)
         {

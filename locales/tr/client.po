@@ -2220,10 +2220,6 @@ msgstr ""
 msgid "A proposal nobody answers is dropped after this long."
 msgstr ""
 
-#: src/components/home/homeSectionDefs.ts
-msgid "A random pick of series with unread chapters that you have not read from in 60 days."
-msgstr ""
-
 #: src/components/NotificationsSection.tsx
 #, fuzzy
 msgid "A refresh found new chapters for a series."
@@ -15231,6 +15227,10 @@ msgstr "Bu listedeki seriler Keşfet'te hiçbir yerde görünmez: bölümlerde, 
 #, fuzzy
 msgid "Series with newly added chapters."
 msgstr "Yeni bölümleri eklenen seriler."
+
+#: src/components/home/homeSectionDefs.ts
+msgid "Series with unread chapters that you read from longest ago."
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy

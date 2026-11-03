@@ -66,7 +66,7 @@ export const HOME_SECTION_DEFS: SectionRegistry = {
   revisit: {
     icon: IconDice5,
     label: HOME_SECTION_LABELS.revisit,
-    description: msg`A random pick of series with unread chapters that you have not read from in 60 days.`,
+    description: msg`Series with unread chapters that you read from longest ago.`,
   },
   previews: {
     icon: IconEye,

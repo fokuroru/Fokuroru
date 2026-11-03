@@ -1893,10 +1893,6 @@ msgstr "A proposal is already waiting for this series"
 msgid "A proposal nobody answers is dropped after this long."
 msgstr "A proposal nobody answers is dropped after this long."
 
-#: src/components/home/homeSectionDefs.ts
-msgid "A random pick of series with unread chapters that you have not read from in 60 days."
-msgstr "A random pick of series with unread chapters that you have not read from in 60 days."
-
 #: src/components/NotificationsSection.tsx
 msgid "A refresh found new chapters for a series."
 msgstr "A refresh found new chapters for a series."
@@ -12997,6 +12993,10 @@ msgstr "Series with any of these never show up on Discover: not in rails, search
 #: src/components/home/homeSectionDefs.ts
 msgid "Series with newly added chapters."
 msgstr "Series with newly added chapters."
+
+#: src/components/home/homeSectionDefs.ts
+msgid "Series with unread chapters that you read from longest ago."
+msgstr "Series with unread chapters that you read from longest ago."
 
 #: src/components/rails/CustomRailEditor.tsx
 msgid "Series you already have that match these filters."

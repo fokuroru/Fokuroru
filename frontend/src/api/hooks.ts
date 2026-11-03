@@ -901,7 +901,7 @@ export function useHideHomeReading() {
   })
 }
 
-/** Random series with unread chapters not read from in 60 days. Keyed under `reading` so hiding a series refreshes it. */
+/** Series with unread chapters, longest since last read first. Keyed under `reading` so hiding a series refreshes it. */
 export function useHomeRevisit(limit = 12, enabled = true) {
   const gate = useDisplayGate()
   return useQuery({

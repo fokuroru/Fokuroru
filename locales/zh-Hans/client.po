@@ -2220,10 +2220,6 @@ msgstr ""
 msgid "A proposal nobody answers is dropped after this long."
 msgstr ""
 
-#: src/components/home/homeSectionDefs.ts
-msgid "A random pick of series with unread chapters that you have not read from in 60 days."
-msgstr ""
-
 #: src/components/NotificationsSection.tsx
 #, fuzzy
 msgid "A refresh found new chapters for a series."
@@ -15231,6 +15227,10 @@ msgstr "列表中的作品不会出现在“发现”的任何位置：推荐栏
 #, fuzzy
 msgid "Series with newly added chapters."
 msgstr "有新增章节的作品。"
+
+#: src/components/home/homeSectionDefs.ts
+msgid "Series with unread chapters that you read from longest ago."
+msgstr ""
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
