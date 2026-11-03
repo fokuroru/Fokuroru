@@ -8794,6 +8794,10 @@ msgstr "Último capítulo a marcar como assistido"
 msgid "Last download failed: {lastError}. The next scheduled run retries."
 msgstr "Último download falhou: {lastError}. A próxima execução agendada tentará novamente."
 
+#: src/pages/LibraryPage.tsx
+msgid "Last downloaded"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
 #, fuzzy
 msgid "Last error: {lastError}"
@@ -10152,6 +10156,10 @@ msgstr "Meu servidor Discord"
 #, fuzzy
 msgid "My phone"
 msgstr "Meu telefone"
+
+#: src/pages/LibraryPage.tsx
+msgid "My rating"
+msgstr ""
 
 #: src/components/import/mihonRows.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
@@ -12751,6 +12759,7 @@ msgid "Rate limited by {source}, waiting before the next try"
 msgstr "Limitado por {source}, aguardando antes da próxima tentativa"
 
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Rated"
 msgstr "Avaliado"
@@ -17671,6 +17680,7 @@ msgstr "Build não oficial, as verificações de atualização são ignoradas."
 msgid "Unplace"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/stats/labels.ts
 #, fuzzy
 msgid "Unrated"

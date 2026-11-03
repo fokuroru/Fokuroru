@@ -7484,6 +7484,10 @@ msgstr "Last chapter to mark watched"
 msgid "Last download failed: {lastError}. The next scheduled run retries."
 msgstr "Last download failed: {lastError}. The next scheduled run retries."
 
+#: src/pages/LibraryPage.tsx
+msgid "Last downloaded"
+msgstr "Last downloaded"
+
 #: src/components/RecommendationModelSwitch.tsx
 msgid "Last error: {lastError}"
 msgstr "Last error: {lastError}"
@@ -8633,6 +8637,10 @@ msgstr "My Discord server"
 #: src/components/NotificationsSection.tsx
 msgid "My phone"
 msgstr "My phone"
+
+#: src/pages/LibraryPage.tsx
+msgid "My rating"
+msgstr "My rating"
 
 #: src/components/import/mihonRows.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
@@ -10860,6 +10868,7 @@ msgid "Rate limited by {source}, waiting before the next try"
 msgstr "Rate limited by {source}, waiting before the next try"
 
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/LibraryPage.tsx
 msgid "Rated"
 msgstr "Rated"
 
@@ -15054,6 +15063,7 @@ msgstr "Unofficial build, update checks are skipped."
 msgid "Unplace"
 msgstr "Unplace"
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/stats/labels.ts
 msgid "Unrated"
 msgstr "Unrated"

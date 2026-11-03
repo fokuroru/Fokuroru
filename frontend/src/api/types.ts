@@ -120,6 +120,8 @@ export interface SeriesDto {
   retired?: boolean
   /** When you last read any chapter of it, ISO. Null if never. */
   lastReadAt?: string | null
+  /** When the newest chapter file landed, or null with no files. Library list endpoint only. */
+  lastDownloadedAt?: string | null
   /**
    * Main releases you have read, from history: a chapter whose file auto-delete removed still
    * counts. `readChapterCount` is the on-disk count and drops with each deleted file.
@@ -228,6 +230,8 @@ export interface LibraryFilterSpec {
   readingStatus?: string
   /** "all" | "hide" | "only". Absent on older presets. */
   retired?: string
+  /** "all" | "rated" | "unrated" by your own rating. */
+  rated?: string
   /** "all" | "hide" | "only": series with no chapter files on disk. Absent on older presets. */
   noFiles?: string
 }

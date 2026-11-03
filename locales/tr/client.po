@@ -8794,6 +8794,10 @@ msgstr "İzlendi olarak işaretlenecek son bölüm"
 msgid "Last download failed: {lastError}. The next scheduled run retries."
 msgstr "Son indirme başarısız oldu: {lastError}. Bir sonraki zamanlanmış çalıştırma yeniden dener."
 
+#: src/pages/LibraryPage.tsx
+msgid "Last downloaded"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
 #, fuzzy
 msgid "Last error: {lastError}"
@@ -10152,6 +10156,10 @@ msgstr "Discord sunucum"
 #, fuzzy
 msgid "My phone"
 msgstr "Telefonum"
+
+#: src/pages/LibraryPage.tsx
+msgid "My rating"
+msgstr ""
 
 #: src/components/import/mihonRows.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
@@ -12751,6 +12759,7 @@ msgid "Rate limited by {source}, waiting before the next try"
 msgstr "{source} tarafından hız sınırlandı, bir sonraki denemeden önce bekleniyor"
 
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Rated"
 msgstr "Derecelendirildi"
@@ -17671,6 +17680,7 @@ msgstr "Resmi olmayan derleme, güncelleme kontrolleri atlanır."
 msgid "Unplace"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/stats/labels.ts
 #, fuzzy
 msgid "Unrated"

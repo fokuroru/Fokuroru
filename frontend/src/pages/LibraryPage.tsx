@@ -102,11 +102,13 @@ import { TagManagerModal } from '../components/TagManagerModal'
 import { POSTER_COLS_BY_DENSITY, useDensityOptions } from '../components/ui/viewPrefs'
 import { formatNumber } from '../format'
 
-const SORT_VALUES = ['added', 'lastRead', 'readPercent', 'title', 'incomplete', 'status', 'chapters'] as const
+const SORT_VALUES = ['added', 'lastRead', 'downloaded', 'rating', 'readPercent', 'title', 'incomplete', 'status', 'chapters'] as const
 
 const SORT_LABELS: Record<string, MessageDescriptor> = {
   added: msg`Recently added`,
   lastRead: msg`Last read`,
+  downloaded: msg`Last downloaded`,
+  rating: msg`My rating`,
   readPercent: msg`Percent read`,
   title: msg`Title A–Z`,
   incomplete: msg`Most missing`,
@@ -208,6 +210,7 @@ const DEFAULT_SPEC: LibraryFilterSpec = {
   qualityProfile: 'all',
   readingStatus: 'all',
   retired: 'all',
+  rated: 'all',
   noFiles: 'all',
 }
 
@@ -341,6 +344,7 @@ export default function LibraryPage() {
   const [qualityProfileFilter, setQualityProfileFilter] = usePageState(`${MEM}:quality-profile`, 'all')
   const [readingStatusFilter, setReadingStatusFilter] = usePageState(`${MEM}:reading-status`, 'all')
   const [retiredFilter, setRetiredFilter] = usePageState(`${MEM}:retired`, 'all')
+  const [ratedFilter, setRatedFilter] = usePageState(`${MEM}:rated`, 'all')
   const [noFilesFilter, setNoFilesFilter] = usePageState(`${MEM}:no-files`, 'all')
   const [activeFilterId, setActiveFilterId] = usePageState<number | null>(`${MEM}:saved-filter`, null)
   const [saveFilterOpen, setSaveFilterOpen] = useState(false)
@@ -405,6 +409,8 @@ export default function LibraryPage() {
     if (noFilesFilter === 'only') list = list.filter((s) => s.chapterFileCount === 0)
     if (retiredFilter === 'hide') list = list.filter((s) => !s.retired)
     if (retiredFilter === 'only') list = list.filter((s) => s.retired)
+    if (ratedFilter === 'rated') list = list.filter((s) => s.rating != null)
+    if (ratedFilter === 'unrated') list = list.filter((s) => s.rating == null)
     if (readingStatusFilter === 'upToDate') list = list.filter((s) => s.readingStatus === 'UpToDate')
     if (readingStatusFilter === 'hideUpToDate') list = list.filter((s) => s.readingStatus !== 'UpToDate')
     if (completeness !== 'all') {
@@ -445,6 +451,14 @@ export default function LibraryPage() {
             (b.lastReadAt ?? '').localeCompare(a.lastReadAt ?? '') ||
             new Date(b.added).getTime() - new Date(a.added).getTime()
           )
+        case 'downloaded':
+          // No files sinks to the bottom, newest additions first among them.
+          return (
+            (b.lastDownloadedAt ?? '').localeCompare(a.lastDownloadedAt ?? '') ||
+            new Date(b.added).getTime() - new Date(a.added).getTime()
+          )
+        case 'rating':
+          return (b.rating ?? 0) - (a.rating ?? 0) || a.sortTitle.localeCompare(b.sortTitle)
         case 'chapters':
           return b.chapterFileCount - a.chapterFileCount || a.sortTitle.localeCompare(b.sortTitle)
         default:
@@ -458,7 +472,7 @@ export default function LibraryPage() {
     series, debouncedQuery, statusFilter, typeFilter, tagFilter, tagMatch, genreFilter, genreMatch,
     metaTagFilter, metaTagMatch, monitoredFilter, completeness, readRange, sortKey, sortReversed, contentRatingFilter,
     sourceFilter, sourceMatch, sourceState, fileSourceFilter, fileSourceMatch,
-    chapterMin, chapterMax, chapterMode, qualityProfileFilter, readingStatusFilter, retiredFilter, noFilesFilter,
+    chapterMin, chapterMax, chapterMode, qualityProfileFilter, readingStatusFilter, retiredFilter, ratedFilter, noFilesFilter,
   ])
 
   const statusOptions = useMemo(() => {
@@ -556,6 +570,7 @@ export default function LibraryPage() {
     qualityProfile: qualityProfileFilter,
     readingStatus: readingStatusFilter,
     retired: retiredFilter,
+    rated: ratedFilter,
     noFiles: noFilesFilter,
   })
 
@@ -589,6 +604,7 @@ export default function LibraryPage() {
     setQualityProfileFilter(merged.qualityProfile ?? 'all')
     setReadingStatusFilter(merged.readingStatus ?? 'all')
     setRetiredFilter(merged.retired ?? 'all')
+    setRatedFilter(merged.rated ?? 'all')
     setNoFilesFilter(merged.noFiles ?? 'all')
     setActiveFilterId(id)
   }
@@ -611,6 +627,7 @@ export default function LibraryPage() {
     (qualityProfileFilter !== 'all' ? 1 : 0) +
     (readingStatusFilter !== 'all' ? 1 : 0) +
     (retiredFilter !== 'all' ? 1 : 0) +
+    (ratedFilter !== 'all' ? 1 : 0) +
     (noFilesFilter !== 'all' ? 1 : 0)
 
   const filtersActive = query.trim() !== '' || activeFilterCount > 0
@@ -1269,6 +1286,17 @@ export default function LibraryPage() {
             ]}
             value={retiredFilter}
             onChange={(v) => setRetiredFilter(v ?? 'all')}
+            comboboxProps={{ withinPortal: true }}
+          />
+          <Select
+            label={t`My rating`}
+            data={[
+              { value: 'all', label: t`Any` },
+              { value: 'rated', label: t`Rated` },
+              { value: 'unrated', label: t`Unrated` },
+            ]}
+            value={ratedFilter}
+            onChange={(v) => setRatedFilter(v ?? 'all')}
             comboboxProps={{ withinPortal: true }}
           />
           <Select

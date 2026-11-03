@@ -8794,6 +8794,10 @@ msgstr "要标记为已看过的最后一章"
 msgid "Last download failed: {lastError}. The next scheduled run retries."
 msgstr "上次下载失败：{lastError}。下次计划运行时会重试。"
 
+#: src/pages/LibraryPage.tsx
+msgid "Last downloaded"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
 #, fuzzy
 msgid "Last error: {lastError}"
@@ -10152,6 +10156,10 @@ msgstr "我的 Discord 服务器"
 #, fuzzy
 msgid "My phone"
 msgstr "我的手机"
+
+#: src/pages/LibraryPage.tsx
+msgid "My rating"
+msgstr ""
 
 #: src/components/import/mihonRows.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
@@ -12751,6 +12759,7 @@ msgid "Rate limited by {source}, waiting before the next try"
 msgstr "受到 {source} 的速率限制，等待后再试"
 
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Rated"
 msgstr "已评分"
@@ -17671,6 +17680,7 @@ msgstr "非官方构建，跳过更新检查。"
 msgid "Unplace"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/stats/labels.ts
 #, fuzzy
 msgid "Unrated"

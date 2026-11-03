@@ -84,7 +84,9 @@ public record LibraryFilterSpec(
     /// <summary>"all", "hide" or "only" for retired series.</summary>
     string Retired = "all",
     /// <summary>"all", "hide" or "only" for series with no chapter files on disk.</summary>
-    string NoFiles = "all");
+    string NoFiles = "all",
+    /// <summary>"all", "rated" or "unrated" by the caller's own rating.</summary>
+    string Rated = "all");
 
 public record SavedFilterDto(int Id, string Name, LibraryFilterSpec Spec, int SortOrder);
 

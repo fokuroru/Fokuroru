@@ -350,6 +350,10 @@ public class SeriesController(
             .GroupBy(p => p.SeriesId)
             .Select(g => new { SeriesId = g.Key, At = g.Max(p => p.UpdatedAt) })
             .ToDictionaryAsync(x => x.SeriesId, x => x.At, ct);
+        var lastDownload = await db.ChapterFiles
+            .GroupBy(f => f.SeriesId)
+            .Select(g => new { SeriesId = g.Key, At = g.Max(f => f.DateAdded) })
+            .ToDictionaryAsync(x => x.SeriesId, x => x.At, ct);
 
         // Flat join-table read scoped to these series in SQL, since SeriesTags has no visibility filter of its own.
         var tagIdsBySeries = (await db.SeriesTags
@@ -421,6 +425,7 @@ public class SeriesController(
                 ReadMainChapters = rs?.ReadMain,
                 MainChapterCount = rs?.TotalMain,
                 LastReadAt = lastRead.TryGetValue(s.Id, out var at) ? DateTime.SpecifyKind(at, DateTimeKind.Utc) : null,
+                LastDownloadedAt = lastDownload.TryGetValue(s.Id, out var added) ? DateTime.SpecifyKind(added, DateTimeKind.Utc) : null,
             };
         }));
     }

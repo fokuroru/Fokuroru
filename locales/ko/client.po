@@ -8794,6 +8794,10 @@ msgstr "시청 완료로 표시할 마지막 챕터"
 msgid "Last download failed: {lastError}. The next scheduled run retries."
 msgstr "마지막 다운로드 실패: {lastError}. 다음 예약 실행에서 재시도합니다."
 
+#: src/pages/LibraryPage.tsx
+msgid "Last downloaded"
+msgstr ""
+
 #: src/components/RecommendationModelSwitch.tsx
 #, fuzzy
 msgid "Last error: {lastError}"
@@ -10152,6 +10156,10 @@ msgstr "내 Discord 서버"
 #, fuzzy
 msgid "My phone"
 msgstr "내 휴대폰"
+
+#: src/pages/LibraryPage.tsx
+msgid "My rating"
+msgstr ""
 
 #: src/components/import/mihonRows.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
@@ -12751,6 +12759,7 @@ msgid "Rate limited by {source}, waiting before the next try"
 msgstr "{source}의 속도 제한으로 다음 시도 전 대기 중"
 
 #: src/pages/discover/ManageSignalsModal.tsx
+#: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Rated"
 msgstr "평가함"
@@ -17671,6 +17680,7 @@ msgstr "비공식 빌드이므로 업데이트 확인을 건너뜁니다."
 msgid "Unplace"
 msgstr ""
 
+#: src/pages/LibraryPage.tsx
 #: src/pages/stats/labels.ts
 #, fuzzy
 msgid "Unrated"

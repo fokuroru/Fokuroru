@@ -150,6 +150,8 @@ public record SeriesDto(
     string? ReadingStatus = null,
     /// <summary>When this user last touched a chapter of the series in any reader, for the "Last read" sort. Null if never.</summary>
     DateTime? LastReadAt = null,
+    /// <summary>When the newest chapter file landed in this series, for the "Last downloaded" sort. Null with no files.</summary>
+    DateTime? LastDownloadedAt = null,
     /// <summary>
     /// Main releases this user has read, from history: a chapter whose file auto-delete removed
     /// still counts, unlike <see cref="ReadChapterCount"/>, which counts files on disk. Null if nothing read.
