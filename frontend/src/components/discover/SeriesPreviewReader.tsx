@@ -6,10 +6,8 @@ import {
   Group,
   Popover,
   Portal,
-  SegmentedControl,
   Slider,
   Stack,
-  Switch,
   Text,
 } from '@mantine/core'
 import {
@@ -31,16 +29,15 @@ import { useReadingProfiles } from '../../api/readingProfiles'
 import ContinuousView from '../../pages/reader/ContinuousView'
 import PagedView from '../../pages/reader/PagedView'
 import {
-  BACKGROUNDS,
   DEFAULT_PREFS,
   navigatesVertically,
   scaleMax,
   type ReaderPrefs,
 } from '../../pages/reader/prefs'
 import { usePreload } from '../../pages/reader/usePageUrls'
-import { BROWSER_ENHANCE_METHODS, ENHANCE_LEVELS, isServerMethod } from '../../pages/reader/enhanceMethods'
+import { isServerMethod } from '../../pages/reader/enhanceMethods'
+import { ReaderSettingsControls } from '../../pages/reader/ReaderSettingsControls'
 import { toneFilter } from '../../pages/reader/prefs'
-import { useLabel } from '../../i18n-context'
 import { spreadIndexOf, usePageAspects, useSpreads } from '../../pages/reader/useSpreads'
 import { useTapZones } from '../../api/tapZones'
 import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
@@ -103,7 +100,6 @@ export function SeriesPreviewReader({
     [wideWindow, savedPrefs],
   )
   const mode = prefs.mode
-  const renderLabel = useLabel()
   const tone = toneFilter(prefs)
   // A preview is not a library file, so the server tier has nothing to upscale: a server method
   // falls back to its browser preset, or to the plain page.
@@ -683,193 +679,12 @@ export function SeriesPreviewReader({
                 </ActionIcon>
               </Popover.Target>
               <Popover.Dropdown style={{ maxHeight: 'calc(100dvh - 72px)', overflowY: 'auto' }}>
-                <Stack gap="sm">
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Layout</Trans>
-                    </Text>
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={savedPrefs.mode}
-                      onChange={(value) => update({ mode: value as ReaderPrefs['mode'] })}
-                      data={[
-                        { label: t`Auto`, value: 'auto' },
-                        { label: t`Single`, value: 'paged' },
-                        { label: t`Double`, value: 'double' },
-                        { label: t`Continuous`, value: 'vertical' },
-                      ]}
-                    />
-                  </div>
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Direction</Trans>
-                    </Text>
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={prefs.direction}
-                      onChange={(value) => update({ direction: value as ReaderPrefs['direction'] })}
-                      data={[
-                        { label: t`Left to right`, value: 'ltr' },
-                        { label: t`Right to left`, value: 'rtl' },
-                      ]}
-                    />
-                  </div>
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Fit</Trans>
-                    </Text>
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={prefs.fit}
-                      onChange={(value) => update({ fit: value as ReaderPrefs['fit'], scale: 100 })}
-                      data={[
-                        { label: t`Width`, value: 'width' },
-                        { label: t`Height`, value: 'height' },
-                        { label: t`Screen`, value: 'screen' },
-                        { label: '1:1', value: 'original' },
-                      ]}
-                    />
-                  </div>
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Navigation</Trans>
-                    </Text>
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={prefs.navigation}
-                      onChange={(value) => update({ navigation: value as ReaderPrefs['navigation'] })}
-                      data={[
-                        { label: t`Auto`, value: 'auto' },
-                        { label: t`Horizontal`, value: 'horizontal' },
-                        { label: t`Vertical`, value: 'vertical' },
-                      ]}
-                    />
-                  </div>
-                  <div>
-                    <Group justify="space-between" mb={4} wrap="nowrap">
-                      <Text fz="xs" c="var(--ink-3)">
-                        <Trans>Zoom ({prefs.scale}%)</Trans>
-                      </Text>
-                      {prefs.scale !== 100 && (
-                        <Button size="compact-xs" variant="subtle" onClick={() => update({ scale: 100 })}>
-                          <Trans>Reset</Trans>
-                        </Button>
-                      )}
-                    </Group>
-                    <Slider
-                      size="xs"
-                      min={25}
-                      max={scaleMax(prefs.fit)}
-                      step={5}
-                      value={prefs.scale}
-                      onChange={(value) => update({ scale: value })}
-                      marks={[{ value: 100 }]}
-                      label={(value) => `${value}%`}
-                    />
-                  </div>
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Background</Trans>
-                    </Text>
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={prefs.background === BACKGROUNDS.oled ? 'oled' : 'dark'}
-                      onChange={(value) =>
-                        update({ background: value === 'oled' ? BACKGROUNDS.oled : BACKGROUNDS.dark })
-                      }
-                      data={[
-                        { label: t`Dark`, value: 'dark' },
-                        { label: t`OLED black`, value: 'oled' },
-                      ]}
-                    />
-                  </div>
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Dim ({prefs.dim}%)</Trans>
-                    </Text>
-                    <Slider
-                      size="xs"
-                      min={0}
-                      max={80}
-                      step={5}
-                      label={null}
-                      value={prefs.dim}
-                      onChange={(value) => update({ dim: value })}
-                    />
-                  </div>
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Colour filter</Trans>
-                    </Text>
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={prefs.filter}
-                      onChange={(value) => update({ filter: value as ReaderPrefs['filter'] })}
-                      data={[
-                        { label: t`None`, value: 'none' },
-                        { label: t`Gray`, value: 'grayscale' },
-                        { label: t`Sepia`, value: 'sepia' },
-                        { label: t`Invert`, value: 'invert' },
-                      ]}
-                    />
-                  </div>
-                  <div>
-                    <Text fz="xs" c="var(--ink-3)" mb={4}>
-                      <Trans>Enhance</Trans>
-                    </Text>
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={prefs.enhance}
-                      onChange={(value) => update({ enhance: value as ReaderPrefs['enhance'] })}
-                      data={ENHANCE_LEVELS.map((level) => ({ label: renderLabel(level.label), value: level.value }))}
-                    />
-                  </div>
-                  {prefs.enhance !== 'off' && (
-                    <SegmentedControl
-                      fullWidth
-                      size="xs"
-                      value={enhanceMethod}
-                      onChange={(value) => update({ enhanceMethod: value as ReaderPrefs['enhanceMethod'] })}
-                      data={BROWSER_ENHANCE_METHODS.map((m) => ({ label: renderLabel(m.label), value: m.id }))}
-                    />
-                  )}
-                  <Switch
-                    size="xs"
-                    label={t`Crop borders`}
-                    checked={prefs.cropBorders}
-                    onChange={(event) => update({ cropBorders: event.currentTarget.checked })}
-                  />
-                  <Switch
-                    size="xs"
-                    label={t`Tap zones`}
-                    checked={prefs.tapZones}
-                    onChange={(event) => update({ tapZones: event.currentTarget.checked })}
-                  />
-                  {prefs.tapZones && (
-                    <Button size="compact-xs" variant="default" onClick={() => setTapEditorOpen(true)}>
-                      <Trans>Edit tap zones</Trans>
-                    </Button>
-                  )}
-                  <Switch
-                    size="xs"
-                    label={t`Show page number`}
-                    checked={prefs.showPageNumber}
-                    onChange={(event) => update({ showPageNumber: event.currentTarget.checked })}
-                  />
-                  <Switch
-                    size="xs"
-                    label={t`Smooth scrolling`}
-                    checked={prefs.smoothScroll}
-                    onChange={(event) => update({ smoothScroll: event.currentTarget.checked })}
-                  />
-                </Stack>
+                <ReaderSettingsControls
+                  prefs={{ ...savedPrefs, enhanceMethod }}
+                  onPrefs={update}
+                  features={{ wideSplit: false, webtoon: false, chapter: false, wakeLock: false }}
+                  onEditTapZones={() => setTapEditorOpen(true)}
+                />
               </Popover.Dropdown>
             </Popover>
             <ActionIcon

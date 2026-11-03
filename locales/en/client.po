@@ -2745,10 +2745,9 @@ msgid "Attribute Kavita's reading to"
 msgstr "Attribute Kavita's reading to"
 
 #: src/components/discover/DiscoverHero.tsx
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/enhanceMethods.ts
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Auto"
 msgstr "Auto"
 
@@ -2764,7 +2763,7 @@ msgstr "Auto (my defaults)"
 msgid "Auto (two pages on wide screens)"
 msgstr "Auto (two pages on wide screens)"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Auto-advance to next chapter"
 msgstr "Auto-advance to next chapter"
 
@@ -2872,9 +2871,8 @@ msgstr "Back to the series"
 msgid "Back up now"
 msgstr "Back up now"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Background"
 msgstr "Background"
 
@@ -3956,9 +3954,8 @@ msgstr "Collapse {lineLabel}"
 msgid "Collection"
 msgstr "Collection"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Colour filter"
 msgstr "Colour filter"
 
@@ -4227,9 +4224,8 @@ msgstr "Continue with {displayName}"
 msgid "Continue without saving"
 msgstr "Continue without saving"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Continuous"
 msgstr "Continuous"
@@ -4246,7 +4242,7 @@ msgstr "Continuous layout only."
 msgid "Continuous vertical (webtoon)"
 msgstr "Continuous vertical (webtoon)"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Continuous, because this chapter's pages are very tall."
 msgstr "Continuous, because this chapter's pages are very tall."
 
@@ -4572,9 +4568,8 @@ msgstr "Creators you return to"
 msgid "Crisp line art (server)"
 msgstr "Crisp line art (server)"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Crop borders"
 msgstr "Crop borders"
 
@@ -4667,9 +4662,8 @@ msgstr "Daily upgrade cap reached"
 msgid "Damaged image"
 msgstr "Damaged image"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 #: src/theme-context.tsx
 msgid "Dark"
 msgstr "Dark"
@@ -5009,19 +5003,17 @@ msgid "Didn't score higher than the current file"
 msgstr "Didn't score higher than the current file"
 
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Dim"
 msgstr "Dim"
 
 #. placeholder {0}: prefs.dim
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Dim ({0}%)"
 msgstr "Dim ({0}%)"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Direction"
 msgstr "Direction"
 
@@ -5126,7 +5118,7 @@ msgid "Display name"
 msgstr "Display name"
 
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Don't enhance"
 msgstr "Don't enhance"
 
@@ -5153,8 +5145,7 @@ msgstr "Don't want specials"
 msgid "Done"
 msgstr "Done"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Double"
 msgstr "Double"
 
@@ -5287,7 +5278,7 @@ msgstr "Downloaded the prebuilt index"
 
 #: src/components/ui/status.tsx
 #: src/pages/HealthPage.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 #: src/pages/RequestsPage.tsx
 #: src/pages/settings/UpscalingSection.tsx
 msgid "Downloading"
@@ -5469,9 +5460,8 @@ msgstr "Edit request"
 msgid "Edit request for {title}"
 msgstr "Edit request for {title}"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Edit tap zones"
 msgstr "Edit tap zones"
 
@@ -5572,9 +5562,8 @@ msgstr "English"
 msgid "English (provider default)"
 msgstr "English (provider default)"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Enhance"
 msgstr "Enhance"
 
@@ -5684,7 +5673,7 @@ msgid "Every notification goes, read and unread. This can't be undone."
 msgstr "Every notification goes, read and unread. This can't be undone."
 
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Every quality is enhanced"
 msgstr "Every quality is enhanced"
 
@@ -6150,8 +6139,7 @@ msgstr "First folder you can see"
 msgid "First page"
 msgstr "First page"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Fit"
 msgstr "Fit"
 
@@ -6188,7 +6176,7 @@ msgstr "Fix or remove the source mapping first, or a refresh will bring them rig
 msgid "FlareSolverr"
 msgstr "FlareSolverr"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Flash chapter name on chapter change"
 msgstr "Flash chapter name on chapter change"
 
@@ -6509,8 +6497,7 @@ msgstr "Grabbed from {indexer}"
 msgid "Grabbed from {indexer}: {releaseName}"
 msgstr "Grabbed from {indexer}: {releaseName}"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Gray"
 msgstr "Gray"
 
@@ -6614,9 +6601,8 @@ msgstr "Health settings"
 msgid "Healthy"
 msgstr "Healthy"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Height"
 msgstr "Height"
 
@@ -6800,8 +6786,7 @@ msgstr "home sections, rails, continue reading, recently added, section order, e
 msgid "Home server"
 msgstr "Home server"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Horizontal"
 msgstr "Horizontal"
 
@@ -7206,9 +7191,8 @@ msgstr "Instance default"
 msgid "Integrations"
 msgstr "Integrations"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Invert"
 msgstr "Invert"
 
@@ -7373,7 +7357,7 @@ msgstr "Keep the name, download into a new standard folder"
 msgid "Keep the name, download into it too"
 msgstr "Keep the name, download into it too"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Keep the screen awake"
 msgstr "Keep the screen awake"
 
@@ -7597,9 +7581,8 @@ msgstr "Last volume search: {lastVolumeSearchText}"
 msgid "latest"
 msgstr "latest"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Layout"
 msgstr "Layout"
@@ -7672,9 +7655,8 @@ msgstr "Left"
 msgid "left to right"
 msgstr "left to right"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Left to right"
 msgstr "Left to right"
 
@@ -8374,7 +8356,7 @@ msgid "Metadata straight from the MangaBaka API"
 msgstr "Metadata straight from the MangaBaka API"
 
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Method"
 msgstr "Method"
 
@@ -8724,9 +8706,8 @@ msgstr "Naming tokens"
 msgid "Narrow edges"
 msgstr "Narrow edges"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Navigation"
 msgstr "Navigation"
 
@@ -9319,13 +9300,12 @@ msgstr "Nobody by that name is credited in the local MangaBaka database."
 msgid "none"
 msgstr "none"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/reader/enhanceMethods.ts
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 #: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 msgid "None"
@@ -9379,7 +9359,7 @@ msgstr "Not an upgrade: {reason}"
 msgid "Not analyzed"
 msgstr "Not analyzed"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Not available"
 msgstr "Not available"
 
@@ -9513,7 +9493,7 @@ msgstr "Not scanned"
 msgid "Not set"
 msgstr "Not set"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Not supported on this device"
 msgstr "Not supported on this device"
 
@@ -9818,7 +9798,7 @@ msgstr "Off"
 msgid "Off by default: with it on, anyone your provider will authenticate gets a Fōkurōru account. New accounts start with no library access until you grant a root folder."
 msgstr "Off by default: with it on, anyone your provider will authenticate gets a Fōkurōru account. New accounts start with no library access until you grant a root folder."
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Off for this chapter because of its quality."
 msgstr "Off for this chapter because of its quality."
 
@@ -9861,9 +9841,8 @@ msgstr "Oldest"
 msgid "Oldest first"
 msgstr "Oldest first"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "OLED black"
 msgstr "OLED black"
 
@@ -11782,10 +11761,9 @@ msgid "Rescanned: {newFiles} new, {relinked} relinked, {removed} removed"
 msgstr "Rescanned: {newFiles} new, {relinked} relinked, {removed} removed"
 
 #: src/components/CatalogueFilters.tsx
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
 #: src/pages/DiscoverPage.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Reset"
 msgstr "Reset"
 
@@ -12063,8 +12041,7 @@ msgstr "Rhythm"
 msgid "right to left"
 msgstr "right to left"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Right to left"
 msgstr "Right to left"
 
@@ -12094,7 +12071,7 @@ msgstr "Root folder"
 msgid "Root Folders"
 msgstr "Root Folders"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Rotate"
 msgstr "Rotate"
 
@@ -12465,8 +12442,7 @@ msgstr "Scraper sources, download behaviour and the torrent path."
 msgid "scrapers, manage sources, priority, source priority, 18+, adult sources, mangadex, mangafire, webtoons, asura, tcb, flame comics, order sources, disable source, auto-match, reorder, dynasty scans, dynasty, yuri, mangalib, toonily, manhwa, gigaviewer, jump+, shonen jump plus, comic days, sunday webry, magcomi, tonari no young jump, zenon, kurage bunch, manhwa18, manhwa18.net, manhwa18net, manhwaweb, manhwa web, manhwaweb.com, shinigami, shngm, olympus, olympus scanlation, olympusxyz, subo de nivel solo, animesama, anime-sama, anime sama, naver, naver webtoon, 네이버 웹툰, manga-tube, mangatube, manga tube, manhuagui, 漫画柜, mhgui, cuutruyen, cứu truyện, cuu truyen, mangaworld, manga world, comic walker, comicwalker, kadocomi, kadokawa, rawkuma, raw, raw manga, ラークマ, mangadenizi, manga denizi, teamx, team-x, team x, olympustaff, taiyo, taiyo.moe"
 msgstr "scrapers, manage sources, priority, source priority, 18+, adult sources, mangadex, mangafire, webtoons, asura, tcb, flame comics, order sources, disable source, auto-match, reorder, dynasty scans, dynasty, yuri, mangalib, toonily, manhwa, gigaviewer, jump+, shonen jump plus, comic days, sunday webry, magcomi, tonari no young jump, zenon, kurage bunch, manhwa18, manhwa18.net, manhwa18net, manhwaweb, manhwa web, manhwaweb.com, shinigami, shngm, olympus, olympus scanlation, olympusxyz, subo de nivel solo, animesama, anime-sama, anime sama, naver, naver webtoon, 네이버 웹툰, manga-tube, mangatube, manga tube, manhuagui, 漫画柜, mhgui, cuutruyen, cứu truyện, cuu truyen, mangaworld, manga world, comic walker, comicwalker, kadocomi, kadokawa, rawkuma, raw, raw manga, ラークマ, mangadenizi, manga denizi, teamx, team-x, team x, olympustaff, taiyo, taiyo.moe"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Screen"
 msgstr "Screen"
 
@@ -12513,7 +12489,7 @@ msgstr "Scroll to finish the preview"
 msgid "Scroll up a screen (vertical navigation)"
 msgstr "Scroll up a screen (vertical navigation)"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Scroll webtoon chapters"
 msgstr "Scroll webtoon chapters"
 
@@ -12844,9 +12820,8 @@ msgstr "Sends grabbed releases to your torrent client. Finished torrents import 
 msgid "Sent to the download client: {title}"
 msgstr "Sent to the download client: {title}"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Sepia"
 msgstr "Sepia"
 
@@ -13189,9 +13164,8 @@ msgstr "Show or hide the menu"
 msgid "Show or hide this list"
 msgstr "Show or hide this list"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Show page number"
 msgstr "Show page number"
 
@@ -13263,7 +13237,7 @@ msgstr "Shown to whoever asked"
 msgid "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 msgstr "Shows your name, level, chapters read and streak to everyone who also opted in. Never anything about which series you read."
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
 msgstr "Shrinks or enlarges pages within the fit. For webtoons, fit to width and zoom out until the strip reads comfortably."
 
@@ -13327,8 +13301,7 @@ msgstr "Similarity to start"
 msgid "Simple"
 msgstr "Simple"
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Single"
 msgstr "Single"
 
@@ -13463,9 +13436,8 @@ msgstr "Smart Download"
 msgid "Smart Download queued chapters"
 msgstr "Smart Download queued chapters"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Smooth scrolling"
 msgstr "Smooth scrolling"
 
@@ -13620,7 +13592,7 @@ msgstr "specials, omake, decimal chapters, monitor new items, monitoring, incogn
 msgid "Spin-off of {relatedTo}"
 msgstr "Spin-off of {relatedTo}"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Split"
 msgstr "Split"
 
@@ -13971,9 +13943,8 @@ msgstr "Tags to include"
 msgid "Tap the page to see what a tap does."
 msgstr "Tap the page to see what a tap does."
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Tap zones"
 msgstr "Tap zones"
 
@@ -15570,8 +15541,7 @@ msgstr "Version"
 msgid "Version mismatch. Please update server to {needed}."
 msgstr "Version mismatch. Please update server to {needed}."
 
-#: src/components/discover/SeriesPreviewReader.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Vertical"
 msgstr "Vertical"
 
@@ -16012,11 +15982,11 @@ msgstr "While reading"
 msgid "While reading only tells you about new chapters while you are partway through."
 msgstr "While reading only tells you about new chapters while you are partway through."
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "While the server works"
 msgstr "While the server works"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Whole"
 msgstr "Whole"
 
@@ -16042,13 +16012,12 @@ msgid "Whole-series pack, needs your call"
 msgstr "Whole-series pack, needs your call"
 
 #: src/components/settings/ReadingProfilesSection.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Wide pages"
 msgstr "Wide pages"
 
-#: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Width"
 msgstr "Width"
 
@@ -16376,10 +16345,10 @@ msgstr "Zones"
 
 #. placeholder {0}: prefs.scale
 #: src/components/discover/SeriesPreviewReader.tsx
-msgid "Zoom ({0}%)"
-msgstr "Zoom ({0}%)"
+#~ msgid "Zoom ({0}%)"
+#~ msgstr "Zoom ({0}%)"
 
-#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Zoom ({scale}%)"
 msgstr "Zoom ({scale}%)"
 
