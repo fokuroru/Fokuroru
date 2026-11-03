@@ -22,6 +22,12 @@ interface InitializeInfo {
 }
 
 let initialize: InitializeInfo | null = null
+let knownApiRoot: string | null = null
+
+/** The API root once the bootstrap has loaded, for a URL that has to be built inside a render. */
+export function apiRootNow(): string | null {
+  return knownApiRoot
+}
 
 /**
  * Pre-authentication bootstrap. Carries no credential: it used to return the instance API key to
@@ -32,7 +38,9 @@ export async function getInitialize(): Promise<InitializeInfo> {
   if (!initialize) {
     const res = await fetch('/initialize.json', { cache: 'no-cache' })
     if (!res.ok) throw new Error(t`Failed to initialize`)
-    initialize = (await res.json()) as InitializeInfo
+    const info = (await res.json()) as InitializeInfo
+    knownApiRoot = info.apiRoot
+    initialize = info
   }
   return initialize
 }

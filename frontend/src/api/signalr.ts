@@ -1,5 +1,5 @@
 import { HubConnectionBuilder, LogLevel, type HubConnection } from '@microsoft/signalr'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import type { InboxPrefs, InboxPush } from './inbox'
@@ -8,6 +8,36 @@ import type { QueueHistoryDto, QueueItemDto, QueuePauseDto } from './types'
 
 let connection: HubConnection | null = null
 let connectionPromise: Promise<HubConnection> | null = null
+let connected = false
+const connectedListeners = new Set<() => void>()
+
+function setConnected(next: boolean) {
+  if (connected === next) return
+  connected = next
+  for (const listener of connectedListeners) listener()
+}
+
+/** Sent to the reader's own group as each page it asked the server to upscale finishes. */
+export interface PageEnhancedEvent {
+  chapterId: number
+  page: number
+  model: string
+  state: 'ready' | 'failed' | 'skipped'
+}
+
+export const PAGE_ENHANCED = 'pageEnhanced'
+
+/** Whether the shared live connection is up right now. False while it starts or reconnects. */
+export function useHubConnected(): boolean {
+  return useSyncExternalStore(watchConnected, () => connected)
+}
+
+function watchConnected(listener: () => void) {
+  connectedListeners.add(listener)
+  return () => {
+    connectedListeners.delete(listener)
+  }
+}
 
 function ensureConnection(): Promise<HubConnection> {
   // Cache the promise, not the connection: concurrent callers during startup
@@ -21,8 +51,12 @@ function ensureConnection(): Promise<HubConnection> {
       .withAutomaticReconnect()
       .configureLogging(LogLevel.Warning)
       .build()
+    conn.onreconnecting(() => setConnected(false))
+    conn.onreconnected(() => setConnected(true))
+    conn.onclose(() => setConnected(false))
     await conn.start()
     connection = conn
+    setConnected(true)
     return conn
   })()
   return connectionPromise

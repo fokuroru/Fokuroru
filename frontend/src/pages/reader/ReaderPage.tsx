@@ -21,7 +21,11 @@ import ContinuousView from './ContinuousView'
 import PagedView from './PagedView'
 import PageStrip from './PageStrip'
 import ReaderToolbar from './ReaderToolbar'
-import { navigatesVertically, scaleMax, useReaderPrefs } from './prefs'
+import { probeWebtoon } from './pageShape'
+import { enhanceFor, navigatesVertically, scaleMax, toneFilter, useReaderPrefs, type ReaderPrefs } from './prefs'
+import { serverModelFor, useServerEnhance } from './useServerEnhance'
+import ServerEnhanceStatus from './ServerEnhanceStatus'
+import { useWakeLock } from './useWakeLock'
 import { usePinchZoom } from './usePinchZoom'
 import { usePageUrls, usePreload, useWarmChapter } from './usePageUrls'
 import { useReaderProgress } from './useReaderProgress'
@@ -39,6 +43,24 @@ const ZOOM_STEP = 0.25
 const ZOOM_MAX = 4
 const CHROME_HIDE_MS = 4000
 const CHAPTER_ADVANCE_COOLDOWN_MS = 800
+
+/**
+ * Whether the chapter at `urls` reads as a webtoon, once known; undefined while the probe runs.
+ * False whenever detection does not apply, so nothing waits on it.
+ */
+function useWebtoonGuess(urls: string[], active: boolean, from: number): boolean | undefined {
+  const [guess, setGuess] = useState<{ urls: string[]; webtoon: boolean } | null>(null)
+  useEffect(() => {
+    if (!active || urls.length === 0) return
+    const controller = new AbortController()
+    void probeWebtoon(urls, from, controller.signal).then((webtoon) => {
+      if (!controller.signal.aborted) setGuess({ urls, webtoon })
+    })
+    return () => controller.abort()
+  }, [urls, active, from])
+  if (!active) return false
+  return guess?.urls === urls ? guess.webtoon : undefined
+}
 
 /**
  * The chromeless reader. Rendered outside the AppShell (see App.tsx) so it owns the whole
@@ -64,9 +86,44 @@ export default function ReaderPage() {
   // Auto follows the current window without changing the saved preference; Android also
   // applies the app's dual-page toggle through its layout bridge.
   const { dual: wideWindow } = useNativeLayout()
-  const prefs = useMemo(
+  const basePrefs = useMemo(
     () => (savedPrefs.mode === 'auto' ? { ...savedPrefs, mode: wideWindow ? ('double' as const) : ('paged' as const) } : savedPrefs),
     [wideWindow, savedPrefs],
+  )
+
+  const pageCount = manifest?.pageCount ?? 0
+  const urls = usePageUrls(chapterId, pageCount, manifest?.pageVersion)
+  // A layout or fit picked by hand during this visit to the series. Webtoon detection only stands
+  // in for a choice nobody made, so either one ends it for the series.
+  const [handPicked, setHandPicked] = useState<{ seriesId: number; mode: boolean; fit: boolean } | null>(null)
+  const picked = handPicked != null && handPicked.seriesId === manifest?.seriesId ? handPicked : null
+  const autoWanted = basePrefs.autoWebtoon && basePrefs.mode !== 'vertical' && !picked?.mode && pageCount > 0
+  const webtoon = useWebtoonGuess(urls, autoWanted, manifest?.resumePage ?? 0)
+  const autoVertical = autoWanted && webtoon === true
+  // Fit height squeezes every slice of a strip to one screen; 1:1 is what the Webtoon profile uses.
+  const prefs = useMemo(
+    () =>
+      autoVertical
+        ? {
+            ...basePrefs,
+            mode: 'vertical' as const,
+            fit: !picked?.fit && basePrefs.fit === 'height' ? ('original' as const) : basePrefs.fit,
+          }
+        : basePrefs,
+    [basePrefs, autoVertical, picked?.fit],
+  )
+  const edit = useCallback(
+    (patch: Partial<ReaderPrefs>) => {
+      const seriesId = manifest?.seriesId
+      if (seriesId != null && ('mode' in patch || 'fit' in patch)) {
+        setHandPicked((current) => {
+          const same = current?.seriesId === seriesId ? current : null
+          return { seriesId, mode: Boolean(same?.mode) || 'mode' in patch, fit: Boolean(same?.fit) || 'fit' in patch }
+        })
+      }
+      update(patch)
+    },
+    [manifest, update],
   )
 
   const [page, setPage] = useState(0)
@@ -74,8 +131,11 @@ export default function ReaderPage() {
   // ContinuousView knows to scroll. Plain page updates from its own scroll tracking don't touch
   // this: scrolling to match a page the user just scrolled to would fight the scroll itself.
   const [seekVersion, setSeekVersion] = useState(0)
-  const seekToPage = useCallback((index: number) => {
+  // Which half of a split wide page is up, in reading order. Progress only ever sees `page`.
+  const [half, setHalf] = useState<0 | 1>(0)
+  const seekToPage = useCallback((index: number, toHalf: 0 | 1 = 0) => {
     setPage(index)
+    setHalf(toHalf)
     setSeekVersion((v) => v + 1)
   }, [])
   /** The chapter whose saved position has been applied; gates every progress write. */
@@ -105,14 +165,21 @@ export default function ReaderPage() {
   const landAtBottomRef = useRef(false)
   const vertical = navigatesVertically(prefs)
 
-  const pageCount = manifest?.pageCount ?? 0
-  const urls = usePageUrls(chapterId, pageCount, manifest?.pageVersion)
   const thumbs = usePageUrls(chapterId, stripOpen ? pageCount : 0, manifest?.pageVersion, true)
   const { wide, measure } = usePageAspects(urls)
   const spreads = useSpreads(pageCount, wide, prefs.mode === 'double')
   const spreadIndex = useMemo(() => spreadIndexOf(spreads, page), [spreads, page])
   // `page` is a spread's first index; the position on record is the furthest page on screen.
   const shownTo = useMemo(() => Math.max(page, ...(spreads[spreadIndex] ?? [])), [spreads, spreadIndex, page])
+  const splitting = prefs.mode === 'paged' && prefs.splitWide === 'split'
+  // A half only means something while splitting, so a page reached any other way starts on the first.
+  useEffect(() => {
+    if (!splitting) setHalf(0)
+  }, [splitting])
+  // The first half of a wide last page is not the end of the chapter: it completes once the second
+  // half is up, so until then the position on record stops a page short.
+  const heldBack = splitting && half === 0 && wide[shownTo] && shownTo >= pageCount - 1
+  const recordedTo = heldBack ? Math.max(0, shownTo - 1) : shownTo
 
   // A page turn in the paged layouts starts at the top of the new page. The surface kept the old
   // page's scroll position, so a tall page turned from its bottom opened the next one part-way down.
@@ -131,6 +198,64 @@ export default function ReaderPage() {
   const bookmarked = bookmarkedPages.has(page)
 
   usePreload(urls, page, prefs.mode === 'vertical' ? 0 : prefs.preload)
+
+  const tone = toneFilter(prefs)
+  useWakeLock(prefs.keepAwake)
+  // The preload window counts spreads, so double-page mode warms as many turns as single-page does.
+  const preloadPages = useMemo(
+    () =>
+      prefs.mode === 'vertical' || prefs.preload <= 0
+        ? []
+        : spreads.slice(spreadIndex, spreadIndex + 1 + prefs.preload).flat(),
+    [spreads, spreadIndex, prefs.mode, prefs.preload],
+  )
+  const enhance = enhanceFor(prefs, manifest?.tier)
+  const serverModel = manifest
+    ? serverModelFor(enhance, prefs.enhanceMethod, manifest.enhanceServer, !navigator.onLine)
+    : null
+  // The strip sizes its own range from the pages' pixels, so the server follows it there.
+  const [stripRange, setStripRange] = useState<{ pages: number[]; beyond: number }>({ pages: [], beyond: 0 })
+  const onEnhanceRange = useCallback((pages: number[], beyond: number) => setStripRange({ pages, beyond }), [])
+  const enhanceWindow = useMemo(() => {
+    if (!serverModel) return []
+    if (prefs.mode !== 'vertical') return preloadPages.length > 0 ? preloadPages : (spreads[spreadIndex] ?? [])
+    return stripRange.pages
+  }, [serverModel, prefs.mode, preloadPages, spreads, spreadIndex, stripRange])
+  // A window that runs past the last page carries on into the next chapter's first pages.
+  const nextChapterId = manifest?.nextChapterId ?? null
+  const beyondEnd =
+    !serverModel || nextChapterId == null || resumedFor !== chapterId
+      ? 0
+      : prefs.mode === 'vertical'
+        ? stripRange.beyond
+        : prefs.preload > 0
+          ? Math.max(0, spreadIndex + 1 + prefs.preload - spreads.length) * (prefs.mode === 'double' ? 2 : 1)
+          : 0
+  const enhanceNext = useMemo(
+    () =>
+      nextChapterId != null && beyondEnd > 0
+        ? { chapterId: nextChapterId, pages: Array.from({ length: beyondEnd }, (_, index) => index) }
+        : null,
+    [nextChapterId, beyondEnd],
+  )
+  // On `auto` the server is asked only for pages a view has measured as stretched.
+  const [stretchedPages, setStretchedPages] = useState<ReadonlySet<number>>(() => new Set())
+  const server = useServerEnhance(
+    chapterId,
+    serverModel,
+    enhanceWindow,
+    manifest?.pageVersion,
+    enhance === 'auto' ? stretchedPages : null,
+    enhanceNext,
+  )
+  const serverStates = server?.states
+  const enhancedPages = useMemo(
+    () =>
+      serverStates
+        ? new Set([...serverStates].filter(([, state]) => state === 'ready').map(([index]) => index))
+        : undefined,
+    [serverStates],
+  )
   // How many pages from the end of a chapter the next chapter's first pages start loading. Held back until
   // this chapter's own resume has landed, so the warm-up never competes with the pages being opened.
   const nearEnd =
@@ -178,7 +303,7 @@ export default function ReaderPage() {
   const clock = useReadingClock(tracking)
   const { settle: settleProgress } = useReaderProgress(
     manifest?.chapterId,
-    finished ? pageCount - 1 : shownTo,
+    finished ? pageCount - 1 : recordedTo,
     finished,
     tracking,
     clock,
@@ -247,7 +372,7 @@ export default function ReaderPage() {
         await settleProgress()
         const unlocked = await flushProgress(
           manifest.chapterId,
-          done ? pageCount - 1 : shownTo,
+          done ? pageCount - 1 : recordedTo,
           done || undefined,
           // Banked time belongs to the chapter being left, and the next chapter's clock starts
           // from nothing, so it has to go out with this write or it is lost.
@@ -268,7 +393,7 @@ export default function ReaderPage() {
       manifest,
       navigate,
       cameFromLite,
-      shownTo,
+      recordedTo,
       pageCount,
       queryClient,
       tracking,
@@ -298,6 +423,10 @@ export default function ReaderPage() {
       if (manifest?.nextChapterId != null) void goToChapter(manifest.nextChapterId, true)
       return
     }
+    if (splitting && half === 0 && wide[page]) {
+      setHalf(1)
+      return
+    }
     const nextSpread = spreads[spreadIndex + 1]
     if (nextSpread) {
       seekToPage(nextSpread[0])
@@ -313,7 +442,7 @@ export default function ReaderPage() {
     if (settling()) return
     if (prefs.autoNextChapter) void goToChapter(manifest.nextChapterId, true)
     else reachEnd()
-  }, [atEnd, spreads, spreadIndex, manifest, prefs.autoNextChapter, goToChapter, seekToPage, reachEnd, settling])
+  }, [atEnd, spreads, spreadIndex, manifest, prefs.autoNextChapter, goToChapter, seekToPage, reachEnd, settling, splitting, half, wide, page])
 
   /** Continuous mode's equivalent of `next()` hitting the chapter boundary: no spreads to check,
    *  the strip only ever has one more chapter to reach for. */
@@ -332,13 +461,18 @@ export default function ReaderPage() {
       setAtEnd(false)
       return
     }
+    if (splitting && half === 1) {
+      setHalf(0)
+      return
+    }
     const previousSpread = spreads[spreadIndex - 1]
     if (previousSpread) {
-      seekToPage(previousSpread[0])
+      // Stepping back onto a split page lands on the half read last.
+      seekToPage(previousSpread[0], splitting && wide[previousSpread[0]] ? 1 : 0)
     } else if (manifest?.previousChapterId != null) {
       void goToChapter(manifest.previousChapterId, false, true)
     }
-  }, [spreads, spreadIndex, manifest, goToChapter, atEnd, seekToPage])
+  }, [spreads, spreadIndex, manifest, goToChapter, atEnd, seekToPage, splitting, half, wide])
 
   const onPageMeasured = useCallback(
     (index: number, image: HTMLImageElement) => {
@@ -456,6 +590,9 @@ export default function ReaderPage() {
           break
         case 't':
           setStripOpen((open) => !open)
+          break
+        case 'c':
+          update({ cropBorders: !prefs.cropBorders })
           break
         case '1':
           update({ mode: 'paged' })
@@ -643,7 +780,7 @@ export default function ReaderPage() {
   // The manifest's read count is a snapshot from when the chapter opened, so finishing this one on
   // screen is added here, on the same condition the server uses. Incognito writes nothing.
   const readingCounted =
-    !incognito && !manifest.completed && (finished || shownTo >= manifest.pageCount - 1)
+    !incognito && !manifest.completed && (finished || recordedTo >= manifest.pageCount - 1)
 
   return (
     <div className="reader-root" style={{ ...spineVars(manifest.seriesSpineColor, 'dark'), background: prefs.background }}>
@@ -655,7 +792,8 @@ export default function ReaderPage() {
         onPrevChapter={() => void goToChapter(manifest.previousChapterId, false)}
         onNextChapter={() => void goToChapter(manifest.nextChapterId, true)}
         prefs={savedPrefs}
-        onPrefs={update}
+        onPrefs={edit}
+        autoLayout={autoVertical}
         selection={selection}
         onSelection={setSelection}
         source={source}
@@ -673,7 +811,21 @@ export default function ReaderPage() {
         visible={chrome}
         onHold={setChromeHeld}
         onShortcuts={() => setShortcutsOpen(true)}
+        pageLabel={shownTo > page ? `${page + 1}-${shownTo + 1}` : `${page + 1}`}
+        bookmarkDisabled={false}
+        onReveal={() => setChrome(true)}
+        serverEnhancing={server !== null}
+        enhancedPages={enhancedPages}
+        thumbs={thumbs}
+        shownTo={shownTo}
       />
+      {!atEnd && (
+        <ServerEnhanceStatus
+          server={server}
+          pages={prefs.mode === 'vertical' ? [page] : (spreads[spreadIndex] ?? [page])}
+          method={prefs.enhanceMethod}
+        />
+      )}
 
       <TapZoneHint
         zones={tapLayout}
@@ -714,6 +866,13 @@ export default function ReaderPage() {
               scale={prefs.scale}
               gap={prefs.pageGap}
               label={manifest.label}
+              tone={tone}
+              enhance={enhance}
+              enhanceMethod={prefs.enhanceMethod}
+              enhanceFallback={prefs.enhanceFallback}
+              server={server}
+              onStretched={setStretchedPages}
+              onEnhanceRange={onEnhanceRange}
             />
           ) : (
             <PagedView
@@ -725,6 +884,16 @@ export default function ReaderPage() {
               scale={prefs.scale}
               label={manifest.label}
               onMeasure={onPageMeasured}
+              cropBorders={prefs.cropBorders}
+              splitWide={prefs.mode === 'paged' ? prefs.splitWide : 'off'}
+              half={half}
+              tone={tone}
+              enhance={enhance}
+              enhanceMethod={prefs.enhanceMethod}
+              enhanceFallback={prefs.enhanceFallback}
+              server={server}
+              preload={preloadPages}
+              onStretched={setStretchedPages}
             />
           )}
         </div>

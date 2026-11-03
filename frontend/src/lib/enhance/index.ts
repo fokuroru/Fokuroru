@@ -1,3 +1,4 @@
+import { enhanceBudget } from './budget'
 import type { EnhancePreset } from './presets'
 import type { Backend, JobMessage, WorkerMessage } from './protocol'
 
@@ -69,14 +70,6 @@ interface Entry {
 }
 
 const pixelsOf = (b: ImageBitmap) => b.width * b.height
-
-function defaultBudget(): number {
-  const memory = (navigator as { deviceMemory?: number }).deviceMemory
-  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
-  const pages = coarse || (memory !== undefined && memory <= 4) ? 4 : 8
-  const dpr = globalThis.devicePixelRatio || 1
-  return pages * Math.round(screen.width * dpr) * Math.round(screen.height * dpr)
-}
 
 class Engine implements EnhanceEngine {
   readonly supported: boolean
@@ -201,8 +194,9 @@ class Engine implements EnhanceEngine {
           bitmap.close()
           return
         }
-        if (job.key !== undefined) this.store(job.key, { bitmap, preset: job.preset, w: job.w, h: job.h })
-        else if (!job.waiters.length) bitmap.close()
+        // Every waiter gave up while it ran, so its scope has already let go of the key.
+        if (!job.waiters.length) bitmap.close()
+        else if (job.key !== undefined) this.store(job.key, { bitmap, preset: job.preset, w: job.w, h: job.h })
         this.settle(job, { bitmap })
         this.pump()
       },
@@ -304,7 +298,7 @@ async function createEngine(budget?: number): Promise<EnhanceEngine> {
       backend = null
     }
   }
-  return new Engine(backend, budget ?? defaultBudget())
+  return new Engine(backend, budget ?? enhanceBudget())
 }
 
 let engine: Promise<EnhanceEngine> | null = null

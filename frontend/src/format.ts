@@ -49,6 +49,11 @@ const weekdayDateTime = cached(
 const percents = cached(() => new Map<number, Intl.NumberFormat>())
 const signedDecimals = cached(() => new Map<number, Intl.NumberFormat>())
 
+/** Up to one decimal in the active language: "2.5" or "2,5", and "3" rather than "3.0". */
+export function formatDecimal(value: number): string {
+  return decimal().format(value)
+}
+
 /** "1 234" / "1,234", whichever the language groups with. */
 export function formatNumber(value: number): string {
   return integer().format(value)

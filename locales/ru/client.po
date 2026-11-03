@@ -637,8 +637,8 @@ msgstr "Прочитано {chaptersRead} из {seriesChapterCount} загруж
 
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
-msgid "{chaptersRead}/{seriesChapterCount} chapters read"
-msgstr "Прочитано глав: {chaptersRead}/{seriesChapterCount}"
+#~ msgid "{chaptersRead}/{seriesChapterCount} chapters read"
+#~ msgstr "Прочитано глав: {chaptersRead}/{seriesChapterCount}"
 
 #: src/pages/ImportPage.tsx
 #, fuzzy
@@ -831,6 +831,11 @@ msgstr "{fileCount, plural, one {# отдельный файл} few {# отде�
 #: src/pages/ActivityPage.tsx
 msgid "{fileName} replaced {filesText}"
 msgstr ""
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "{files, plural, one {{used} of {limit}, # page} other {{used} of {limit}, # pages}}"
+msgstr "{files, plural, one {{used} из {limit}, # страница} few {{used} из {limit}, # страницы} many {{used} из {limit}, # страниц} other {{used} из {limit}, # страницы}}"
 
 #: src/pages/rewind/slides.tsx
 #, fuzzy
@@ -1392,6 +1397,11 @@ msgstr "{review, plural, one {# загрузка, ожидающая решен�
 msgid "{samples, plural, one {Measured from # chapter across {series} series in your library: {bpp} bits per pixel, JPG equivalent.} other {Measured from # chapters across {series} series in your library: {bpp} bits per pixel, JPG equivalent.}}"
 msgstr ""
 
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "{seconds} s per sample page"
+msgstr "{seconds} с на пробную страницу"
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "{selectedCount, plural, one {# selected} other {# selected}}"
@@ -1426,6 +1436,11 @@ msgstr "Выбрано: {selectedCount}"
 #, fuzzy
 msgid "{seriesAdded, plural, one {series added} other {series added}}"
 msgstr "{seriesAdded, plural, one {серия добавлена} few {серии добавлены} many {серий добавлено} other {серия добавлена}}"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "{seriesChapterCount, plural, one {{chaptersRead}/# chapter read} other {{chaptersRead}/# chapters read}}"
+msgstr "{seriesChapterCount, plural, one {{chaptersRead}/# глава прочитана} few {{chaptersRead}/# главы прочитаны} many {{chaptersRead}/# глав прочитано} other {{chaptersRead}/# главы прочитаны}}"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 #: src/components/TagManagerModal.tsx
@@ -2877,6 +2892,11 @@ msgstr "Также учитывать все теги, вложенные в э�
 msgid "Alt titles"
 msgstr "Альтернативные названия"
 
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "Always"
+msgstr "Всегда"
+
 #: src/pages/HealthPage.tsx
 #, fuzzy
 msgid "Ambiguous names"
@@ -3210,6 +3230,7 @@ msgstr "Учитывать чтение Kavita для"
 #: src/components/discover/DiscoverHero.tsx
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/enhanceMethods.ts
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
 msgid "Auto"
@@ -3424,6 +3445,7 @@ msgid "balanced"
 msgstr "сбалансированный"
 
 #: src/pages/discover/AnimeSignalsSection.tsx
+#: src/pages/reader/enhanceMethods.ts
 #, fuzzy
 msgid "Balanced"
 msgstr "Сбалансированно"
@@ -3554,6 +3576,11 @@ msgstr "Добавить эту страницу в закладки"
 #, fuzzy
 msgid "Bookmarks"
 msgstr "Закладки"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Bookmarks need a connection"
+msgstr "Для закладок нужно подключение"
 
 #: src/api/hooks.ts
 msgid "Bookshelf"
@@ -3695,6 +3722,11 @@ msgstr "C:/Manga (необязательно)"
 #, fuzzy
 msgid "C:\\Manga or /library"
 msgstr "C:/Manga или /library"
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Cache size (MB)"
+msgstr "Размер кэша (МБ)"
 
 #: src/pages/SimpleHomePage.tsx
 msgid "Can't check the server right now"
@@ -4272,6 +4304,11 @@ msgstr "Сколько глав загружать за раз"
 msgid "Chapters unread before trigger"
 msgstr "Непрочитанных глав до запуска"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Chapters whose file has one of these qualities are shown as they are. A digital volume is usually clean already."
+msgstr "Главы, файлы которых имеют одно из этих качеств, показываются как есть. Цифровой том обычно уже чистый."
+
 #: src/pages/DiscoverPage.tsx
 #, fuzzy
 msgid "Chapters: {chapterRangeMin}–{chapterRangeMax}"
@@ -4420,6 +4457,11 @@ msgstr "Очистить все фильтры"
 #, fuzzy
 msgid "Clear all notifications?"
 msgstr "Очистить все уведомления?"
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Clear cache"
+msgstr "Очистить кэш"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -4616,6 +4658,12 @@ msgstr "Свернуть {lineLabel}"
 #, fuzzy
 msgid "Collection"
 msgstr "Коллекция"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Colour filter"
+msgstr "Цветовой фильтр"
 
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
@@ -4936,13 +4984,23 @@ msgstr "Непрерывная"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-msgid "Continuous layout only, in pixels."
-msgstr "Только для непрерывной раскладки, в пикселях."
+#~ msgid "Continuous layout only, in pixels."
+#~ msgstr "Только для непрерывной раскладки, в пикселях."
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Continuous layout only."
+msgstr "Только непрерывная раскладка."
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "Continuous vertical (webtoon)"
 msgstr "Непрерывная вертикальная (вебтун)"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Continuous, because this chapter's pages are very tall."
+msgstr "Непрерывный режим, потому что страницы этой главы очень высокие."
 
 #: src/components/settings/AccountSection.tsx
 #, fuzzy
@@ -5046,6 +5104,11 @@ msgstr "Не удалось загрузить список библиотек �
 msgid "Could not load library stats"
 msgstr "Не удалось загрузить статистику библиотеки"
 
+#: src/pages/reader/ReaderPage.tsx
+#, fuzzy
+#~ msgid "Could not load this chapter."
+#~ msgstr "Не удалось загрузить эту главу."
+
 #: src/pages/stats/sections/ProgressSection.tsx
 #, fuzzy
 msgid "Could not load your progress. The server logs will say why."
@@ -5104,6 +5167,11 @@ msgstr ""
 #, fuzzy
 msgid "Could not update {surface} feedback: {reason}"
 msgstr "Не удалось обновить отклик {surface}: {reason}"
+
+#: src/pages/reader/ServerEnhanceStatus.tsx
+#, fuzzy
+msgid "Could not upscale this page"
+msgstr "Не удалось увеличить эту страницу"
 
 #: src/api/queue.ts
 msgid "Could not write the chapter to disk"
@@ -5215,6 +5283,11 @@ msgstr ""
 msgid "covers, posters, artwork, thumbnails, rebuild image cache, missing covers, broken cover, clear cache, mediacover"
 msgstr "обложки, постеры, иллюстрации, миниатюры, пересборка кэша изображений, отсутствующие обложки, повреждённая обложка, очистка кэша, mediacover"
 
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "CPU threads used for one page."
+msgstr "Потоков процессора на одну страницу."
+
 #: src/components/settings/AccountSection.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/components/settings/UpgradeProfilesSection.tsx
@@ -5300,8 +5373,24 @@ msgstr "Авторы, к которым ты возвращаешься"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-msgid "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
-msgstr "Страницы с благодарностями и первые страницы следующей главы часто похожи, поэтому этот параметр отмечает место перехода."
+#~ msgid "Credit pages and the next chapter's first pages often look alike, so this marks the turn."
+#~ msgstr "Страницы с благодарностями и первые страницы следующей главы часто похожи, поэтому этот параметр отмечает место перехода."
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "Crisp line art (server)"
+msgstr "Чёткий штрих (сервер)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Crop borders"
+msgstr "Обрезать поля"
+
+#: src/pages/reader/ShortcutSheet.tsx
+#, fuzzy
+msgid "Crop borders on or off"
+msgstr "Обрезать поля вкл. или выкл."
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -5500,6 +5589,7 @@ msgstr "Определяющий"
 #: src/components/settings/UsersSection.tsx
 #: src/pages/HealthPage.tsx
 #: src/pages/LibraryPage.tsx
+#: src/pages/settings/UpscalingSection.tsx
 #, fuzzy
 msgid "Delete"
 msgstr "Удалить"
@@ -5784,6 +5874,18 @@ msgstr "Прочитано взахлёб"
 msgid "Didn't score higher than the current file"
 msgstr ""
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Dim"
+msgstr "Затемнение"
+
+#. placeholder {0}: prefs.dim
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Dim ({0}%)"
+msgstr "Затемнение ({0}%)"
+
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderToolbar.tsx
@@ -5912,6 +6014,12 @@ msgstr "Отклонено до {until}"
 msgid "Display name"
 msgstr "Отображаемое имя"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Don't enhance"
+msgstr "Не улучшать"
+
 #: src/components/FailedQueueActions.tsx
 #, fuzzy
 msgid "Don't grab removed torrent releases again"
@@ -5962,6 +6070,7 @@ msgstr "Вниз"
 
 #: src/components/lite/SeriesSheet.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/settings/UpscalingSection.tsx
 #, fuzzy
 msgid "Download"
 msgstr "Загрузить"
@@ -6095,7 +6204,9 @@ msgstr "Предварительно собранный индекс загру�
 
 #: src/components/ui/status.tsx
 #: src/pages/HealthPage.tsx
+#: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/RequestsPage.tsx
+#: src/pages/settings/UpscalingSection.tsx
 #, fuzzy
 msgid "Downloading"
 msgstr "Загружается"
@@ -6216,6 +6327,11 @@ msgstr "Каждая полоса охватывает дни, когда, ве�
 #: src/components/import/MihonReview.tsx
 msgid "Each Mihon category becomes a tag on the series. Manga in Mihon's Default category get no tag."
 msgstr ""
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Each page takes several seconds of server CPU, and upscaled pages are kept in a disk cache. Nothing runs until a reader turns Enhance on."
+msgstr "Каждая страница занимает несколько секунд процессора сервера, а увеличенные страницы хранятся в дисковом кэше. Ничего не запускается, пока читатель не включит «Улучшение»."
 
 #: src/pages/stats/AchievementGrid.tsx
 #, fuzzy
@@ -6359,6 +6475,11 @@ msgstr "Включить {name}"
 msgid "Enable import lists for everyone"
 msgstr "Включить списки импорта для всех"
 
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Enable server upscaling"
+msgstr "Включить увеличение на сервере"
+
 #: src/components/settings/SecuritySection.tsx
 #, fuzzy
 msgid "Enable single sign-on"
@@ -6413,6 +6534,17 @@ msgstr "Английский"
 #, fuzzy
 msgid "English (provider default)"
 msgstr "Английский (язык поставщика по умолчанию)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Enhance"
+msgstr "Улучшение"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "enhance {level}, {methodLabel}"
+msgstr "улучшение {level}, {methodLabel}"
 
 #: src/pages/LoginPage.tsx
 msgid "Enter one of your recovery codes"
@@ -6533,6 +6665,12 @@ msgstr "Каждый месяц"
 #, fuzzy
 msgid "Every notification goes, read and unread. This can't be undone."
 msgstr "Все уведомления, прочитанные и непрочитанные, будут удалены. Это действие нельзя отменить."
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Every quality is enhanced"
+msgstr "Улучшаются все качества"
 
 #: src/pages/HomePage.tsx
 #, fuzzy
@@ -6692,6 +6830,7 @@ msgstr ""
 #: src/pages/ActivityPage.tsx
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
+#: src/pages/settings/UpscalingSection.tsx
 #, fuzzy
 msgid "Failed"
 msgstr "Не удалось"
@@ -6760,6 +6899,11 @@ msgstr ""
 msgid "Fair quality"
 msgstr ""
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Fallback"
+msgstr "Запасной вариант"
+
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
 msgid "Falling means you moved."
@@ -6769,6 +6913,11 @@ msgstr "Падение означает, что вы переместились.
 #, fuzzy
 msgid "Fantasy"
 msgstr "Фэнтези"
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "Fastest, on this device"
+msgstr "Быстрее всего на этом устройстве"
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -7499,6 +7648,16 @@ msgstr "Получено из {indexer}"
 msgid "Grabbed from {indexer}: {releaseName}"
 msgstr "Получено из {indexer}: {releaseName}"
 
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Gray"
+msgstr "Серый"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Grayscale"
+msgstr "Оттенки серого"
+
 #: src/components/ui/viewPrefs.tsx
 #: src/pages/LibraryPage.tsx
 #, fuzzy
@@ -7789,6 +7948,17 @@ msgstr "Храните токен ленты и читайте через при
 msgid "Hold back more than (chapters)"
 msgstr "Задерживать при более чем (глав)"
 
+#: src/pages/reader/ReaderToolbar.tsx
+#: src/pages/reader/ShortcutSheet.tsx
+#, fuzzy
+msgid "Hold to compare"
+msgstr "Удерживайте, чтобы сравнить"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Hold to compare with the original (H)"
+msgstr "Удерживайте, чтобы сравнить с оригиналом (H)"
+
 #: src/components/rails/CustomRailEditor.tsx
 #: src/nav.ts
 #: src/pages/HomePage.tsx
@@ -7897,8 +8067,8 @@ msgstr "Как работают сигналы"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-msgid "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
-msgstr "Как встроенная читалка открывает серию. Профиль автоматически применяется к охватываемым типам серий; для остальных используется «По умолчанию», в том числе для серий, чьи метаданные не обновлялись после установки обновления. Можно закрепить профиль или изменить настройки прямо в читалке."
+#~ msgid "How the built-in reader opens a series. A profile applies automatically to the series types it covers; everything else uses Default, including series whose metadata hasn't been refreshed since upgrading. You can pin a profile or override settings from inside the reader."
+#~ msgstr "Как встроенная читалка открывает серию. Профиль автоматически применяется к охватываемым типам серий; для остальных используется «По умолчанию», в том числе для серий, чьи метаданные не обновлялись после установки обновления. Можно закрепить профиль или изменить настройки прямо в читалке."
 
 #: src/pages/discover/TasteTab.tsx
 #, fuzzy
@@ -7950,6 +8120,11 @@ msgstr "Игнорировать эту версию"
 #, fuzzy
 msgid "Ignored"
 msgstr "Проигнорировано"
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "IllustrationJaNai SPAN-S"
+msgstr "IllustrationJaNai SPAN-S"
 
 #: src/pages/settings/registry.ts
 #: src/pages/SettingsPage.tsx
@@ -8294,6 +8469,12 @@ msgstr ""
 msgid "Integrations"
 msgstr "Интеграции"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Invert"
+msgstr "Инверсия"
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "Invite people"
@@ -8478,6 +8659,16 @@ msgstr "Сохранить название и скачать в новую па
 #, fuzzy
 msgid "Keep the name, download into it too"
 msgstr "Сохранить название и скачать в эту папку тоже"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Keep the screen awake"
+msgstr "Не выключать экран"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Keep the screen awake while reading"
+msgstr "Не выключать экран во время чтения"
 
 #: src/components/import/MihonImport.tsx
 msgid "Keep this tab open until it finishes."
@@ -8799,8 +8990,13 @@ msgstr "Оставь пустым, чтобы отправлять на все �
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-msgid "Leave empty to use this profile only where you pin it to a series."
-msgstr "Оставьте пустым, чтобы использовать этот профиль только для серий, к которым вы его прикрепите."
+msgid "Leave empty to use this profile only on series you pin it to."
+msgstr "Оставьте пустым, чтобы использовать этот профиль только для серий, за которыми он закреплён."
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+#~ msgid "Leave empty to use this profile only where you pin it to a series."
+#~ msgstr "Оставьте пустым, чтобы использовать этот профиль только для серий, к которым вы его прикрепите."
 
 #: src/components/rails/CustomRailEditor.tsx
 #, fuzzy
@@ -8922,6 +9118,7 @@ msgstr "путь к библиотеке, хранилище, диск, своб
 msgid "Library title"
 msgstr "Название библиотеки"
 
+#: src/pages/reader/enhanceMethods.ts
 #: src/theme-context.tsx
 #, fuzzy
 msgid "Light"
@@ -9090,6 +9287,11 @@ msgstr "Загрузить ещё"
 #, fuzzy
 msgid "Loading chapters…"
 msgstr "Загрузка глав…"
+
+#: src/pages/reader/ServerEnhanceStatus.tsx
+#, fuzzy
+msgid "Loading the upscaled page"
+msgstr "Загрузка увеличенной страницы"
 
 #: src/components/DiscoverPresets.tsx
 #: src/components/NotificationBell.tsx
@@ -9635,6 +9837,12 @@ msgstr "База данных метаданных готова."
 msgid "Metadata straight from the MangaBaka API"
 msgstr "Метаданные напрямую из API MangaBaka"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Method"
+msgstr "Метод"
+
 #: src/pages/stats/sections/ReadingSection.tsx
 #, fuzzy
 msgid "Mid-way"
@@ -9706,6 +9914,7 @@ msgstr "отсутствует"
 #: src/pages/HomePage.tsx
 #: src/pages/LibraryPage.tsx
 #: src/pages/SeriesDetailPage.tsx
+#: src/pages/settings/UpscalingSection.tsx
 #, fuzzy
 msgid "Missing"
 msgstr "Отсутствует"
@@ -9742,6 +9951,11 @@ msgstr ""
 #, fuzzy
 msgid "Model switch: {modelSwitchError}"
 msgstr "Переключение модели: {modelSwitchError}"
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Models"
+msgstr "Модели"
 
 #: src/components/discover/DiscoverLibraryRail.tsx
 #: src/components/series/SeriesActionsMenu.tsx
@@ -10057,6 +10271,11 @@ msgstr ""
 #, fuzzy
 msgid "Needs at least two enabled sources to compare."
 msgstr "Для сравнения нужны как минимум два включённых источника."
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Needs HTTPS or localhost."
+msgstr "Нужен HTTPS или localhost."
 
 #: src/pages/HomePage.tsx
 #, fuzzy
@@ -10731,7 +10950,10 @@ msgstr "нет"
 
 #: src/components/RelinkFilesModal.tsx
 #: src/components/series/SeriesActionsMenu.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/LibraryPage.tsx
+#: src/pages/reader/enhanceMethods.ts
+#: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/settings/SuwayomiCards.tsx
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -10794,6 +11016,20 @@ msgstr ""
 #, fuzzy
 msgid "Not analyzed"
 msgstr "Не проанализировано"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Not available"
+msgstr "Недоступно"
+
+#: src/api/client.ts
+#: src/components/ui/CoverCard.tsx
+#: src/components/ui/SeriesRow.tsx
+#: src/pages/reader/ReaderPage.tsx
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+#~ msgid "Not available offline"
+#~ msgstr "Недоступно офлайн"
 
 #: src/components/releases/ReleaseOutlookSummary.tsx
 #, fuzzy
@@ -10858,6 +11094,11 @@ msgstr ""
 #, fuzzy
 msgid "Not imported"
 msgstr "Не импортировано"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Not in Continuous layout."
+msgstr "Не в непрерывной раскладке."
 
 #: src/components/LinkChaptersModal.tsx
 #: src/components/ui/status.tsx
@@ -10934,6 +11175,11 @@ msgstr "Не просканировано"
 #, fuzzy
 msgid "Not set"
 msgstr "Не задано"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Not supported on this device"
+msgstr "Не поддерживается на этом устройстве"
 
 #: src/pages/discover/AnimeSignalsSection.tsx
 #, fuzzy
@@ -11289,6 +11535,7 @@ msgstr "времени чтения"
 
 #: src/components/ui/incognito.ts
 #: src/pages/discover/AnimeSignalsSection.tsx
+#: src/pages/reader/enhanceMethods.ts
 #, fuzzy
 msgid "Off"
 msgstr "Выкл."
@@ -11296,6 +11543,11 @@ msgstr "Выкл."
 #: src/components/settings/SecuritySection.tsx
 msgid "Off by default: with it on, anyone your provider will authenticate gets a Fōkurōru account. New accounts start with no library access until you grant a root folder."
 msgstr ""
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Off for this chapter because of its quality."
+msgstr "Для этой главы выключено из-за её качества."
 
 #: src/components/settings/ProgressSection.tsx
 #, fuzzy
@@ -11376,6 +11628,16 @@ msgstr "Отложено"
 #, fuzzy
 msgid "On shelf"
 msgstr "На полке"
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "On this device"
+msgstr "На этом устройстве"
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "On this device; best on clean line art, can mottle screentone"
+msgstr "На этом устройстве; лучше всего на чистом штрихе, может давать пятна на растровых тонах"
 
 #: src/pages/discover/ManageSignalsModal.tsx
 #, fuzzy
@@ -11602,6 +11864,11 @@ msgstr "Откройте страницу и убедитесь, что это �
 msgid "Open the search with these filters from now on"
 msgstr "В дальнейшем открывать поиск с этими фильтрами"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Open webtoon chapters in Continuous layout"
+msgstr "Открывать главы вебтуна в непрерывном режиме"
+
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Opening the reader…"
 msgstr ""
@@ -11716,6 +11983,7 @@ msgid "Packing the pages…"
 msgstr ""
 
 #: src/components/CommandPalette.tsx
+#: src/pages/reader/PageScrubber.tsx
 #, fuzzy
 msgid "Page"
 msgstr "Страница"
@@ -11731,6 +11999,12 @@ msgstr ""
 #: src/components/series/SeriesProgress.tsx
 msgid "Page {0} of {1}"
 msgstr ""
+
+#. placeholder {0}: page + 1
+#: src/pages/reader/PageScrubber.tsx
+#, fuzzy
+msgid "Page {0} of {count}"
+msgstr "Страница {0} из {count}"
 
 #: src/pages/SeriesDetailPage.tsx
 #, fuzzy
@@ -12347,6 +12621,11 @@ msgstr "обновите код до последней версии и пере
 msgid "pull the new image and recreate the container"
 msgstr "загрузите новый образ и пересоздайте контейнер"
 
+#: src/pages/reader/ContinuousView.tsx
+#, fuzzy
+msgid "Pull up for next chapter"
+msgstr "Потяните вверх для следующей главы"
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Pulls your tracker lists on a schedule and adds matching series to the library, or files requests when you cannot add series yourself. Connect trackers under Scrobbling first."
@@ -12539,6 +12818,13 @@ msgstr "Оценено"
 msgid "Rated {rating}/10"
 msgstr "Оценка: {rating}/10"
 
+#: src/pages/LibraryPage.tsx
+#: src/pages/reader/ReaderPage.tsx
+#: src/pages/SeriesDetailPage.tsx
+#, fuzzy
+#~ msgid "Rated {rating}/10 so far"
+#~ msgstr "Оценка {rating}/10 на данный момент"
+
 #: src/components/settings/UsersSection.tsx
 #: src/pages/settings/ManageSourcesModal.tsx
 #, fuzzy
@@ -12683,7 +12969,6 @@ msgstr ""
 msgid "Read ticks show in the chapter list. Series read counts only include downloaded chapters."
 msgstr ""
 
-#: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/settings/registry.ts
 #: src/pages/stats/sections/ProgressSection.tsx
 #: src/pages/StatsPage.tsx
@@ -12696,6 +12981,11 @@ msgstr "Читалка"
 msgid "Reader counts replace it once that data is installed."
 msgstr "Счётчики читалки заменят его после установки этих данных."
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Reader profiles"
+msgstr "Профили читалки"
+
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/pages/reader/ReaderToolbar.tsx
 #, fuzzy
@@ -12706,6 +12996,11 @@ msgstr "Настройки читалки"
 #, fuzzy
 msgid "Reader thumbnails: {thumbnailFilesLabel} files, {thumbnailBytesLabel}"
 msgstr "Миниатюры читалки: файлов: {thumbnailFilesLabel}, объём: {thumbnailBytesLabel}"
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Readers can pick the ticked models. Saving a ticked model that isn't downloaded yet starts its download."
+msgstr "Читатели могут выбрать отмеченные модели. Сохранение отмеченной модели, которой ещё нет, запускает её загрузку."
 
 #: src/api/hooks.ts
 #, fuzzy
@@ -12816,12 +13111,18 @@ msgid "Reads reading progress from Kavita and pushes forward-only updates to you
 msgstr "Читает прогресс чтения из Kavita и отправляет трекерам обновления только вперёд каждые {intervalMinutes, plural, one {# минута} few {# минуты} many {# минут} other {# минуты}}. Удалённый прогресс никогда не уменьшается, а завершённые записи не возвращаются назад. Настройте учётные данные в настройках."
 
 #: src/components/series/SeriesProgress.tsx
+#: src/pages/settings/UpscalingSection.tsx
 msgid "Ready"
 msgstr ""
 
 #: src/components/series/SeriesProgress.tsx
 msgid "Ready to read"
 msgstr ""
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "Real-ESRGAN; flattens screentone"
+msgstr "Real-ESRGAN; сглаживает растровый тон"
 
 #: src/components/FailedQueueActions.tsx
 #, fuzzy
@@ -13091,6 +13392,11 @@ msgstr "Связано с вашей библиотекой"
 #, fuzzy
 msgid "Related to your seeds"
 msgstr "Связано с вашими начальными элементами"
+
+#: src/pages/reader/ContinuousView.tsx
+#, fuzzy
+msgid "Release for next chapter"
+msgstr "Отпустите для следующей главы"
 
 #: src/api/upgrades.ts
 msgid "Release name matches (regex)"
@@ -13886,6 +14192,16 @@ msgstr "Корневая папка"
 msgid "Root Folders"
 msgstr "Корневые папки"
 
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Rotate"
+msgstr "Повернуть"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Rotate to fit"
+msgstr "Повернуть под размер"
+
 #: src/components/SourceCompareModal.tsx
 #, fuzzy
 msgid "Row {zoomRowNumber} of {zoomTotalPages}"
@@ -14084,6 +14400,7 @@ msgstr "Сохранить коды восстановления"
 #: src/pages/settings/ManageSourcesModal.tsx
 #: src/pages/settings/RecycleBinSection.tsx
 #: src/pages/settings/SuwayomiCards.tsx
+#: src/pages/settings/UpscalingSection.tsx
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Saved"
@@ -14140,6 +14457,11 @@ msgstr "Неспешное чтение"
 #, fuzzy
 msgid "Scale"
 msgstr "Масштаб"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+#~ msgid "Scale ({scale}%)"
+#~ msgstr "Масштаб ({scale}%)"
 
 #: src/pages/HealthPage.tsx
 #: src/pages/ImportPage.tsx
@@ -14348,6 +14670,11 @@ msgstr ""
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Scroll up a screen (vertical navigation)"
 msgstr ""
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Scroll webtoon chapters"
+msgstr "Прокрутка глав вебтуна"
 
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Scrolling"
@@ -14734,6 +15061,12 @@ msgstr ""
 msgid "Sent to the download client: {title}"
 msgstr ""
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Sepia"
+msgstr "Сепия"
+
 #: src/components/ui/DiscoverRail.tsx
 #, fuzzy
 msgid "Sequel to {relatedTo}"
@@ -14854,6 +15187,11 @@ msgstr "Серии удалены"
 msgid "Series retired"
 msgstr ""
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Series types no profile covers use Default."
+msgstr "Для типов серий, которые не покрывает ни один профиль, используется «По умолчанию»."
+
 #: src/components/home/homeSectionDefs.ts
 #, fuzzy
 msgid "Series whose anime you finished, starting after the last adapted chapter."
@@ -14891,6 +15229,17 @@ msgstr ""
 #: src/pages/SimpleHomePage.tsx
 msgid "Server is on {server}, this screen is on {loaded}"
 msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Server methods apply only when the admin has enabled them; otherwise the fallback is used."
+msgstr "Серверные методы применяются, только если администратор их включил; иначе используется запасной вариант."
+
+#: src/pages/settings/registry.ts
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Server upscaling"
+msgstr "Увеличение на сервере"
 
 #: src/components/NotificationsSection.tsx
 #, fuzzy
@@ -15015,6 +15364,21 @@ msgstr "Доля прочитанных вами серий."
 #: src/api/upgrades.ts
 msgid "Shares a file with another chapter"
 msgstr ""
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "Sharp (server)"
+msgstr "Резкость (сервер)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Sharpen soft pages. Auto does it only when a page is shown larger than its source or looks blurry."
+msgstr "Повышает резкость мягких страниц. Авто делает это, только если страница показана крупнее исходника или выглядит размытой."
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Sharpens soft pages in the reader with models that run on this server."
+msgstr "Повышает резкость мягких страниц в читалке моделями, которые работают на этом сервере."
 
 #: src/pages/SettingsPage.tsx
 msgid "Shelf figures"
@@ -15145,6 +15509,11 @@ msgstr "Показывать их новые произведения в под�
 msgid "Show this section"
 msgstr "Показывать этот раздел"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Show whole"
+msgstr "Показывать целиком"
+
 #: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Showing {currentLocaleLabel}. Non-English translations are machine-made and improving; anything untranslated shows in English."
@@ -15169,6 +15538,11 @@ msgstr "Показано {shownQueueCount} из {totalQueueCount} элемент
 #, fuzzy
 msgid "showing results for <0>{corrected}</0>"
 msgstr "показаны результаты для <0>{corrected}</0>"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Shown on this device until the server's page is ready, and whenever the server can't be used."
+msgstr "Показывается на этом устройстве, пока страница сервера не готова, и всякий раз, когда сервер нельзя использовать."
 
 #: src/pages/RequestsPage.tsx
 #, fuzzy
@@ -15268,6 +15642,11 @@ msgstr "Одиночный"
 #, fuzzy
 msgid "Single page"
 msgstr "Одна страница"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Single page layout only."
+msgstr "Только для режима одной страницы."
 
 #: src/components/settings/AccountSection.tsx
 #: src/components/settings/SecuritySection.tsx
@@ -15595,14 +15974,24 @@ msgstr "спецглавы, омакэ, десятичные главы, отс�
 msgid "Spin-off of {relatedTo}"
 msgstr "Спин-офф {relatedTo}"
 
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Split"
+msgstr "Разделить"
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-msgid "Split double-width pages"
-msgstr "Разделять страницы двойной ширины"
+#~ msgid "Split double-width pages"
+#~ msgstr "Разделять страницы двойной ширины"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Split from the tier above"
 msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Split into two pages"
+msgstr "Разделять на две страницы"
 
 #: src/components/TagBuckets.tsx
 #, fuzzy
@@ -15801,6 +16190,11 @@ msgstr "Сюжет"
 #, fuzzy
 msgid "Streak"
 msgstr "Серия дней"
+
+#: src/pages/reader/enhanceMethods.ts
+#, fuzzy
+msgid "Strong"
+msgstr "Сильное"
 
 #: src/pages/SettingsPage.tsx
 #, fuzzy
@@ -16009,8 +16403,13 @@ msgstr "Зоны касания"
 
 #: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
-msgid "Tap zones (click the page edges to turn)"
-msgstr "Зоны касания (нажмите края страницы для перелистывания)"
+#~ msgid "Tap zones (click the page edges to turn)"
+#~ msgstr "Зоны касания (нажмите края страницы для перелистывания)"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "Tap zones (click the page edges to turn), paged layouts only"
+msgstr "Зоны касания (нажатие по краю страницы переворачивает её), только для постраничных режимов"
 
 #: src/components/reader/TapZoneEditor.tsx
 msgid "Tap zones for this app"
@@ -16062,6 +16461,11 @@ msgstr "Проверка не пройдена"
 #, fuzzy
 msgid "Test notification sent"
 msgstr "Тестовое уведомление отправлено"
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Test speed"
+msgstr "Проверить скорость"
 
 #: src/components/SourceMappingsSection.tsx
 #, fuzzy
@@ -16268,6 +16672,11 @@ msgstr "Связанный файл ещё не проиндексирован, 
 msgid "The local database is not installed yet. Download it once from the metadata settings."
 msgstr ""
 
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "The models are third-party files under their own licences. The non-commercial ones bind anyone who receives them."
+msgstr "Модели это сторонние файлы под собственными лицензиями. Некоммерческие лицензии обязывают всех, кто их получает."
+
 #: src/components/SetupWizard.tsx
 #, fuzzy
 msgid "The most explicit rating shown in search, Discover and recommendations. Everything up to it is allowed."
@@ -16302,6 +16711,11 @@ msgstr "Отличающийся элемент"
 #: src/api/queue.ts
 msgid "The old file could not be moved aside for the upgrade"
 msgstr ""
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "The oldest pages are dropped past this."
+msgstr "Сверх этого самые старые страницы удаляются."
 
 #: src/components/reader/TapZoneEditor.tsx
 msgid "The page is shown as it would be held."
@@ -16520,6 +16934,11 @@ msgstr "Они поступают из каталога, поэтому для �
 msgid "They will no longer be able to sign in. This can't be undone."
 msgstr "Пользователь больше не сможет войти в систему. Это действие нельзя отменить."
 
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Third-party notices"
+msgstr "Уведомления о сторонних компонентах"
+
 #: src/components/settings/AccountSection.tsx
 #, fuzzy
 msgid "This account has no password login for two-factor to protect."
@@ -16572,6 +16991,11 @@ msgstr ""
 msgid "This chapter is not on your server yet."
 msgstr ""
 
+#: src/pages/reader/ReaderPage.tsx
+#, fuzzy
+#~ msgid "This chapter isn't saved on this device."
+#~ msgstr "Эта глава не сохранена на этом устройстве."
+
 #: src/api/upgrades.ts
 msgid "This chapter was added or upgraded too recently"
 msgstr ""
@@ -16614,6 +17038,12 @@ msgstr "В этом месяце"
 #, fuzzy
 msgid "This operation is {opStatus} and needs no further action."
 msgstr "Эта операция имеет статус {opStatus} и больше не требует действий."
+
+#: src/pages/reader/ContinuousView.tsx
+#: src/pages/reader/PagedView.tsx
+#, fuzzy
+msgid "This page failed to load."
+msgstr "Не удалось загрузить эту страницу."
 
 #: src/components/CatalogueUnavailable.tsx
 msgid "This page needs the metadata database"
@@ -16750,6 +17180,11 @@ msgstr "В этом году"
 #, fuzzy
 msgid "Those series are already being matched."
 msgstr "Эти серии уже сопоставляются."
+
+#: src/pages/settings/UpscalingSection.tsx
+#, fuzzy
+msgid "Threads"
+msgstr "Потоки"
 
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
@@ -17094,7 +17529,10 @@ msgstr "Попробуйте более короткий или другой з�
 
 #: src/components/discover/SourcePreviewPanel.tsx
 #: src/pages/DiscoverPage.tsx
+#: src/pages/reader/ContinuousView.tsx
 #: src/pages/reader/DownloadSplash.tsx
+#: src/pages/reader/PagedView.tsx
+#: src/pages/settings/UpscalingSection.tsx
 #: src/pages/stats/sections/LibrarySection.tsx
 #, fuzzy
 msgid "Try again"
@@ -17580,6 +18018,21 @@ msgstr "Не удалось загрузить: {status}"
 msgid "Upper Case"
 msgstr "Верхний регистр"
 
+#. Search terms for the settings command palette, not prose. Translate each term as the word someone would actually type in this language, keep them comma-separated, and add or drop terms freely: the list does not have to match English item for item.
+#: src/pages/settings/registry.ts
+msgid "upscale, upscaling, enhance, sharpen, model, onnx, real-esrgan, span, cpu threads, page cache"
+msgstr ""
+
+#: src/pages/reader/ServerEnhanceStatus.tsx
+#, fuzzy
+msgid "Upscaled page shown"
+msgstr "Показана увеличенная страница"
+
+#: src/pages/reader/ServerEnhanceStatus.tsx
+#, fuzzy
+msgid "Upscaling this page"
+msgstr "Увеличение этой страницы"
+
 #: src/components/NotificationsSection.tsx
 #: src/components/settings/downloadClientFields.ts
 #: src/components/settings/IndexerForm.tsx
@@ -18001,6 +18454,11 @@ msgstr ""
 msgid "Waiting for the MangaBaka snapshot to download first."
 msgstr "Сначала дождитесь загрузки снимка MangaBaka."
 
+#: src/pages/reader/ServerEnhanceStatus.tsx
+#, fuzzy
+msgid "Waiting for the server"
+msgstr "Ожидание сервера"
+
 #: src/pages/reader/DownloadSplash.tsx
 msgid "Waiting its turn in the download queue…"
 msgstr ""
@@ -18204,6 +18662,11 @@ msgstr "Если при обновлении находится больше н�
 msgid "When importing an existing series from disk: rename its folder to the Series Folder Format, or keep it as found."
 msgstr "При импорте существующей серии с диска: переименовать её папку по шаблону папок серий или оставить как есть."
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#, fuzzy
+msgid "When most pages are very tall."
+msgstr "Когда большинство страниц очень высокие."
+
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "When the instance switch is on, the daily scan may replace files of series on this profile with better copies."
 msgstr ""
@@ -18304,6 +18767,16 @@ msgstr "Во время чтения"
 msgid "While reading only tells you about new chapters while you are partway through."
 msgstr "Во время чтения сообщает о новых главах только пока вы находитесь в середине серии."
 
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "While the server works"
+msgstr "Пока работает сервер"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Whole"
+msgstr "Целиком"
+
 #: src/components/discover/RecommendationFeedbackMenu.tsx
 #, fuzzy
 msgid "Whole franchise"
@@ -18327,6 +18800,12 @@ msgstr "Весь год"
 #: src/api/upgrades.ts
 msgid "Whole-series pack, needs your call"
 msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+msgid "Wide pages"
+msgstr "Широкие страницы"
 
 #: src/components/discover/SeriesPreviewReader.tsx
 #: src/components/reader/TapZoneEditor.tsx
@@ -18727,7 +19206,17 @@ msgstr ""
 msgid "Zoom ({scale}%)"
 msgstr ""
 
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+#~ msgid "Zoom in"
+#~ msgstr "Увеличить"
+
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
 msgid "Zoom in and out"
 msgstr "Увеличить и уменьшить"
+
+#: src/pages/reader/ReaderToolbar.tsx
+#, fuzzy
+#~ msgid "Zoom out"
+#~ msgstr "Уменьшить"

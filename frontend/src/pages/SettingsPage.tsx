@@ -1,3 +1,4 @@
+import { UpscalingSection } from './settings/UpscalingSection'
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -3124,6 +3125,7 @@ function useSectionNodes(): Record<string, ReactNode> {
 
       'root-folders': <RootFoldersSection />,
       'library-files': <LibraryFilesSection />,
+      upscaling: <UpscalingSection />,
       'recycle-bin': <RecycleBinSection />,
       naming: <NamingSection />,
       monitoring: <NewSeriesDefaultsSection />,

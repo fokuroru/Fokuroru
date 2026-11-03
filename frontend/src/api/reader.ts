@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import type { ReaderPrefs } from '../pages/reader/prefs'
-import { api, authHeaders, getInitialize } from './client'
+import type { QualityTierName } from './upgrades'
+import { api, apiRootNow, authHeaders, getInitialize } from './client'
 import { isNetworkError, nativeKnownOffline, queueNativeProgress } from '../lib/nativeApp'
 
 export interface ReaderManifest {
@@ -46,6 +47,10 @@ export interface ReaderManifest {
   seriesType: string | null
   /** Identifies the file behind the pages; page URLs carry it so they can be cached until a re-download. */
   pageVersion: string
+  /** The quality tier of the file behind the pages. Absent on a manifest saved offline before it existed. */
+  tier?: QualityTierName
+  /** Whether the admin turned on server upscaling, and which of its models this reader can pick. Absent on a manifest saved offline before it existed. */
+  enhanceServer?: EnhanceServer
 }
 
 /** Which layer answered "what does this series look like". Mirrors `ReaderPrefsSource`. */
@@ -95,6 +100,47 @@ export async function pageUrl(chapterId: number, page: number, thumb = false, ve
   const kind = thumb ? 'thumb' : 'page'
   const query = version ? `?v=${encodeURIComponent(version)}` : ''
   return `${init.apiRoot}/reader/chapter/${chapterId}/${kind}/${page}${query}`
+}
+
+export interface EnhanceServer {
+  enabled: boolean
+  /** Model ids as the server knows them, without the `server:` prefix. */
+  models: { id: string; ready: boolean }[]
+}
+
+function enhancedUrl(apiRoot: string, chapterId: number, page: number, model: string, pageVersion: string): string {
+  const query = `?model=${encodeURIComponent(model)}&v=${encodeURIComponent(pageVersion)}`
+  return `${apiRoot}/reader/chapter/${chapterId}/page/${page}/enhanced${query}`
+}
+
+/** Where a page upscaled on the server is served from. A 404 there means not upscaled yet; it never queues one. */
+export async function serverEnhancedUrl(chapterId: number, page: number, model: string, pageVersion: string): Promise<string> {
+  const init = await getInitialize()
+  return enhancedUrl(init.apiRoot, chapterId, page, model, pageVersion)
+}
+
+/** `serverEnhancedUrl` without the wait, or null while the bootstrap has not loaded. */
+export function serverEnhancedUrlNow(chapterId: number, page: number, model: string, pageVersion: string): string | null {
+  const apiRoot = apiRootNow()
+  return apiRoot === null ? null : enhancedUrl(apiRoot, chapterId, page, model, pageVersion)
+}
+
+export type ServerPageState = 'ready' | 'queued' | 'working' | 'failed' | 'skipped'
+
+/**
+ * Asks the server to upscale a window of pages, current page first. At most 32 are taken; `next`
+ * fills whatever room is left with the next chapter's pages, which are not answered here.
+ */
+export function requestServerEnhance(
+  chapterId: number,
+  model: string,
+  pages: number[],
+  next: { chapterId: number; pages: number[] } | null = null,
+) {
+  return api<{ pages: { page: number; state: ServerPageState }[] }>(`/reader/chapter/${chapterId}/enhance`, {
+    method: 'POST',
+    body: JSON.stringify({ model, pages, ...(next && { nextChapterId: next.chapterId, nextPages: next.pages }) }),
+  })
 }
 
 export function useReaderManifest(chapterId: number) {

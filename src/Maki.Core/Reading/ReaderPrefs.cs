@@ -47,6 +47,12 @@ public record ReaderPrefsSpec(
     string Navigation = ReaderPrefsSpec.NavAuto,
     /// <summary>Animate the screen-sized steps of vertical navigation instead of jumping.</summary>
     bool SmoothScroll = true,
+    /// <summary>Percent the page images are dimmed by, for reading in a dark room. 0 leaves them untouched.</summary>
+    int Dim = 0,
+    /// <summary>A colour filter applied to the page images: one of <c>none</c>, <c>grayscale</c>, <c>sepia</c>, <c>invert</c>.</summary>
+    string Filter = ReaderPrefsSpec.FilterNone,
+    /// <summary>Hold a screen wake lock while the reader is being read, where the browser offers one.</summary>
+    bool KeepAwake = true,
     /// <summary>
     /// What single-page mode does with a page wider than it is tall: <c>off</c> shows it whole,
     /// <c>split</c> shows its halves one after the other in reading order, <c>rotate</c> turns it a
@@ -83,6 +89,7 @@ public record ReaderPrefsSpec(
     /// </summary>
     IReadOnlyList<string>? EnhanceSkipTiers = null)
 {
+    public const string FilterNone = "none";
     public const string SplitOff = "off";
     public const string EnhanceOff = "off";
     public const string EnhanceMethodDefault = "a4k-m";
@@ -120,6 +127,7 @@ public record ReaderPrefsSpec(
     private static readonly string[] Directions = [DirectionLtr, DirectionRtl];
     private static readonly string[] Fits = [FitWidth, FitHeight, FitScreen, FitOriginal];
     private static readonly string[] Navigations = [NavAuto, NavHorizontal, NavVertical];
+    private static readonly string[] Filters = [FilterNone, "grayscale", "sepia", "invert"];
     private static readonly string[] SplitModes = [SplitOff, "split", "rotate"];
     private static readonly string[] EnhanceModes = [EnhanceOff, "auto", "always"];
     private static readonly string[] EnhanceMethods =
@@ -136,6 +144,8 @@ public record ReaderPrefsSpec(
         Direction = Directions.Contains(Direction) ? Direction : DirectionRtl,
         Fit = Fits.Contains(Fit) ? Fit : FitHeight,
         Navigation = Navigations.Contains(Navigation) ? Navigation : NavAuto,
+        Dim = Math.Clamp(Dim, 0, 80),
+        Filter = Filters.Contains(Filter) ? Filter : FilterNone,
         SplitWide = SplitModes.Contains(SplitWide) ? SplitWide : SplitOff,
         Enhance = EnhanceModes.Contains(Enhance) ? Enhance : EnhanceOff,
         EnhanceMethod = EnhanceMethods.Contains(EnhanceMethod) ? EnhanceMethod : EnhanceMethodDefault,

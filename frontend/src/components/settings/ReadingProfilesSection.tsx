@@ -7,7 +7,6 @@ import {
   Divider,
   Group,
   MultiSelect,
-  NumberInput,
   Select,
   Stack,
   Switch,
@@ -38,6 +37,16 @@ import { useLabel } from '../../i18n-context'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { msg, t as now } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
+import { SettingsNumberInput } from './SettingsNumberInput'
+import { useReportUnsaved } from './SaveButton'
+import {
+  ENHANCE_FALLBACKS,
+  ENHANCE_LEVELS,
+  ENHANCE_METHODS,
+  ENHANCE_SKIP_TIERS,
+  enhanceMethodInfo,
+  isServerMethod,
+} from '../../pages/reader/enhanceMethods'
 
 const MODE_LABELS: Record<ReaderPrefs['mode'], MessageDescriptor> = {
   auto: msg`Auto`,
@@ -60,7 +69,19 @@ const FIT_LABELS: Record<ReaderPrefs['fit'], MessageDescriptor> = {
 
 /** `renderLabel` comes from the caller's own `useLabel()` so this stays a plain function, not a hook. */
 function summarize(prefs: ReaderPrefs, renderLabel: (label: MessageDescriptor) => string): string {
-  return `${renderLabel(MODE_LABELS[prefs.mode])}, ${renderLabel(DIRECTION_LABELS[prefs.direction])}, ${renderLabel(FIT_LABELS[prefs.fit])}`
+  const parts = [
+    renderLabel(MODE_LABELS[prefs.mode]),
+    renderLabel(DIRECTION_LABELS[prefs.direction]),
+    renderLabel(FIT_LABELS[prefs.fit]),
+  ]
+  if (prefs.enhance !== 'off') {
+    const method = enhanceMethodInfo(prefs.enhanceMethod)
+    const levelInfo = ENHANCE_LEVELS.find((l) => l.value === prefs.enhance)
+    const level = levelInfo ? renderLabel(levelInfo.label) : prefs.enhance
+    const methodLabel = method ? renderLabel(method.label) : prefs.enhanceMethod
+    parts.push(now`enhance ${level}, ${methodLabel}`)
+  }
+  return parts.join(', ')
 }
 
 /**
@@ -81,14 +102,9 @@ export function ReadingProfilesSection() {
   return (
     <SettingsSection
       id="reader"
-      title={<Trans>Reader</Trans>}
+      title={<Trans>Reader profiles</Trans>}
       description={
-        <Trans>
-          How the built-in reader opens a series. A profile applies automatically to the series
-          types it covers; everything else uses Default, including series whose metadata hasn't
-          been refreshed since upgrading. You can pin a profile or override settings from inside
-          the reader.
-        </Trans>
+        <Trans>Series types no profile covers use Default.</Trans>
       }
       actions={
         <Button
@@ -105,7 +121,8 @@ export function ReadingProfilesSection() {
       {creating && (
         <ProfileEditor
           key="new"
-          initial={{ name: '', prefs: DEFAULT_PREFS, seriesTypes: [] }}
+          // A profile's layout is a deliberate choice, so detection stays off until asked for.
+          initial={{ name: '', prefs: { ...DEFAULT_PREFS, autoWebtoon: false }, seriesTypes: [] }}
           taken={(profiles ?? []).flatMap((p) => p.seriesTypes)}
           submitLabel={t`Create`}
           busy={create.isPending}
@@ -337,6 +354,11 @@ function ProfileEditor({
   const [prefs, setPrefs] = useState<ReaderPrefs>(initial.prefs)
   const set = (patch: Partial<ReaderPrefs>) => setPrefs((current) => ({ ...current, ...patch }))
   const [tapEditorOpen, setTapEditorOpen] = useState(false)
+  const methodInfo = enhanceMethodInfo(prefs.enhanceMethod)
+  useReportUnsaved(
+    JSON.stringify({ name, types, prefs }) !==
+      JSON.stringify({ name: initial.name, types: initial.seriesTypes, prefs: initial.prefs }),
+  )
 
   return (
     <Stack gap="sm" mt="sm">
@@ -351,7 +373,7 @@ function ProfileEditor({
 
           <MultiSelect
             label={t`Applies automatically to`}
-            description={t`Leave empty to use this profile only where you pin it to a series.`}
+            description={t`Leave empty to use this profile only on series you pin it to.`}
             value={types}
             onChange={setTypes}
             data={SERIES_TYPES.map((type) => {
@@ -414,14 +436,14 @@ function ProfileEditor({
           ]}
         />
         {prefs.fit === 'original' && (
-          <NumberInput
+          <SettingsNumberInput
             label={t`Scale`}
             suffix="%"
             min={25}
             max={400}
             step={5}
             value={prefs.scale}
-            onChange={(value) => set({ scale: Number(value) || 100 })}
+            onChange={(value) => set({ scale: value })}
           />
         )}
       </Group>
@@ -439,24 +461,119 @@ function ProfileEditor({
             { value: 'oled', label: t`OLED black` },
           ]}
         />
-        <NumberInput
+        <SettingsNumberInput
+          label={t`Dim`}
+          suffix="%"
+          min={0}
+          max={80}
+          step={5}
+          value={prefs.dim}
+          onChange={(value) => set({ dim: value })}
+        />
+        <Select
+          label={t`Colour filter`}
+          allowDeselect={false}
+          value={prefs.filter}
+          onChange={(value) => value && set({ filter: value as ReaderPrefs['filter'] })}
+          data={[
+            { value: 'none', label: t`None` },
+            { value: 'grayscale', label: t`Grayscale` },
+            { value: 'sepia', label: t`Sepia` },
+            { value: 'invert', label: t`Invert` },
+          ]}
+        />
+        <SettingsNumberInput
           label={t`Page gap`}
-          description={t`Continuous layout only, in pixels.`}
+          description={t`Continuous layout only.`}
           min={0}
           max={64}
           value={prefs.pageGap}
-          onChange={(value) => set({ pageGap: typeof value === 'number' ? value : 0 })}
+          onChange={(value) => set({ pageGap: value })}
         />
-        <NumberInput
+        <SettingsNumberInput
           label={t`Preload`}
           description={t`Pages fetched ahead.`}
           min={0}
           max={10}
           value={prefs.preload}
-          onChange={(value) => set({ preload: typeof value === 'number' ? value : 0 })}
+          onChange={(value) => set({ preload: value })}
         />
       </Group>
 
+      <Group grow align="flex-start">
+        <Select
+          label={t`Wide pages`}
+          description={t`Single page layout only.`}
+          allowDeselect={false}
+          value={prefs.splitWide}
+          onChange={(value) => value && set({ splitWide: value as ReaderPrefs['splitWide'] })}
+          data={[
+            { value: 'off', label: t`Show whole` },
+            { value: 'split', label: t`Split into two pages` },
+            { value: 'rotate', label: t`Rotate to fit` },
+          ]}
+        />
+      </Group>
+
+      <Group grow align="flex-start">
+        <Select
+          label={t`Enhance`}
+          description={t`Sharpen soft pages. Auto does it only when a page is shown larger than its source or looks blurry.`}
+          allowDeselect={false}
+          value={prefs.enhance}
+          onChange={(value) => value && set({ enhance: value as ReaderPrefs['enhance'] })}
+          data={ENHANCE_LEVELS.map((level) => ({ value: level.value, label: renderLabel(level.label) }))}
+        />
+        {prefs.enhance !== 'off' && (
+          <Select
+            label={t`Method`}
+            description={
+              isServerMethod(prefs.enhanceMethod)
+                ? t`Server methods apply only when the admin has enabled them; otherwise the fallback is used.`
+                : methodInfo && renderLabel(methodInfo.hint)
+            }
+            allowDeselect={false}
+            value={prefs.enhanceMethod}
+            onChange={(value) => value && set({ enhanceMethod: value as ReaderPrefs['enhanceMethod'] })}
+            data={ENHANCE_METHODS.map((m) => ({ value: m.id, label: renderLabel(m.label) }))}
+          />
+        )}
+      </Group>
+      {prefs.enhance !== 'off' && (
+        <MultiSelect
+          label={t`Don't enhance`}
+          description={t`Chapters whose file has one of these qualities are shown as they are. A digital volume is usually clean already.`}
+          placeholder={t`Every quality is enhanced`}
+          value={prefs.enhanceSkipTiers}
+          onChange={(value) => set({ enhanceSkipTiers: value as ReaderPrefs['enhanceSkipTiers'] })}
+          data={ENHANCE_SKIP_TIERS.map((tier) => ({ value: tier.value, label: renderLabel(tier.label) }))}
+        />
+      )}
+      {prefs.enhance !== 'off' && isServerMethod(prefs.enhanceMethod) && (
+        <Select
+          label={t`Fallback`}
+          description={t`Shown on this device until the server's page is ready, and whenever the server can't be used.`}
+          allowDeselect={false}
+          value={prefs.enhanceFallback}
+          onChange={(value) => value && set({ enhanceFallback: value as ReaderPrefs['enhanceFallback'] })}
+          data={ENHANCE_FALLBACKS.map((f) => ({ value: f.value, label: renderLabel(f.label) }))}
+        />
+      )}
+
+      <Switch
+        size="sm"
+        label={t`Crop borders`}
+        description={t`Not in Continuous layout.`}
+        checked={prefs.cropBorders}
+        onChange={(e) => set({ cropBorders: e.currentTarget.checked })}
+      />
+      <Switch
+        size="sm"
+        label={t`Open webtoon chapters in Continuous layout`}
+        description={t`When most pages are very tall.`}
+        checked={prefs.autoWebtoon}
+        onChange={(e) => set({ autoWebtoon: e.currentTarget.checked })}
+      />
       <Switch
         size="sm"
         label={t`Smooth scrolling`}
@@ -472,7 +589,7 @@ function ProfileEditor({
       />
       <Switch
         size="sm"
-        label={t`Tap zones (click the page edges to turn)`}
+        label={t`Tap zones (click the page edges to turn), paged layouts only`}
         checked={prefs.tapZones}
         onChange={(e) => set({ tapZones: e.currentTarget.checked })}
       />
@@ -492,16 +609,16 @@ function ProfileEditor({
       />
       <Switch
         size="sm"
-        label={t`Flash the chapter name on chapter change`}
-        description={t`Credit pages and the next chapter's first pages often look alike, so this marks the turn.`}
-        checked={prefs.chapterBanner}
-        onChange={(e) => set({ chapterBanner: e.currentTarget.checked })}
+        label={t`Keep the screen awake while reading`}
+        description={t`Needs HTTPS or localhost.`}
+        checked={prefs.keepAwake}
+        onChange={(e) => set({ keepAwake: e.currentTarget.checked })}
       />
       <Switch
         size="sm"
-        label={t`Split double-width pages`}
-        checked={prefs.splitWidePages}
-        onChange={(e) => set({ splitWidePages: e.currentTarget.checked })}
+        label={t`Flash the chapter name on chapter change`}
+        checked={prefs.chapterBanner}
+        onChange={(e) => set({ chapterBanner: e.currentTarget.checked })}
       />
 
       <Group justify="flex-end" gap="xs">

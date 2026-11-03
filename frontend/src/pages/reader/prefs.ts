@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { api } from '../../api/client'
 import type { PrefsSource, ReaderManifest, ResolvedReaderPrefs } from '../../api/reader'
+import type { QualityTierName } from '../../api/upgrades'
 import { useReadingProfiles, type ReadingProfile } from '../../api/readingProfiles'
 
 /** `auto` uses spreads on desktop and near-square unfolded windows, and one page on phones. */
@@ -9,6 +10,16 @@ export type ReaderDirection = 'ltr' | 'rtl'
 export type ReaderFit = 'width' | 'height' | 'screen' | 'original'
 /** Which way "next" moves. `auto` is vertical in continuous mode, horizontal otherwise. */
 export type ReaderNavigation = 'auto' | 'horizontal' | 'vertical'
+export type ReaderFilter = 'none' | 'grayscale' | 'sepia' | 'invert'
+export type ReaderSplitWide = 'off' | 'split' | 'rotate'
+export type ReaderEnhance = 'off' | 'auto' | 'always'
+export type EnhanceMethod =
+  | 'a4k-s'
+  | 'a4k-m'
+  | 'a4k-a'
+  | 'server:span-s'
+  | 'server:realesrgan-av3'
+export type EnhanceFallback = 'a4k-s' | 'a4k-m' | 'a4k-a' | 'off'
 
 export interface ReaderPrefs {
   mode: ReaderMode
@@ -34,6 +45,25 @@ export interface ReaderPrefs {
   navigation: ReaderNavigation
   /** Animate vertical navigation's screen-sized steps instead of jumping. */
   smoothScroll: boolean
+  /** Percent the page images are dimmed by; 0 leaves them untouched. */
+  dim: number
+  filter: ReaderFilter
+  /** Hold a screen wake lock while reading, where the browser offers one. */
+  keepAwake: boolean
+  /** Single-page mode only: show a wide page whole, as two halves in reading order, or turned a quarter. */
+  splitWide: ReaderSplitWide
+  /** Trim uniform white or black margins, in the paged layouts only. */
+  cropBorders: boolean
+  /** Open a chapter of very tall pages in continuous mode. The server fills it per layer: on for the defaults, off for a profile or override that never set it. */
+  autoWebtoon: boolean
+  /** Sharpen soft pages: never, only when a page is shown larger than its source or looks blurry, or always. */
+  enhance: ReaderEnhance
+  /** Browser shader preset (`a4k-*`) or a model on the server (`server:*`). */
+  enhanceMethod: EnhanceMethod
+  /** The browser preset a server method shows until its upscale is ready, or `off` for the plain page. */
+  enhanceFallback: EnhanceFallback
+  /** Chapters whose file has one of these quality tiers are never enhanced. */
+  enhanceSkipTiers: QualityTierName[]
 }
 
 /** Whether "next" scrolls down rather than turning a page sideways. */
@@ -96,6 +126,31 @@ export const DEFAULT_PREFS: ReaderPrefs = {
   scale: 100,
   navigation: 'auto',
   smoothScroll: true,
+  dim: 0,
+  filter: 'none',
+  keepAwake: true,
+  splitWide: 'off',
+  cropBorders: false,
+  autoWebtoon: true,
+  enhance: 'off',
+  enhanceMethod: 'a4k-m',
+  enhanceFallback: 'a4k-m',
+  enhanceSkipTiers: ['volume'],
+}
+
+/** The enhance level a chapter actually gets: off when its file's tier is one the prefs skip. */
+export function enhanceFor(prefs: Pick<ReaderPrefs, 'enhance' | 'enhanceSkipTiers'>, tier: QualityTierName | undefined): ReaderEnhance {
+  return tier && prefs.enhanceSkipTiers.includes(tier) ? 'off' : prefs.enhance
+}
+
+/** The CSS filter for the page images, or undefined when the prefs ask for none. */
+export function toneFilter(prefs: Pick<ReaderPrefs, 'dim' | 'filter'>): string | undefined {
+  const parts: string[] = []
+  if (prefs.dim > 0) parts.push(`brightness(${(100 - prefs.dim) / 100})`)
+  if (prefs.filter === 'grayscale') parts.push('grayscale(1)')
+  else if (prefs.filter === 'sepia') parts.push('sepia(1)')
+  else if (prefs.filter === 'invert') parts.push('invert(1) hue-rotate(180deg)')
+  return parts.length > 0 ? parts.join(' ') : undefined
 }
 
 /**
