@@ -8,7 +8,9 @@
 FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend
 WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+# Cache mounts (here and below) keep downloads on the builder, outside the layer cache: a layer that
+# has to rebuild reuses what was already fetched instead of fetching it again.
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
 # The message catalogs live at the repo root, not under frontend/, because the API embeds the same
 # files. lingui.config.js reaches ../locales, and src/i18n.ts imports each catalog through the
@@ -43,7 +45,7 @@ COPY src/Maki.Core/Maki.Core.csproj src/Maki.Core/
 COPY src/Maki.Data/Maki.Data.csproj src/Maki.Data/
 COPY src/Maki.Metadata/Maki.Metadata.csproj src/Maki.Metadata/
 COPY src/Maki.Sources/Maki.Sources.csproj src/Maki.Sources/
-RUN dotnet restore src/Maki.Api/Maki.Api.csproj
+RUN --mount=type=cache,target=/root/.nuget/packages dotnet restore src/Maki.Api/Maki.Api.csproj
 COPY src/ src/
 # Maki.Api embeds locales/*/server.po as resources; see the EmbeddedResource item in Maki.Api.csproj.
 COPY locales/ locales/
@@ -65,7 +67,8 @@ COPY Dockerfile VERSION* /stamp/
 # it hits that target's fallback branch and copies every node/<platform> driver folder instead of
 # just the host's. Needed because this publish runs once on $BUILDPLATFORM (native) but its output
 # is copied into both the linux/amd64 and linux/arm64 runtime stages below.
-RUN V="$(cat /stamp/VERSION 2>/dev/null | tr -d '[:space:]')"; V="${V:-$VERSION}"; \
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    V="$(cat /stamp/VERSION 2>/dev/null | tr -d '[:space:]')"; V="${V:-$VERSION}"; \
     dotnet publish src/Maki.Api/Maki.Api.csproj -c Release -o /app/publish /p:UseAppHost=false /p:PlaywrightPlatform=all \
       ${V:+/p:Version=$V} \
       ${V:+/p:InformationalVersion=$V${SOURCE_COMMIT:++$SOURCE_COMMIT}}
@@ -112,9 +115,13 @@ LABEL org.opencontainers.image.title="Maki" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.revision="${SOURCE_COMMIT}"
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends gosu curl \
-    && rm -rf /var/lib/apt/lists/*
+# The base image deletes downloaded .debs after every install; keep them so the apt cache mounts help.
+RUN rm -f /etc/apt/apt.conf.d/docker-clean \
+    && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && apt-get install -y --no-install-recommends gosu curl
 
 WORKDIR /app
 # The browser install below only needs the Playwright driver, which changes when the package version
@@ -129,12 +136,19 @@ COPY --from=trimmed-publish /app/.playwright ./.playwright
 # no SDK for `dotnet tool` and no pwsh for playwright.ps1. --with-deps apt-installs the shared
 # libraries it needs. PLAYWRIGHT_BROWSERS_PATH is a shared, world-readable path so the app (run via
 # gosu as PUID) finds it.
+#
+# The browser is installed into a cache mount (one per architecture) and copied out, because Playwright
+# skips a download when the browser is already there: a rebuilt layer then costs a copy, not 100 MB.
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN NODE_ARCH="$([ "$(uname -m)" = "aarch64" ] && echo linux-arm64 || echo linux-x64)" \
-    && /app/.playwright/node/"$NODE_ARCH"/node /app/.playwright/package/cli.js install --with-deps chromium-headless-shell \
+ARG TARGETARCH
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/pw-cache,id=playwright-browsers-${TARGETARCH} \
+    NODE_ARCH="$([ "$(uname -m)" = "aarch64" ] && echo linux-arm64 || echo linux-x64)" \
+    && PLAYWRIGHT_BROWSERS_PATH=/pw-cache /app/.playwright/node/"$NODE_ARCH"/node /app/.playwright/package/cli.js install --with-deps chromium-headless-shell \
+    && mkdir -p /ms-playwright && cp -a /pw-cache/. /ms-playwright/ \
     && chmod a+rx /app/.playwright/node/"$NODE_ARCH"/node \
-    && chmod -R a+rX /ms-playwright \
-    && rm -rf /var/lib/apt/lists/*
+    && chmod -R a+rX /ms-playwright
 
 # The app itself goes in last: it changes on every build, and everything above it is then reused.
 COPY --from=trimmed-publish /app ./
