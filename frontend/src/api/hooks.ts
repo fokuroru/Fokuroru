@@ -901,6 +901,18 @@ export function useHideHomeReading() {
   })
 }
 
+/** Random series with unread chapters not read from in 60 days. Keyed under `reading` so hiding a series refreshes it. */
+export function useHomeRevisit(limit = 12, enabled = true) {
+  const gate = useDisplayGate()
+  return useQuery({
+    queryKey: ['home', 'reading', 'revisit', limit],
+    queryFn: () => api<HomeReadingItem[]>(`/home/revisit?limit=${limit}`),
+    enabled,
+    staleTime: 5 * 60_000,
+    select: (items) => items.filter((item) => gate(item.seriesId)),
+  })
+}
+
 /** Series that recently gained chapter files. Invalidated live by the `chapterImported` event. */
 export function useHomeRecentlyAdded(limit = 12, enabled = true) {
   const gate = useDisplayGate()
@@ -946,6 +958,7 @@ export const HOME_SECTIONS = [
   'jumpback',
   'fromanime',
   'recent',
+  'revisit',
   'previews',
   'following',
   'recommended',
@@ -965,6 +978,7 @@ export const HOME_SECTION_LABELS: Record<HomeSectionKey, MessageDescriptor> = {
   continue: msg`Continue reading`,
   downloading: msg`Downloading now`,
   recent: msg`Recently added`,
+  revisit: msg`Worth revisiting`,
   previews: msg`Previews`,
   jumpback: msg`Jump back in`,
   fromanime: msg`Continue from the anime`,

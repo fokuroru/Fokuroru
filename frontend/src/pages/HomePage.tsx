@@ -8,6 +8,7 @@ import {
   IconBellRinging,
   IconBookmarks,
   IconDeviceTv,
+  IconDice5,
   IconDownload,
   IconEye,
   IconFlame,
@@ -25,6 +26,7 @@ import {
   useProgressSummary,
   useHomeReading,
   useHomeFresh,
+  useHomeRevisit,
   useHomeRecentlyAdded,
   useLibraryStats,
   useMetadataSettings,
@@ -137,6 +139,7 @@ export default function HomePage() {
     refetch: refetchReading,
   } = useHomeReading(12, needsReading)
   const { data: recent, isLoading: recentLoading } = useHomeRecentlyAdded(12, on('recent'))
+  const { data: revisit } = useHomeRevisit(12, on('revisit'))
   const { data: fresh } = useHomeFresh(12, on('glance'))
   const { data: fromAnime, isLoading: fromAnimeLoading } = useHomeFromAnime(on('fromanime'))
   const { data: queue } = useQueue()
@@ -338,6 +341,13 @@ export default function HomePage() {
           <RecentlyAddedRail items={recent} />
         </>
       )
+    ),
+
+    revisit: revisit && revisit.length > 0 && (
+      <>
+        <SectionHeader icon={IconDice5} title={t`Worth revisiting`} count={revisit.length} />
+        <ReadingSection items={revisit} rail="jumpback" hero={false} />
+      </>
     ),
 
     previews: (

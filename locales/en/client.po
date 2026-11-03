@@ -1893,6 +1893,10 @@ msgstr "A proposal is already waiting for this series"
 msgid "A proposal nobody answers is dropped after this long."
 msgstr "A proposal nobody answers is dropped after this long."
 
+#: src/components/home/homeSectionDefs.ts
+msgid "A random pick of series with unread chapters that you have not read from in 60 days."
+msgstr "A random pick of series with unread chapters that you have not read from in 60 days."
+
 #: src/components/NotificationsSection.tsx
 msgid "A refresh found new chapters for a series."
 msgstr "A refresh found new chapters for a series."
@@ -16110,6 +16114,11 @@ msgstr "Working…"
 #: src/components/settings/PairAppModal.tsx
 msgid "Works once, for {0}:{1} more."
 msgstr "Works once, for {0}:{1} more."
+
+#: src/api/hooks.ts
+#: src/pages/HomePage.tsx
+msgid "Worth revisiting"
+msgstr "Worth revisiting"
 
 #: src/components/SetupWizard.tsx
 #: src/pages/SettingsPage.tsx

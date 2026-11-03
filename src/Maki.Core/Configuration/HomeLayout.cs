@@ -20,6 +20,9 @@ public static class HomeSections
     public const string FromAnime = "fromanime";
     public const string Recommended = "recommended";
 
+    /// <summary>Random series with unread chapters the reader has not touched for a while.</summary>
+    public const string Revisit = "revisit";
+
     /// <summary>The newest titles from the creators and studios the reader follows.</summary>
     public const string Following = "following";
     public const string Popular = "popular";
@@ -33,7 +36,7 @@ public static class HomeSections
     /// </summary>
     public static readonly string[] All =
     [
-        Glance, Downloading, ContinueReading, JumpBackIn, FromAnime, RecentlyAdded, Previews, Following, Recommended, Popular
+        Glance, Downloading, ContinueReading, JumpBackIn, FromAnime, RecentlyAdded, Revisit, Previews, Following, Recommended, Popular
     ];
 
     public static bool IsValid(string? key) => key is not null && All.Contains(key);

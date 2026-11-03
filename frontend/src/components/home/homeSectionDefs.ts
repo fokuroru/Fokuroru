@@ -8,6 +8,7 @@ import {
   IconDownload,
   IconEye,
   IconFlame,
+  IconDice5,
   IconPlayerPlay,
   IconSparkles,
 } from '@tabler/icons-react'
@@ -61,6 +62,11 @@ export const HOME_SECTION_DEFS: SectionRegistry = {
     icon: IconBookmarks,
     label: HOME_SECTION_LABELS.recent,
     description: msg`Series with newly added chapters.`,
+  },
+  revisit: {
+    icon: IconDice5,
+    label: HOME_SECTION_LABELS.revisit,
+    description: msg`A random pick of series with unread chapters that you have not read from in 60 days.`,
   },
   previews: {
     icon: IconEye,

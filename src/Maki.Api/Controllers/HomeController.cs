@@ -80,6 +80,8 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
     /// </summary>
     private const int RecentProgressScan = 2000;
 
+    private static readonly TimeSpan RevisitAfter = TimeSpan.FromDays(60);
+
     /// <summary>
     /// The two reading rails. "Continue reading" is series with a chapter part-way through;
     /// "Jump back in" is series last touched by a <em>finished</em> chapter that still have
@@ -397,6 +399,74 @@ public class HomeController(MakiDbContext db, ContinueReadingService continueRea
     public async Task<IActionResult> Fresh(
         [FromServices] FreshChaptersService fresh, [FromQuery] int limit = 12, CancellationToken ct = default) =>
         Ok(await fresh.RailAsync(DateTime.UtcNow, Math.Clamp(limit, 1, 40), ct));
+
+    /// <summary>
+    /// A random pick of series the reader has read from before, has unread chapters in, and has not
+    /// read from for <see cref="RevisitAfter"/>. Watched ticks are not reading.
+    /// </summary>
+    [HttpGet("revisit")]
+    public async Task<IActionResult> Revisit([FromQuery] int limit = 12, CancellationToken ct = default)
+    {
+        limit = Math.Clamp(limit, 1, 40);
+        var cutoff = DateTime.UtcNow - RevisitAfter;
+
+        var lapsed = await db.ChapterProgress
+            .AsNoTracking()
+            .OwnedByScopeUser(db)
+            .Where(p => !p.Watched)
+            .GroupBy(p => p.SeriesId)
+            .Select(g => new { SeriesId = g.Key, Last = g.Max(p => p.UpdatedAt) })
+            .Where(x => x.Last < cutoff)
+            .ToListAsync(ct);
+
+        var hidden = await db.UserSeriesStates
+            .AsNoTracking()
+            .Where(s => s.HiddenFromHomeAt != null)
+            .Select(s => s.SeriesId)
+            .ToListAsync(ct);
+
+        // Over-fetch: candidates with nothing downloaded and unread are dropped by NextForAsync.
+        var picked = lapsed
+            .Where(x => !hidden.Contains(x.SeriesId))
+            .OrderBy(_ => Random.Shared.Next())
+            .Take(limit * 4)
+            .ToList();
+        if (picked.Count == 0)
+        {
+            return Ok(Array.Empty<HomeReadingItem>());
+        }
+
+        var ids = picked.Select(x => x.SeriesId).ToList();
+        var titles = await db.Series
+            .AsNoTracking()
+            .Where(s => ids.Contains(s.Id))
+            .Select(s => new { s.Id, s.Title, s.CoverPath, s.LastMetadataRefresh, s.SpineColor })
+            .ToDictionaryAsync(s => s.Id, ct);
+        var next = await continueReading.NextForAsync(ids, ct);
+
+        var items = picked
+            .Where(x => titles.ContainsKey(x.SeriesId) && next.ContainsKey(x.SeriesId))
+            .Select(x =>
+            {
+                var series = titles[x.SeriesId];
+                var upNext = next[x.SeriesId];
+                return new HomeReadingItem(
+                    series.Id,
+                    series.Title,
+                    SeriesDto.CoverUrlFor(series.Id, series.CoverPath, series.LastMetadataRefresh),
+                    upNext.ChapterId,
+                    upNext.Label,
+                    0,
+                    0,
+                    x.Last,
+                    upNext.UnreadChapters,
+                    series.SpineColor);
+            })
+            .Take(limit)
+            .ToList();
+
+        return Ok(items);
+    }
 
     /// <summary>
     /// Library series whose anime the reader finished, starting after the last chapter it adapts.

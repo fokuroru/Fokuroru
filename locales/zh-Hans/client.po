@@ -2220,6 +2220,10 @@ msgstr ""
 msgid "A proposal nobody answers is dropped after this long."
 msgstr ""
 
+#: src/components/home/homeSectionDefs.ts
+msgid "A random pick of series with unread chapters that you have not read from in 60 days."
+msgstr ""
+
 #: src/components/NotificationsSection.tsx
 #, fuzzy
 msgid "A refresh found new chapters for a series."
@@ -18872,6 +18876,11 @@ msgstr ""
 #. placeholder {1}: String(left % 60).padStart(2, '0')
 #: src/components/settings/PairAppModal.tsx
 msgid "Works once, for {0}:{1} more."
+msgstr ""
+
+#: src/api/hooks.ts
+#: src/pages/HomePage.tsx
+msgid "Worth revisiting"
 msgstr ""
 
 #: src/components/SetupWizard.tsx
