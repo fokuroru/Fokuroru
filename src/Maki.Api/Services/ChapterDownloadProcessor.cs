@@ -238,6 +238,7 @@ public class ChapterDownloadProcessor(
                 return DownloadOutcome.Settled;
             }
 
+            pageFiles = await PageStripMerger.MergeAsync(pageFiles, Path.Combine(workingDir, "merged"), ct);
             var comicInfo = ComicInfoBuilder.Serialize(ComicInfoBuilder.Build(series, chapter, pageFiles.Count));
             var tmpDir = Path.Combine(rootFolder.Path, ".maki", "tmp");
             var tmpCbz = Path.Combine(tmpDir, $"{item.Id}.cbz");
