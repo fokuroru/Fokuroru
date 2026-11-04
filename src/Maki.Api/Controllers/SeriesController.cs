@@ -248,6 +248,10 @@ public class SeriesController(
         if (!result.RootUnavailable)
         {
             await seriesRename.TidyAfterScanAsync(id, ct);
+            if (await coverService.AdoptLibraryCoverAsync(series, ct))
+            {
+                await db.SaveChangesAsync(ct);
+            }
         }
 
         return result.RootUnavailable ? this.Fail(localizer, "error.series.rootUnavailable") : Ok(result);

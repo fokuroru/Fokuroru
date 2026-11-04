@@ -91,6 +91,56 @@ public class CoverService(
         }
     }
 
+    private string AdoptedCoverRecordFor(int seriesId) =>
+        Path.Combine(paths.MediaCoverDir, seriesId.ToString(), "adopted-folder-cover.sha256");
+
+    /// <summary>
+    /// Takes a cover.jpg the user put in the series folder as the poster. Skips the file Maki wrote
+    /// itself and one already adopted (by hash), so it only fires when the file actually changed.
+    /// Leaves the folder file untouched. The caller saves <paramref name="series"/>.
+    /// </summary>
+    public async Task<bool> AdoptLibraryCoverAsync(Series series, CancellationToken ct = default)
+    {
+        if (series.RootFolder is null)
+        {
+            return false;
+        }
+
+        var folderCover = Path.Combine(series.RootFolder.Path, series.FolderName, "cover.jpg");
+        try
+        {
+            if (!File.Exists(folderCover) || IsMakiLibraryCover(series.Id, folderCover))
+            {
+                return false;
+            }
+
+            var hash = Sha256Of(folderCover);
+            var record = AdoptedCoverRecordFor(series.Id);
+            if (File.Exists(record) && File.ReadAllText(record).Trim() == hash)
+            {
+                return false;
+            }
+
+            var source = await File.ReadAllBytesAsync(folderCover, ct);
+            var poster = await ImageWorkGate.RunAsync(
+                () => Task.FromResult(ImageCodec.JpegThumbnail(source, PosterWidth, 90, enlarge: false)), ct);
+            var target = CoverPathFor(series.Id);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            await File.WriteAllBytesAsync(target, poster, ct);
+            await File.WriteAllTextAsync(record, hash, ct);
+
+            series.CoverPath = target;
+            series.SpineColor = await SampleSpineAsync(series.Id, ct);
+            series.LastMetadataRefresh = DateTime.UtcNow;
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            logger.LogWarning(ex, "Could not adopt the folder cover for series {SeriesId}", series.Id);
+            return false;
+        }
+    }
+
     /// <summary>
     /// Copies the cached poster into the series' own library folder as "cover.jpg", for readers
     /// (Komga, Kavita) that pick up a poster placed directly next to the series' files rather than

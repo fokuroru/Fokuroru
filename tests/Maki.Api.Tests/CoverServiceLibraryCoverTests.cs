@@ -1,6 +1,8 @@
 using Maki.Api.Configuration;
 using Maki.Api.Services;
 using Maki.Core.Configuration;
+using Maki.Core.Entities;
+using Maki.Core.Images;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Maki.Api.Tests;
@@ -82,5 +84,22 @@ public class CoverServiceLibraryCoverTests : IDisposable
         await _covers.WriteLibraryCoverAsync(1, _seriesFolder);
 
         Assert.Equal([9, 9, 9], File.ReadAllBytes(FolderCover));
+    }
+
+    [Fact]
+    public async Task A_cover_the_user_placed_in_the_folder_becomes_the_poster_once()
+    {
+        SetPoster(1, [1, 2, 3]);
+        File.WriteAllBytes(FolderCover, new Raster(600, 900).EncodeJpeg(75));
+        var series = new Series
+        {
+            Id = 1, Title = "S", FolderName = "Series", RootFolder = new RootFolder { Path = Path.GetDirectoryName(_seriesFolder)! },
+        };
+
+        Assert.True(await _covers.AdoptLibraryCoverAsync(series));
+        Assert.NotEqual([1, 2, 3], File.ReadAllBytes(_covers.CoverPathFor(1)));
+        Assert.NotNull(series.LastMetadataRefresh);
+
+        Assert.False(await _covers.AdoptLibraryCoverAsync(series));
     }
 }
