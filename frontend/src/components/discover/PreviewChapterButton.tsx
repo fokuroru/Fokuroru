@@ -27,7 +27,9 @@ export function PreviewChapterButton({
   const { t } = useLingui()
   const { me } = useAuth()
   const cacheKey = previewCacheKey(me?.id, providerId, 'chapter-enabled')
-  const [remembered] = useState(() => readPreviewCache<boolean>(cacheKey)?.data === true)
+  // Downloads on load unless the user deleted this preview (discard() stores false). Reusing the
+  // restore path keeps it quiet: no "ready" toast and no reader popping open on its own.
+  const [remembered] = useState(() => readPreviewCache<boolean>(cacheKey)?.data !== false)
   const queryClient = useQueryClient()
   const { mutate: start, reset, error: startError, isPending: starting, isSuccess: started } = useStartSeriesPreview()
   const [confirmDelete, setConfirmDelete] = useState(false)
