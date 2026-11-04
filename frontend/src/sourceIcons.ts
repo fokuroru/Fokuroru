@@ -13,6 +13,7 @@ export const SOURCE_ICONS: Record<string, string> = {
   mangaplus: '/source-icons/mangaplus.ico',
   tcbscans: '/source-icons/tcbscans.png',
   topmanhua: '/source-icons/topmanhua.png',
+  wanderinginn: '/source-icons/wanderinginn.webp',
   webtoons: '/source-icons/webtoons.ico',
   weebcentral: '/source-icons/weebcentral.ico',
   shonenjumpplus: '/source-icons/shonenjumpplus.png',

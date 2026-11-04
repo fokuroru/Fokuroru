@@ -42,6 +42,7 @@ using Maki.Sources.Manhuagui;
 using Maki.Sources.MangaPill;
 using Maki.Sources.MangaPlus;
 using Maki.Sources.TCBScans;
+using Maki.Sources.WanderingInn;
 using Maki.Sources.Toonily;
 using Maki.Sources.WeebCentral;
 using Maki.Sources.Webtoons;
@@ -687,6 +688,16 @@ try
     // stay testable without FlareSolverr and settings in the way.
     builder.Services.AddSingleton<IHtmlFetcher>(sp => sp.GetRequiredService<ChallengeAwareFetcher>());
 
+    // The Wandering Inn webcomic: official WordPress site read through its REST API.
+    var wanderingInnLimiter = RateLimitingHandler.TokenBucket(1, TimeSpan.FromSeconds(1), burst: 2);
+    builder.Services.AddHttpClient(WanderingInnSource.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri("https://webcomic.wanderinginn.com/");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(browserUa);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .AddHttpMessageHandler(() => new RateLimitingHandler(wanderingInnLimiter))
+        .AddHttpMessageHandler(() => new RateLimitDetectingHandler());
     builder.Services.AddSingleton<SharedPlaywright>();
     builder.Services.AddSingleton<MangaFireBrowser>();
     builder.Services.AddSingleton<TopManhuaImageBrowser>();
@@ -697,6 +708,7 @@ try
     builder.Services.AddSingleton<IIdleBrowser>(sp => sp.GetRequiredService<TopManhuaImageBrowser>());
     builder.Services.AddSingleton<ISource, MangaDexSource>();
     builder.Services.AddSingleton<ISource, TCBScansSource>();
+    builder.Services.AddSingleton<ISource, WanderingInnSource>();
     builder.Services.AddSingleton<ISource, AsuraSource>();
     builder.Services.AddSingleton<ISource, WebtoonsSource>();
     builder.Services.AddSingleton<ISource, FlameComicsSource>();
