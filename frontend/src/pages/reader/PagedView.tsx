@@ -205,6 +205,7 @@ function RegionPage({
             server={server}
             priority={0}
             box={box}
+            standby={standby}
             onShowing={setCovered}
           />
         )}
