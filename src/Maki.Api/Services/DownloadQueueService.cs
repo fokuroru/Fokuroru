@@ -788,7 +788,8 @@ public class DownloadQueueService(
             Exception? resolveError = null;
             try
             {
-                resolved = await sourceResolver.ResolveAsync(db, chapter, pin, ct, onlyPreferred: pin != null);
+                resolved = await sourceResolver.ResolveAsync(db, chapter, pin, ct, onlyPreferred: pin != null,
+                    lastResortSources: await HeldSourcesAsync(ct));
             }
             catch (SourceRateLimitedException ex)
             {
