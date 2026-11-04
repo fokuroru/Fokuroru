@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { deleteSeriesPreview, releaseSeriesPreview, useSeriesPreview, useStartSeriesPreview } from '../../api/preview'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
 import { useAuth } from '../../auth/AuthProvider'
+import { nativeApp } from '../../lib/nativeApp'
 import { previewCacheKey, readPreviewCache, writePreviewCache } from '../../api/previewCache'
 
 /**
@@ -27,9 +28,12 @@ export function PreviewChapterButton({
   const { t } = useLingui()
   const { me } = useAuth()
   const cacheKey = previewCacheKey(me?.id, providerId, 'chapter-enabled')
-  // Downloads on load unless the user deleted this preview (discard() stores false). Reusing the
-  // restore path keeps it quiet: no "ready" toast and no reader popping open on its own.
-  const [remembered] = useState(() => readPreviewCache<boolean>(cacheKey)?.data !== false)
+  // In the mobile app the preview downloads on load unless the user deleted it (discard() stores
+  // false). Reusing the restore path keeps it quiet: no "ready" toast, no reader opening by itself.
+  const [remembered] = useState(() => {
+    const saved = readPreviewCache<boolean>(cacheKey)?.data
+    return saved === true || (saved !== false && !!nativeApp())
+  })
   const queryClient = useQueryClient()
   const { mutate: start, reset, error: startError, isPending: starting, isSuccess: started } = useStartSeriesPreview()
   const [confirmDelete, setConfirmDelete] = useState(false)
