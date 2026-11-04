@@ -6,6 +6,7 @@ using Maki.Core.Naming;
 using Maki.Core.Notifications;
 using Maki.Core.Paths;
 using Maki.Core.Reading;
+using Maki.Core.Sources;
 using Maki.Data;
 using Maki.Data.Identity;
 using System.Security.Cryptography;
@@ -82,6 +83,7 @@ public record SeriesCreationResult(Series? Series, SeriesCreationError? Error, L
 public class SeriesCreationService(
     MakiDbContext db,
     IEnumerable<IMetadataProvider> metadataProviders,
+    SourceRegistry sourceRegistry,
     CoverService coverService,
     SourceMatchService sourceMatchService,
     ChapterSyncService chapterSyncService,
@@ -107,6 +109,49 @@ public class SeriesCreationService(
     /// "decide from the content rating" — see <see cref="IncognitoRatingRules"/>, which is also what
     /// an API client that never heard of the field gets.
     /// </param>
+    private const string SourceIdPrefix = "source:";
+
+    /// <summary>Provider id for a series that lives only on a <see cref="ISource.CreatesSeries"/> source.</summary>
+    public static string SourceProviderId(string sourceName, string sourceSeriesId) =>
+        $"{SourceIdPrefix}{sourceName}:{sourceSeriesId}";
+
+    private static (string SourceName, string SourceSeriesId)? ParseSourceProviderId(string providerId)
+    {
+        if (!providerId.StartsWith(SourceIdPrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var parts = providerId[SourceIdPrefix.Length..].Split(':', 2);
+        return parts.Length == 2 ? (parts[0], parts[1]) : null;
+    }
+
+    private async Task<SeriesMetadata?> ResolveMetadataAsync(string providerId, CancellationToken ct)
+    {
+        if (ParseSourceProviderId(providerId) is not var (sourceName, sourceSeriesId))
+        {
+            return await metadataProviders.First().GetAsync(providerId, ct);
+        }
+
+        if (sourceRegistry.Find(sourceName) is not { CreatesSeries: true } source)
+        {
+            return null;
+        }
+
+        var detail = await source.GetSeriesAsync(sourceSeriesId, ct);
+        return new SeriesMetadata
+        {
+            ProviderId = providerId,
+            Title = detail.Title,
+            Description = detail.Description,
+            CoverUrl = detail.CoverUrl,
+            Status = SeriesStatus.Ongoing,
+            Type = SeriesTypes.Oel,
+            ContentRating = "safe",
+            WebUrl = detail.Url,
+        };
+    }
+
     public async Task<SeriesCreationResult> CreateAsync(
         string metadataProviderId,
         int rootFolderId,
@@ -150,11 +195,22 @@ public class SeriesCreationService(
             return SeriesCreationResult.Failed(SeriesCreationError.RootFolderNotFound);
         }
 
-        var provider = metadataProviders.First();
-        var metadata = await provider.GetAsync(metadataProviderId, ct);
+        var metadata = await ResolveMetadataAsync(metadataProviderId, ct);
         if (metadata is null)
         {
             return SeriesCreationResult.Failed(SeriesCreationError.MetadataNotFound);
+        }
+
+        if (ParseSourceProviderId(metadataProviderId) is var (sourceName, sourceSeriesId))
+        {
+            var mapped = await db.SourceMappings
+                .Where(m => m.SourceName == sourceName && m.SourceSeriesId == sourceSeriesId)
+                .Select(m => new { m.SeriesId, m.Series!.Title })
+                .FirstOrDefaultAsync(ct);
+            if (mapped is not null)
+            {
+                return SeriesCreationResult.AlreadyInLibrary(mapped.SeriesId, mapped.Title);
+            }
         }
 
         // Held from the check below through the insert: an import or an import list can be adding

@@ -3,6 +3,7 @@ using Maki.Api.Localization;
 using Maki.Api.Services;
 using Maki.Core.Configuration;
 using Maki.Core.Download;
+using Maki.Core.Entities;
 using Maki.Core.Metadata;
 using Maki.Core.Quality;
 using Maki.Core.Security;
@@ -354,7 +355,27 @@ public class SearchController(
         // between that account and every rating MangaBaka carries.
         var provider = metadataProviders.First();
         var results = await provider.SearchAsync(query, currentUser.MaxContentRating, ct);
-        return Ok(results);
+        return Ok(results.Concat(await SeriesSourceResultsAsync(query, ct)));
+    }
+
+    private async Task<List<MetadataSearchResult>> SeriesSourceResultsAsync(string query, CancellationToken ct)
+    {
+        var found = new List<MetadataSearchResult>();
+        foreach (var source in sourceRegistry.All.Where(s => s.CreatesSeries))
+        {
+            try
+            {
+                found.AddRange((await source.SearchAsync(query, ct)).Select(r => new MetadataSearchResult(
+                    SeriesCreationService.SourceProviderId(source.Name, r.SourceSeriesId),
+                    r.Title, r.CoverUrl, null, SeriesStatus.Unknown, r.Description, null)));
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+            {
+                logger.LogWarning(ex, "Search of series source {Source} failed", source.Name);
+            }
+        }
+
+        return found;
     }
 
     // No credential in the URL. These land in <img src>, which cannot send a header — but the

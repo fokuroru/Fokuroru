@@ -1,3 +1,4 @@
+using Maki.Core.Sources;
 using Maki.Api.Controllers;
 using Maki.Api.Hubs;
 using Maki.Api.Localization;
@@ -42,7 +43,7 @@ public class ImportListServiceTests : IDisposable
         var services = new ServiceCollection();
         services.AddScoped(_ => _db.NewContext());
         services.AddScoped(sp => new SeriesCreationService(
-            sp.GetRequiredService<MakiDbContext>(), [_metadata],
+            sp.GetRequiredService<MakiDbContext>(), [_metadata], new SourceRegistry([]),
             coverService: null!, sourceMatchService: null!, chapterSyncService: null!,
             sourceMatchQueue: new SourceMatchQueue(),
             stats: null!, identity: null!, appSettings: new FakeAppSettings(),

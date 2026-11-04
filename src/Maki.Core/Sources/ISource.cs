@@ -27,6 +27,13 @@ public interface ISource
     /// </summary>
     bool ReleaseDatesAreReliable => true;
 
+    /// <summary>
+    /// True when the site is the series' own home and no metadata provider lists it (an author's
+    /// webcomic). Such a source's search results are offered on the add screen and create a series
+    /// straight from <see cref="GetSeriesAsync"/>, with no provider id.
+    /// </summary>
+    bool CreatesSeries => false;
+
     /// <summary>Formats this source publishes.</summary>
     SourceContent Content => SourceContent.Manga;
 

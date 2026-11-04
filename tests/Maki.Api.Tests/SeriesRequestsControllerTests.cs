@@ -70,7 +70,7 @@ public class SeriesRequestsControllerTests : IDisposable
     {
         var db = _db.NewContext(userId);
         var creation = new SeriesCreationService(
-            db, [_metadata],
+            db, [_metadata], new SourceRegistry([]),
             coverService: null!, sourceMatchService: null!, chapterSyncService: null!,
             sourceMatchQueue: new SourceMatchQueue(),
             stats: null!, identity: null!, appSettings: new FakeAppSettings(),

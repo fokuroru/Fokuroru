@@ -1,3 +1,4 @@
+using Maki.Core.Sources;
 using System.Data.Common;
 using Maki.Api.Auth;
 using Maki.Api.Controllers;
@@ -67,7 +68,7 @@ public sealed class MihonImportServiceTests : IDisposable
         user.Set(userId, "importer", permissions, allRootFolders,
             allRootFolders ? new HashSet<int>() : new HashSet<int> { _rootId }, "erotica");
         var creation = new SeriesCreationService(
-            db, [_metadata],
+            db, [_metadata], new SourceRegistry([]),
             coverService: null!, sourceMatchService: null!, chapterSyncService: null!,
             sourceMatchQueue: new SourceMatchQueue(),
             stats: null!, identity: null!, appSettings: new FakeAppSettings(),

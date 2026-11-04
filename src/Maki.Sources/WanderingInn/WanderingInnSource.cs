@@ -34,6 +34,7 @@ public partial class WanderingInnSource(IHttpClientFactory httpClientFactory) : 
     public string BaseUrl => "https://webcomic.wanderinginn.com";
     public SourceCapabilities Capabilities => SourceCapabilities.None;
     public SourceKind Kind => SourceKind.Official;
+    public bool CreatesSeries => true;
 
     private HttpClient Client => httpClientFactory.CreateClient(HttpClientName);
 
