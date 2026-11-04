@@ -1,6 +1,8 @@
 ﻿using Maki.Api.Localization;
 using Maki.Api.Services;
 using Maki.Core.Configuration;
+using Maki.Core.Entities;
+using Maki.Core.Sources;
 using Maki.Core.Recommendations;
 using Maki.Core.Security;
 using Maki.Metadata.Catalogue;
@@ -31,7 +33,8 @@ public class RecommendationController(
     HiddenContentService hidden,
     CustomRailService customRails,
     MalReviewClient reviews,
-    AnimeResumeService animeResume) : ControllerBase
+    AnimeResumeService animeResume,
+    SourceRegistry sourceRegistry) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Get([FromBody] RecommendationRequest? request, CancellationToken ct)
@@ -288,7 +291,9 @@ public class RecommendationController(
         try
         {
             var clamped = await ScopeAsync(request.Filters, ct);
-            return Ok(await discover.SearchAsync(request with { Filters = clamped }, ct));
+            var response = await discover.SearchAsync(request with { Filters = clamped }, ct);
+            var fromSources = await SeriesSourceItemsAsync(request.Query, ct);
+            return Ok(fromSources.Count == 0 ? response : response with { Items = [.. fromSources, .. response.Items] });
         }
         catch (LocalCatalogueUnavailableException ex)
         {
@@ -298,6 +303,28 @@ public class RecommendationController(
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    // Series no metadata provider lists, offered by the source that hosts them (ISource.CreatesSeries).
+    private async Task<List<MangaBakaRecommendation>> SeriesSourceItemsAsync(string query, CancellationToken ct)
+    {
+        var items = new List<MangaBakaRecommendation>();
+        foreach (var source in sourceRegistry.All.Where(s => s.CreatesSeries))
+        {
+            try
+            {
+                items.AddRange((await source.SearchAsync(query, ct)).Select(r => new MangaBakaRecommendation(
+                    SeriesCreationService.SourceProviderId(source.Name, r.SourceSeriesId),
+                    r.Title, r.CoverUrl, null, r.Description, SeriesStatus.Ongoing, null, null,
+                    [], [], false, null, null, ThumbUrl: r.CoverUrl, ThumbUrlHiDpi: r.CoverUrl)));
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+            {
+                // A site being down must not take the catalogue search with it.
+            }
+        }
+
+        return items;
     }
 
     /// <summary>
