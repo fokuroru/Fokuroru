@@ -53,6 +53,7 @@ using System.Net;
 using Maki.Sources.TopManhua;
 using Maki.Sources.MangaLib;
 using Maki.Sources.Dynasty;
+using Maki.Sources.GlobalComix;
 using Maki.Sources.AnimeSama;
 using Maki.Sources.CuuTruyen;
 using Maki.Sources.MangaWorld;
@@ -386,6 +387,19 @@ try
             .AddHttpMessageHandler(() => new RateLimitingHandler(limiter))
             .AddHttpMessageHandler(() => new RateLimitDetectingHandler());
     }
+
+    // GlobalComix: JSON API host. UseCookies is off because each chapter's reader token is attached by hand
+    // to its own page requests; a shared cookie jar would hand one release's token to another.
+    var globalComixLimiter = RateLimitingHandler.TokenBucket(1, TimeSpan.FromSeconds(1), burst: 2);
+    builder.Services.AddHttpClient(GlobalComixSource.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri(GlobalComixSource.ApiUrl + "/");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(browserUa);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseCookies = false })
+        .AddHttpMessageHandler(() => new RateLimitingHandler(globalComixLimiter))
+        .AddHttpMessageHandler(() => new RateLimitDetectingHandler());
 
     // MangaDenizi fetches its own page images through this client.
     builder.Services.AddHttpClient(MangaDeniziSource.HttpClientName)
@@ -733,6 +747,7 @@ try
     builder.Services.AddSingleton<ISource, ToonilySource>();
     builder.Services.AddSingleton<ISource, MangaLibSource>();
     builder.Services.AddSingleton<ISource, DynastySource>();
+    builder.Services.AddSingleton<ISource, GlobalComixSource>();
     builder.Services.AddSingleton<ISource, AnimeSamaSource>();
     builder.Services.AddSingleton<ISource, ManhwaWebSource>();
     builder.Services.AddSingleton<ISource, OlympusSource>();

@@ -1,0 +1,100 @@
+{
+ "meta": {
+  "user_id": 0,
+  "code": 200,
+  "params": {
+   "lang_id": "en"
+  },
+  "path": "/v1/comics/32599/releases",
+  "host": "api.globalcomix.com",
+  "query_id": null,
+  "response_time": 169.25
+ },
+ "payload": {
+  "results": [
+   {
+    "entity_type": "Release",
+    "id": 180659,
+    "slug": "first-discovery",
+    "lang_id": "en",
+    "comic_id": 32599,
+    "chapter_type": "e",
+    "chapter": "1",
+    "title": "First discovery",
+    "key": "0c10acc0-f437-4de9-aab9-c102ac7da530",
+    "order": 1,
+    "page_count": 2,
+    "is_published": 1,
+    "is_deleted": 0,
+    "published_time": "2025-10-26 19:00:00",
+    "premium_only": 0
+   },
+   {
+    "entity_type": "Release",
+    "id": 180666,
+    "slug": "shared-interests",
+    "lang_id": "en",
+    "comic_id": 32599,
+    "chapter_type": "e",
+    "chapter": "2",
+    "title": "Shared interests",
+    "key": "b4ecbb21-b057-4e82-bae3-05b46e68c169",
+    "order": 2,
+    "page_count": 1,
+    "is_published": 1,
+    "is_deleted": 0,
+    "published_time": "2025-10-26 19:00:00",
+    "premium_only": 0
+   },
+   {
+    "entity_type": "Release",
+    "id": 180668,
+    "slug": "left-alone",
+    "lang_id": "en",
+    "comic_id": 32599,
+    "chapter_type": "e",
+    "chapter": "3",
+    "title": "Left Alone",
+    "key": "0d943f7d-c2fb-49df-869a-fa5fb1986219",
+    "order": 3,
+    "page_count": 1,
+    "is_published": 1,
+    "is_deleted": 0,
+    "published_time": "2025-10-26 19:00:00",
+    "premium_only": 0
+   },
+   {
+    "entity_type": "Release",
+    "id": 1,
+    "slug": "left-alone",
+    "lang_id": "en",
+    "comic_id": 32599,
+    "chapter_type": "e",
+    "chapter": "99",
+    "title": "Draft",
+    "key": "unpublished-key",
+    "order": 99,
+    "page_count": 1,
+    "is_published": 0,
+    "is_deleted": 0,
+    "published_time": "2025-10-26 19:00:00",
+    "premium_only": 0
+   }
+  ],
+  "suggestions": null,
+  "pagination": {
+   "page": 1,
+   "per_page": 9999,
+   "total_pages": 1,
+   "total_results": 26
+  },
+  "filters": {
+   "perpage": 9999,
+   "lang_id": "en",
+   "p": 1
+  },
+  "form_fields": null,
+  "facets": null
+ },
+ "error": null
+}

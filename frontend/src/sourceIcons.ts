@@ -5,6 +5,7 @@ export const SOURCE_ICONS: Record<string, string> = {
   asura: '/source-icons/asura.webp',
   atsumaru: '/source-icons/atsumaru.ico',
   flamecomics: '/source-icons/flamecomics.png',
+  globalcomix: '/source-icons/globalcomix.png',
   mangadex: '/source-icons/mangadex.ico',
   mangafire: '/source-icons/mangafire.svg',
   mangakakalot: '/source-icons/mangakakalot.ico',

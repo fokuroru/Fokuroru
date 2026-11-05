@@ -1,0 +1,54 @@
+{
+ "meta": {
+  "user_id": 0,
+  "code": 200,
+  "params": {
+   "q": "frigid"
+  },
+  "path": "/v1/search/query",
+  "host": "api.globalcomix.com",
+  "query_id": 79708428,
+  "response_time": 178.81
+ },
+ "payload": {
+  "results": {
+   "series": {
+    "total": 2,
+    "items": [
+     {
+      "id": 47257,
+      "name": "Frigid",
+      "slug": "frigid",
+      "url": "/c/frigid",
+      "total_releases": 1,
+      "total_published_releases": 1,
+      "count_gold": 0,
+      "is_free": true,
+      "cover_image_url": "https://globalcomix.com/img/processed/comic-cover/af73917c49d5c6386b49d6b03b0a5c88/188065_ef0e152eea34e8b69fb4298bf2873333_small.webp",
+      "artist_name": "AzythothianArtist",
+      "releases_count_string": "1 One-shot"
+     },
+     {
+      "id": 8754,
+      "name": "Kingdom of Tundris",
+      "slug": "kingdom-of-tundris",
+      "url": "/c/kingdom-of-tundris",
+      "total_releases": 3,
+      "total_published_releases": 3,
+      "count_gold": 0,
+      "is_free": true,
+      "cover_image_url": "https://globalcomix.com/img/processed/comic-cover/af73917c49d5c6386b49d6b03b0a5c88/28921_d1a75b28feb7acc4bc6d80fbbe2180df_small.webp",
+      "artist_name": "LoadingError Works",
+      "releases_count_string": "3 Issues"
+     }
+    ]
+   }
+  },
+  "suggestions": null,
+  "pagination": null,
+  "filters": [],
+  "form_fields": null,
+  "facets": null
+ },
+ "error": null
+}

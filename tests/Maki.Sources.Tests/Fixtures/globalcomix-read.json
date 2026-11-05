@@ -1,0 +1,30 @@
+{
+ "meta": {
+  "user_id": 0,
+  "code": 200,
+  "params": [],
+  "path": "/v1/read/the-forbidden-lust-of-a-frigid-girl",
+  "host": "api.globalcomix.com",
+  "query_id": null,
+  "response_time": 91.24
+ },
+ "payload": {
+  "results": {
+   "entity_type": "Comic",
+   "id": 32599,
+   "name": "The Forbidden Lust of a Frigid Girl",
+   "slug": "the-forbidden-lust-of-a-frigid-girl",
+   "description": "June, a 22-year-old asocial girl, escapes reality through adult websites and is unable to share her desires in relationships, leading to self-sabotage. But when she meets Poppy, her elegant new co-worker, her intimate world is shaken. As attraction grows, June must confront her fears. Will she finally open up or push love away once again?",
+   "lang": "en",
+   "status_name": "Ongoing",
+   "image_url": "https://globalcomix.com/img/processed/comic-cover/49b7002f09e3756bf592b85eaaee3f9e/206912_68a6d42d84b3be9d02c4377d2126844c_large.webp",
+   "year": 2023
+  },
+  "suggestions": null,
+  "pagination": null,
+  "filters": [],
+  "form_fields": [],
+  "facets": null
+ },
+ "error": null
+}
