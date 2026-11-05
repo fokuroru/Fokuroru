@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AngleSharp.Html.Parser;
 using Maki.Core.Http;
 using Maki.Core.Sources;
@@ -24,7 +25,7 @@ namespace Maki.Sources.Webtoons;
 /// stored rather than rebuilt from a placeholder.
 /// </para>
 /// </summary>
-public class WebtoonsSource(IHttpClientFactory httpClientFactory) : ISource
+public partial class WebtoonsSource(IHttpClientFactory httpClientFactory) : ISource
 {
     public const string HttpClientName = "source-webtoons";
 
@@ -279,7 +280,7 @@ public class WebtoonsSource(IHttpClientFactory httpClientFactory) : ISource
                 Url: absoluteViewerUrl));
         }
 
-        return SourceChapterList.Normalize(chapters);
+        return SourceChapterList.Normalize(ByEpisodeLabel(chapters));
     }
 
     private async Task<List<SourceChapter>> ListChaptersFromHtmlAsync(
@@ -335,8 +336,40 @@ public class WebtoonsSource(IHttpClientFactory httpClientFactory) : ISource
             }
         }
 
-        return SourceChapterList.Normalize(chapters);
+        return SourceChapterList.Normalize(ByEpisodeLabel(chapters));
     }
+
+    /// <summary>
+    /// Renumbers a listing by its "Ep. N" labels when every episode has one and they only go up. episode_no
+    /// jumps when an author pulls and re-uploads episodes ("Ep. 2" became episode_no 13), so other sources'
+    /// chapter 2 never met it. Labels that restart each season, or are missing, keep episode_no.
+    /// </summary>
+    internal static List<SourceChapter> ByEpisodeLabel(List<SourceChapter> chapters)
+    {
+        var labelled = chapters
+            .Select(c => (Chapter: c, Label: c.Title is null ? null : EpisodeLabel().Match(c.Title)))
+            .OrderBy(x => x.Chapter.Number)
+            .ToList();
+        if (labelled.Any(x => x.Label is not { Success: true }))
+        {
+            return chapters;
+        }
+
+        var numbers = labelled.Select(x => decimal.Parse(x.Label!.Groups[1].Value, CultureInfo.InvariantCulture)).ToList();
+        if (numbers.Zip(numbers.Skip(1)).Any(p => p.Second <= p.First))
+        {
+            return chapters;
+        }
+
+        return labelled.Zip(numbers, (x, n) => x.Chapter with
+        {
+            Number = n,
+            NumberRaw = n.ToString(CultureInfo.InvariantCulture)
+        }).ToList();
+    }
+
+    [GeneratedRegex(@"^\s*Ep(?:isode)?\.?\s*(\d+(?:\.\d+)?)", RegexOptions.IgnoreCase)]
+    private static partial Regex EpisodeLabel();
 
     public async Task<ChapterPages> GetPagesAsync(SourceChapter chapter, CancellationToken ct = default)
     {

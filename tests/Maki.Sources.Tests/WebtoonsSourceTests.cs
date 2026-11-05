@@ -344,4 +344,28 @@ public class WebtoonsSourceTests
         await Assert.ThrowsAsync<ChapterLockedException>(() => source.GetPagesAsync(new SourceChapter(
             "webtoons", "fantasy/tower-of-god/95", "1|episode", "1", 1, null, null, "en", null)));
     }
+
+    private static List<SourceChapter> Episodes(params (int EpisodeNo, string? Title)[] rows) =>
+        rows.Select(r => new SourceChapter("webtoons", "canvas/x/1", $"{r.EpisodeNo}|ep", $"{r.EpisodeNo}", r.EpisodeNo,
+            null, r.Title, "en", null)).ToList();
+
+    [Fact]
+    public void Reuploaded_canvas_episodes_are_numbered_by_their_label()
+    {
+        var chapters = WebtoonsSource.ByEpisodeLabel(Episodes(
+            (35, "Ep. 25 - Coffee break"), (30, "Ep. 19/20 - ShyWallet96"), (13, "Ep. 2 - Shared interests"), (1, "Ep. 1 - First discovery")));
+
+        Assert.Equal([25m, 19m, 2m, 1m], chapters.OrderByDescending(c => c.Number).Select(c => c.Number));
+        Assert.Equal("13|ep", chapters.Single(c => c.Number == 2).SourceChapterId);
+    }
+
+    [Theory]
+    [InlineData("Ep. 1", "Ep. 1")] // labels that restart each season
+    [InlineData("Ep. 1", "Prologue")] // one episode without a label
+    public void Episode_no_is_kept_when_labels_cannot_number_the_listing(string first, string second)
+    {
+        var chapters = WebtoonsSource.ByEpisodeLabel(Episodes((1, first), (2, second)));
+
+        Assert.Equal([1m, 2m], chapters.Select(c => c.Number));
+    }
 }
