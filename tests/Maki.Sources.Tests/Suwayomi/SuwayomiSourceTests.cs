@@ -426,6 +426,16 @@ public class SuwayomiSourceTests
     public void Title_is_the_part_after_the_number(string name, string? expected) =>
         Assert.Equal(expected, SuwayomiSource.TitleOf(name));
 
+    [Theory]
+    [InlineData("Volume 2", 2.0, null)]
+    [InlineData("Vol.3", 3.0, null)]
+    [InlineData("Vol. 2 Vol.2 Ch.34", 34.0, "34")]
+    [InlineData("Chapter 2: How Big is She", 2.0, "2")]
+    [InlineData("Ch. null Pilot chapter", -1.0, null)]
+    public void A_whole_volume_entry_has_no_chapter_number(string name, double extensionNumber, string? expected) =>
+        Assert.Equal(expected is null ? null : decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture),
+            SuwayomiSource.NumberOf(new SuwayomiChapter(1, "/c", name, extensionNumber, null, 0, 0, null)));
+
     private static SourceChapter Chapter(string url) =>
         new("suwayomi-100", SeriesUrl, url, "Ch.1", 1, null, null, "en", null);
 }

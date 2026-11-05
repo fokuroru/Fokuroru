@@ -346,7 +346,7 @@ public sealed partial class SuwayomiSource(
             seriesUrl,
             legacy ? chapter.Id.ToString(CultureInfo.InvariantCulture) : chapter.Url,
             chapter.Name,
-            chapter.ChapterNumber >= 0 ? (decimal)chapter.ChapterNumber : null,
+            NumberOf(chapter),
             parsed.Volume,
             TitleOf(chapter.Name),
             language,
@@ -361,6 +361,16 @@ public sealed partial class SuwayomiSource(
         var match = NamedChapter().Match(name);
         return match.Success ? match.Groups[1].Value.Trim() : null;
     }
+
+    /// <summary>
+    /// Extensions number a whole-volume entry ("Volume 2") as chapter 2. Kept, that row stood beside the real
+    /// chapter 2 and the volume was downloaded as it; unnumbered, it is the whole-volume row Maki expects.
+    /// </summary>
+    internal static decimal? NumberOf(SuwayomiChapter chapter) =>
+        chapter.ChapterNumber < 0 || VolumeOnly().IsMatch(chapter.Name) ? null : (decimal)chapter.ChapterNumber;
+
+    [GeneratedRegex(@"^\s*vol(?:ume|\.)?\s*\d+\s*$", RegexOptions.IgnoreCase)]
+    private static partial Regex VolumeOnly();
 
     [GeneratedRegex(@"^\s*(?:vol(?:ume)?\.?\s*\d+\s*)?(?:ch(?:apter)?\.?\s*\d+(?:\.\d+)?)\s*[-:]\s*(.+)$", RegexOptions.IgnoreCase)]
     private static partial Regex NamedChapter();
