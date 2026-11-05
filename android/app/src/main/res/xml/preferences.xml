@@ -82,8 +82,16 @@
             app:showSeekBarValue="true"
             app:iconSpaceReserved="false" />
         <ListPreference
+            app:key="app_rotation"
+            app:title="Rotation outside the reader"
+            app:entries="@array/rotation_entries"
+            app:entryValues="@array/rotation_values"
+            app:defaultValue="auto"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+        <ListPreference
             app:key="rotation"
-            app:title="Rotation"
+            app:title="Rotation while reading"
             app:entries="@array/rotation_entries"
             app:entryValues="@array/rotation_values"
             app:defaultValue="auto"

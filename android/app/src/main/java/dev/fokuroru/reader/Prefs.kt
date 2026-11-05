@@ -52,6 +52,7 @@ class Prefs(context: Context) {
     var rotation: String
         get() = sp.getString("rotation", "auto") ?: "auto"
         set(value) = sp.edit().putString("rotation", value).apply()
+    val appRotation get() = sp.getString("app_rotation", "auto") ?: "auto"
     val dualPage get() = sp.getBoolean("dual_page", true)
 
     val wifiOnly get() = sp.getBoolean("wifi_only", true)
@@ -74,7 +75,7 @@ class Prefs(context: Context) {
         stylusButtons = stylusButtons,
     )
 
-    fun orientation(): Int = when (rotation) {
+    fun orientation(value: String = rotation): Int = when (value) {
         "portrait" -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
         "landscape" -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
         "locked" -> ActivityInfo.SCREEN_ORIENTATION_LOCKED

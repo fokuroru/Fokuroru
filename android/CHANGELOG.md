@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.6.0 (79)
+- Settings has a Rotation outside the reader option (Auto, Portrait, Landscape or Lock current) that holds the library and every other screen in one orientation. The reader's own setting is now called Rotation while reading and still applies while a chapter is open.
+
 ## 0.5.50 (78)
 - Previews the server has already downloaded are copied to the phone when the app syncs (Wi-Fi only when that setting is on), so they open with no connection. A preview the server drops is dropped here too.
 

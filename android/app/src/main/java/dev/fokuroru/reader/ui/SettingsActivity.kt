@@ -62,6 +62,7 @@ class SettingsActivity : AppCompatActivity() {
         override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String?) {
             when (key) {
                 "sync_hours" -> SyncWorker.schedule(requireContext())
+                "app_rotation" -> dev.fokuroru.reader.Prefs(requireContext()).let { requireActivity().requestedOrientation = it.orientation(it.appRotation) }
                 "notify_new" -> if (prefs.getBoolean("notify_new", true) && Build.VERSION.SDK_INT >= 33) {
                     notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }

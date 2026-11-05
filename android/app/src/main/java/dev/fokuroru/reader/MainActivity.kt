@@ -745,7 +745,7 @@ class MainActivity : AppCompatActivity() {
         if (reading && prefs.keepAwake) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        requestedOrientation = if (reading) prefs.orientation() else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        requestedOrientation = prefs.orientation(if (reading) prefs.rotation else prefs.appRotation)
         remote?.setActive(reading && webTurn && prefs.remoteButtons)
         ViewCompat.requestApplyInsets(root)
     }
