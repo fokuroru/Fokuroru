@@ -417,18 +417,21 @@ public class ChapterSyncService(
     }
 
     /// <remarks>
-    /// Numbers filed under two volumes are left out: one source with its own volume split ("Vol.2 Ch.36" where
-    /// every other site says Vol.5) otherwise makes the ranges overlap, and then no conflict is ever resolved.
+    /// A row only one source vouches for is left out when several sources file its number under another volume:
+    /// one site with its own volume split ("Vol.2 Ch.36" where every other site says Vol.5) otherwise makes the
+    /// ranges overlap, and then no conflict is ever resolved. Per-volume numbering is untouched, since every
+    /// source lists each volume's chapter 1.
     /// </remarks>
     internal static int? ContinuousVolumeOf(IEnumerable<Chapter> chapters, decimal number)
     {
-        var rows = chapters.Select(c => (c.Volume, c.Number)).ToList();
-        var conflicted = rows.Where(r => r.Volume is not null && r.Number is not null)
-            .GroupBy(r => r.Number)
-            .Where(g => g.Select(r => r.Volume).Distinct().Count() > 1)
-            .Select(g => g.Key)
+        var list = chapters.ToList();
+        var backed = list.Where(c => c is { Volume: not null, Number: not null } && c.SourceLinks.Count >= 2)
+            .Select(c => (c.Number, c.Volume))
             .ToHashSet();
-        return Maki.Core.Reading.VolumeRanges.ContinuousVolumeOf(rows.Where(r => !conflicted.Contains(r.Number)), number);
+        var rows = list
+            .Where(c => c.SourceLinks.Count >= 2 || !backed.Any(b => b.Number == c.Number && b.Volume != c.Volume))
+            .Select(c => (c.Volume, c.Number));
+        return Maki.Core.Reading.VolumeRanges.ContinuousVolumeOf(rows, number, includeNumber: true);
     }
 
     /// <summary>

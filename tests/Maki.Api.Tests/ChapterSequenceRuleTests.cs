@@ -129,11 +129,17 @@ public class ChapterSequenceRuleTests
     [Fact]
     public void One_source_with_its_own_volume_split_does_not_hide_the_series_numbering()
     {
-        // Chapter 36 is in volume 5 everywhere except one source that files it under volume 2.
-        var chapters = Numbered((1, 1), (10, 1), (11, 2), (20, 2), (21, 5), (36, 5), (40, 5), (36, 2));
+        // Volume 5 is 34 to 42 everywhere except one source that files 34 to 39 under volume 2.
+        var chapters = Numbered((1, 1), (10, 1), (11, 2), (20, 2), (34, 5), (36, 5), (39, 5), (42, 5), (43, 6), (50, 6));
+        Backed(chapters, 3);
+        var outliers = Numbered((34, 2), (36, 2), (39, 2), (42, 2));
+        Backed(outliers, 1);
+        chapters.AddRange(outliers);
         chapters.ForEach(c => c.Language = "en");
 
         Assert.Equal(5, ChapterSyncService.ContinuousVolumeOf(chapters, 36));
+        // The last chapter of a volume, where leaving its own rows out would put it in a gap.
+        Assert.Equal(5, ChapterSyncService.ContinuousVolumeOf(chapters, 42));
 
         var keeper = chapters.Single(c => c is { Number: 36, Volume: 5 });
         chapters.Remove(chapters.Single(c => c is { Number: 36, Volume: 2 }));
@@ -142,10 +148,15 @@ public class ChapterSequenceRuleTests
         Assert.Null(ChapterSyncService.MisfiledVolume(chapters, listed with { Volume = 5 }));
     }
 
+    private static void Backed(List<Chapter> chapters, int sources) =>
+        chapters.ForEach(c => c.SourceLinks = Enumerable.Range(1, sources)
+            .Select(i => new ChapterSourceLink { SourceMappingId = i, SourceChapterId = $"{c.Number}" }).ToList());
+
     [Fact]
     public void A_misfiled_volume_is_not_guessed_under_per_volume_numbering()
     {
         var chapters = Numbered((1, 1), (9, 1), (1, 2), (9, 2));
+        Backed(chapters, 3);
         chapters.ForEach(c => c.Language = "en");
 
         Assert.Null(ChapterSyncService.MisfiledVolume(chapters, new SourceChapter("s", "u", "c", "Vol.3 Ch.9", 9, 3, null, "en", null)));

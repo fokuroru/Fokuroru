@@ -6,13 +6,14 @@ public static class VolumeRanges
     /// <summary>
     /// The volume a number belongs to when the series numbers straight through its volumes (each volume's
     /// chapters all above the previous volume's), else null. A number below the first volume belongs to it; one between two volumes belongs to neither
-    /// unless <c>fillGaps</c> hands it to the earlier one.
+    /// unless <c>fillGaps</c> hands it to the earlier one. Rows of the number itself are ignored unless
+    /// <c>includeNumber</c> is set by a caller that has already dropped the rows disagreeing about it.
     /// </summary>
     public static int? ContinuousVolumeOf(
-        IEnumerable<(int? Volume, decimal? Number)> chapters, decimal number, bool fillGaps = false)
+        IEnumerable<(int? Volume, decimal? Number)> chapters, decimal number, bool fillGaps = false, bool includeNumber = false)
     {
         var ranges = chapters
-            .Where(c => c.Volume is not null && c.Number is { } n && n > 0 && n % 1 == 0 && n != number)
+            .Where(c => c.Volume is not null && c.Number is { } n && n > 0 && n % 1 == 0 && (includeNumber || n != number))
             .GroupBy(c => c.Volume!.Value)
             .Select(g => (Volume: g.Key, Min: g.Min(c => c.Number!.Value), Max: g.Max(c => c.Number!.Value)))
             .OrderBy(r => r.Volume)
