@@ -1,5 +1,6 @@
 using Maki.Api.Services;
 using Maki.Core.Entities;
+using Maki.Core.Sources;
 
 namespace Maki.Api.Tests;
 
@@ -123,5 +124,30 @@ public class ChapterSequenceRuleTests
         Assert.Null(ChapterSyncService.ContinuousVolumeOf(Numbered((1, 1), (9, 1), (1, 2), (9, 2)), 5));
         // 37.5 would fall in the gap between volume 1 (to 37) and volume 2 (from 38).
         Assert.Null(ChapterSyncService.ContinuousVolumeOf(Numbered((1, 1), (37, 1), (39, 2), (72, 2)), 38));
+    }
+
+    [Fact]
+    public void One_source_with_its_own_volume_split_does_not_hide_the_series_numbering()
+    {
+        // Chapter 36 is in volume 5 everywhere except one source that files it under volume 2.
+        var chapters = Numbered((1, 1), (10, 1), (11, 2), (20, 2), (21, 5), (36, 5), (40, 5), (36, 2));
+        chapters.ForEach(c => c.Language = "en");
+
+        Assert.Equal(5, ChapterSyncService.ContinuousVolumeOf(chapters, 36));
+
+        var keeper = chapters.Single(c => c is { Number: 36, Volume: 5 });
+        chapters.Remove(chapters.Single(c => c is { Number: 36, Volume: 2 }));
+        var listed = new SourceChapter("s", "u", "c36", "Vol. 2 Vol.2 Ch.36", 36, 2, null, "en", null);
+        Assert.Same(keeper, ChapterSyncService.MisfiledVolume(chapters, listed));
+        Assert.Null(ChapterSyncService.MisfiledVolume(chapters, listed with { Volume = 5 }));
+    }
+
+    [Fact]
+    public void A_misfiled_volume_is_not_guessed_under_per_volume_numbering()
+    {
+        var chapters = Numbered((1, 1), (9, 1), (1, 2), (9, 2));
+        chapters.ForEach(c => c.Language = "en");
+
+        Assert.Null(ChapterSyncService.MisfiledVolume(chapters, new SourceChapter("s", "u", "c", "Vol.3 Ch.9", 9, 3, null, "en", null)));
     }
 }

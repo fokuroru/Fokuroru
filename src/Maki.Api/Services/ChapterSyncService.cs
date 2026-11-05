@@ -126,7 +126,8 @@ public class ChapterSyncService(
                 foreach (var sc in sourceChapters)
                 {
                     var match = existing.FirstOrDefault(c => ChapterIdentity.Matches(c, sc))
-                                ?? UntitledOneShot(existing, sc, mapping);
+                                ?? UntitledOneShot(existing, sc, mapping)
+                                ?? MisfiledVolume(existing, sc);
                     if (PromotableOneShot(existing, sc) is { } unnumbered &&
                         (match is null || await reads.CanMergeAsync(match, unnumbered, ct)))
                     {
@@ -415,8 +416,38 @@ public class ChapterSyncService(
                ?? untitled.FirstOrDefault(c => LinkedId(c) is null);
     }
 
-    internal static int? ContinuousVolumeOf(IEnumerable<Chapter> chapters, decimal number) =>
-        Maki.Core.Reading.VolumeRanges.ContinuousVolumeOf(chapters.Select(c => (c.Volume, c.Number)), number);
+    /// <remarks>
+    /// Numbers filed under two volumes are left out: one source with its own volume split ("Vol.2 Ch.36" where
+    /// every other site says Vol.5) otherwise makes the ranges overlap, and then no conflict is ever resolved.
+    /// </remarks>
+    internal static int? ContinuousVolumeOf(IEnumerable<Chapter> chapters, decimal number)
+    {
+        var rows = chapters.Select(c => (c.Volume, c.Number)).ToList();
+        var conflicted = rows.Where(r => r.Volume is not null && r.Number is not null)
+            .GroupBy(r => r.Number)
+            .Where(g => g.Select(r => r.Volume).Distinct().Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet();
+        return Maki.Core.Reading.VolumeRanges.ContinuousVolumeOf(rows.Where(r => !conflicted.Contains(r.Number)), number);
+    }
+
+    /// <summary>
+    /// The chapter a source files under the wrong volume. Without it, "Vol.2 Ch.36" from one site never matches
+    /// the Vol.5 chapter 36 every other site lists, and a new row is made beside it on every sync.
+    /// </summary>
+    internal static Chapter? MisfiledVolume(List<Chapter> existing, SourceChapter sc)
+    {
+        if (sc is not { Number: { } number, Volume: { } volume } ||
+            !existing.Any(c => c.Number == number && c.Language == sc.Language && c.Volume is not null))
+        {
+            return null;
+        }
+
+        var expected = ContinuousVolumeOf(existing, number);
+        return expected is null || expected == volume
+            ? null
+            : existing.FirstOrDefault(c => c.Number == number && c.Language == sc.Language && c.Volume == expected);
+    }
 
     private async Task MergeDuplicatesAsync(List<Chapter> existing, ReadRows reads, CancellationToken ct)
     {
