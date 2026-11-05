@@ -401,6 +401,34 @@ public class ChapterSyncServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Title_naming_another_number_is_replaced_by_the_listing()
+    {
+        var seriesId = _db.SeedSeries(mappings: Mapping("fake"));
+        using (var db = _db.NewContext())
+        {
+            db.Chapters.Add(new Chapter { SeriesId = seriesId, Number = 13, Title = "Ep. 2 - Shared interests", Language = "en" });
+            db.Chapters.Add(new Chapter { SeriesId = seriesId, Number = 14, Title = "Chapter 14: Kept", Language = "en" });
+            db.SaveChanges();
+        }
+
+        var fake = new FakeSource { Name = "fake" };
+        var source = new FakeSource
+        {
+            Name = "fake",
+            OnListChapters = _ =>
+            [
+                fake.Chapter(13) with { Title = "Ep. 13 - Poppy Schmidt" },
+                fake.Chapter(14) with { Title = "Ep. 14 - Let go of me!" }
+            ]
+        };
+
+        await BuildService(null, source).SyncSeriesAsync(seriesId);
+
+        var titles = ChaptersOf(seriesId).OrderBy(c => c.Number).Select(c => c.Title);
+        Assert.Equal(["Ep. 13 - Poppy Schmidt", "Chapter 14: Kept"], titles);
+    }
+
+    [Fact]
     public async Task One_shot_titled_by_a_now_numbered_label_is_promoted_in_place()
     {
         var seriesId = _db.SeedSeries(mappings: Mapping("fake"));

@@ -2,6 +2,7 @@ using System.Globalization;
 using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Http;
+using Maki.Core.Parsing;
 using Maki.Core.Releases;
 using Maki.Core.Sources;
 using Maki.Data;
@@ -149,7 +150,13 @@ public class ChapterSyncService(
                         // Enrich rather than duplicate: a volume-aware source fills in
                         // what a volume-less source couldn't provide.
                         match.Volume ??= sc.Volume;
-                        match.Title ??= sc.Title;
+                        // A title naming another number ("Ep. 2" on chapter 13) was left by a listing
+                        // since renumbered, so it is replaced rather than kept forever.
+                        if (match.Title is null || TitleNamesAnotherNumber(match))
+                        {
+                            match.Title = sc.Title ?? match.Title;
+                        }
+
                         match.ReleaseDate ??= sc.ReleaseDate;
                     }
                     else
@@ -288,6 +295,9 @@ public class ChapterSyncService(
         series.NextCheckAt = now + plan.Interval;
         await db.SaveChangesAsync(ct);
     }
+
+    private static bool TitleNamesAnotherNumber(Chapter chapter) =>
+        chapter.Number is { } own && ChapterNumberParser.Parse(chapter.Title).Number is { } named && named != own;
 
     /// <summary>
     /// More arrivals than this in one listing is a source adding its back catalogue, not releasing,
