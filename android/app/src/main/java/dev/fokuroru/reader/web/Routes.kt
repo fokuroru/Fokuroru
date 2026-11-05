@@ -5,6 +5,9 @@ sealed interface Route {
     data class Page(val chapterId: Int, val page: Int) : Route
     data class Manifest(val chapterId: Int) : Route
     data class Cover(val seriesId: Int) : Route
+    data object PreviewList : Route
+    data class PreviewSnapshot(val providerId: Long) : Route
+    data class PreviewPage(val providerId: Long, val page: Int) : Route
     data object Stashed : Route
 }
 
@@ -12,6 +15,8 @@ object Routes {
     private val page = Regex("^/api/v1/reader/chapter/(\\d+)/(?:page|thumb)/(\\d+)$")
     private val manifest = Regex("^/api/v1/reader/chapter/(\\d+)$")
     private val cover = Regex("^/api/v1/mediacover/(\\d+)/cover\\.jpg$")
+    private val previewSnapshot = Regex("^/api/v1/preview/(\\d+)$")
+    private val previewPage = Regex("^/api/v1/preview/(\\d+)/page/(\\d+)$")
     private val stashed = listOf(
         Regex("^/initialize\\.json$"),
         Regex("^/api/v1/auth/me$"),
@@ -34,6 +39,9 @@ object Routes {
         page.matchEntire(path)?.let { return Route.Page(it.groupValues[1].toInt(), it.groupValues[2].toInt()) }
         manifest.matchEntire(path)?.let { return Route.Manifest(it.groupValues[1].toInt()) }
         cover.matchEntire(path)?.let { return Route.Cover(it.groupValues[1].toInt()) }
+        if (path == "/api/v1/preview/cached") return Route.PreviewList
+        previewSnapshot.matchEntire(path)?.let { return Route.PreviewSnapshot(it.groupValues[1].toLong()) }
+        previewPage.matchEntire(path)?.let { return Route.PreviewPage(it.groupValues[1].toLong(), it.groupValues[2].toInt()) }
         if (stashed.any { it.matches(path) }) return Route.Stashed
         return null
     }

@@ -90,4 +90,12 @@ class LayoutsTest {
         org.junit.Assert.assertEquals(320, dev.fokuroru.reader.ui.Layouts.sideMarginPx(960, 2f))
         org.junit.Assert.assertEquals(240, dev.fokuroru.reader.ui.Layouts.sideMarginPx(960, 3f, 800))
     }
+
+    @Test
+    fun previews() {
+        assertEquals(Route.PreviewList, Routes.parse("/api/v1/preview/cached"))
+        assertEquals(Route.PreviewSnapshot(77), Routes.parse("/api/v1/preview/77"))
+        assertEquals(Route.PreviewPage(77, 2), Routes.parse("/api/v1/preview/77/page/2"))
+        assertNull(Routes.parse("/api/v1/preview/pending"))
+    }
 }

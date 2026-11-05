@@ -1,6 +1,7 @@
 package dev.fokuroru.reader.work
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.work.Constraints
@@ -52,12 +53,24 @@ object ReadingSync {
             snapshot.items.take(3).forEach { item -> saveAhead(context, api, store, item.chapterId, ahead) }
         }
 
+        syncPreviews(context, api, prefs)
+
         ProgressSync.prune(context)
         ProgressSync.pull(context)
         if (prefs.deleteRead) {
             for (id in AutoDelete.plan(store.deletable(), prefs.keepLastRead)) store.delete(id)
         }
         Events.downloadsChanged()
+    }
+
+    /** Previews are many pages of art nobody asked for yet, so a metered connection waits for Wi-Fi when that is the setting. */
+    private fun syncPreviews(context: Context, api: Api, prefs: Prefs) {
+        val network = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (prefs.wifiOnly && network.isActiveNetworkMetered) return
+        try {
+            PreviewSync.run(context, api)
+        } catch (_: IOException) {
+        }
     }
 
     /** A fresh list for a shortcut or widget tap, or null when the server can't be asked. */

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, getInitialize } from './client'
 import type { RecommendationItem } from './hooks'
+import { isNetworkError, nativeApp } from '../lib/nativeApp'
 
 /** The first chapter of a series that is not in the library, fetched from whichever source has it. */
 export interface SeriesPreview {
@@ -51,8 +52,16 @@ export function useMarkPreviewRead() {
 export function useStartSeriesPreview() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (providerId: string) =>
-      api<SeriesPreview>(`/preview/${encodeURIComponent(providerId)}`, { method: 'POST' }),
+    mutationFn: async (providerId: string) => {
+      const path = `/preview/${encodeURIComponent(providerId)}`
+      try {
+        return await api<SeriesPreview>(path, { method: 'POST' })
+      } catch (error) {
+        // The app keeps previews the server had on the device and answers this read from them.
+        if (nativeApp() && isNetworkError(error)) return api<SeriesPreview>(path)
+        throw error
+      }
+    },
     onSuccess: (snapshot, providerId) => {
       queryClient.setQueryData(key(providerId), snapshot)
     },

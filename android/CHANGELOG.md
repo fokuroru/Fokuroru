@@ -4,6 +4,9 @@ Every APK build bumps `version.properties` (versionCode by one, versionName patc
 `serverVersion` is the server build the push produces, one number past the last `fok.N` the hook reported.
 The footer of the mobile view shows the installed version.
 
+## 0.5.50 (78)
+- Previews the server has already downloaded are copied to the phone when the app syncs (Wi-Fi only when that setting is on), so they open with no connection. A preview the server drops is dropped here too.
+
 ## 0.5.49 (77)
 - The simple view's library lists only series with a saved chapter left to read; a series whose only chapters on the server are already read is hidden, online and offline.
 

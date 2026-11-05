@@ -7,6 +7,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import dev.fokuroru.reader.Prefs
 import dev.fokuroru.reader.data.Covers
+import dev.fokuroru.reader.data.Previews
 import dev.fokuroru.reader.data.Profiles
 import dev.fokuroru.reader.data.State
 import dev.fokuroru.reader.data.Store
@@ -65,6 +66,9 @@ class Offline(private val context: Context) {
             is Route.Page -> page(route)
             is Route.Manifest -> manifest(route)
             is Route.Cover -> cover(route)
+            Route.PreviewList -> previewList()
+            is Route.PreviewSnapshot -> previewSnapshot(route)
+            is Route.PreviewPage -> previewPage(route)
             Route.Stashed -> stashed(request)
             null -> shellFile(request, path)
         }
@@ -175,6 +179,26 @@ class Offline(private val context: Context) {
             }
         }
         return json(200, json.toString().toByteArray())
+    }
+
+    /** Pages of a saved preview come from the device whatever the connection, like saved chapters. */
+    private fun previewPage(route: Route.PreviewPage): WebResourceResponse? {
+        val file = Previews.pageFile(context, route.providerId, route.page)
+        if (!file.isFile) return null
+        return WebResourceResponse(sniff(file), null, 200, "OK", mapOf("Cache-Control" to "private, max-age=3600"), FileInputStream(file))
+    }
+
+    /** With the server away, the saved snapshot stands in; online the server answers so the viewer is registered. */
+    private fun previewSnapshot(route: Route.PreviewSnapshot): WebResourceResponse? {
+        val file = Previews.snapshotFile(context, route.providerId)
+        if (!file.isFile || serverReachable()) return null
+        return json(200, file.readBytes())
+    }
+
+    private fun previewList(): WebResourceResponse? {
+        val file = Previews.cardsFile(context)
+        if (!file.isFile || serverReachable()) return null
+        return json(200, file.readBytes())
     }
 
     private fun stashed(request: WebResourceRequest): WebResourceResponse? {
