@@ -95,8 +95,13 @@ void main() {
         mark = exp(-dy * dy) * smoothstep(0.65, 1.0, aUv.x);
       }
     }
-    float ripple = uRect.z * (0.002 * wave + 0.014 * mark) * uLift;
+    // Only paper off the page ripples: on the part still lying flat the wave dipped below the page
+    // underneath, which then showed through in strips beside the spine.
+    float lifted = smoothstep(0.0, max(uRadius, 1.0), s);
+    float ripple = uRect.z * (0.002 * wave + 0.014 * mark) * uLift * lifted;
     pos += normal * (ripple * (uCover > 0.5 ? 0.55 : 1.0) + (aLayer + uLayer) * uThickness);
+    // A sheet never sinks below the pages it lies on (a cover's underside is its own layer).
+    if (uCover < 0.5) pos.z = max(pos.z, 0.0);
   }
   // The scene is mirrored for right-to-left; the pictures on it must not be.
   vUv = vec2(mix(aUv.x, 1.0 - aUv.x, uMirror), aUv.y);

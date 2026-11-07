@@ -78,6 +78,18 @@ interface Sheet {
 
 const OBJECT_FIT: Record<SheetFill, React.CSSProperties['objectFit']> = { stretch: 'fill', enlarge: 'cover', pad: 'contain' }
 
+// Each page's paper colour by address, read once.
+const PAPER = new Map<string, string>()
+function paperColour(src: string, image: HTMLImageElement): string {
+  let colour = PAPER.get(src)
+  if (!colour) {
+    colour = toneColour(paperTone(image))
+    if (PAPER.size > 400) PAPER.clear()
+    PAPER.set(src, colour)
+  }
+  return colour
+}
+
 const NO_WIDE: Readonly<Record<number, boolean>> = {}
 
 // How long a wide page takes to grow to the book's size before a turn, and to shrink after one.
@@ -303,7 +315,9 @@ function PagedPage({
   const visible = state === 'ready' && !shaped
   // A short page takes the chapter's tallest shape; a two-page spread takes the shape of two. Padded,
   // it keeps its own shape and the spare edges are its own paper, as the drawn turn pads it.
-  const padPaper = useMemo(() => (ready && sheet?.fill === 'pad' ? toneColour(paperTone(image)) : undefined), [ready, image, sheet?.fill])
+  // Read once a page is up and kept, so the page facing it later has its paper colour at once.
+  const paper = useMemo(() => (ready ? paperColour(src, image) : undefined), [ready, image, src])
+  const padPaper = sheet?.fill === 'pad' ? paper : undefined
   const evened: React.CSSProperties | undefined =
     sheet && natural
       ? { aspectRatio: String(wide ? sheet.aspect * 2 : sheet.aspect), objectFit: OBJECT_FIT[sheet.fill], backgroundColor: padPaper }
@@ -860,19 +874,20 @@ export default function PagedView({
   // A blank or the inside of a cover takes the paper of the page beside it.
   const facingSrc = facing ? (facing.cover || facing.page < 0 ? (urls[shown.spread[0]!] ?? null) : facing.src) : null
   useEffect(() => {
-    if (!facingSrc) return
+    if (!facingSrc || PAPER.has(facingSrc)) return
     let live = true
     const image = new Image()
     image.onload = () => {
       if (!live) return
-      setFacingPaper({ src: facingSrc, colour: toneColour(paperTone(image)) })
+      setFacingPaper({ src: facingSrc, colour: paperColour(facingSrc, image) })
     }
     image.src = heldPageUrl(facingSrc) ?? facingSrc
     return () => {
       live = false
     }
   }, [facingSrc])
-  const facingColour = facingPaper?.src === facingSrc ? facingPaper.colour : undefined
+  // Never the stock blank colour while the right one loads: the faded page flashed on it.
+  const facingColour = (facingSrc && PAPER.get(facingSrc)) ?? (facingPaper?.src === facingSrc ? facingPaper.colour : facingPaper?.colour)
 
   // The open book: a soft shadow under it and the fold at the spine.
   // The shadow stays while a turn is drawn over it; the fold is drawn into the turn instead.
@@ -970,7 +985,8 @@ export default function PagedView({
       {frame && (
         <div
           className="reader-book-shadow"
-          style={{ left: frame.box.left, top: frame.box.top, width: frame.box.width, height: frame.box.height }}
+          // Toned like the pages: a seam between them must not show undimmed paper.
+          style={{ left: frame.box.left, top: frame.box.top, width: frame.box.width, height: frame.box.height, filter: tone }}
           aria-hidden
         />
       )}
