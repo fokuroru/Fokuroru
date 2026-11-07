@@ -5759,6 +5759,14 @@ body.reader-open {
 .reader-paged[data-paper] img.reader-page.reader-worn {
   border-bottom-right-radius: 2px;
 }
+.reader-paged[data-paper] img.reader-page.reader-bound-right {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.reader-paged[data-paper] img.reader-page.reader-bound-left {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
 .reader-paged[data-paper] .reader-cover {
   box-shadow: 0 0.7px 0 rgba(200, 194, 180, 0.75);
 }

@@ -18,14 +18,16 @@ import type { Spread } from './useSpreads'
 export const GUTTER_SHARE = 0.06
 // The fold's shadow by distance from the spine in GUTTER_SHARE units: dark at the binding, an
 // exponential falloff, and a smooth fade to nothing so it has no edge where it stops.
-const GUTTER = { depth: 0.24, fall: 1.3, fade: 2.5, reach: 5 }
+// `core` rounds the darkest point, so the two sides meet in a curve rather than a crease line.
+const GUTTER = { depth: 0.24, fall: 1.3, fade: 2.5, reach: 5, core: 0.45 }
 export const GUTTER_REACH = GUTTER.reach
 const GUTTER_GLSL = Object.entries(GUTTER)
   .map(([name, value]) => `const float GUTTER_${name.toUpperCase()} = ${value.toFixed(4)};`)
   .join('\n')
 export function gutterShade(t: number): number {
   const k = Math.max(0, Math.min(1, (t - GUTTER.fade) / (GUTTER.reach - GUTTER.fade)))
-  return GUTTER.depth * Math.exp(-t / GUTTER.fall) * (1 - k * k * (3 - 2 * k))
+  const from = Math.hypot(t, GUTTER.core) - GUTTER.core
+  return GUTTER.depth * Math.exp(-from / GUTTER.fall) * (1 - k * k * (3 - 2 * k))
 }
 /**
  * The fold as a CSS gradient across a box reaching GUTTER_REACH units out on the sides that have a
@@ -138,7 +140,8 @@ const vec3 LIGHT = vec3(-0.3, -0.4, 0.87);
 const float THROUGH = 0.7;
 // Keep in step with gutterShade() in pageCurl.ts: the page's CSS fold is drawn from the same curve.
 float gutterShade(float t) {
-  return GUTTER_DEPTH * exp(-t / GUTTER_FALL) * (1.0 - smoothstep(GUTTER_FADE, GUTTER_REACH, t));
+  float away = sqrt(t * t + GUTTER_CORE * GUTTER_CORE) - GUTTER_CORE;
+  return GUTTER_DEPTH * exp(-away / GUTTER_FALL) * (1.0 - smoothstep(GUTTER_FADE, GUTTER_REACH, t));
 }
 vec2 within(vec3 part, float u, float v) {
   float s = part.z > 0.5 ? 1.0 - u : u;

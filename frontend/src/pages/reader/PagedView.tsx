@@ -943,6 +943,14 @@ export default function PagedView({
     return () => observer.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marked, book, shown.key, fit, scale, sheet?.aspect, sheet?.fill, align, double, loneSize, bookView, readySrcs])
+  // The edge bound at the spine is square. A rounded clip there anti-aliased the whole edge, and
+  // where two pages met at a fraction of a pixel the paper behind showed through as a line.
+  const boundEdge = (index: number) =>
+    !curlOn || shownWide
+      ? ''
+      : shown.spread.length === 2
+        ? index === 0 ? ' reader-bound-right' : ' reader-bound-left'
+        : facing ? (facingRight ? ' reader-bound-right' : ' reader-bound-left') : ''
   const gutter = frame ? (frame.box.width / (frame.leftSide && frame.rightSide ? 2 : 1)) * GUTTER_SHARE : 0
   const resting = opening(shown.spread)
   // Every page folds into the binding, blanks and the insides of covers too; only the outside does not.
@@ -976,7 +984,7 @@ export default function PagedView({
             key={src}
             src={src}
             alt={t`${label} - page ${pageNumber}`}
-            className={`reader-page ${FIT_CLASS[fit]}${faceOf(page)?.cover ? ' reader-cover' : ''}${pageWear(page, urls[0])[1] === 1 ? ' reader-worn' : ''}`}
+            className={`reader-page ${FIT_CLASS[fit]}${faceOf(page)?.cover ? ' reader-cover' : ''}${pageWear(page, urls[0])[1] === 1 ? ' reader-worn' : ''}${standby ? '' : boundEdge(index)}`}
             style={
               !standby && loneSize
                 ? {
