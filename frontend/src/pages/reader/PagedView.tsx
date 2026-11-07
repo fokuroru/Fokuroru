@@ -768,13 +768,35 @@ export default function PagedView({
     setBookView(curlOn && shownWide && root.current?.dataset.curling !== undefined)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shown.key])
+  // Applied only when the target changes: this runs on every render, and rewriting the transition
+  // on the render after a zoom began cancelled it, so the spread jumped instead of easing.
+  const appliedBook = useRef<{ element: HTMLElement; transform: string } | null>(null)
+  const easingTimer = useRef(0)
   useLayoutEffect(() => {
     const element = curlOn && shownWide ? wideElement() : null
-    if (!element) return
+    if (!element) {
+      appliedBook.current = null
+      return
+    }
+    const transform = bookView ? (bookTransform() ?? 'none') : 'none'
+    const last = appliedBook.current
+    if (last?.element === element && last.transform === transform) {
+      animateBook.current = false
+      return
+    }
+    const ease = animateBook.current && last?.element === element
     element.style.transformOrigin = '0 0'
-    element.style.transition = animateBook.current ? `transform ${BOOK_ZOOM_MS}ms ease` : 'none'
-    element.style.transform = bookView ? (bookTransform() ?? 'none') : 'none'
+    element.style.transition = ease ? `transform ${BOOK_ZOOM_MS}ms ease` : 'none'
+    element.style.transform = transform
+    appliedBook.current = { element, transform }
     animateBook.current = false
+    // The book's shadow and fold slide with it (theme.css .reader-paged[data-easing]).
+    const host = root.current
+    if (ease && host) {
+      host.dataset.easing = ''
+      window.clearTimeout(easingTimer.current)
+      easingTimer.current = window.setTimeout(() => delete host.dataset.easing, BOOK_ZOOM_MS)
+    }
   })
   // Set from a zoom-in until the turn it was for is over, so the spread is not shrunk under it.
   const turning = useRef(false)
@@ -894,14 +916,22 @@ export default function PagedView({
   const [frame, setFrame] = useState<{ box: Box; spine: number; leftSide: boolean; rightSide: boolean } | null>(null)
   useLayoutEffect(() => {
     const host = root.current
-    if (!host || !curlOn || (shownWide && bookView)) {
+    if (!host || !curlOn) {
       setFrame(null)
       return
     }
     const place = () => {
       const origin = host.getBoundingClientRect()
       let next: typeof frame = null
-      if (shownWide) {
+      if (shownWide && bookView) {
+        // Scaled up to the book's size for a turn: the shadow and fold go where the book is.
+        const book = geometry()
+        if (book) {
+          const spine = book.spineX - origin.left
+          const box = { left: spine - book.pageWidth, top: book.top - origin.top, width: book.pageWidth * 2, height: book.pageHeight }
+          next = { box, spine, leftSide: true, rightSide: true }
+        }
+      } else if (shownWide) {
         const element = wideElement()
         if (element) {
           const box = { left: element.offsetLeft, top: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }

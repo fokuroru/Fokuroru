@@ -5782,6 +5782,16 @@ body.reader-open {
   opacity: 0;
   transition: opacity 160ms ease-in;
 }
+/* A two-page spread easing between the book's size and its own (PagedView BOOK_ZOOM_MS): the
+   book's shadow and fold slide with it. */
+.reader-paged[data-easing] > .reader-book-shadow,
+.reader-paged[data-easing] > .reader-gutter {
+  transition:
+    left 300ms ease,
+    top 300ms ease,
+    width 300ms ease,
+    height 300ms ease;
+}
 /* Paper under the open book, so the hairline where two pages meet shows paper, not the dark
    reader behind. Only at rest: during a turn the book can move off it. */
 .reader-paged:not([data-curling]) > .reader-book-shadow {
