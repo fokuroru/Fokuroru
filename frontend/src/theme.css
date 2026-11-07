@@ -5765,7 +5765,8 @@ body.reader-open {
   justify-content: flex-end;
 }
 /* The facing page beside a lone page: the back of the sheet turned before it, the page before
-   mirrored. Clipped by its own box so a facing page off the screen edge adds no sideways scroll. */
+   mirrored, or the left half of a two-page spread printed on it. Clipped by its own box so a
+   facing page off the screen edge adds no sideways scroll. */
 .reader-blank-clip {
   position: absolute;
   inset: 0;
@@ -5777,14 +5778,38 @@ body.reader-open {
   background: #f5f2eb;
   overflow: hidden;
 }
-.reader-facing-page {
+.reader-facing {
   position: absolute;
   inset: 0;
-  width: 100%;
+  overflow: hidden;
+}
+.reader-facing-page {
+  position: absolute;
+  top: 0;
   height: 100%;
-  transform: scaleX(-1);
   user-select: none;
   -webkit-user-drag: none;
+}
+/* Print seen through the paper from the other side: mirrored and faded into the paper colour, the
+   same 30% the drawn turn uses (pageCurl.ts THROUGH). */
+.reader-facing[data-through] {
+  transform: scaleX(-1);
+}
+.reader-facing[data-through] .reader-facing-page {
+  opacity: 0.3;
+}
+/* A two-page spread is scaled to the book's size before a turn and drawn past the page's edges. */
+.reader-paged[data-paper] {
+  overflow-x: clip;
+}
+/* Two pages up, a page on its own lies on its side of the spine: the cover, or a last page. */
+.reader-paged[data-lone='right'] {
+  padding-left: 50%;
+  justify-content: flex-start;
+}
+.reader-paged[data-lone='left'] {
+  padding-right: 50%;
+  justify-content: flex-end;
 }
 
 /* A trimmed, split or turned page (PagedView's RegionPage). The canvas inside takes the fit

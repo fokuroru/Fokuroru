@@ -900,8 +900,8 @@ export default function ReaderPage() {
                 sheetAspect,
                 next: splitting ? null : (spreads[spreadIndex + 1] ?? null),
                 previous: splitting ? null : (spreads[spreadIndex - 1] ?? null),
-                beforePrevious: splitting ? null : (spreads[spreadIndex - 2] ?? null),
                 wide,
+                double: prefs.mode === 'double',
                 onTurn: (forward) => (forward ? next() : previous()),
               }}
             />

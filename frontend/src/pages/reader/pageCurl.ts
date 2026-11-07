@@ -64,23 +64,32 @@ uniform sampler2D uBack;
 uniform float uHasBack;
 uniform float uShadow;
 uniform float uRadius;
-uniform float uMirrored;
+// A face's share of its texture: left edge, width, and 1 when its print is mirrored.
+uniform vec3 uFrontPart;
+uniform vec3 uBackPart;
 out vec4 outColor;
 const vec3 LIGHT = vec3(-0.3, -0.4, 0.87);
+// Print seen through the paper from the other side: faded into the paper colour.
+const vec3 PAPER = vec3(0.96, 0.95, 0.92);
+const float THROUGH = 0.7;
+vec2 within(vec3 part, float u, float v) {
+  float s = part.z > 0.5 ? 1.0 - u : u;
+  return vec2(part.x + s * part.y, v);
+}
 void main() {
   vec3 n = normalize(vNormal);
   bool back = n.z < 0.0;
   vec3 colour;
-  if (!back && uMirrored > 0.5) {
-    // A lone page's facing page: the back of the sheet turned before it, its print mirrored.
-    colour = texture(uFront, vec2(1.0 - vUv.x, vUv.y)).rgb;
-  } else if (!back) {
-    colour = texture(uFront, vUv).rgb;
+  if (!back) {
+    colour = texture(uFront, within(uFrontPart, vUv.x, vUv.y)).rgb;
+    if (uFrontPart.z > 0.5) colour = mix(colour, PAPER, THROUGH);
   } else if (uHasBack > 0.5) {
-    colour = texture(uBack, vec2(1.0 - vUv.x, vUv.y)).rgb;
+    // Seen from behind the sheet, so flipped once more: it reads as it will when it lies down.
+    colour = texture(uBack, within(uBackPart, 1.0 - vUv.x, vUv.y)).rgb;
+    if (uBackPart.z > 0.5) colour = mix(colour, PAPER, THROUGH);
   } else {
-    // The back of a lone page: its own print seen from behind, mirrored, as the facing page shows it.
-    colour = texture(uFront, vUv).rgb;
+    // A sheet with nothing printed on its back shows its own print through the paper.
+    colour = mix(texture(uFront, within(uFrontPart, vUv.x, vUv.y)).rgb, PAPER, THROUGH);
   }
   vec3 facing = back ? -n : n;
   float light = (0.55 + 0.45 * max(dot(facing, LIGHT), 0.0)) / (0.55 + 0.45 * LIGHT.z);
@@ -104,9 +113,34 @@ const TURN_SHARE = 0.4
 interface Texture {
   texture: WebGLTexture
   aspect: number
-  /** A two-page spread scan: never drawn turning. */
-  wide: boolean
 }
+
+/** Which part of a page's image a face shows: all of it, or one half of a two-page spread. */
+export type FacePart = 'whole' | 'left' | 'right'
+
+/** One side of one leaf of the book. `mirrored` is the back of a sheet showing its print through. */
+export interface Face {
+  page: number
+  src: string
+  part: FacePart
+  mirrored: boolean
+}
+
+/** A spread as the book shows it, in left-to-right space: the earlier side on the left. */
+export interface Opening {
+  left: Face | null
+  right: Face | null
+}
+
+/** Where the book sits on screen: the spine, and the size of one page. Screen coordinates. */
+export interface BookGeometry {
+  spineX: number
+  top: number
+  pageWidth: number
+  pageHeight: number
+}
+
+const PARTS: Record<FacePart, [number, number]> = { whole: [0, 1], left: [0, 0.5], right: [0.5, 0.5] }
 
 interface Rect {
   x: number
@@ -115,20 +149,21 @@ interface Rect {
   h: number
 }
 
-/** One turn, in left-to-right space. Progress runs 0 (sheet flat on the right) to 1 (on the left). */
+/**
+ * One turn, in left-to-right space. Progress runs 0 (sheet flat on the right) to 1 (on the left).
+ * The sheet is the right page of the opening it leaves going forward, of the one it reaches going back.
+ */
 interface Turn {
   forward: boolean
   targetKey: string
   spine: number
   sheet: Rect
-  leftSlot: Rect | null
-  /** The left page is a lone page's facing page, the page before it drawn mirrored as a sheet's back. */
-  facing: boolean
+  leftSlot: Rect
   rightSlot: Rect
-  front: string
-  back: string | null
-  left: string | null
-  right: string | null
+  front: Face
+  back: Face | null
+  left: Face | null
+  right: Face | null
   /** The textures this turn loaded, held for its whole life: the cache and the sheet shape may move on. */
   textures: Map<string, Texture>
 }
@@ -138,10 +173,14 @@ export interface CurlContext {
   current: Spread
   next: Spread | null
   previous: Spread | null
-  /** The spread before `previous`: what the facing page shows after a turn back. */
-  beforePrevious: Spread | null
-  /** Pages measured wider than tall. A turn to or from one is not drawn and does not follow the finger. */
-  wide: Readonly<Record<number, boolean>>
+  /** How a spread lies open: its left and right faces, either may be empty (a cover, a last page). */
+  opening: (spread: Spread) => Opening
+  /** The back of the sheet a face is printed on, in one-page view; null in two-page view. */
+  backOf: ((face: Face) => Face | null) | null
+  /** Where the book sits now. */
+  geometry: () => BookGeometry | null
+  /** Called before a turn is drawn: a zoomed-out wide page zooms back in first. */
+  beforeTurn: () => Promise<void>
   /** Draw in mirrored space: the sheet hinges on its right edge (right-to-left, or a left-aligned page). */
   mirror: boolean
   /** Width over height every page is drawn at, so a chapter's pages are one size; null keeps each page's own. */
@@ -231,17 +270,21 @@ export class PageCurl {
   private host: HTMLElement
   private onTurn: (forward: boolean) => void
   private onBusy: (busy: boolean) => void
+  private onIdle: () => void
 
   constructor(
     canvas: HTMLCanvasElement,
     host: HTMLElement,
     onTurn: (forward: boolean) => void,
     onBusy: (busy: boolean) => void,
+    /** The drawing has gone and the real pages are up again. */
+    onIdle: () => void,
   ) {
     this.canvas = canvas
     this.host = host
     this.onTurn = onTurn
     this.onBusy = onBusy
+    this.onIdle = onIdle
     this.gl = canvas.getContext('webgl2', { premultipliedAlpha: true, antialias: true, alpha: true })
     if (this.gl) this.setUp(this.gl)
   }
@@ -258,8 +301,10 @@ export class PageCurl {
     if (surface) surface.style.touchAction = this.canDrag() ? 'pan-y' : ''
     // Upload the pages a turn can reach now, so a drag or a tap starts on the next frame.
     if (context.enabled && this.gl && !reducedMotion()) {
-      for (const spread of [context.current, context.next, context.previous, context.beforePrevious]) {
-        for (const page of spread ?? []) if (context.urls[page]) void this.texture(context.urls[page])
+      for (const spread of [context.current, context.next, context.previous]) {
+        if (!spread) continue
+        const { left, right } = context.opening(spread)
+        for (const face of [left, right, right && context.backOf?.(right)]) if (face) void this.texture(face.src)
       }
     }
   }
@@ -282,9 +327,11 @@ export class PageCurl {
     if (!turn) return
     const generation = this.generation
     this.onBusy(true)
-    void this.prepare(turn).then((ok) => {
+    void Promise.all([this.prepare(turn), this.context!.beforeTurn()]).then(([ok]) => {
       this.onBusy(false)
-      if (!ok || generation !== this.generation) return
+      if (generation !== this.generation) return
+      // Not drawn after all: the page just turns, and anything waiting on the turn can go on.
+      if (!ok) return this.onIdle()
       this.turn = turn
       this.landingKey = key
       const edge = turn.spine + turn.sheet.w
@@ -327,11 +374,13 @@ export class PageCurl {
   }
 
   private hide() {
+    const shown = this.host.dataset.curling !== undefined
     delete this.host.dataset.curling
     this.turn = null
     this.pinned.clear()
     this.landingKey = null
     clearTimeout(this.hideTimer)
+    if (shown) this.onIdle()
   }
 
   private landed() {
@@ -339,74 +388,49 @@ export class PageCurl {
     if (this.settledKey === this.landingKey) this.hide()
   }
 
-  /** Where everything sits, read off the pages on screen now. Null when this turn is not drawn. */
+  /**
+   * Where everything sits: the book's geometry and the two openings, the one left and the one
+   * reached. Null when this turn is not drawn (no sheet to lift, or drawing is off).
+   */
   private plan(from: Spread, to: Spread, forward: boolean): Turn | null {
     const context = this.context
     if (!context?.enabled || !this.gl || reducedMotion()) return null
-    const book = from.length === 2 && to.length === 2
-    if (!book && (from.length !== 1 || to.length !== 1)) return null
-    if ([...from, ...to].some((page) => context.wide[page])) return null
-    const urls = context.urls
-    const width = window.innerWidth
-    const rectsOf = (selector: string) =>
-      [...this.host.querySelectorAll<HTMLElement>(selector)]
-        .filter((element) => getComputedStyle(element).visibility !== 'hidden')
-        .map((element) => element.getBoundingClientRect())
-        .filter((rect) => rect.width > 0 && rect.height > 0)
-        .map((rect) => ({
-          x: context.mirror ? width - rect.right : rect.left,
-          y: rect.top,
-          w: rect.width,
-          h: rect.height,
-        }))
-        .sort((a, b) => a.x - b.x)
-    const rects = rectsOf('.reader-page:not(.reader-blank)')
-    const blank = rectsOf('.reader-blank')[0] ?? null
-    if (rects.length === 0) return null
-    const targetKey = keyOf(to)
-    if (book) {
-      if (rects.length !== 2) return null
-      const [leftSlot, rightSlot] = rects as [Rect, Rect]
-      const spine = leftSlot.x + leftSlot.w
-      const sheet = { ...rightSlot, x: spine }
-      // In left-to-right space the earlier page of a spread is always the left one.
-      const [fromLeft, fromRight] = from.map((page) => urls[page]!)
-      const [toLeft, toRight] = to.map((page) => urls[page]!)
-      return forward
-        ? { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: fromRight!, back: toLeft!, left: fromLeft!, right: toRight!, textures: new Map() }
-        : { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: toRight!, back: fromLeft!, left: toLeft!, right: fromRight!, textures: new Map() }
-    }
-    const rect = rects[0]!
-    const fromSrc = urls[from[0]!]!
-    const toSrc = urls[to[0]!]!
-    // A lone page's facing page is the back of the sheet turned before it: that page, mirrored.
-    // The first page has none, so turning back onto it uncovers nothing on that side.
-    const behind = forward ? context.previous : context.beforePrevious
+    const geometry = context.geometry()
+    if (!geometry) return null
+    const spine = context.mirror ? window.innerWidth - geometry.spineX : geometry.spineX
+    const page = { y: geometry.top, w: geometry.pageWidth, h: geometry.pageHeight }
+    const leftSlot = { ...page, x: spine - page.w }
+    const rightSlot = { ...page, x: spine }
+    const leaving = context.opening(from)
+    const reaching = context.opening(to)
+    const [before, after] = forward ? [leaving, reaching] : [reaching, leaving]
+    // The sheet that turns is the right page of the earlier opening.
+    const front = before.right
+    if (!front) return null
+    // Two pages up its back is the left page of the later opening; one page up, the page's own back.
+    const back = context.backOf ? context.backOf(front) : after.left
     return {
       forward,
-      targetKey,
-      spine: rect.x,
-      sheet: rect,
-      leftSlot: blank,
-      facing: true,
-      rightSlot: rect,
-      front: forward ? fromSrc : toSrc,
-      back: null,
-      left: blank && behind && !context.wide[behind[0]!] ? (urls[behind[0]!] ?? null) : null,
-      right: forward ? toSrc : fromSrc,
+      targetKey: keyOf(to),
+      spine,
+      sheet: rightSlot,
+      leftSlot,
+      rightSlot,
+      front,
+      back,
+      left: before.left,
+      right: after.right,
       textures: new Map(),
     }
   }
 
   /** Loads the turn's pages. A drag waits as long as the finger is down; a tap or key turn gives up quickly. */
   private prepare(turn: Turn, patient = false): Promise<boolean> {
-    const sources = [turn.front, turn.back, turn.left, turn.right].filter((src): src is string => src !== null)
-    // A page that only turns out to be wide once loaded is still never drawn turning.
-    const turning = new Set([turn.front, turn.back, turn.right])
+    const sources = [...new Set([turn.front, turn.back, turn.left, turn.right].filter((face) => face !== null).map((face) => face.src))]
     this.pinned = new Set(sources.map((src) => this.keyFor(src)))
     const loaded = Promise.all(sources.map((src) => this.texture(src))).then((all) => {
       all.forEach((texture, index) => texture && turn.textures.set(sources[index]!, texture))
-      return all.every((texture, index) => texture && !(texture.wide && turning.has(sources[index]!)))
+      return all.every(Boolean)
     })
     if (patient) return loaded
     // A tap never waits on a slow decode: past this the page turns without the drawing.
@@ -429,16 +453,18 @@ export class PageCurl {
       const gl = this.gl
       if (!gl) return null
       const image = new Image()
+      // The load event, not decode(): a hidden page holds decode() back indefinitely, and the upload
+      // below decodes the image anyway.
+      const loaded = new Promise<boolean>((resolve) => {
+        image.onload = () => resolve(true)
+        image.onerror = () => resolve(false)
+      })
       image.src = heldPageUrl(src) ?? src
-      try {
-        await image.decode()
-      } catch {
-        return null
-      }
+      if (!(await loaded) || !image.naturalWidth) return null
       const limit = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE) as number, 2048)
       const natural = image.naturalWidth / image.naturalHeight
-      // A two-page spread scan keeps its own shape, as it does on screen.
-      const shaped = natural <= 1 ? sheet : null
+      // A two-page spread covers two sheets.
+      const shaped = sheet === null ? null : natural <= 1 ? sheet : sheet * 2
       const aspect = shaped ?? natural
       // Keep the page's width; the sheet sets the height (a short page comes out taller).
       const scale = Math.min(1, limit / Math.max(image.naturalWidth, image.naturalWidth / aspect))
@@ -472,7 +498,7 @@ export class PageCurl {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-      const result = { texture, aspect, wide: natural > 1 }
+      const result = { texture, aspect }
       this.ready.set(key, result)
       this.evict()
       return result
@@ -552,7 +578,7 @@ export class PageCurl {
         this.grabY = Math.min(turn.sheet.y + turn.sheet.h, Math.max(turn.sheet.y, event.clientY))
         this.finger = { x: x + pointer.offset, y: this.grabY }
         const generation = this.generation
-        void this.prepare(turn, true).then((ok) => {
+        void Promise.all([this.prepare(turn, true), context.beforeTurn()]).then(([ok]) => {
           if (!ok || generation !== this.generation || !this.pointer) return
           this.turn = turn
           this.show()
@@ -574,6 +600,7 @@ export class PageCurl {
       const turn = this.turn
       if (!turn || event.type === 'pointercancel') {
         this.stop()
+        if (!turn) this.onIdle()
         return
       }
       const complete = releaseCompletes(pointer.history, event.timeStamp, this.progress(), turn.forward, turn.sheet.w)
@@ -674,19 +701,24 @@ export class PageCurl {
     gl.uniform1i(u('uBack'), 1)
 
     // Without the pages it needs the drawing would cover the real ones with nothing; show those instead.
-    if (!turn.textures.has(turn.front) || (turn.right && !turn.textures.has(turn.right))) {
+    if (!turn.textures.has(turn.front.src) || (turn.right && !turn.textures.has(turn.right.src))) {
       this.hide()
       return
     }
-    const quad = (src: string | null, rect: Rect, curl: boolean, shadow: boolean, back: string | null, mirrored = false) => {
-      const texture = src ? turn.textures.get(src)?.texture : undefined
-      if (!texture) return
+    const part = (name: string, face: Face | null) => {
+      const [x, w] = PARTS[face?.part ?? 'whole']
+      gl.uniform3f(u(name), x, w, face?.mirrored ? 1 : 0)
+    }
+    const quad = (face: Face | null, rect: Rect, curl: boolean, shadow: boolean, back: Face | null) => {
+      const texture = face ? turn.textures.get(face.src)?.texture : undefined
+      if (!face || !texture) return
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, texture)
-      const backTexture = back ? turn.textures.get(back) : undefined
+      const backTexture = back ? turn.textures.get(back.src) : undefined
       gl.activeTexture(gl.TEXTURE1)
       gl.bindTexture(gl.TEXTURE_2D, backTexture?.texture ?? texture)
-      gl.uniform1f(u('uMirrored'), mirrored ? 1 : 0)
+      part('uFrontPart', face)
+      part('uBackPart', backTexture ? back : null)
       gl.uniform4f(u('uRect'), rect.x, rect.y, rect.w, rect.h)
       gl.uniform1f(u('uCurl'), curl ? 1 : 0)
       gl.uniform1f(u('uZ'), curl ? 0 : -1)
@@ -694,12 +726,13 @@ export class PageCurl {
       gl.uniform1f(u('uHasBack'), backTexture ? 1 : 0)
       gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0)
     }
-    const fitted = (src: string | null, slot: Rect, anchorRight: boolean) => {
-      const texture = src ? turn.textures.get(src) : undefined
-      return texture ? fitInto(slot, texture.aspect, anchorRight) : slot
+    // A face keeps its own shape inside its page's slot, against the spine.
+    const fitted = (face: Face | null, slot: Rect, anchorRight: boolean) => {
+      const texture = face ? turn.textures.get(face.src) : undefined
+      return texture ? fitInto(slot, texture.aspect * PARTS[face!.part][1], anchorRight) : slot
     }
 
-    if (turn.leftSlot) quad(turn.left, fitted(turn.left, turn.leftSlot, true), false, false, null, turn.facing)
+    quad(turn.left, fitted(turn.left, turn.leftSlot, true), false, false, null)
     quad(turn.right, fitted(turn.right, turn.rightSlot, false), false, true, null)
     quad(turn.front, turn.sheet, true, false, turn.back)
   }
@@ -721,7 +754,7 @@ export class PageCurl {
       return
     }
     this.program = program
-    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uMirrored']) {
+    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uFrontPart', 'uBackPart']) {
       this.uniforms.set(name, gl.getUniformLocation(program, name))
     }
 

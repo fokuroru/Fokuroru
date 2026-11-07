@@ -5,7 +5,7 @@ import { cropRegion, FULL_REGION, isFull, partOf, type PagePart, type Region } f
 import EnhancedPage from './EnhancedPage'
 import { heldPageUrl, holdPage } from './pageBlobs'
 import { isSoftPage } from '../../lib/enhance/softness'
-import { PageCurl } from './pageCurl'
+import { PageCurl, type BookGeometry, type Face, type FacePart, type Opening } from './pageCurl'
 import { useCompareKey } from './compareHold'
 import {
   EnhanceScope,
@@ -59,9 +59,10 @@ export interface PaperOptions {
   sheetAspect: number | null
   next: Spread | null
   previous: Spread | null
-  beforePrevious: Spread | null
-  /** Pages measured wider than tall: they turn without the drawing. */
+  /** Pages measured wider than tall: a two-page spread, which covers both sides of the book. */
   wide: Readonly<Record<number, boolean>>
+  /** Two pages up: the book lies open on both sides of a spine in the middle. */
+  double: boolean
   /** A drag finished a turn: move the reader on, the drawing already shows the result. */
   onTurn: (forward: boolean) => void
 }
@@ -73,6 +74,16 @@ interface Sheet {
 }
 
 const NO_WIDE: Readonly<Record<number, boolean>> = {}
+
+// How long a wide page takes to grow to the book's size before a turn, and to shrink after one.
+const BOOK_ZOOM_MS = 300
+
+// The pages on screen, by box. Not by visibility: the incoming page waits hidden in a fixed box, and
+// while a turn is drawn every real page is hidden underneath it.
+const onScreen = (host: HTMLElement) =>
+  [...host.querySelectorAll<HTMLElement>('.reader-page:not(.reader-blank)')].filter(
+    (element) => element.offsetWidth > 0 && getComputedStyle(element).position !== 'fixed',
+  )
 
 interface Box {
   left: number
@@ -262,9 +273,11 @@ function PagedPage({
   const shaped = natural !== null && (enhance !== null || rotate !== 0 || !isFull(region))
 
   const visible = state === 'ready' && !shaped
-  // A short page takes the chapter's tallest shape. A two-page spread keeps its own.
+  // A short page takes the chapter's tallest shape; a two-page spread takes the shape of two.
   const evened: React.CSSProperties | undefined =
-    sheet && natural && !wide ? { aspectRatio: String(sheet.aspect), objectFit: sheet.cover ? 'cover' : 'fill' } : undefined
+    sheet && natural
+      ? { aspectRatio: String(wide ? sheet.aspect * 2 : sheet.aspect), objectFit: sheet.cover ? 'cover' : 'fill' }
+      : undefined
   return (
     <>
       {state === 'loading' && !standby && <div className="reader-page-skeleton" aria-hidden />}
@@ -385,10 +398,17 @@ export default function PagedView({
   const [curlBusy, setCurlBusy] = useState(false)
   const paperRef = useRef(paper)
   paperRef.current = paper
+  const idleRef = useRef(() => {})
   const hasPaper = paper !== null
   useEffect(() => {
     if (!hasPaper || !canvas.current || !root.current) return
-    const created = new PageCurl(canvas.current, root.current, (forward) => paperRef.current?.onTurn(forward), setCurlBusy)
+    const created = new PageCurl(
+      canvas.current,
+      root.current,
+      (forward) => paperRef.current?.onTurn(forward),
+      setCurlBusy,
+      () => idleRef.current(),
+    )
     setCurl(created)
     return () => {
       created.dispose()
@@ -423,7 +443,7 @@ export default function PagedView({
   const holding = shown.urls === urls && shown.key !== target.key
   const current = shown.urls === urls && shown.key === target.key && shown.half === half
   const [expired, setExpired] = useState<string | null>(null)
-  if (!current && (!holding || expired === target.key || (!curlBusy && incoming.every((src) => readySrcs.has(src))))) {
+  if (!current && (!holding || (!curlBusy && (expired === target.key || incoming.every((src) => readySrcs.has(src)))))) {
     setShown(target)
     setReadySrcs((ready) => new Set(incoming.filter((src) => ready.has(src))))
     setExpired(null)
@@ -591,16 +611,149 @@ export default function PagedView({
   }, [zoom])
 
   // Paper turns. Drawn only for plain pages at 1x: a trimmed, split or turned page would look
-  // different in the drawing than on screen.
+  // different in the drawing than on screen, and 1:1 or zoomed pages pan sideways, which a book cannot.
   const lone = shown.spread.length === 1
   const plainPages = !cropBorders && splitWide === 'off'
-  const curlOn = paper !== null && zoom === 1 && plainPages
+  const curlOn = paper !== null && zoom === 1 && plainPages && fit !== 'original' && scale === 100
   const align = paper?.align ?? 'center'
-  // The sheet hinges on its right edge for right-to-left, and for a page pushed to the left, whose
-  // blank facing page is on its right.
-  const mirror = lone ? (align === 'left' ? true : align === 'right' ? false : rtl) : rtl
+  const double = paper?.double ?? false
+  const wideMap = paper?.wide ?? NO_WIDE
+  const lastIndex = urls.length - 1
+  // The book is drawn in left-to-right space and mirrored for right-to-left, and in one-page view
+  // for a page pushed to the left, whose facing page is on its right.
+  const mirror = double ? rtl : align === 'left' ? true : align === 'right' ? false : rtl
+  const facingRight = mirror
   const sheet: Sheet | null =
     paper && paper.even !== 'off' && paper.sheetAspect ? { aspect: paper.sheetAspect, cover: paper.even === 'enlarge' } : null
+
+  // The book: every spread lies open as a left and a right face. A two-page spread covers both, a
+  // half each; the half drawn on the left in left-to-right space is the image's right half when mirrored.
+  const nearPart: FacePart = mirror ? 'right' : 'left'
+  const farPart: FacePart = mirror ? 'left' : 'right'
+  const faceOf = (page: number, part: FacePart = 'whole'): Face | null => {
+    const src = urls[page]
+    return src ? { page, src, part, mirrored: false } : null
+  }
+  // One page up, a sheet's back is its own print seen through the paper, except before a two-page
+  // spread, whose left half is printed on the back of the sheet before it, as in a bound book.
+  const backOf = (face: Face): Face | null => {
+    const next = face.page + 1
+    if (next <= lastIndex && wideMap[next]) return faceOf(next, nearPart)
+    return { ...face, mirrored: !face.mirrored }
+  }
+  const sheetCarrying = (page: number) => faceOf(page, wideMap[page] ? farPart : 'whole')
+  const opening = (pages: Spread): Opening => {
+    const first = pages[0]!
+    if (pages.length === 2) return { left: faceOf(pages[0]!), right: faceOf(pages[1]!) }
+    if (wideMap[first]) return { left: faceOf(first, nearPart), right: faceOf(first, farPart) }
+    // Two pages up, the cover opens on the right and a last page on its own lies on the left.
+    if (double) return first === lastIndex && first > 0 ? { left: faceOf(first), right: null } : { left: null, right: faceOf(first) }
+    // One page up the facing page is the back of the sheet turned before; none on the first and last.
+    const before = first > 0 && first < lastIndex ? sheetCarrying(first - 1) : null
+    return { left: before && backOf(before), right: faceOf(first) }
+  }
+
+  // Where the book sits: read off a page on screen, remembered for the moments when the only
+  // thing up is a two-page spread at another size, or estimated before any page was seen.
+  const pageBox = useRef<{ width: number; height: number; top: number } | null>(null)
+  const shownWide = lone && !!wideMap[shown.spread[0]!]
+  const geometry = (): BookGeometry | null => {
+    const host = root.current
+    const surface = host?.parentElement
+    if (!host || !surface) return null
+    const view = surface.getBoundingClientRect()
+    const width = surface.clientWidth
+    const height = surface.clientHeight
+    const pages = shownWide
+      ? []
+      : onScreen(host)
+          .map((element) => element.getBoundingClientRect())
+          .filter((rect) => rect.width > 0 && rect.height > rect.width)
+          .sort((a, b) => a.left - b.left)
+    const measured = pages[pages.length - 1]
+    if (measured) pageBox.current = { width: measured.width, height: measured.height, top: measured.top }
+    let box = pageBox.current
+    if (!box) {
+      const image = host.querySelector<HTMLImageElement>('img.reader-page')
+      const aspect = sheet?.aspect ?? (image?.naturalWidth ? image.naturalWidth / image.naturalHeight / 2 : 0.7)
+      const across = double ? width / 2 : width
+      const w = fit === 'width' ? across : Math.min(across, height * aspect)
+      const h = w / aspect
+      box = { width: w, height: h, top: view.top + Math.max(0, (height - h) / 2) }
+    }
+    let spineX: number
+    if (double) spineX = pages.length === 2 ? pages[0]!.right : view.left + width / 2
+    else if (measured) spineX = facingRight ? measured.right : measured.left
+    else {
+      const x = align === 'left' ? view.left : align === 'right' ? view.left + width - box.width : view.left + (width - box.width) / 2
+      spineX = facingRight ? x + box.width : x
+    }
+    return { spineX, top: box.top, pageWidth: box.width, pageHeight: box.height }
+  }
+  useEffect(() => {
+    const forget = () => (pageBox.current = null)
+    window.addEventListener('resize', forget)
+    return () => window.removeEventListener('resize', forget)
+  }, [])
+  useEffect(() => {
+    pageBox.current = null
+  }, [fit, sheet?.aspect, sheet?.cover, double, align])
+
+  // A two-page spread wider than the screen allows: after a turn lands on it the book shrinks to fit
+  // the screen, and before the next turn it grows back to the book's size. The image keeps its
+  // fitted layout and is scaled from there, so nothing reflows.
+  const [bookView, setBookView] = useState(false)
+  const bookViewRef = useRef(bookView)
+  bookViewRef.current = bookView
+  const shownWideRef = useRef(false)
+  shownWideRef.current = curlOn && shownWide
+  const animateBook = useRef(false)
+  const wideElement = () => (root.current ? (onScreen(root.current)[0] ?? null) : null)
+  const bookTransform = (): string | null => {
+    const element = wideElement()
+    const book = geometry()
+    const origin = root.current?.getBoundingClientRect()
+    if (!element || !book || !origin) return null
+    const x = book.spineX - book.pageWidth - origin.left
+    const y = book.top - origin.top
+    const sx = (book.pageWidth * 2) / element.offsetWidth
+    const sy = book.pageHeight / element.offsetHeight
+    if (Math.abs(x - element.offsetLeft) < 2 && Math.abs(y - element.offsetTop) < 2 && Math.abs(sx - 1) < 0.01) return null
+    return `translate(${x - element.offsetLeft}px, ${y - element.offsetTop}px) scale(${sx}, ${sy})`
+  }
+  // Arriving by a turn, the spread starts at the book's size under the drawing; otherwise fitted.
+  useLayoutEffect(() => {
+    animateBook.current = false
+    setBookView(curlOn && shownWide && root.current?.dataset.curling !== undefined)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown.key])
+  useLayoutEffect(() => {
+    const element = curlOn && shownWide ? wideElement() : null
+    if (!element) return
+    element.style.transformOrigin = '0 0'
+    element.style.transition = animateBook.current ? `transform ${BOOK_ZOOM_MS}ms ease` : 'none'
+    element.style.transform = bookView ? (bookTransform() ?? 'none') : 'none'
+    animateBook.current = false
+  })
+  // Set from a zoom-in until the turn it was for is over, so the spread is not shrunk under it.
+  const turning = useRef(false)
+  const [idle, setIdle] = useState(0)
+  idleRef.current = () => {
+    turning.current = false
+    setIdle((n) => n + 1)
+  }
+  useEffect(() => {
+    if (!bookView || !shownWideRef.current || turning.current || root.current?.dataset.curling !== undefined) return
+    animateBook.current = true
+    setBookView(false)
+  }, [bookView, idle, shown.key])
+  const beforeTurn = () => {
+    if (!shownWideRef.current || bookViewRef.current || bookTransform() === null) return Promise.resolve()
+    turning.current = true
+    animateBook.current = true
+    setBookView(true)
+    return new Promise<void>((resolve) => window.setTimeout(resolve, BOOK_ZOOM_MS))
+  }
 
   useEffect(() => {
     curl?.update({
@@ -608,8 +761,10 @@ export default function PagedView({
       current: shown.spread,
       next: paper?.next ?? null,
       previous: paper?.previous ?? null,
-      beforePrevious: paper?.beforePrevious ?? null,
-      wide: paper?.wide ?? NO_WIDE,
+      opening,
+      backOf: double ? null : backOf,
+      geometry,
+      beforeTurn,
       mirror,
       sheetAspect: sheet?.aspect ?? null,
       sheetFill: sheet?.cover ? 'enlarge' : 'stretch',
@@ -630,15 +785,14 @@ export default function PagedView({
     curl?.settled(shown.key)
   }, [curl, shown.key])
 
-  // The facing page beside a lone page, on the spine side: the back of the sheet turned before it,
-  // so the page before, mirrored. The first page has nothing turned before it and the last stands
-  // alone, as in a book. Placed from the page's own box, so every fit and size setting keeps working.
-  const ghostPage = shown.spread[0]! - 1
-  const ghost = ghostPage >= 0 && !paper?.wide[ghostPage] ? (urls[ghostPage] ?? null) : null
-  const lastPage = shown.spread[0] === urls.length - 1
+  // One page up, the facing page beside a page on the spine side: the back of the sheet turned
+  // before it. Placed from the page's own box, so every fit and size setting keeps working.
+  const facing = curlOn && !double && lone && !shownWide ? opening(shown.spread).left : null
+  // Two pages up, a page on its own lies on its side of the spine, as the cover or the last page would.
+  const loneOpening = curlOn && double && lone && !shownWide ? opening(shown.spread) : null
+  const loneSide = loneOpening ? ((loneOpening.left !== null) === mirror ? 'right' : 'left') : undefined
   const [blank, setBlank] = useState<Box | null>(null)
-  const wantBlank = curlOn && lone && ghost !== null && !lastPage
-  const facingRight = mirror
+  const wantBlank = facing !== null
   useLayoutEffect(() => {
     const host = root.current
     if (!host || !wantBlank) {
@@ -646,10 +800,7 @@ export default function PagedView({
       return
     }
     const place = () => {
-      const page = [...host.querySelectorAll<HTMLElement>('.reader-page:not(.reader-blank)')].find(
-        (element) => element.getBoundingClientRect().width > 0 && getComputedStyle(element).visibility !== 'hidden',
-      )
-      const rect = page?.getBoundingClientRect()
+      const rect = onScreen(host)[0]?.getBoundingClientRect()
       const origin = host.getBoundingClientRect()
       const next =
         rect && rect.height > rect.width
@@ -672,12 +823,15 @@ export default function PagedView({
     for (const element of host.querySelectorAll('.reader-page:not(.reader-blank)')) observer.observe(element)
     return () => observer.disconnect()
   }, [wantBlank, facingRight, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
+
   return (
     <div
       ref={root}
       className="reader-paged"
       data-double={shown.spread.length > 1}
-      data-align={lone && paper ? align : undefined}
+      data-align={lone && paper && !double ? align : undefined}
+      data-lone={loneSide}
+      data-paper={curlOn || undefined}
       style={zoom === 1 ? undefined : { transform: `scale(${zoom})`, transformOrigin: 'left top' }}
     >
       {[...inReadingOrder(shown.spread), ...(holding ? inReadingOrder(spread) : [])].map((page, index) => {
@@ -705,25 +859,28 @@ export default function PagedView({
           />
         )
       })}
-      {blank && (
+      {blank && facing && (
         <div className="reader-blank-clip" aria-hidden>
           <div
             className="reader-page reader-blank"
             style={{ left: blank.left, top: blank.top, width: blank.width, height: blank.height, filter: tone }}
           >
-            {ghost && (
+            <div className="reader-facing" data-through={facing.mirrored || undefined}>
               <img
-                src={heldPageUrl(ghost) ?? ghost}
+                src={heldPageUrl(facing.src) ?? facing.src}
                 alt=""
                 className="reader-facing-page"
                 style={{
+                  // Half of a two-page spread shows by drawing the whole image twice as wide.
+                  width: facing.part === 'whole' ? '100%' : '200%',
+                  left: facing.part === 'right' ? '-100%' : 0,
                   objectFit: sheet ? (sheet.cover ? 'cover' : 'fill') : 'contain',
-                  // Against the spine, as the turned page lands. Mirrored, so the sides swap.
-                  objectPosition: facingRight ? 'right center' : 'left center',
+                  // Against the spine, as the turned page lands. A mirrored face swaps the sides.
+                  objectPosition: facingRight !== facing.mirrored ? 'left center' : 'right center',
                 }}
                 draggable={false}
               />
-            )}
+            </div>
           </div>
         </div>
       )}
