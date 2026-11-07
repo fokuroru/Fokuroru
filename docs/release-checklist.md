@@ -161,6 +161,9 @@ Use a scratch series here: reaching a chapter's last page marks it read and adds
 - [ ] **5.5** Incognito toggle: reading with it on writes no progress.
 - [ ] **5.6** Phone width (375px): the reader and the series page are usable, nothing overflows
       sideways.
+- [ ] **5.7** Firefox: cover and interior-page art stay visible throughout forward and backward
+      turns in single and double-page mode. After a keyboard or tap turn, dragging another page
+      follows the pointer until release.
 
 ## 6. Library, Home, Discover, Stats [both]
 

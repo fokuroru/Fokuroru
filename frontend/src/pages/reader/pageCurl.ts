@@ -34,7 +34,6 @@ uniform float uThickness;
 uniform float uLayer;
 uniform vec2 uWear;
 out vec2 vUv;
-out vec2 vShapeUv;
 out vec3 vNormal;
 out float vBeyond;
 out float vFlatX;
@@ -74,7 +73,6 @@ void main() {
   }
   // The scene is mirrored for right-to-left; the pictures on it must not be.
   vUv = vec2(mix(aUv.x, 1.0 - aUv.x, uMirror), aUv.y);
-  vShapeUv = aUv;
   vNormal = normal;
   vBeyond = s;
   pos.x += uBookShift;
@@ -86,7 +84,6 @@ void main() {
 const FRAGMENT = `#version 300 es
 precision highp float;
 in vec2 vUv;
-in vec2 vShapeUv;
 in vec3 vNormal;
 in float vBeyond;
 in float vFlatX;
@@ -100,8 +97,6 @@ uniform float uRadius;
 uniform float uCover;
 // A face's share of its texture: left edge, width, and 1 when its print is mirrored.
 uniform vec2 uCoverSides;
-uniform vec4 uRect;
-uniform vec2 uWear;
 uniform float uEdge;
 uniform vec3 uFrontPart;
 uniform vec3 uBackPart;
@@ -142,12 +137,8 @@ void main() {
   // The fold at the spine, where the paper curves into the binding: darkest at the spine itself.
   float outerCover = back ? uCoverSides.y : uCoverSides.x;
   float gutter = uGutter > 0.0 && outerCover < 0.5 ? 0.3 * exp(-abs(vFlatX - uSpine) / uGutter) : 0.0;
-  vec2 edgeDistance = min(vShapeUv, 1.0 - vShapeUv) * uRect.zw;
-  float alpha = smoothstep(0.0, 0.5, min(edgeDistance.x, edgeDistance.y));
-  float cornerDistance = dot((1.0 - vShapeUv) * uRect.zw, vec2(1.0));
-  alpha *= smoothstep(0.0, 1.0, cornerDistance - uWear.y * 1.2);
-  if (alpha < 0.01) discard;
-  outColor = vec4(colour * min(light, 1.08) * (1.0 - shade) * (1.0 - gutter) * alpha, alpha);
+  // Keep paper opaque: edge-alpha masking can discard entire faces in Firefox.
+  outColor = vec4(colour * min(light, 1.08) * (1.0 - shade) * (1.0 - gutter), 1.0);
 }`
 
 const COLUMNS = 64
@@ -654,9 +645,11 @@ export class PageCurl {
 
   private animate(from: { x: number; y: number }, to: { x: number; y: number }, ms: number, ease: (t: number) => number, done: () => void) {
     cancelAnimationFrame(this.frame)
+    this.frame = 0
     this.animating = true
     const start = performance.now()
     const step = (now: number) => {
+      this.frame = 0
       const t = Math.min(1, (now - start) / ms)
       const k = ease(t)
       this.finger = { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k }
@@ -837,8 +830,7 @@ export class PageCurl {
     gl.clearDepth(1)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.enable(gl.DEPTH_TEST)
-    gl.enable(gl.BLEND)
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+    gl.disable(gl.BLEND)
     gl.depthFunc(gl.LEQUAL)
     gl.useProgram(program)
 

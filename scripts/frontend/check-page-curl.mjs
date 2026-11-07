@@ -64,6 +64,9 @@ assert.equal(draws, 1)
 listeners.get('pointermove')(event(790))
 listeners.get('pointercancel')({ ...event(790), type: 'pointercancel' })
 assert.equal(frames.size, 0, 'cancelling a turn cancels its pending draw')
+curl.animate({ x: 1000, y: 600 }, { x: 200, y: 600 }, 1, (t) => t, () => {})
+for (const [id, fn] of frames) { frames.delete(id); fn(performance.now() + 10) }
+assert.equal(curl.frame, 0, 'a completed automatic turn must not block later drag frames')
 curl.gl = null
 curl.dispose()
 
