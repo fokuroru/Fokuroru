@@ -5,6 +5,7 @@ import { buildPottedPlant } from './pottedPlant'
 import { BAND_TOP, HORIZONTAL_TITLE, IMPRINTS, SLIM_FROM, SPINE_STYLES, type SpineStyle } from './spineStyles'
 import prankFontUrl from '../../../assets/fonts/creamy-chalk-demo.ttf?url'
 import { coverPalette } from './coverPalette'
+import { drawBoardArt } from './spineStyles'
 import { drawHolidayDoodle, holidayDoodle } from './holidayDoodles'
 
 const PRANK_CHANCE = 0.02
@@ -1158,52 +1159,7 @@ export class MangaShelf {
   }
 
   private art(ctx: CanvasRenderingContext2D, w: number, h: number, b: Styled) {
-    ctx.fillStyle = b.look.bg
-    ctx.fillRect(0, 0, w, h)
-    ctx.save()
-    ctx.globalAlpha = 0.2
-    ctx.strokeStyle = b.look.accent
-    ctx.fillStyle = b.look.accent
-    ctx.lineWidth = 3
-    switch (b.style % 6) {
-      case 0:
-        for (let y = 25; y < h; y += 25) {
-          ctx.beginPath()
-          ctx.moveTo(0, y)
-          ctx.lineTo(w, y - 20)
-          ctx.stroke()
-        }
-        break
-      case 1:
-        for (let x = 6; x < w; x += 15) for (let y = 12; y < h; y += 20) {
-          ctx.beginPath()
-          ctx.arc(x, y, 2, 0, Math.PI * 2)
-          ctx.fill()
-        }
-        break
-      case 2:
-        for (let r = 15; r < h; r += 24) {
-          ctx.beginPath()
-          ctx.arc(w * 0.85, h * 0.62, r, 0, Math.PI * 2)
-          ctx.stroke()
-        }
-        break
-      case 3:
-        ctx.translate(w * 0.5, h * 0.6)
-        for (let i = 0; i < 12; i++) {
-          ctx.rotate(Math.PI / 6)
-          ctx.fillRect(0, 0, 5, h)
-        }
-        break
-      case 4:
-        ctx.beginPath()
-        ctx.ellipse(w * 0.6, h * 0.65, w * 0.65, h * 0.24, -0.35, 0, Math.PI * 2)
-        ctx.fill()
-        break
-      default:
-        for (let y = 0; y < h; y += 30) ctx.fillRect((y / 30) % 2 ? 0 : w / 2, y, w / 2, 15)
-    }
-    ctx.restore()
+    drawBoardArt(ctx, w, h, b.style, b.look)
   }
 
   /**

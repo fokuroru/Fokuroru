@@ -75,3 +75,57 @@ export const IMPRINTS = ['✦', '月', 'K', '雨', '✿']
 
 /** Every face a spine can use, for `document.fonts.load` before textures are drawn. */
 export const SPINE_FONTS = [IMPACT, GEORGIA, GEORGIA_BOLD, TREBUCHET, TREBUCHET_BOLD, COURIER, COMIC]
+
+/**
+ * A board's printed design, shared by the shelf's spines and boards and the reader's back covers: the
+ * edition's colour with one of six faint patterns in its accent. Sizes are in shelf units (a book is
+ * about 200 tall); scale the context to draw it larger.
+ */
+export function drawBoardArt(ctx: CanvasRenderingContext2D, w: number, h: number, style: number, look: Pick<SpineStyle, 'bg' | 'accent'>) {
+  ctx.fillStyle = look.bg
+  ctx.fillRect(0, 0, w, h)
+  ctx.save()
+  ctx.globalAlpha = 0.2
+  ctx.strokeStyle = look.accent
+  ctx.fillStyle = look.accent
+  ctx.lineWidth = 3
+  switch (style % 6) {
+    case 0:
+      for (let y = 25; y < h; y += 25) {
+        ctx.beginPath()
+        ctx.moveTo(0, y)
+        ctx.lineTo(w, y - 20)
+        ctx.stroke()
+      }
+      break
+    case 1:
+      for (let x = 6; x < w; x += 15) for (let y = 12; y < h; y += 20) {
+        ctx.beginPath()
+        ctx.arc(x, y, 2, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      break
+    case 2:
+      for (let r = 15; r < h; r += 24) {
+        ctx.beginPath()
+        ctx.arc(w * 0.85, h * 0.62, r, 0, Math.PI * 2)
+        ctx.stroke()
+      }
+      break
+    case 3:
+      ctx.translate(w * 0.5, h * 0.6)
+      for (let i = 0; i < 12; i++) {
+        ctx.rotate(Math.PI / 6)
+        ctx.fillRect(0, 0, 5, h)
+      }
+      break
+    case 4:
+      ctx.beginPath()
+      ctx.ellipse(w * 0.6, h * 0.65, w * 0.65, h * 0.24, -0.35, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    default:
+      for (let y = 0; y < h; y += 30) ctx.fillRect((y / 30) % 2 ? 0 : w / 2, y, w / 2, 15)
+  }
+  ctx.restore()
+}

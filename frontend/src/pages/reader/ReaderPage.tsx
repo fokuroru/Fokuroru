@@ -32,6 +32,7 @@ import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
 import { spineVars } from '../../lib/spine'
 import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
+import { useBookEnd } from './backCover'
 import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
 import { useTapZones } from '../../api/tapZones'
 import TapZoneHint from '../../components/reader/TapZoneHint'
@@ -166,8 +167,21 @@ export default function ReaderPage() {
   const vertical = navigatesVertically(prefs)
 
   const thumbs = usePageUrls(chapterId, stripOpen ? pageCount : 0, manifest?.pageVersion, true)
-  const { wide, measure, sheetAspect } = usePageAspects(urls)
-  const spreads = useSpreads(pageCount, wide, prefs.mode === 'double')
+  const { wide, measure: measureAspect, sheetAspect } = usePageAspects(urls)
+  // The paged layouts end like a printed book: blank pages to a whole sheet, then a back cover. They
+  // come after the chapter's own pages and are never part of its position or progress.
+  const bookEnd = useBookEnd(prefs.mode !== 'vertical', manifest?.seriesId, manifest?.seriesCoverUrl, pageCount, sheetAspect)
+  const bookUrls = useMemo(
+    () => (bookEnd.length > 0 && urls.length === pageCount ? [...urls, ...bookEnd] : urls),
+    [urls, bookEnd, pageCount],
+  )
+  const measure = useCallback(
+    (index: number, image: HTMLImageElement) => {
+      if (index < pageCount) measureAspect(index, image)
+    },
+    [measureAspect, pageCount],
+  )
+  const spreads = useSpreads(bookUrls.length, wide, prefs.mode === 'double')
   const spreadIndex = useMemo(() => spreadIndexOf(spreads, page), [spreads, page])
   // `page` is a spread's first index; the position on record is the furthest page on screen.
   const shownTo = useMemo(() => Math.max(page, ...(spreads[spreadIndex] ?? [])), [spreads, spreadIndex, page])
@@ -179,7 +193,11 @@ export default function ReaderPage() {
   // The first half of a wide last page is not the end of the chapter: it completes once the second
   // half is up, so until then the position on record stops a page short.
   const heldBack = splitting && half === 0 && wide[shownTo] && shownTo >= pageCount - 1
-  const recordedTo = heldBack ? Math.max(0, shownTo - 1) : shownTo
+  const lastPage = Math.max(0, pageCount - 1)
+  const recordedTo = Math.min(lastPage, heldBack ? Math.max(0, shownTo - 1) : shownTo)
+  // On the blank pages or the back cover, everything that names a page names the last real one.
+  const shownPage = Math.min(page, lastPage)
+  const shownLast = Math.min(shownTo, lastPage)
 
   // A page turn in the paged layouts starts at the top of the new page. The surface kept the old
   // page's scroll position, so a tall page turned from its bottom opened the next one part-way down.
@@ -195,9 +213,9 @@ export default function ReaderPage() {
     () => new Set((bookmarks ?? []).map((b) => b.pageIndex)),
     [bookmarks],
   )
-  const bookmarked = bookmarkedPages.has(page)
+  const bookmarked = bookmarkedPages.has(shownPage)
 
-  usePreload(urls, page, prefs.mode === 'vertical' ? 0 : prefs.preload, measure)
+  usePreload(bookUrls, page, prefs.mode === 'vertical' ? 0 : prefs.preload, measure)
 
   const tone = toneFilter(prefs)
   useWakeLock(prefs.keepAwake)
@@ -218,9 +236,12 @@ export default function ReaderPage() {
   const onEnhanceRange = useCallback((pages: number[], beyond: number) => setStripRange({ pages, beyond }), [])
   const enhanceWindow = useMemo(() => {
     if (!serverModel) return []
-    if (prefs.mode !== 'vertical') return preloadPages.length > 0 ? preloadPages : (spreads[spreadIndex] ?? [])
+    if (prefs.mode !== 'vertical') {
+      const window = preloadPages.length > 0 ? preloadPages : (spreads[spreadIndex] ?? [])
+      return window.filter((index) => index < pageCount)
+    }
     return stripRange.pages
-  }, [serverModel, prefs.mode, preloadPages, spreads, spreadIndex, stripRange])
+  }, [serverModel, prefs.mode, preloadPages, spreads, spreadIndex, stripRange, pageCount])
   // A window that runs past the last page carries on into the next chapter's first pages.
   const nextChapterId = manifest?.nextChapterId ?? null
   const beyondEnd =
@@ -805,13 +826,13 @@ export default function ReaderPage() {
         onIncognito={setIncognito}
         readingCounted={readingCounted}
         bookmarked={bookmarked}
-        onToggleBookmark={() => toggleBookmark.mutate(page)}
+        onToggleBookmark={() => toggleBookmark.mutate(shownPage)}
         stripOpen={stripOpen}
         onToggleStrip={() => setStripOpen((open) => !open)}
         visible={chrome}
         onHold={setChromeHeld}
         onShortcuts={() => setShortcutsOpen(true)}
-        pageLabel={shownTo > page ? `${page + 1}-${shownTo + 1}` : `${page + 1}`}
+        pageLabel={shownLast > shownPage ? `${shownPage + 1}-${shownLast + 1}` : `${shownPage + 1}`}
         bookmarkDisabled={false}
         onReveal={() => setChrome(true)}
         serverEnhancing={server !== null}
@@ -876,7 +897,7 @@ export default function ReaderPage() {
             />
           ) : (
             <PagedView
-              urls={urls}
+              urls={bookUrls}
               spread={spreads[spreadIndex] ?? [0]}
               fit={prefs.fit}
               direction={prefs.direction}
@@ -943,7 +964,7 @@ export default function ReaderPage() {
 
       {prefs.showPageNumber && !chrome && !atEnd && (
         <div className="reader-page-badge">
-          {page + 1} / {manifest.pageCount}
+          {shownPage + 1} / {manifest.pageCount}
         </div>
       )}
     </div>
