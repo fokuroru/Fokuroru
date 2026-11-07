@@ -65,6 +65,7 @@ out vec2 vUv;
 out vec3 vNormal;
 out float vBeyond;
 out float vFlatX;
+out float vWorldX;
 void main() {
   vec2 p = uRect.xy + aUv * uRect.zw;
   vFlatX = p.x;
@@ -107,6 +108,7 @@ void main() {
   vUv = vec2(mix(aUv.x, 1.0 - aUv.x, uMirror), aUv.y);
   vNormal = normal;
   vBeyond = s;
+  vWorldX = pos.x;
   pos.x += uBookShift;
   float x = mix(pos.x, uView.x - pos.x, uMirror);
   // Perspective only for paper lifted off the book: pages lying under it sit a unit lower for the
@@ -122,6 +124,9 @@ in vec2 vUv;
 in vec3 vNormal;
 in float vBeyond;
 in float vFlatX;
+in float vWorldX;
+uniform float uCurl;
+uniform vec4 uFold;
 uniform float uSpine;
 uniform float uGutter;
 uniform sampler2D uFront;
@@ -157,7 +162,14 @@ void main() {
     outColor = vec4(0.78, 0.75, 0.68, 1.0);
     return;
   }
-  vec3 n = normalize(vNormal);
+  // Which side of the paper faces the eye, worked out here from the distance past the fold rather
+  // than blended between mesh vertices: once the roll is narrower than a mesh column, the blended
+  // normal flipped midway across it and a strip of the page's front showed at the spine.
+  vec3 n = vec3(0.0, 0.0, 1.0);
+  if (uCurl > 0.5 && vBeyond > 0.0) {
+    float a = min(vBeyond / max(uRadius, 0.0001), 3.14159265);
+    n = vec3(-uFold.zw * sin(a), cos(a));
+  }
   bool back = n.z < 0.0;
   vec3 colour;
   if (!back) {
@@ -177,14 +189,25 @@ void main() {
   float shade = uShadow * 0.32 * exp(-abs(vBeyond) / (uRadius * 1.5 + 10.0));
   // The fold at the spine, where the paper curves into the binding: darkest at the spine itself.
   float outerCover = back ? uCoverSides.y : uCoverSides.x;
-  float gutter = uGutter > 0.0 && outerCover < 0.5 ? gutterShade(abs(vFlatX - uSpine) / uGutter) : 0.0;
+  // Along the paper while it is lifted; across the book as it lands, where the resting fold is.
+  float fromSpine = mix(abs(vWorldX - uSpine), abs(vFlatX - uSpine), uLift);
+  float gutter = uGutter > 0.0 && outerCover < 0.5 ? gutterShade(fromSpine / uGutter) : 0.0;
   // Keep paper opaque: edge-alpha masking can discard entire faces in Firefox.
   // Paper has a faint sheen where the curl catches the light; none once it lies flat again.
   float sheen = uLift * 0.07 * pow(max(dot(reflect(-LIGHT, facing), vec3(0.0, 0.0, 1.0)), 0.0), 18.0);
-  outColor = vec4(colour * min(light, 1.08) * (1.0 - shade) * (1.0 - gutter) + sheen, 1.0);
+  // Lit as a curve only while lifted: as it lands it takes the flat paper's light, so no bright edge is left.
+  outColor = vec4(colour * mix(1.0, min(light, 1.08), uLift * uLift) * (1.0 - shade) * (1.0 - gutter) + sheen, 1.0);
 }`
 
-const COLUMNS = 64
+const COLUMNS = 96
+/**
+ * Where mesh column `c` sits across the sheet, 0 at the spine to 1 at the free edge. Dense at both
+ * ends, where the fold is tight (the hinge as a turn lands, the corner as it lifts): a fold between
+ * two vertices left the stretch between them uncovered, and the page underneath showed through.
+ */
+export function columnAt(c: number): number {
+  return 0.5 - 0.5 * Math.cos((Math.PI * c) / COLUMNS)
+}
 const ROWS = 24
 const DRAG_SLOP = 8
 const TEXTURE_CACHE = 8
@@ -1017,7 +1040,8 @@ export class PageCurl {
     const ny = Math.sin(tilt)
     const reach = dx * nx + dy * ny
     if (reach <= 0.5) return { x: edge + 1, y: this.grabY, nx: 1, ny: 0, radius: 1 }
-    const radius = Math.max(0.0001, Math.min(width * share, reach / Math.PI, width * share * 3 * (1 - progress)))
+    // The roll tightens fast as the sheet settles: a roll left at the binding showed as a pale strip.
+    const radius = Math.max(0.0001, Math.min(width * share, reach / Math.PI, width * share * Math.min(1, 6 * (1 - progress) ** 2)))
     const along = (reach + Math.PI * radius) / 2
     let x = edge - nx * along
     const y = this.grabY - ny * along
@@ -1158,7 +1182,7 @@ export class PageCurl {
     let v = 0
     for (let row = 0; row <= ROWS; row++) {
       for (let column = 0; column <= COLUMNS; column++) {
-        vertices[v++] = column / COLUMNS
+        vertices[v++] = columnAt(column)
         vertices[v++] = row / ROWS
         vertices[v++] = 0
       }
@@ -1184,8 +1208,8 @@ export class PageCurl {
       i += 6
     }
     for (let c = 0; c < COLUMNS; c++) {
-      edge(c / COLUMNS, 0, (c + 1) / COLUMNS, 0)
-      edge(c / COLUMNS, 1, (c + 1) / COLUMNS, 1)
+      edge(columnAt(c), 0, columnAt(c + 1), 0)
+      edge(columnAt(c), 1, columnAt(c + 1), 1)
     }
     for (let r = 0; r < ROWS; r++) {
       edge(0, r / ROWS, 0, (r + 1) / ROWS)

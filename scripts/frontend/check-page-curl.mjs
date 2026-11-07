@@ -8,7 +8,11 @@ const source = await readFile(new URL('../../frontend/src/pages/reader/pageCurl.
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText
 const module = { exports: {} }
 new Function('module', 'exports', 'require', compiled)(module, module.exports, () => ({ heldPageUrl: () => undefined }))
-const { PageCurl, pageWear, pageMark, gutterShade, gutterGradient, GUTTER_REACH } = module.exports
+const { PageCurl, columnAt, pageWear, pageMark, gutterShade, gutterGradient, GUTTER_REACH } = module.exports
+assert.equal(columnAt(0), 0); assert.ok(Math.abs(columnAt(96) - 1) < 1e-12, 'the mesh spans the sheet')
+for (let c = 0; c < 96; c++) assert.ok(columnAt(c + 1) > columnAt(c), 'mesh columns run in order')
+assert.ok((columnAt(1) - columnAt(0)) * 1000 < 0.5, 'by the spine a column is under half a pixel on a 1000px page, so a tight fold leaves no gap')
+assert.ok((1 - columnAt(95)) * 1000 < 0.5, 'by the free edge too')
 const marks = Array.from({ length: 2000 }, (_, page) => pageMark(page, 'book')).filter(Boolean).length
 assert.ok(marks > 150 && marks < 350, `about one leaf in eight carries a mark (got ${marks} of 2000)`)
 assert.equal(pageMark(41, 'book'), pageMark(41, 'book'), 'a leaf keeps its mark')
@@ -106,7 +110,7 @@ for (const item of [gpu.turn.front, gpu.turn.back, gpu.turn.left, gpu.turn.right
 gpu.grabY = 600
 gpu.finger = { x: 600, y: 600 }
 gpu.draw()
-assert.deepEqual(drawsOnGpu.map((args) => args[1]), [6, 6, 64 * 24 * 6], 'only the turning leaf uses the curved mesh')
+assert.deepEqual(drawsOnGpu.map((args) => args[1]), [6, 6, 96 * 24 * 6], 'only the turning leaf uses the curved mesh')
 const vertices = buffers.find((data) => data instanceof Float32Array)
 const indices = buffers.find((data) => data instanceof Uint16Array)
 const corners = [...new Set(indices.slice(gpu.indexCount, gpu.indexCount + 6))].map((index) => Array.from(vertices.slice(index * 3, index * 3 + 2)))
