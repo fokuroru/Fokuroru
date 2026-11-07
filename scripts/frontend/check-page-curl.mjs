@@ -8,15 +8,15 @@ const source = await readFile(new URL('../../frontend/src/pages/reader/pageCurl.
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText
 const module = { exports: {} }
 new Function('module', 'exports', 'require', compiled)(module, module.exports, () => ({ heldPageUrl: () => undefined }))
-const { PageCurl, pageWear, coverShape } = module.exports
+const { PageCurl, pageWear, pageMark, gutterShade, gutterGradient, GUTTER_REACH } = module.exports
+const marks = Array.from({ length: 2000 }, (_, page) => pageMark(page, 'book')).filter(Boolean).length
+assert.ok(marks > 150 && marks < 350, `about one leaf in eight carries a mark (got ${marks} of 2000)`)
+assert.equal(pageMark(41, 'book'), pageMark(41, 'book'), 'a leaf keeps its mark')
+assert.ok(gutterShade(GUTTER_REACH) < 1e-6, 'the spine shadow fades to nothing where its box ends')
+for (let t = 0; t < GUTTER_REACH; t += 0.05) assert.ok(gutterShade(t + 0.05) <= gutterShade(t), 'the spine shadow only ever lightens away from the spine')
+assert.ok(gutterShade(0) <= 0.25, 'the spine shadow is soft at the binding')
+assert.match(gutterGradient('to left'), /rgba\(0, 0, 0, 0\.0000\) 100%\)$/, 'the CSS fold ends fully transparent')
 assert.notDeepEqual(pageWear(0, 'book-a'), pageWear(0, 'book-b'), 'wear varies between books, rather than wearing every front cover identically')
-for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
-  const shape = coverShape(progress, 0)
-  assert.ok(Math.abs(Math.hypot(...shape.axis) - 1) < 1e-12)
-  if (progress === 0 || progress === 1) assert.ok(shape.flex < 1e-12, 'a cover settles flat at either end')
-  else assert.ok(shape.flex > 0.5 && shape.flex < 1.1, 'a softcover bends visibly over a broad arc')
-}
-assert.ok(1 / coverShape(0.5, 0).flex > 0.8, 'the cover bend radius remains much broader than interior paper')
 const worn = Array.from({ length: 200 }, (_, page) => pageWear(page)[1]).filter(Boolean).length
 assert.ok(worn > 3 && worn < 20, 'only a small minority of pages have a worn corner')
 assert.deepEqual(pageWear(27), pageWear(27), 'imperfections stay fixed as the leaf turns')
@@ -106,7 +106,7 @@ const vertices = buffers.find((data) => data instanceof Float32Array)
 const indices = buffers.find((data) => data instanceof Uint16Array)
 const corners = [...new Set(indices.slice(gpu.indexCount, gpu.indexCount + 6))].map((index) => Array.from(vertices.slice(index * 3, index * 3 + 2)))
 assert.deepEqual(corners, [[0, 0], [0, 1], [1, 0], [1, 1]], 'the flat quad covers the whole page')
-assert.equal(gpuCanvas.width, window.innerWidth * 2, 'high density screens have a bounded render target')
+assert.equal(gpuCanvas.width, window.innerWidth * 3, 'phones draw at their own density, up to a bounded 3x')
 gpu.turn.front.cover = true
 drawsOnGpu.length = 0
 gpu.draw()
@@ -118,12 +118,30 @@ const edgeIndices = indices.slice(gpu.indexCount + 6)
 assert.equal(edgeIndices.length, gpu.edgeCount)
 assert.ok(Math.max(...edgeIndices) < vertices.length / 3, 'every cover edge vertex exists')
 assert.ok(edgeIndices.some((index) => vertices[index * 3 + 2] === -1), 'the edge connects the two cover surfaces')
-for (const [x, expected] of [[1000, [1, 0]], [200, [-1, 0]]]) {
+gpu.finger = { x: 600, y: 600 }
+gpu.draw()
+const coverRadius = uniforms.get('uRadius')[0]
+gpu.turn.front.cover = false
+gpu.draw()
+assert.ok(coverRadius > uniforms.get('uRadius')[0] * 2, 'a softcover curls over a much wider roll than a page')
+assert.ok(coverRadius < 400 * 0.4, 'a softcover still curls rather than swinging flat as a board')
+gpu.turn.front.cover = true
+for (const [x] of [[1000], [200]]) {
   gpu.finger = { x, y: 600 }
   gpu.draw()
-  assert.ok(uniforms.get('uCoverAxis').every((value, index) => Math.abs(value - expected[index]) < 1e-12), 'the cover is flat at both ends of its swing')
   assert.ok(Math.abs(uniforms.get('uLift')[0]) < 1e-12, 'paper imperfections settle at the handoff')
 }
 gpu.gl = null
 gpu.dispose()
+const fading = { parentElement: surface, dataset: { curling: '' } }
+let idled = 0
+const fader = new PageCurl({ getContext: () => null }, fading, () => {}, () => {}, () => idled++)
+fader.hide(true)
+assert.ok('handoff' in fading.dataset && idled === 0, 'a landed turn fades out over the real pages before going idle')
+await new Promise((resolve) => setTimeout(resolve, 200))
+assert.ok(!('handoff' in fading.dataset) && idled === 1, 'the fade ends and the reader hears the turn is over')
+fading.dataset.curling = ''
+fader.hide()
+assert.ok(!('handoff' in fading.dataset) && idled === 2, 'a turn cut off mid-way goes at once')
+fader.dispose()
 console.log('Page curl: landing, pointer frames, mesh, cover material and render budget checks passed')

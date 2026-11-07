@@ -5,7 +5,7 @@ import { cropRegion, FULL_REGION, isFull, partOf, type PagePart, type Region } f
 import EnhancedPage from './EnhancedPage'
 import { heldPageUrl, holdPage } from './pageBlobs'
 import { isSoftPage } from '../../lib/enhance/softness'
-import { GUTTER_SHARE, PageCurl, paperTone, pageWear, type BookGeometry } from './pageCurl'
+import { drawPageMark, GUTTER_REACH, GUTTER_SHARE, gutterGradient, PageCurl, pageMark, paperTone, pageWear, type BookGeometry } from './pageCurl'
 import { bookFaces } from './bookLayout'
 import { useCompareKey } from './compareHold'
 import {
@@ -75,6 +75,9 @@ interface Sheet {
   aspect: number
   cover: boolean
 }
+
+const GUTTER_LEFT = gutterGradient('to left')
+const GUTTER_RIGHT = gutterGradient('to right')
 
 const NO_WIDE: Readonly<Record<number, boolean>> = {}
 
@@ -155,6 +158,7 @@ function RegionPage({
     <div ref={setBox} className="reader-region" data-fit={fit} style={standby ? STANDBY : undefined}>
       <canvas
         className={className}
+        data-page={page}
         width={turned ? height : width}
         height={turned ? width : height}
         style={style}
@@ -195,6 +199,28 @@ function RegionPage({
         )}
       </div>
     </div>
+  )
+}
+
+/** A leaf's mark drawn over the page on screen, the same one the drawn turn paints into its texture. */
+function PageMarkOverlay({ page, book, box, tone }: { page: number; book: string; box: Box; tone: string | undefined }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useLayoutEffect(() => {
+    const canvas = ref.current
+    const draw = canvas?.getContext('2d')
+    if (!canvas || !draw) return
+    const ratio = Math.min(window.devicePixelRatio || 1, 3)
+    canvas.width = Math.max(1, Math.round(box.width * ratio))
+    canvas.height = Math.max(1, Math.round(box.height * ratio))
+    drawPageMark(draw, canvas.width, canvas.height, page, book)
+  }, [page, book, box.width, box.height])
+  return (
+    <canvas
+      ref={ref}
+      className="reader-page-mark"
+      style={{ left: box.left, top: box.top, width: box.width, height: box.height, filter: tone }}
+      aria-hidden
+    />
   )
 }
 
@@ -306,6 +332,7 @@ function PagedPage({
         ref={setRef}
         src={url}
         data-no-cover-fallback
+        data-page={page}
         alt={alt}
         className={className}
         style={{ ...style, ...evened, filter: tone, ...(!visible ? { display: 'none' } : standby ? STANDBY : undefined) }}
@@ -884,6 +911,34 @@ export default function PagedView({
     return () => observer.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [curlOn, shownWide, bookView, shown.key, fit, sheet?.aspect, sheet?.cover, align, double, mirror, loneSize, blank])
+  // The marks some leaves carry, laid over each page from its own box.
+  const [marks, setMarks] = useState<{ page: number; box: Box }[]>([])
+  const book = urls[0] ?? ''
+  // Not on a two-page spread, which is scaled by a transform no observer sees.
+  const marked = curlOn && !shownWide && shown.spread.some((page) => pageMark(page, book) !== null)
+  useLayoutEffect(() => {
+    const host = root.current
+    if (!host || !marked) {
+      setMarks((old) => (old.length ? [] : old))
+      return
+    }
+    const place = () => {
+      const origin = host.getBoundingClientRect()
+      const next = onScreen(host).flatMap((element) => {
+        const page = Number(element.dataset.page)
+        if (!Number.isInteger(page) || !pageMark(page, book)) return []
+        const rect = element.getBoundingClientRect()
+        return [{ page, box: { left: rect.left - origin.left, top: rect.top - origin.top, width: rect.width, height: rect.height } }]
+      })
+      setMarks((old) => (JSON.stringify(old) === JSON.stringify(next) ? old : next))
+    }
+    place()
+    const observer = new ResizeObserver(place)
+    observer.observe(host)
+    for (const element of onScreen(host)) observer.observe(element)
+    return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marked, book, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align, double, loneSize, bookView, readySrcs])
   const gutter = frame ? (frame.box.width / (frame.leftSide && frame.rightSide ? 2 : 1)) * GUTTER_SHARE : 0
   const resting = opening(shown.spread)
   const leftFold = !!(mirror ? resting.right && !resting.right.cover : resting.left && !resting.left.cover)
@@ -973,19 +1028,27 @@ export default function PagedView({
           </div>
         </div>
       )}
-      {frame && (leftFold || rightFold) && (
-        <div
-          className="reader-gutter"
-          data-sides={leftFold && rightFold ? 'both' : leftFold ? 'left' : 'right'}
-          style={{
-            left: frame.spine - (leftFold ? gutter * 3 : 0),
-            top: frame.box.top,
-            width: gutter * 3 * ((leftFold ? 1 : 0) + (rightFold ? 1 : 0)),
-            height: frame.box.height,
-          }}
-          aria-hidden
-        />
-      )}
+      {marks.map(({ page, box }) => (
+        <PageMarkOverlay key={page} page={page} book={book} box={box} tone={tone} />
+      ))}
+      {frame &&
+        ([leftFold && 'left', rightFold && 'right'] as const).map(
+          (side) =>
+            side && (
+              <div
+                key={side}
+                className="reader-gutter"
+                style={{
+                  left: side === 'left' ? frame.spine - gutter * GUTTER_REACH : frame.spine,
+                  top: frame.box.top,
+                  width: gutter * GUTTER_REACH,
+                  height: frame.box.height,
+                  background: side === 'left' ? GUTTER_LEFT : GUTTER_RIGHT,
+                }}
+                aria-hidden
+              />
+            ),
+        )}
       {paper && <canvas ref={canvas} className="reader-curl" style={{ filter: tone }} aria-hidden />}
     </div>
   )

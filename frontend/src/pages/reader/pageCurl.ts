@@ -14,6 +14,28 @@ import type { Spread } from './useSpreads'
  * its back is the page seen through the paper.
  */
 
+/** One unit of the fold's shadow at the spine, as a share of a page's width. */
+export const GUTTER_SHARE = 0.06
+// The fold's shadow by distance from the spine in GUTTER_SHARE units: dark at the binding, an
+// exponential falloff, and a smooth fade to nothing so it has no edge where it stops.
+const GUTTER = { depth: 0.24, fall: 1.3, fade: 2.5, reach: 5 }
+export const GUTTER_REACH = GUTTER.reach
+const GUTTER_GLSL = Object.entries(GUTTER)
+  .map(([name, value]) => `const float GUTTER_${name.toUpperCase()} = ${value.toFixed(4)};`)
+  .join('\n')
+export function gutterShade(t: number): number {
+  const k = Math.max(0, Math.min(1, (t - GUTTER.fade) / (GUTTER.reach - GUTTER.fade)))
+  return GUTTER.depth * Math.exp(-t / GUTTER.fall) * (1 - k * k * (3 - 2 * k))
+}
+/** The fold as a CSS gradient running away from the spine, out to GUTTER_REACH units. */
+export function gutterGradient(direction: 'to right' | 'to left'): string {
+  const stops = Array.from({ length: 21 }, (_, i) => {
+    const t = (i / 20) * GUTTER.reach
+    return `rgba(0, 0, 0, ${gutterShade(t).toFixed(4)}) ${(i * 5).toFixed(0)}%`
+  })
+  return `linear-gradient(${direction}, ${stops.join(', ')})`
+}
+
 const VERTEX = `#version 300 es
 in vec2 aUv;
 in float aLayer;
@@ -26,8 +48,6 @@ uniform float uRadius;
 uniform float uCurl;
 uniform float uZ;
 uniform float uCover;
-uniform vec2 uCoverAxis;
-uniform float uCoverFlex;
 uniform float uLift;
 uniform float uSpine;
 uniform float uBookShift;
@@ -44,18 +64,7 @@ void main() {
   vec3 pos = vec3(p, uZ);
   vec3 normal = vec3(0.0, 0.0, 1.0);
   float s = dot(p - uFold.xy, uFold.zw);
-  if (uCurl > 0.5 && uCover > 0.5) {
-    // A softcover bends along a broad, length-preserving arc rather than swinging as a board.
-    float t = aUv.x;
-    float a = uCoverFlex * t;
-    float sn = sin(a);
-    float cs = cos(a);
-    float radius = uRect.z / max(uCoverFlex, 0.0001);
-    float x = uCoverFlex > 0.0001 ? radius * sn : uRect.z * t;
-    float z = uCoverFlex > 0.0001 ? -radius * (1.0 - cs) : 0.0;
-    pos = vec3(uSpine + x * uCoverAxis.x - z * uCoverAxis.y, p.y, x * uCoverAxis.y + z * uCoverAxis.x);
-    normal = vec3(sn * uCoverAxis.x - cs * uCoverAxis.y, 0.0, cs * uCoverAxis.x + sn * uCoverAxis.y);
-  } else if (uCurl > 0.5 && s > 0.0) {
+  if (uCurl > 0.5 && s > 0.0) {
     vec2 n = uFold.zw;
     float r = max(uRadius, 0.0001);
     vec2 base = p - n * s;
@@ -88,12 +97,15 @@ void main() {
   vBeyond = s;
   pos.x += uBookShift;
   float x = mix(pos.x, uView.x - pos.x, uMirror);
-  float w = uDepth - pos.z;
+  // Perspective only for paper lifted off the book: pages lying under it sit a unit lower for the
+  // depth test, and shrinking them by that unit moved their print a fraction of a pixel.
+  float w = uDepth - max(pos.z, 0.0);
   gl_Position = vec4((x / uView.x * 2.0 - 1.0) * uDepth, (1.0 - pos.y / uView.y * 2.0) * uDepth, -pos.z / uDepth * 2.0 * w, w);
 }`
 
 const FRAGMENT = `#version 300 es
 precision highp float;
+${GUTTER_GLSL}
 in vec2 vUv;
 in vec3 vNormal;
 in float vBeyond;
@@ -114,10 +126,15 @@ uniform vec3 uBackPart;
 // Each page's own paper colour, which print seen from the other side fades into.
 uniform vec3 uFrontPaper;
 uniform vec3 uBackPaper;
+uniform float uLift;
 out vec4 outColor;
 const vec3 LIGHT = vec3(-0.3, -0.4, 0.87);
 // Print seen through the paper from the other side: faded into that page's paper.
 const float THROUGH = 0.7;
+// Keep in step with gutterShade() in pageCurl.ts: the page's CSS fold is drawn from the same curve.
+float gutterShade(float t) {
+  return GUTTER_DEPTH * exp(-t / GUTTER_FALL) * (1.0 - smoothstep(GUTTER_FADE, GUTTER_REACH, t));
+}
 vec2 within(vec3 part, float u, float v) {
   float s = part.z > 0.5 ? 1.0 - u : u;
   return vec2(part.x + s * part.y, v);
@@ -147,9 +164,11 @@ void main() {
   float shade = uShadow * 0.32 * exp(-abs(vBeyond) / (uRadius * 1.5 + 10.0));
   // The fold at the spine, where the paper curves into the binding: darkest at the spine itself.
   float outerCover = back ? uCoverSides.y : uCoverSides.x;
-  float gutter = uGutter > 0.0 && outerCover < 0.5 ? 0.3 * exp(-abs(vFlatX - uSpine) / uGutter) : 0.0;
+  float gutter = uGutter > 0.0 && outerCover < 0.5 ? gutterShade(abs(vFlatX - uSpine) / uGutter) : 0.0;
   // Keep paper opaque: edge-alpha masking can discard entire faces in Firefox.
-  outColor = vec4(colour * min(light, 1.08) * (1.0 - shade) * (1.0 - gutter), 1.0);
+  // Paper has a faint sheen where the curl catches the light; none once it lies flat again.
+  float sheen = uLift * 0.07 * pow(max(dot(reflect(-LIGHT, facing), vec3(0.0, 0.0, 1.0)), 0.0), 18.0);
+  outColor = vec4(colour * min(light, 1.08) * (1.0 - shade) * (1.0 - gutter) + sheen, 1.0);
 }`
 
 const COLUMNS = 64
@@ -157,32 +176,142 @@ const ROWS = 24
 const DRAG_SLOP = 8
 const TEXTURE_CACHE = 8
 const RADIUS_SHARE = 0.14
+/** A softcover curls like a page but over a roll this much wider: card bends, it does not crease. */
+const COVER_RADIUS_SHARE = 0.34
 const MAX_TILT = 0.5
 const PREPARE_MS = 300
 const VELOCITY_MS = 80
 const COAST_MS = 300
+/** How long a landed turn's drawing takes to fade into the real pages. Matches .reader-paged[data-handoff]. */
+const HANDOFF_MS = 160
 /** Share of a page's width the finger has to cross for a released drag to turn the page. */
 const TURN_SHARE = 0.4
-/** How far the fold's shadow reaches from the spine, as a share of a page's width. Matches the page's CSS gutter. */
-export const GUTTER_SHARE = 0.06
 
-/** Fixed per leaf: wear must never change when a page is redrawn. */
-export function pageWear(page: number, book = ''): [number, number] {
+function leafSeed(page: number, book: string): number {
   let bookSeed = 0
   for (let i = 0; i < book.length; i++) bookSeed = (Math.imul(bookSeed, 31) + book.charCodeAt(i)) | 0
   const mixed = Math.imul(page + 1, 2654435761) ^ bookSeed
-  const seed = Math.imul(mixed ^ (mixed >>> 16), 2246822507) >>> 0
+  return Math.imul(mixed ^ (mixed >>> 16), 2246822507) >>> 0
+}
+
+/** Fixed per leaf: wear must never change when a page is redrawn. */
+export function pageWear(page: number, book = ''): [number, number] {
+  const seed = leafSeed(page, book)
   return [(seed / 0xffffffff) * Math.PI * 2, seed % 19 === 0 ? 1 : 0]
 }
 
-export function coverShape(progress: number, phase: number) {
-  const p = Math.max(0, Math.min(1, progress))
-  const flex = (0.9 + 0.08 * Math.sin(phase)) * Math.sin(Math.PI * p)
-  const c = 1 - 2 * p
-  const s = 2 * Math.sqrt(p * (1 - p))
-  const hc = Math.cos(flex / 2)
-  const hs = Math.sin(flex / 2)
-  return { flex, axis: [c * hc - s * hs, s * hc + c * hs] as const }
+export type PageMark = 'foxing' | 'crease' | 'yellowed' | 'smudge' | 'ring'
+
+/** A page's own random source, seeded by the leaf so its marks never move. */
+function leafRandom(page: number, book: string) {
+  let state = leafSeed(page, book) ^ 0x9e3779b9
+  return () => {
+    state = (state + 0x6d2b79f5) | 0
+    let t = Math.imul(state ^ (state >>> 15), 1 | state)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/** The one mark a leaf carries, if any: about one page in eight. */
+export function pageMark(page: number, book = ''): PageMark | null {
+  const roll = leafRandom(page, book)()
+  if (roll < 0.03) return 'foxing'
+  if (roll < 0.055) return 'crease'
+  if (roll < 0.095) return 'yellowed'
+  if (roll < 0.115) return 'smudge'
+  if (roll < 0.122) return 'ring'
+  return null
+}
+
+/**
+ * Paints a leaf's mark over its page, in the page's own image space. The drawn turn paints it into
+ * the page's texture and the real page gets it as an overlay, so both show the same mark.
+ */
+export function drawPageMark(draw: CanvasRenderingContext2D, width: number, height: number, page: number, book = '') {
+  const mark = pageMark(page, book)
+  if (!mark) return
+  const random = leafRandom(page, book)
+  random()
+  const unit = Math.min(width, height)
+  const spot = (x: number, y: number, radius: number, colour: string, alpha: number) => {
+    const gradient = draw.createRadialGradient(x, y, 0, x, y, radius)
+    gradient.addColorStop(0, `rgba(${colour}, ${alpha})`)
+    gradient.addColorStop(0.55, `rgba(${colour}, ${alpha * 0.6})`)
+    gradient.addColorStop(1, `rgba(${colour}, 0)`)
+    draw.fillStyle = gradient
+    draw.fillRect(x - radius, y - radius, radius * 2, radius * 2)
+  }
+  draw.save()
+  if (mark === 'foxing') {
+    // Small rust spots, clustered towards one edge.
+    const cx = (random() < 0.5 ? 0.06 + random() * 0.2 : 0.74 + random() * 0.2) * width
+    const cy = (0.08 + random() * 0.84) * height
+    const count = 4 + Math.floor(random() * 7)
+    for (let i = 0; i < count; i++) {
+      const x = cx + (random() - 0.5) * unit * 0.16
+      const y = cy + (random() - 0.5) * unit * 0.22
+      spot(x, y, unit * (0.004 + random() * 0.011), '150, 100, 50', 0.12 + random() * 0.12)
+    }
+  } else if (mark === 'crease') {
+    // A fold pressed flat again, cutting a corner: a dark line with a lighter ridge beside it.
+    const top = random() < 0.5
+    const right = random() < 0.5
+    const a = { x: (right ? 1 - random() * 0.35 : random() * 0.35) * width, y: top ? 0 : height }
+    const b = { x: right ? width : 0, y: (top ? random() * 0.4 : 1 - random() * 0.4) * height }
+    const sag = (random() - 0.5) * unit * 0.03
+    const line = (offset: number, colour: string, lineWidth: number) => {
+      draw.beginPath()
+      draw.moveTo(a.x + offset, a.y)
+      draw.quadraticCurveTo((a.x + b.x) / 2 + sag + offset, (a.y + b.y) / 2 + sag, b.x + offset, b.y)
+      draw.strokeStyle = colour
+      draw.lineWidth = lineWidth
+      draw.stroke()
+    }
+    line(0, 'rgba(70, 60, 45, 0.16)', unit * 0.0026)
+    line(unit * 0.0026, 'rgba(255, 255, 250, 0.3)', unit * 0.002)
+  } else if (mark === 'yellowed') {
+    // Paper aged from its edges in.
+    const depth = unit * (0.04 + random() * 0.05)
+    const alpha = 0.07 + random() * 0.07
+    const edge = (x0: number, y0: number, x1: number, y1: number, strength: number) => {
+      const gradient = draw.createLinearGradient(x0, y0, x1, y1)
+      gradient.addColorStop(0, `rgba(175, 140, 75, ${alpha * strength})`)
+      gradient.addColorStop(1, 'rgba(175, 140, 75, 0)')
+      draw.fillStyle = gradient
+      draw.fillRect(0, 0, width, height)
+    }
+    const heavy = Math.floor(random() * 4)
+    edge(0, 0, depth, 0, heavy === 0 ? 1.6 : 1)
+    edge(width, 0, width - depth, 0, heavy === 1 ? 1.6 : 1)
+    edge(0, 0, 0, depth, heavy === 2 ? 1.6 : 1)
+    edge(0, height, 0, height - depth, heavy === 3 ? 1.6 : 1)
+  } else if (mark === 'smudge') {
+    // A thumb that held the page near a lower corner.
+    const x = (random() < 0.5 ? 0.06 + random() * 0.1 : 0.84 + random() * 0.1) * width
+    const y = (0.78 + random() * 0.16) * height
+    draw.translate(x, y)
+    draw.rotate((random() - 0.5) * 1.2)
+    draw.scale(1, 1.35)
+    spot(0, 0, unit * (0.035 + random() * 0.025), '70, 62, 52', 0.06 + random() * 0.04)
+  } else {
+    // The ring a mug left.
+    const x = (0.2 + random() * 0.6) * width
+    const y = (0.15 + random() * 0.7) * height
+    const radius = unit * (0.05 + random() * 0.04)
+    draw.beginPath()
+    for (let i = 0; i <= 48; i++) {
+      const angle = (i / 48) * Math.PI * 2
+      const r = radius * (1 + 0.025 * Math.sin(angle * 3 + x) + 0.015 * Math.sin(angle * 7 + y))
+      if (i === 0) draw.moveTo(x + r, y)
+      else draw.lineTo(x + Math.cos(angle) * r, y + Math.sin(angle) * r)
+    }
+    draw.strokeStyle = 'rgba(140, 95, 50, 0.17)'
+    draw.lineWidth = unit * 0.006
+    draw.stroke()
+    spot(x, y, radius, '160, 120, 70', 0.04)
+  }
+  draw.restore()
 }
 
 interface Texture {
@@ -352,7 +481,8 @@ export function releaseCompletes(samples: Sample[], upTime: number, progress: nu
 
 /** Device pixels per CSS pixel, as far as the drawing goes. */
 function pixelRatio(): number {
-  return Math.min(window.devicePixelRatio || 1, 2)
+  // Phones run at up to 3.5x. Drawn at less, the turn was softer than the page it hands back to.
+  return Math.min(window.devicePixelRatio || 1, 3)
 }
 
 export function reducedMotion(): boolean {
@@ -378,6 +508,7 @@ export class PageCurl {
   private landingKey: string | null = null
   private settledKey: string | null = null
   private hideTimer = 0
+  private handoffTimer = 0
   private suppressClickUntil = 0
   private pointer: { id: number; x: number; y: number; offset: number; started: boolean; history: { x: number; t: number }[] } | null = null
   private generation = 0
@@ -460,22 +591,24 @@ export class PageCurl {
       if (!ok) return this.onIdle()
       this.turn = turn
       this.landingKey = key
+      // A hand never takes the same corner at the same pace twice.
       const edge = turn.spine + turn.sheet.w
-      const y = turn.sheet.y + turn.sheet.h * 0.86
+      const y = turn.sheet.y + turn.sheet.h * (0.66 + Math.random() * 0.26)
       this.grabY = y
-      const start = forward ? { x: edge, y } : { x: turn.spine - turn.sheet.w, y: y - turn.sheet.h * 0.08 }
-      const end = forward ? { x: turn.spine - turn.sheet.w, y: y - turn.sheet.h * 0.08 } : { x: edge, y }
+      const rise = turn.sheet.h * (0.04 + Math.random() * 0.07)
+      const start = forward ? { x: edge, y } : { x: turn.spine - turn.sheet.w, y: y - rise }
+      const end = forward ? { x: turn.spine - turn.sheet.w, y: y - rise } : { x: edge, y }
       this.finger = { ...start }
       this.show()
       this.draw()
-      this.animate(start, end, 520, easeInOut, () => this.landed())
+      this.animate(start, end, 470 + Math.random() * 140, easeInOut, () => this.landed(), turn.sheet.h * (0.03 + Math.random() * 0.04))
     })
   }
 
   /** The spread on screen underneath, so the drawing can go once the real pages are up. */
   settled(key: string) {
     this.settledKey = key
-    if (!this.animating && this.landingKey === key) this.hide()
+    if (!this.animating && this.landingKey === key) this.hide(true)
   }
 
   private canDrag() {
@@ -495,25 +628,46 @@ export class PageCurl {
 
   private show() {
     this.host.dataset.curling = ''
+    this.endHandoff()
     clearTimeout(this.hideTimer)
     this.hideTimer = window.setTimeout(() => {
       if (!this.animating && !this.pointer) this.hide()
     }, 2500)
   }
 
-  private hide() {
+  /**
+   * The drawing goes and the real pages come back. A landed turn's last frame matches them, so it
+   * fades out over them rather than cutting: a large page painted a frame late, or resampled a
+   * shade differently, no longer pops. A turn cut off mid-way goes at once.
+   */
+  private hide(fade = false) {
     const shown = this.host.dataset.curling !== undefined
     delete this.host.dataset.curling
     this.turn = null
     this.pinned.clear()
     this.landingKey = null
     clearTimeout(this.hideTimer)
-    if (shown) this.onIdle()
+    if (!shown) return
+    if (!fade || this.disposed) {
+      this.endHandoff()
+      this.onIdle()
+      return
+    }
+    this.host.dataset.handoff = ''
+    this.handoffTimer = window.setTimeout(() => {
+      this.endHandoff()
+      this.onIdle()
+    }, HANDOFF_MS)
+  }
+
+  private endHandoff() {
+    clearTimeout(this.handoffTimer)
+    delete this.host.dataset.handoff
   }
 
   private landed() {
     if (!this.turn) return
-    if (this.settledKey === this.landingKey) this.hide()
+    if (this.settledKey === this.landingKey) this.hide(true)
   }
 
   /**
@@ -629,6 +783,10 @@ export class PageCurl {
       } else {
         draw.drawImage(image, 0, 0, copy.width, copy.height)
       }
+      const urls = this.context?.urls
+      const page = urls ? urls.indexOf(src) : -1
+      // Not on a two-page spread: PagedView leaves those unmarked too.
+      if (page >= 0 && natural <= 1) drawPageMark(draw, copy.width, copy.height, page, urls![0])
       const source: TexImageSource = copy
       const texture = gl.createTexture()
       if (!texture) return null
@@ -666,7 +824,8 @@ export class PageCurl {
     }
   }
 
-  private animate(from: { x: number; y: number }, to: { x: number; y: number }, ms: number, ease: (t: number) => number, done: () => void) {
+  /** `arc` lifts the path in the middle, as a hand rises while it carries the page over. */
+  private animate(from: { x: number; y: number }, to: { x: number; y: number }, ms: number, ease: (t: number) => number, done: () => void, arc = 0) {
     cancelAnimationFrame(this.frame)
     this.frame = 0
     this.animating = true
@@ -675,7 +834,7 @@ export class PageCurl {
       this.frame = 0
       const t = Math.min(1, (now - start) / ms)
       const k = ease(t)
-      this.finger = { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k }
+      this.finger = { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k - arc * Math.sin(Math.PI * k) }
       this.draw()
       if (t < 1) {
         this.frame = requestAnimationFrame(step)
@@ -774,7 +933,7 @@ export class PageCurl {
           this.landed()
         })
       } else {
-        this.animate({ ...this.finger }, end, ms, easeOut, () => this.hide())
+        this.animate({ ...this.finger }, end, ms, easeOut, () => this.hide(true))
       }
     }
 
@@ -808,7 +967,7 @@ export class PageCurl {
   }
 
   /** The fold that puts the grabbed point of the free edge under the finger. */
-  private fold(turn: Turn) {
+  private fold(turn: Turn, share = RADIUS_SHARE) {
     const width = turn.sheet.w
     const edge = turn.spine + width
     const progress = this.progress()
@@ -822,7 +981,7 @@ export class PageCurl {
     const ny = Math.sin(tilt)
     const reach = dx * nx + dy * ny
     if (reach <= 0.5) return { x: edge + 1, y: this.grabY, nx: 1, ny: 0, radius: 1 }
-    const radius = Math.max(0.0001, Math.min(width * RADIUS_SHARE, reach / Math.PI, width * RADIUS_SHARE * 3 * (1 - progress)))
+    const radius = Math.max(0.0001, Math.min(width * share, reach / Math.PI, width * share * 3 * (1 - progress)))
     const along = (reach + Math.PI * radius) / 2
     let x = edge - nx * along
     const y = this.grabY - ny * along
@@ -859,23 +1018,17 @@ export class PageCurl {
 
     const progress = this.progress()
     const coverTurn = turn.front.cover || !!turn.back?.cover
-    const fold = coverTurn
-      ? { x: turn.spine, y: turn.sheet.y, nx: 1, ny: 0, radius: turn.sheet.w * 0.22 }
-      : this.fold(turn)
+    const share = coverTurn ? COVER_RADIUS_SHARE : RADIUS_SHARE
+    const fold = this.fold(turn, share)
     const u = (name: string) => this.uniforms.get(name) ?? null
     gl.uniform2f(u('uView'), width, height)
     gl.uniform1f(u('uMirror'), this.context?.mirror ? 1 : 0)
     gl.uniform1f(u('uDepth'), Math.max(width, height) * 2.2)
     gl.uniform4f(u('uFold'), fold.x, fold.y, fold.nx, fold.ny)
     gl.uniform1f(u('uRadius'), fold.radius)
-    if (coverTurn) {
-      const shape = coverShape(progress, pageWear(turn.front.page, this.context?.urls[0])[0])
-      gl.uniform2f(u('uCoverAxis'), ...shape.axis)
-      gl.uniform1f(u('uCoverFlex'), shape.flex)
-    }
     gl.uniform1f(u('uLift'), Math.sin(Math.PI * progress))
     // The lifted page's shadow on the page it uncovers fades as it lies down; flat, it casts none.
-    const lift = coverTurn ? Math.sin(Math.PI * progress) : Math.min(1, fold.radius / (turn.sheet.w * RADIUS_SHARE))
+    const lift = Math.min(1, fold.radius / (turn.sheet.w * share))
     gl.uniform1f(u('uSpine'), turn.spine)
     gl.uniform1f(u('uBookShift'), turn.closing ? progress * turn.sheet.w : 0)
     gl.uniform1f(u('uGutter'), turn.sheet.w * GUTTER_SHARE)
@@ -956,7 +1109,7 @@ export class PageCurl {
       return
     }
     this.program = program
-    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uCover', 'uCoverSides', 'uCoverAxis', 'uCoverFlex', 'uLift', 'uThickness', 'uLayer', 'uEdge', 'uWear', 'uBookShift', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uFrontPart', 'uBackPart', 'uFrontPaper', 'uBackPaper', 'uSpine', 'uGutter']) {
+    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uCover', 'uCoverSides', 'uLift', 'uThickness', 'uLayer', 'uEdge', 'uWear', 'uBookShift', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uFrontPart', 'uBackPart', 'uFrontPaper', 'uBackPaper', 'uSpine', 'uGutter']) {
       this.uniforms.set(name, gl.getUniformLocation(program, name))
     }
 

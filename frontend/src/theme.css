@@ -5766,6 +5766,12 @@ body.reader-open {
 .reader-paged[data-curling] > .reader-curl {
   display: block;
 }
+/* A landed turn fades into the real pages (pageCurl.ts HANDOFF_MS). */
+.reader-paged[data-handoff] > .reader-curl {
+  display: block;
+  opacity: 0;
+  transition: opacity 160ms ease-in;
+}
 /* Soft contact shadow only: fixed page-edge stripes float outside a closing cover. */
 .reader-book-shadow {
   position: absolute;
@@ -5775,47 +5781,17 @@ body.reader-open {
     0 14px 34px rgba(0, 0, 0, 0.55),
     0 2px 6px rgba(0, 0, 0, 0.4);
 }
-/* The fold at the spine: the paper curves into the binding, darkest at the spine itself. Three gutter
-   widths (pageCurl.ts GUTTER_SHARE) each side, falling off as the drawn turn's does: 30% at the spine,
-   down by e for every gutter width out. */
+/* A mark some leaves carry (pageCurl.ts drawPageMark): foxing, a crease, a thumb smudge. */
+.reader-page-mark {
+  position: absolute;
+  pointer-events: none;
+}
+/* The fold at the spine, one box per side; its gradient comes from pageCurl.ts gutterShade so the
+   drawn turn hands back the same shadow. */
 .reader-gutter {
   position: absolute;
   z-index: 1;
   pointer-events: none;
-}
-.reader-gutter[data-sides='both'] {
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.015) 0%,
-    rgba(0, 0, 0, 0.04) 16.7%,
-    rgba(0, 0, 0, 0.11) 33.3%,
-    rgba(0, 0, 0, 0.18) 41.7%,
-    rgba(0, 0, 0, 0.3) 50%,
-    rgba(0, 0, 0, 0.18) 58.3%,
-    rgba(0, 0, 0, 0.11) 66.7%,
-    rgba(0, 0, 0, 0.04) 83.3%,
-    rgba(0, 0, 0, 0.015) 100%
-  );
-}
-.reader-gutter[data-sides='right'] {
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(0, 0, 0, 0.18) 16.7%,
-    rgba(0, 0, 0, 0.11) 33.3%,
-    rgba(0, 0, 0, 0.04) 66.7%,
-    rgba(0, 0, 0, 0.015) 100%
-  );
-}
-.reader-gutter[data-sides='left'] {
-  background: linear-gradient(
-    to left,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(0, 0, 0, 0.18) 16.7%,
-    rgba(0, 0, 0, 0.11) 33.3%,
-    rgba(0, 0, 0, 0.04) 66.7%,
-    rgba(0, 0, 0, 0.015) 100%
-  );
 }
 
 /* A lone page pushed to one side, so a thumb on that side reaches the edge it turns. */
