@@ -33,6 +33,7 @@ import { useReadingClock } from './useReadingClock'
 import { spineVars } from '../../lib/spine'
 import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
 import { useBookEnd } from './backCover'
+import { contentPage } from './bookLayout'
 import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
 import { useTapZones } from '../../api/tapZones'
 import TapZoneHint from '../../components/reader/TapZoneHint'
@@ -168,8 +169,7 @@ export default function ReaderPage() {
 
   const thumbs = usePageUrls(chapterId, stripOpen ? pageCount : 0, manifest?.pageVersion, true)
   const { wide, measure: measureAspect, sheetAspect } = usePageAspects(urls)
-  // The paged layouts end like a printed book: blank pages to a whole sheet, then a back cover. They
-  // come after the chapter's own pages and are never part of its position or progress.
+  // Inside-cover blanks and the back cover use separate resources, without moving archive indexes.
   const bookEnd = useBookEnd(prefs.mode !== 'vertical', manifest?.seriesId, manifest?.seriesCoverUrl, pageCount, sheetAspect)
   const bookUrls = useMemo(
     () => (bookEnd.length > 0 && urls.length === pageCount ? [...urls, ...bookEnd] : urls),
@@ -181,10 +181,10 @@ export default function ReaderPage() {
     },
     [measureAspect, pageCount],
   )
-  const spreads = useSpreads(bookUrls.length, wide, prefs.mode === 'double')
+  const spreads = useSpreads(bookUrls.length, wide, prefs.mode === 'double', prefs.mode === 'vertical' ? undefined : pageCount)
   const spreadIndex = useMemo(() => spreadIndexOf(spreads, page), [spreads, page])
   // `page` is a spread's first index; the position on record is the furthest page on screen.
-  const shownTo = useMemo(() => Math.max(page, ...(spreads[spreadIndex] ?? [])), [spreads, spreadIndex, page])
+  const shownTo = useMemo(() => Math.max(...(spreads[spreadIndex] ?? [page]).map((index) => contentPage(index, pageCount))), [spreads, spreadIndex, page, pageCount])
   const splitting = prefs.mode === 'paged' && prefs.splitWide === 'split'
   // A half only means something while splitting, so a page reached any other way starts on the first.
   useEffect(() => {
@@ -196,7 +196,7 @@ export default function ReaderPage() {
   const lastPage = Math.max(0, pageCount - 1)
   const recordedTo = Math.min(lastPage, heldBack ? Math.max(0, shownTo - 1) : shownTo)
   // On the blank pages or the back cover, everything that names a page names the last real one.
-  const shownPage = Math.min(page, lastPage)
+  const shownPage = contentPage(page, pageCount)
   const shownLast = Math.min(shownTo, lastPage)
 
   // A page turn in the paged layouts starts at the top of the new page. The surface kept the old
@@ -607,7 +607,7 @@ export default function ReaderPage() {
           update({ direction: prefs.direction === 'rtl' ? 'ltr' : 'rtl' })
           break
         case 'b':
-          toggleBookmark.mutate(page)
+          toggleBookmark.mutate(shownPage)
           break
         case 't':
           setStripOpen((open) => !open)
@@ -665,7 +665,7 @@ export default function ReaderPage() {
     manifest,
     navigate,
     cameFromLite,
-    page,
+    shownPage,
     toggleBookmark,
     seekToPage,
   ])
@@ -691,7 +691,7 @@ export default function ReaderPage() {
         setChrome((visible) => !visible)
         break
       case 'bookmark':
-        toggleBookmark.mutate(page)
+        toggleBookmark.mutate(shownPage)
         break
       case 'zoomIn':
         if (prefs.mode === 'vertical') update({ scale: Math.min(scaleMax(prefs.fit), prefs.scale + 10) })
@@ -764,7 +764,7 @@ export default function ReaderPage() {
         if (manifest?.previousChapterId != null) void goToChapter(manifest.previousChapterId, false)
         break
       case 'bookmark':
-        toggleBookmark.mutate(page)
+        toggleBookmark.mutate(shownPage)
         break
       case 'none':
         break
@@ -808,7 +808,7 @@ export default function ReaderPage() {
       <ReaderToolbar
         manifest={manifest}
         backTo={cameFromLite ? '/lite' : undefined}
-        page={page}
+        page={shownPage}
         onSeek={seekToPage}
         onPrevChapter={() => void goToChapter(manifest.previousChapterId, false)}
         onNextChapter={() => void goToChapter(manifest.nextChapterId, true)}
@@ -916,6 +916,8 @@ export default function ReaderPage() {
               preload={preloadPages}
               onStretched={setStretchedPages}
               paper={{
+                contentPages: pageCount,
+                spreads,
                 align: prefs.pageAlign,
                 even: prefs.evenPages,
                 sheetAspect,
@@ -939,7 +941,7 @@ export default function ReaderPage() {
         >
           <PageStrip
             urls={thumbs}
-            page={page}
+            page={shownPage}
             bookmarks={bookmarkedPages}
             onSelect={seekToPage}
             rtl={prefs.direction === 'rtl'}

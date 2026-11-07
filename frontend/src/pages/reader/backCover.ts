@@ -3,14 +3,12 @@ import { coverPalette } from '../../components/library/shelf3d/coverPalette'
 import { drawBoardArt, IMPRINTS, SPINE_STYLES, type SpineStyle } from '../../components/library/shelf3d/spineStyles'
 
 /**
- * The end of a chapter as a printed book ends: blank pages until the count is a whole number of
- * four-page sheets, then a back cover. The cover is the 3D shelf's back board for the series, the
+ * Blank inside-cover faces and the back cover. Their positions follow the book's actual spreads,
+ * including wide pages. The cover is the 3D shelf's back board for the series, the
  * same edition design tinted with the series cover's strongest colour, so the book on the shelf and
  * the book in the reader are the same object.
  */
 
-// Pages are printed four to a folded sheet, so a bound book's page count is a multiple of four.
-const SHEET = 4
 // The shelf draws a book about this tall; the pattern is scaled up from there so it reads the same.
 const SHELF_BOOK_HEIGHT = 200
 const PAGE_HEIGHT = 1400
@@ -18,7 +16,7 @@ const BLANK_PAPER = '#f7f4ec'
 
 /** How many pages come after the chapter's own: the blanks, then the back cover. */
 export function bookEndPages(pageCount: number): number {
-  return pageCount > 0 ? ((SHEET - ((pageCount + 1) % SHEET)) % SHEET) + 1 : 0
+  return pageCount > 0 ? 3 : 0
 }
 
 /** The shelf edition a series is printed in. Fixed per series, so its back cover never changes. */

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { bookSpreads } from './bookLayout'
 
 /**
  * Page aspect ratios, measured in the browser as images load.
@@ -44,8 +45,9 @@ const MIN_SHEET_ASPECT = 0.45
  * two-page spread and also stands alone. Pages not measured yet are assumed portrait, so the
  * layout settles as images arrive rather than blocking on them.
  */
-export function useSpreads(pageCount: number, wide: Record<number, boolean>, enabled: boolean): Spread[] {
+export function useSpreads(pageCount: number, wide: Record<number, boolean>, enabled: boolean, contentPages?: number): Spread[] {
   return useMemo(() => {
+    if (contentPages !== undefined) return bookSpreads(contentPages, pageCount, wide, enabled)
     if (!enabled) {
       return Array.from({ length: pageCount }, (_, i) => [i])
     }
@@ -67,7 +69,7 @@ export function useSpreads(pageCount: number, wide: Record<number, boolean>, ena
       i += 1
     }
     return spreads
-  }, [pageCount, wide, enabled])
+  }, [pageCount, wide, enabled, contentPages])
 }
 
 /** The spread containing a page, and the first page of a spread. */

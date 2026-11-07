@@ -12,6 +12,8 @@
     "check:shelf-colours": "node ../scripts/frontend/check-shelf-colours.mjs",
     "check:shelf-layout": "node ../scripts/frontend/check-shelf-layout.mjs",
     "check:tap-zones": "node ../scripts/frontend/check-tap-zones.mjs",
+    "check:page-curl": "node ../scripts/frontend/check-page-curl.mjs",
+    "check:book-layout": "node ../scripts/frontend/check-book-layout.mjs",
     "check:ui-review": "node ../scripts/frontend/check-ui-review.mjs",
     "preview": "vite preview",
     "i18n:extract": "lingui extract",

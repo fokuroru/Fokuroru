@@ -5751,27 +5751,27 @@ body.reader-open {
   pointer-events: none;
   display: none;
 }
+.reader-paged[data-paper] img.reader-page {
+  border-radius: 0.7px 0.9px 0.8px 0.5px;
+}
+.reader-paged[data-paper] img.reader-page[data-worn] {
+  border-bottom-right-radius: 2px;
+}
+.reader-paged[data-paper] .reader-cover {
+  box-shadow: 0 0.7px 0 rgba(200, 194, 180, 0.75);
+}
 .reader-paged[data-curling] > :not(.reader-curl):not(.reader-book-shadow) {
   visibility: hidden;
 }
 .reader-paged[data-curling] > .reader-curl {
   display: block;
 }
-/* The open book's shadow, with a few page edges along its outer sides. Behind the pages; it stays up
-   while a turn is drawn over it. */
+/* Soft contact shadow only: fixed page-edge stripes float outside a closing cover. */
 .reader-book-shadow {
   position: absolute;
   z-index: -1;
   pointer-events: none;
   box-shadow:
-    -1px 0 0 #e6e1d5,
-    -2px 0 0 #b9b3a6,
-    -3px 0 0 #e1dccf,
-    -4px 0 0 #aaa497,
-    1px 0 0 #e6e1d5,
-    2px 0 0 #b9b3a6,
-    3px 0 0 #e1dccf,
-    4px 0 0 #aaa497,
     0 14px 34px rgba(0, 0, 0, 0.55),
     0 2px 6px rgba(0, 0, 0, 0.4);
 }
@@ -5858,6 +5858,9 @@ body.reader-open {
 }
 .reader-facing[data-through] .reader-facing-page {
   opacity: 0.3;
+}
+.reader-facing[data-through][data-cover] .reader-facing-page {
+  opacity: 0;
 }
 /* A two-page spread is scaled to the book's size before a turn and drawn past the page's edges. */
 .reader-paged[data-paper] {
