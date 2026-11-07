@@ -901,6 +901,7 @@ export default function ReaderPage() {
                 next: splitting ? null : (spreads[spreadIndex + 1] ?? null),
                 previous: splitting ? null : (spreads[spreadIndex - 1] ?? null),
                 beforePrevious: splitting ? null : (spreads[spreadIndex - 2] ?? null),
+                wide,
                 onTurn: (forward) => (forward ? next() : previous()),
               }}
             />

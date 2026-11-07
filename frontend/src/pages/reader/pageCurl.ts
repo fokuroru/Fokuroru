@@ -99,10 +99,14 @@ const MAX_TILT = 0.5
 const PREPARE_MS = 300
 const VELOCITY_MS = 80
 const COAST_MS = 300
+/** Share of a page's width the finger has to cross for a released drag to turn the page. */
+const TURN_SHARE = 0.4
 
 interface Texture {
   texture: WebGLTexture
   aspect: number
+  /** A two-page spread scan: never drawn turning. */
+  wide: boolean
 }
 
 interface Rect {
@@ -126,6 +130,8 @@ interface Turn {
   back: string | null
   left: string | null
   right: string | null
+  /** The textures this turn loaded, held for its whole life: the cache and the sheet shape may move on. */
+  textures: Map<string, Texture>
 }
 
 export interface CurlContext {
@@ -133,8 +139,10 @@ export interface CurlContext {
   current: Spread
   next: Spread | null
   previous: Spread | null
-  /** The spread before `previous`: what shows through the blank facing page after a turn back. */
+  /** The spread before `previous`: what the facing page shows after a turn back. */
   beforePrevious: Spread | null
+  /** Pages measured wider than tall. A turn to or from one is not drawn and does not follow the finger. */
+  wide: Readonly<Record<number, boolean>>
   /** Draw in mirrored space: the sheet hinges on its right edge (right-to-left, or a left-aligned page). */
   mirror: boolean
   /** Width over height every page is drawn at, so a chapter's pages are one size; null keeps each page's own. */
@@ -172,17 +180,25 @@ export function addSample(samples: Sample[], sample: Sample) {
 }
 
 /**
- * Whether a released drag finishes the turn: where the page would coast to at the drag's speed,
- * past halfway. The speed is taken over the last stretch of the drag rather than the last few
- * events, because a mouse reports every millisecond and the wobble as the button comes up read as
- * a flick the other way. Positions are in left-to-right space; progress runs 0 to 1.
+ * Whether a released drag finishes the turn: when the finger has crossed TURN_SHARE of a page from
+ * the edge it started at, or would coast that far at the drag's speed (a flick). Progress counts the
+ * whole swing, two page widths, so a page's share of it is half. The speed is taken over the last
+ * stretch of the drag rather than the last few events, because a mouse reports every millisecond
+ * and the wobble as the button comes up read as a flick the other way. Positions are in
+ * left-to-right space; progress runs 0 (flat on the right) to 1 (on the left).
  */
 export function releaseCompletes(samples: Sample[], upTime: number, progress: number, forward: boolean, sheetWidth: number) {
-  const first = samples[0]
+  // Movement in the last VELOCITY_MS before the release, measured from where the pointer was when
+  // that window opened. A pointer that stopped before it is still, however fast it got there.
+  const windowStart = upTime - VELOCITY_MS
   const last = samples[samples.length - 1]
-  const velocity = first && last ? (last.x - first.x) / Math.max(upTime - first.t, VELOCITY_MS) : 0
+  let anchor = samples[0]
+  for (const sample of samples) if (sample.t <= windowStart) anchor = sample
+  const velocity =
+    anchor && last && last.t > windowStart ? (last.x - anchor.x) / Math.max(upTime - anchor.t, VELOCITY_MS) : 0
   const coasted = progress - (velocity * COAST_MS) / (2 * sheetWidth)
-  return forward ? coasted > 0.5 : coasted < 0.5
+  const reach = TURN_SHARE / 2
+  return forward ? progress >= reach || coasted >= reach : 1 - progress >= reach || 1 - coasted >= reach
 }
 
 export function reducedMotion(): boolean {
@@ -197,6 +213,8 @@ export class PageCurl {
   private textures = new Map<string, Promise<Texture | null>>()
   private ready = new Map<string, Texture>()
   private paper: WebGLTexture | null = null
+  /** Cache keys a pending or running turn needs; never evicted until it is over. */
+  private pinned = new Set<string>()
   private context: CurlContext | null = null
   private turn: Turn | null = null
   private finger = { x: 0, y: 0 }
@@ -314,6 +332,7 @@ export class PageCurl {
   private hide() {
     delete this.host.dataset.curling
     this.turn = null
+    this.pinned.clear()
     this.landingKey = null
     clearTimeout(this.hideTimer)
   }
@@ -329,6 +348,7 @@ export class PageCurl {
     if (!context?.enabled || !this.gl || reducedMotion()) return null
     const book = from.length === 2 && to.length === 2
     if (!book && (from.length !== 1 || to.length !== 1)) return null
+    if ([...from, ...to].some((page) => context.wide[page])) return null
     const urls = context.urls
     const width = window.innerWidth
     const rectsOf = (selector: string) =>
@@ -356,8 +376,8 @@ export class PageCurl {
       const [fromLeft, fromRight] = from.map((page) => urls[page]!)
       const [toLeft, toRight] = to.map((page) => urls[page]!)
       return forward
-        ? { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: fromRight!, back: toLeft!, left: fromLeft!, right: toRight! }
-        : { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: toRight!, back: fromLeft!, left: toLeft!, right: fromRight! }
+        ? { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: fromRight!, back: toLeft!, left: fromLeft!, right: toRight!, textures: new Map() }
+        : { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: toRight!, back: fromLeft!, left: toLeft!, right: fromRight!, textures: new Map() }
     }
     const rect = rects[0]!
     const fromSrc = urls[from[0]!]!
@@ -375,15 +395,23 @@ export class PageCurl {
       front: forward ? fromSrc : toSrc,
       // The turned page stays readable as it lands on the facing side.
       back: forward ? fromSrc : toSrc,
-      left: blank && behind ? (urls[behind[0]!] ?? null) : null,
+      // A wide page before it is not squeezed into a page's slot: the facing side stays paper.
+      left: blank && behind && !context.wide[behind[0]!] ? (urls[behind[0]!] ?? null) : null,
       right: forward ? toSrc : fromSrc,
+      textures: new Map(),
     }
   }
 
   /** Loads the turn's pages. A drag waits as long as the finger is down; a tap or key turn gives up quickly. */
   private prepare(turn: Turn, patient = false): Promise<boolean> {
     const sources = [turn.front, turn.back, turn.left, turn.right].filter((src): src is string => src !== null)
-    const loaded = Promise.all(sources.map((src) => this.texture(src))).then((all) => all.every(Boolean))
+    // A page that only turns out to be wide once loaded is still never drawn turning.
+    const turning = new Set([turn.front, turn.back, turn.right])
+    this.pinned = new Set(sources.map((src) => this.keyFor(src)))
+    const loaded = Promise.all(sources.map((src) => this.texture(src))).then((all) => {
+      all.forEach((texture, index) => texture && turn.textures.set(sources[index]!, texture))
+      return all.every((texture, index) => texture && !(texture.wide && turning.has(sources[index]!)))
+    })
     if (patient) return loaded
     // A tap never waits on a slow decode: past this the page turns without the drawing.
     const late = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), PREPARE_MS))
@@ -448,7 +476,7 @@ export class PageCurl {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-      const result = { texture, aspect }
+      const result = { texture, aspect, wide: natural > 1 }
       this.ready.set(key, result)
       this.evict()
       return result
@@ -458,13 +486,9 @@ export class PageCurl {
   }
 
   private evict() {
-    const turn = this.turn
-    const inUse = new Set(
-      [turn?.front, turn?.back, turn?.left, turn?.right].filter((src): src is string => !!src).map((src) => this.keyFor(src)),
-    )
     for (const key of this.ready.keys()) {
       if (this.ready.size <= TEXTURE_CACHE) break
-      if (inUse.has(key)) continue
+      if (this.pinned.has(key)) continue
       this.gl?.deleteTexture(this.ready.get(key)!.texture)
       this.ready.delete(key)
       this.textures.delete(key)
@@ -653,13 +677,18 @@ export class PageCurl {
     gl.uniform1i(u('uFront'), 0)
     gl.uniform1i(u('uBack'), 1)
 
+    // Without the pages it needs the drawing would cover the real ones with nothing; show those instead.
+    if (!turn.textures.has(turn.front) || (turn.right && !turn.textures.has(turn.right))) {
+      this.hide()
+      return
+    }
     const quad = (src: string | null, rect: Rect, curl: boolean, shadow: boolean, back: string | null, through = false) => {
-      const found = src ? this.ready.get(this.keyFor(src))?.texture : undefined
+      const found = src ? turn.textures.get(src)?.texture : undefined
       const texture = found ?? (through ? this.paper : null)
       if (!texture) return
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, texture)
-      const backTexture = back ? this.ready.get(this.keyFor(back)) : undefined
+      const backTexture = back ? turn.textures.get(back) : undefined
       gl.activeTexture(gl.TEXTURE1)
       gl.bindTexture(gl.TEXTURE_2D, backTexture?.texture ?? texture)
       gl.uniform1f(u('uThrough'), through ? 1 : 0)
@@ -671,7 +700,7 @@ export class PageCurl {
       gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0)
     }
     const fitted = (src: string | null, slot: Rect, anchorRight: boolean) => {
-      const texture = src ? this.ready.get(this.keyFor(src)) : undefined
+      const texture = src ? turn.textures.get(src) : undefined
       return texture ? fitInto(slot, texture.aspect, anchorRight) : slot
     }
 

@@ -60,6 +60,8 @@ export interface PaperOptions {
   next: Spread | null
   previous: Spread | null
   beforePrevious: Spread | null
+  /** Pages measured wider than tall: they turn without the drawing. */
+  wide: Readonly<Record<number, boolean>>
   /** A drag finished a turn: move the reader on, the drawing already shows the result. */
   onTurn: (forward: boolean) => void
 }
@@ -69,6 +71,8 @@ interface Sheet {
   aspect: number
   cover: boolean
 }
+
+const NO_WIDE: Readonly<Record<number, boolean>> = {}
 
 interface Box {
   left: number
@@ -605,6 +609,7 @@ export default function PagedView({
       next: paper?.next ?? null,
       previous: paper?.previous ?? null,
       beforePrevious: paper?.beforePrevious ?? null,
+      wide: paper?.wide ?? NO_WIDE,
       mirror,
       sheetAspect: sheet?.aspect ?? null,
       sheetFill: sheet?.cover ? 'enlarge' : 'stretch',
@@ -665,7 +670,7 @@ export default function PagedView({
     return () => observer.disconnect()
   }, [wantBlank, facingRight, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
   const ghostPage = shown.spread[0]! - 1
-  const ghost = ghostPage >= 0 ? (urls[ghostPage] ?? null) : null
+  const ghost = ghostPage >= 0 && !paper?.wide[ghostPage] ? (urls[ghostPage] ?? null) : null
 
   return (
     <div
