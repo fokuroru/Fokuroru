@@ -5,7 +5,7 @@ import { cropRegion, FULL_REGION, isFull, partOf, type PagePart, type Region } f
 import EnhancedPage from './EnhancedPage'
 import { heldPageUrl, holdPage } from './pageBlobs'
 import { isSoftPage } from '../../lib/enhance/softness'
-import { drawPageMark, GUTTER_REACH, GUTTER_SHARE, gutterGradient, PageCurl, pageMark, paperTone, pageWear, type BookGeometry } from './pageCurl'
+import { drawPageMark, GUTTER_REACH, GUTTER_SHARE, gutterGradient, PageCurl, pageMark, toneColour, type SheetFill, paperTone, pageWear, type BookGeometry } from './pageCurl'
 import { bookFaces } from './bookLayout'
 import { useCompareKey } from './compareHold'
 import {
@@ -73,8 +73,10 @@ export interface PaperOptions {
 /** The shape every page is drawn at when sizes are evened out. */
 interface Sheet {
   aspect: number
-  cover: boolean
+  fill: SheetFill
 }
+
+const OBJECT_FIT: Record<SheetFill, React.CSSProperties['objectFit']> = { stretch: 'fill', enlarge: 'cover', pad: 'contain' }
 
 const NO_WIDE: Readonly<Record<number, boolean>> = {}
 
@@ -299,10 +301,12 @@ function PagedPage({
   const shaped = natural !== null && (enhance !== null || rotate !== 0 || !isFull(region))
 
   const visible = state === 'ready' && !shaped
-  // A short page takes the chapter's tallest shape; a two-page spread takes the shape of two.
+  // A short page takes the chapter's tallest shape; a two-page spread takes the shape of two. Padded,
+  // it keeps its own shape and the spare edges are its own paper, as the drawn turn pads it.
+  const padPaper = useMemo(() => (ready && sheet?.fill === 'pad' ? toneColour(paperTone(image)) : undefined), [ready, image, sheet?.fill])
   const evened: React.CSSProperties | undefined =
     sheet && natural
-      ? { aspectRatio: String(wide ? sheet.aspect * 2 : sheet.aspect), objectFit: sheet.cover ? 'cover' : 'fill' }
+      ? { aspectRatio: String(wide ? sheet.aspect * 2 : sheet.aspect), objectFit: OBJECT_FIT[sheet.fill], backgroundColor: padPaper }
       : undefined
   return (
     <>
@@ -648,8 +652,11 @@ export default function PagedView({
   // The book is drawn in left-to-right space and mirrored for right-to-left, and in one-page view
   // for a page pushed to the left, whose facing page is on its right.
   const mirror = double ? rtl : align === 'left' ? true : align === 'right' ? false : rtl
+  // "As is" keeps every page whole but still on one sheet size, padded, so the book never changes size.
   const sheet: Sheet | null =
-    paper && paper.even !== 'off' && paper.sheetAspect ? { aspect: paper.sheetAspect, cover: paper.even === 'enlarge' } : null
+    paper && paper.sheetAspect
+      ? { aspect: paper.sheetAspect, fill: paper.even === 'off' ? 'pad' : paper.even === 'enlarge' ? 'enlarge' : 'stretch' }
+      : null
 
   // The book: every spread lies open as a left and a right face. A two-page spread covers both, a
   // half each; the half drawn on the left in left-to-right space is the image's right half when mirrored.
@@ -707,7 +714,7 @@ export default function PagedView({
   }, [])
   useEffect(() => {
     pageBox.current = null
-  }, [fit, sheet?.aspect, sheet?.cover, double, align])
+  }, [fit, sheet?.aspect, sheet?.fill, double, align])
 
   // Two pages up, a page on its own is the size of a page in a spread, whatever its own image is.
   const [loneSize, setLoneSize] = useState<{ width: number; height: number } | null>(null)
@@ -717,7 +724,7 @@ export default function PagedView({
     const next = book ? { width: book.pageWidth, height: book.pageHeight } : null
     setLoneSize((old) => (old && next && Math.abs(old.width - next.width) < 0.5 && Math.abs(old.height - next.height) < 0.5 ? old : next))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sizeLone, shown.key, fit, sheet?.aspect, sheet?.cover])
+  }, [sizeLone, shown.key, fit, sheet?.aspect, sheet?.fill])
 
   // A two-page spread wider than the screen allows: after a turn lands on it the book shrinks to fit
   // the screen, and before the next turn it grows back to the book's size. The image keeps its
@@ -787,7 +794,7 @@ export default function PagedView({
       beforeTurn,
       mirror,
       sheetAspect: sheet?.aspect ?? null,
-      sheetFill: sheet?.cover ? 'enlarge' : 'stretch',
+      sheetFill: sheet?.fill ?? 'stretch',
       enabled: curlOn,
       draggable: true,
     })
@@ -846,26 +853,26 @@ export default function PagedView({
     observer.observe(host)
     for (const element of host.querySelectorAll('.reader-page:not(.reader-blank)')) observer.observe(element)
     return () => observer.disconnect()
-  }, [wantBlank, facingRight, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
+  }, [wantBlank, facingRight, shown.key, fit, scale, sheet?.aspect, sheet?.fill, align])
 
   // The facing page's paper: its print shows through faded into it, so the paper keeps its own tone.
   const [facingPaper, setFacingPaper] = useState<{ src: string; colour: string } | null>(null)
-  const facingSrc = facing?.mirrored && !facing.cover ? facing.src : null
+  // A blank or the inside of a cover takes the paper of the page beside it.
+  const facingSrc = facing ? (facing.cover || facing.page < 0 ? (urls[shown.spread[0]!] ?? null) : facing.src) : null
   useEffect(() => {
     if (!facingSrc) return
     let live = true
     const image = new Image()
     image.onload = () => {
       if (!live) return
-      const [r, g, b] = paperTone(image)
-      setFacingPaper({ src: facingSrc, colour: `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})` })
+      setFacingPaper({ src: facingSrc, colour: toneColour(paperTone(image)) })
     }
     image.src = heldPageUrl(facingSrc) ?? facingSrc
     return () => {
       live = false
     }
   }, [facingSrc])
-  const facingColour = facing?.cover ? '#f7f4ec' : facingPaper?.src === facingSrc ? facingPaper.colour : undefined
+  const facingColour = facingPaper?.src === facingSrc ? facingPaper.colour : undefined
 
   // The open book: a soft shadow under it and the fold at the spine.
   // The shadow stays while a turn is drawn over it; the fold is drawn into the turn instead.
@@ -907,7 +914,7 @@ export default function PagedView({
     for (const element of onScreen(host)) observer.observe(element)
     return () => observer.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [curlOn, shownWide, bookView, shown.key, fit, sheet?.aspect, sheet?.cover, align, double, mirror, loneSize, blank])
+  }, [curlOn, shownWide, bookView, shown.key, fit, sheet?.aspect, sheet?.fill, align, double, mirror, loneSize, blank])
   // The marks some leaves carry, laid over each page from its own box.
   const [marks, setMarks] = useState<{ page: number; box: Box }[]>([])
   const book = urls[0] ?? ''
@@ -935,11 +942,12 @@ export default function PagedView({
     for (const element of onScreen(host)) observer.observe(element)
     return () => observer.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marked, book, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align, double, loneSize, bookView, readySrcs])
+  }, [marked, book, shown.key, fit, scale, sheet?.aspect, sheet?.fill, align, double, loneSize, bookView, readySrcs])
   const gutter = frame ? (frame.box.width / (frame.leftSide && frame.rightSide ? 2 : 1)) * GUTTER_SHARE : 0
   const resting = opening(shown.spread)
-  const leftFold = !!(mirror ? resting.right && !resting.right.cover : resting.left && !resting.left.cover)
-  const rightFold = !!(mirror ? resting.left && !resting.left.cover : resting.right && !resting.right.cover)
+  // Every page folds into the binding, blanks and the insides of covers too; only the outside does not.
+  const leftFold = !!(mirror ? resting.right && !resting.right.outside : resting.left && !resting.left.outside)
+  const rightFold = !!(mirror ? resting.left && !resting.left.outside : resting.right && !resting.right.outside)
 
   return (
     <div
@@ -1003,11 +1011,12 @@ export default function PagedView({
               width: blank.width,
               height: blank.height,
               filter: tone,
-              background: facing.mirrored ? facingColour : undefined,
+              background: facingColour,
             }}
           >
             <div className="reader-facing" data-through={facing.mirrored || undefined} data-cover={facing.cover || undefined}>
-              <img
+              {/* A generated blank has nothing printed: the slot's own paper is the page. */}
+              {facing.page >= 0 && <img
                 src={heldPageUrl(facing.src) ?? facing.src}
                 alt=""
                 className="reader-facing-page"
@@ -1015,12 +1024,13 @@ export default function PagedView({
                   // Half of a two-page spread shows by drawing the whole image twice as wide.
                   width: facing.part === 'whole' ? '100%' : '200%',
                   left: facing.part === 'right' ? '-100%' : 0,
-                  objectFit: sheet ? (sheet.cover ? 'cover' : 'fill') : 'contain',
-                  // Against the spine, as the turned page lands. A mirrored face swaps the sides.
-                  objectPosition: facingRight !== facing.mirrored ? 'left center' : 'right center',
+                  objectFit: sheet ? OBJECT_FIT[sheet.fill] : 'contain',
+                  // Against the spine, as the turned page lands; a mirrored face swaps the sides. A padded
+                  // page sits centred on its sheet, as the real one does.
+                  objectPosition: sheet?.fill === 'pad' ? 'center' : facingRight !== facing.mirrored ? 'left center' : 'right center',
                 }}
                 draggable={false}
-              />
+              />}
             </div>
           </div>
         </div>

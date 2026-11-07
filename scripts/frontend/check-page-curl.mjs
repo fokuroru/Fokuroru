@@ -45,7 +45,7 @@ const surface = {
 }
 const host = { parentElement: surface, dataset: {} }
 const curl = new PageCurl({ getContext: () => null }, host, () => {}, () => {}, () => {})
-const face = (page, cover = false) => ({ page, cover, src: `page-${page}`, part: 'whole', mirrored: false })
+const face = (page, cover = false) => ({ page, cover, outside: cover, src: `page-${page}`, part: 'whole', mirrored: false })
 const context = {
   urls: ['page-0', 'page-1', 'page-2'], current: [0], next: [1], previous: null,
   enabled: true, draggable: true, mirror: false, sheetAspect: null, sheetFill: 'stretch',
@@ -113,6 +113,7 @@ const corners = [...new Set(indices.slice(gpu.indexCount, gpu.indexCount + 6))].
 assert.deepEqual(corners, [[0, 0], [0, 1], [1, 0], [1, 1]], 'the flat quad covers the whole page')
 assert.equal(gpuCanvas.width, window.innerWidth * 3, 'phones draw at their own density, up to a bounded 3x')
 gpu.turn.front.cover = true
+gpu.turn.front.outside = true
 drawsOnGpu.length = 0
 gpu.draw()
 assert.deepEqual(uniforms.get('uCover'), [1], 'a cover uses the stiffer shader even when its back is an interior page')

@@ -170,7 +170,7 @@ export default function ReaderPage() {
   const thumbs = usePageUrls(chapterId, stripOpen ? pageCount : 0, manifest?.pageVersion, true)
   const { wide, measure: measureAspect, sheetAspect } = usePageAspects(urls)
   // Inside-cover blanks and the back cover use separate resources, without moving archive indexes.
-  const bookEnd = useBookEnd(prefs.mode !== 'vertical', manifest?.seriesId, manifest?.seriesCoverUrl, pageCount, sheetAspect)
+  const bookEnd = useBookEnd(prefs.mode !== 'vertical', manifest?.seriesId, manifest?.seriesCoverUrl, pageCount, sheetAspect, urls)
   const bookUrls = useMemo(
     () => (bookEnd.length > 0 && urls.length === pageCount ? [...urls, ...bookEnd] : urls),
     [urls, bookEnd, pageCount],

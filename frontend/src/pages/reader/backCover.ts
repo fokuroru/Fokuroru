@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { coverPalette } from '../../components/library/shelf3d/coverPalette'
 import { drawBoardArt, IMPRINTS, SPINE_STYLES, type SpineStyle } from '../../components/library/shelf3d/spineStyles'
+import { heldPageUrl } from './pageBlobs'
+import { paperTone, toneColour } from './pageCurl'
 
 /**
  * Blank inside-cover faces and the back cover. Their positions follow the book's actual spreads,
@@ -50,7 +52,19 @@ function toUrl(canvas: HTMLCanvasElement): Promise<string | null> {
   return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob ? URL.createObjectURL(blob) : null), 'image/png'))
 }
 
-async function drawBookEnd(seriesId: number, coverUrl: string | null, aspect: number, count: number): Promise<string[]> {
+/** A page's paper colour, for the blank beside it; the stock blank colour if it cannot be read. */
+async function paperOf(url: string | undefined): Promise<string> {
+  if (!url) return BLANK_PAPER
+  const image = new Image()
+  const loaded = new Promise<boolean>((resolve) => {
+    image.onload = () => resolve(true)
+    image.onerror = () => resolve(false)
+  })
+  image.src = heldPageUrl(url) ?? url
+  return (await loaded) && image.naturalWidth ? toneColour(paperTone(image)) : BLANK_PAPER
+}
+
+async function drawBookEnd(seriesId: number, coverUrl: string | null, aspect: number, count: number, papers: string[]): Promise<string[]> {
   const width = Math.round(PAGE_HEIGHT * aspect)
   const pages: string[] = []
   // Each blank is its own image: the reader keys pages by their address.
@@ -60,7 +74,7 @@ async function drawBookEnd(seriesId: number, coverUrl: string | null, aspect: nu
     blank.height = PAGE_HEIGHT
     const context = blank.getContext('2d')
     if (!context) return []
-    context.fillStyle = BLANK_PAPER
+    context.fillStyle = papers[i] ?? BLANK_PAPER
     context.fillRect(0, 0, width, PAGE_HEIGHT)
     const url = await toUrl(blank)
     if (!url) return []
@@ -104,6 +118,8 @@ export function useBookEnd(
   coverUrl: string | null | undefined,
   pageCount: number,
   aspect: number | null,
+  /** The chapter's own pages: each blank takes the paper of the page it faces. */
+  pageUrls: string[],
 ): string[] {
   const [pages, setPages] = useState<{ key: string; urls: string[] } | null>(null)
   // Drawn at the first shape measured, then kept: a new set of addresses re-opens the chapter's pages.
@@ -112,18 +128,23 @@ export function useBookEnd(
   if (aspect !== null && shape?.key !== key) setShape({ key, aspect })
   const count = bookEndPages(pageCount)
   const drawAt = shape?.key === key ? shape.aspect : null
+  const firstPage = pageUrls[Math.min(1, pageCount - 1)]
+  const lastPage = pageUrls[pageCount - 1]
 
   useEffect(() => {
     if (!enabled || seriesId === undefined || drawAt === null || count === 0) return
     let cancelled = false
-    void drawBookEnd(seriesId, coverUrl ?? null, drawAt, count).then((urls) => {
-      if (cancelled) urls.forEach((url) => URL.revokeObjectURL(url))
-      else setPages({ key, urls })
-    })
+    // The front blank faces the first page after the cover, the back one the last page.
+    void Promise.all([paperOf(firstPage), paperOf(lastPage)])
+      .then((papers) => drawBookEnd(seriesId, coverUrl ?? null, drawAt, count, papers))
+      .then((urls) => {
+        if (cancelled) urls.forEach((url) => URL.revokeObjectURL(url))
+        else setPages({ key, urls })
+      })
     return () => {
       cancelled = true
     }
-  }, [enabled, seriesId, coverUrl, drawAt, count, key])
+  }, [enabled, seriesId, coverUrl, drawAt, count, key, firstPage, lastPage])
   // A set of pages is let go once another replaces it, or the reader closes; never while it shows.
   useEffect(() => {
     const urls = pages?.urls ?? []

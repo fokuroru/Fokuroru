@@ -359,13 +359,23 @@ export function paperTone(image: CanvasImageSource & { width: number; height: nu
   }
 }
 
+export type SheetFill = 'stretch' | 'enlarge' | 'pad'
+
+/** A paper tone as a CSS colour. */
+export function toneColour([r, g, b]: [number, number, number]): string {
+  return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`
+}
+
 /** Which part of a page's image a face shows: all of it, or one half of a two-page spread. */
 export type FacePart = 'whole' | 'left' | 'right'
 
 /** One side of one leaf of the book. `mirrored` is the back of a sheet showing its print through. */
 export interface Face {
   page: number
+  /** Card stock: a cover, or the inside of one. */
   cover: boolean
+  /** The outside of the book (front or back cover), which has no fold at the spine. */
+  outside: boolean
   src: string
   part: FacePart
   mirrored: boolean
@@ -431,8 +441,8 @@ export interface CurlContext {
   mirror: boolean
   /** Width over height every page is drawn at, so a chapter's pages are one size; null keeps each page's own. */
   sheetAspect: number | null
-  /** How a page of another shape fills the sheet: stretched, or enlarged and cropped at the sides. */
-  sheetFill: 'stretch' | 'enlarge'
+  /** How a page of another shape fills the sheet: stretched, enlarged and cropped, or padded with its own paper. */
+  sheetFill: SheetFill
   /** Drawn turns at all: plain pages at 1x. */
   enabled: boolean
   /** Turns that follow the pointer as well: the page does not scroll sideways. */
@@ -442,6 +452,10 @@ export interface CurlContext {
 const keyOf = (spread: Spread) => spread.join(',')
 
 const easeOut = (t: number) => 1 - (1 - t) ** 3
+const smoothstep = (from: number, to: number, t: number) => {
+  const k = Math.max(0, Math.min(1, (t - from) / (to - from)))
+  return k * k * (3 - 2 * k)
+}
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 
 function fitInto(slot: Rect, aspect: number, anchorRight: boolean): Rect {
@@ -780,7 +794,16 @@ export class PageCurl {
       const draw = copy.getContext('2d')
       if (!draw) return null
       draw.imageSmoothingQuality = 'high'
-      if (shaped !== null && fill === 'enlarge') {
+      const paper = paperTone(image)
+      if (shaped !== null && fill === 'pad') {
+        // Kept whole and centred; the sheet's spare edges are the page's own paper.
+        draw.fillStyle = toneColour(paper)
+        draw.fillRect(0, 0, copy.width, copy.height)
+        const fit = Math.min(copy.width / image.naturalWidth, copy.height / image.naturalHeight)
+        const w = image.naturalWidth * fit
+        const h = image.naturalHeight * fit
+        draw.drawImage(image, (copy.width - w) / 2, (copy.height - h) / 2, w, h)
+      } else if (shaped !== null && fill === 'enlarge') {
         const cover = Math.max(copy.width / image.naturalWidth, copy.height / image.naturalHeight)
         const w = image.naturalWidth * cover
         const h = image.naturalHeight * cover
@@ -807,7 +830,7 @@ export class PageCurl {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-      const result = { texture, aspect, paper: paperTone(image) }
+      const result = { texture, aspect, paper }
       this.ready.set(key, result)
       this.evict()
       return result
@@ -995,6 +1018,9 @@ export class PageCurl {
     const slope = ny / nx
     const reachesSpine = Math.min(x - (turn.sheet.y - y) * slope, x - (turn.sheet.y + turn.sheet.h - y) * slope)
     if (reachesSpine < turn.spine) x += turn.spine - reachesSpine
+    // Late in a turn the sheet hinges on the binding: left to the curl alone, a sliver of it would
+    // still lie flat beside the spine, showing a strip of the page it is leaving under the fold.
+    else x -= (reachesSpine - turn.spine) * smoothstep(0.55, 0.92, progress)
     return { x, y, nx, ny, radius }
   }
 
@@ -1068,7 +1094,7 @@ export class PageCurl {
       gl.uniform1f(u('uHasBack'), backTexture ? 1 : 0)
       const cover = face.cover || !!back?.cover
       gl.uniform1f(u('uCover'), cover ? 1 : 0)
-      gl.uniform2f(u('uCoverSides'), face.cover ? 1 : 0, (back?.cover ?? face.cover) ? 1 : 0)
+      gl.uniform2f(u('uCoverSides'), face.outside ? 1 : 0, (back?.outside ?? face.outside) ? 1 : 0)
       gl.uniform2f(u('uWear'), ...pageWear(face.page, this.context?.urls[0]))
       gl.uniform1f(u('uThickness'), cover ? Math.max(0.45, Math.min(1.1, turn.sheet.w * 0.0018)) : 0)
       gl.uniform1f(u('uLayer'), 0)

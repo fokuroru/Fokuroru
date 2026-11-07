@@ -46,12 +46,22 @@ export function bookFaces(urls: string[], wide: Readonly<Record<number, boolean>
   const near: FacePart = mirror ? 'right' : 'left'
   const far: FacePart = mirror ? 'left' : 'right'
   const faceOf = (page: number, part: FacePart = 'whole'): Face | null =>
-    urls[page] ? { page, src: urls[page]!, part, mirrored: false, cover: page === 0 || page === backCover || page === insideBack } : null
-  const blank = (cover: boolean): Face => ({ page: -1, src: bound ? urls[contentPages]! : BLANK, part: 'whole', mirrored: false, cover })
+    urls[page]
+      ? { page, src: urls[page]!, part, mirrored: false, cover: page === 0 || page === backCover || page === insideBack, outside: page === 0 || page === backCover }
+      : null
+  // The front blank is toned to the first page, the back one to the last (backCover.ts).
+  const blank = (cover: boolean, end: 'front' | 'back' = 'front'): Face => ({
+    page: -1,
+    src: bound ? urls[end === 'front' ? contentPages : insideBack]! : BLANK,
+    part: 'whole',
+    mirrored: false,
+    cover,
+    outside: false,
+  })
   const backOf = (face: Face): Face | null => {
     if (face.page === 0) return blank(true)
     if (face.page === insideBack) return faceOf(backCover)
-    if (bound && face.page === contentPages - 1) return blank(false)
+    if (bound && face.page === contentPages - 1) return blank(false, 'back')
     const next = face.page === contentPages ? 1 : face.page + 1
     if (wide[next]) return faceOf(next, near)
     return { ...face, mirrored: !face.mirrored }
@@ -65,7 +75,7 @@ export function bookFaces(urls: string[], wide: Readonly<Record<number, boolean>
     if (first === 1 || first === contentPages || first === insideBack || (double && wide[first - 1])) {
       return { left: blank(first === 1 || first === contentPages || contentPages === 1), right: faceOf(first) }
     }
-    if (double) return { left: faceOf(first), right: blank(false) }
+    if (double) return { left: faceOf(first), right: blank(false, 'back') }
     const before = faceOf(first - 1, wide[first - 1] ? far : 'whole')
     return { left: before && backOf(before), right: faceOf(first) }
   }
