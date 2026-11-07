@@ -630,11 +630,14 @@ export default function PagedView({
     curl?.settled(shown.key)
   }, [curl, shown.key])
 
-  // The facing page beside a lone page, on the spine side: the page before it, where a turned page
-  // lands, or plain paper at the start. Placed from the page's own box, so every fit and size setting
-  // keeps working as it did.
+  // The facing page beside a lone page, on the spine side: the back of the sheet turned before it,
+  // so the page before, mirrored. The first page has nothing turned before it and the last stands
+  // alone, as in a book. Placed from the page's own box, so every fit and size setting keeps working.
+  const ghostPage = shown.spread[0]! - 1
+  const ghost = ghostPage >= 0 && !paper?.wide[ghostPage] ? (urls[ghostPage] ?? null) : null
+  const lastPage = shown.spread[0] === urls.length - 1
   const [blank, setBlank] = useState<Box | null>(null)
-  const wantBlank = curlOn && lone
+  const wantBlank = curlOn && lone && ghost !== null && !lastPage
   const facingRight = mirror
   useLayoutEffect(() => {
     const host = root.current
@@ -669,9 +672,6 @@ export default function PagedView({
     for (const element of host.querySelectorAll('.reader-page:not(.reader-blank)')) observer.observe(element)
     return () => observer.disconnect()
   }, [wantBlank, facingRight, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
-  const ghostPage = shown.spread[0]! - 1
-  const ghost = ghostPage >= 0 && !paper?.wide[ghostPage] ? (urls[ghostPage] ?? null) : null
-
   return (
     <div
       ref={root}
@@ -718,8 +718,8 @@ export default function PagedView({
                 className="reader-facing-page"
                 style={{
                   objectFit: sheet ? (sheet.cover ? 'cover' : 'fill') : 'contain',
-                  // Against the spine, as the turned page lands.
-                  objectPosition: facingRight ? 'left center' : 'right center',
+                  // Against the spine, as the turned page lands. Mirrored, so the sides swap.
+                  objectPosition: facingRight ? 'right center' : 'left center',
                 }}
                 draggable={false}
               />

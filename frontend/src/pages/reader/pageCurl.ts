@@ -64,24 +64,23 @@ uniform sampler2D uBack;
 uniform float uHasBack;
 uniform float uShadow;
 uniform float uRadius;
-uniform float uThrough;
+uniform float uMirrored;
 out vec4 outColor;
-const vec3 PAPER = vec3(0.96, 0.95, 0.92);
 const vec3 LIGHT = vec3(-0.3, -0.4, 0.87);
 void main() {
   vec3 n = normalize(vNormal);
   bool back = n.z < 0.0;
   vec3 colour;
-  if (!back && uThrough > 0.5) {
-    // A blank facing page: the back of the page before it, the print faint and mirrored.
-    colour = mix(texture(uFront, vec2(1.0 - vUv.x, vUv.y)).rgb, PAPER, 0.9);
+  if (!back && uMirrored > 0.5) {
+    // A lone page's facing page: the back of the sheet turned before it, its print mirrored.
+    colour = texture(uFront, vec2(1.0 - vUv.x, vUv.y)).rgb;
   } else if (!back) {
     colour = texture(uFront, vUv).rgb;
   } else if (uHasBack > 0.5) {
     colour = texture(uBack, vec2(1.0 - vUv.x, vUv.y)).rgb;
   } else {
-    // The back of a lone page: paper, with the print showing through, mirrored as it would be.
-    colour = mix(texture(uFront, vUv).rgb, PAPER, 0.9);
+    // The back of a lone page: its own print seen from behind, mirrored, as the facing page shows it.
+    colour = texture(uFront, vUv).rgb;
   }
   vec3 facing = back ? -n : n;
   float light = (0.55 + 0.45 * max(dot(facing, LIGHT), 0.0)) / (0.55 + 0.45 * LIGHT.z);
@@ -123,7 +122,7 @@ interface Turn {
   spine: number
   sheet: Rect
   leftSlot: Rect | null
-  /** The left page is a lone page's facing page: the page before it, or plain paper when there is none. */
+  /** The left page is a lone page's facing page, the page before it drawn mirrored as a sheet's back. */
   facing: boolean
   rightSlot: Rect
   front: string
@@ -156,7 +155,6 @@ export interface CurlContext {
 }
 
 const keyOf = (spread: Spread) => spread.join(',')
-const PAPER_RGB = [245, 242, 235]
 
 const easeOut = (t: number) => 1 - (1 - t) ** 3
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
@@ -212,7 +210,6 @@ export class PageCurl {
   private indexCount = 0
   private textures = new Map<string, Promise<Texture | null>>()
   private ready = new Map<string, Texture>()
-  private paper: WebGLTexture | null = null
   /** Cache keys a pending or running turn needs; never evicted until it is over. */
   private pinned = new Set<string>()
   private context: CurlContext | null = null
@@ -382,7 +379,8 @@ export class PageCurl {
     const rect = rects[0]!
     const fromSrc = urls[from[0]!]!
     const toSrc = urls[to[0]!]!
-    // A lone page has a facing page: the page before whichever page is the sheet, shown as it was read.
+    // A lone page's facing page is the back of the sheet turned before it: that page, mirrored.
+    // The first page has none, so turning back onto it uncovers nothing on that side.
     const behind = forward ? context.previous : context.beforePrevious
     return {
       forward,
@@ -393,9 +391,7 @@ export class PageCurl {
       facing: true,
       rightSlot: rect,
       front: forward ? fromSrc : toSrc,
-      // The turned page stays readable as it lands on the facing side.
-      back: forward ? fromSrc : toSrc,
-      // A wide page before it is not squeezed into a page's slot: the facing side stays paper.
+      back: null,
       left: blank && behind && !context.wide[behind[0]!] ? (urls[behind[0]!] ?? null) : null,
       right: forward ? toSrc : fromSrc,
       textures: new Map(),
@@ -682,16 +678,15 @@ export class PageCurl {
       this.hide()
       return
     }
-    const quad = (src: string | null, rect: Rect, curl: boolean, shadow: boolean, back: string | null, through = false) => {
-      const found = src ? turn.textures.get(src)?.texture : undefined
-      const texture = found ?? (through ? this.paper : null)
+    const quad = (src: string | null, rect: Rect, curl: boolean, shadow: boolean, back: string | null, mirrored = false) => {
+      const texture = src ? turn.textures.get(src)?.texture : undefined
       if (!texture) return
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, texture)
       const backTexture = back ? turn.textures.get(back) : undefined
       gl.activeTexture(gl.TEXTURE1)
       gl.bindTexture(gl.TEXTURE_2D, backTexture?.texture ?? texture)
-      gl.uniform1f(u('uThrough'), through ? 1 : 0)
+      gl.uniform1f(u('uMirrored'), mirrored ? 1 : 0)
       gl.uniform4f(u('uRect'), rect.x, rect.y, rect.w, rect.h)
       gl.uniform1f(u('uCurl'), curl ? 1 : 0)
       gl.uniform1f(u('uZ'), curl ? 0 : -1)
@@ -704,8 +699,7 @@ export class PageCurl {
       return texture ? fitInto(slot, texture.aspect, anchorRight) : slot
     }
 
-    if (turn.leftSlot && turn.facing && !turn.left) quad(null, turn.leftSlot, false, false, null, true)
-    else if (turn.leftSlot) quad(turn.left, fitted(turn.left, turn.leftSlot, true), false, false, null)
+    if (turn.leftSlot) quad(turn.left, fitted(turn.left, turn.leftSlot, true), false, false, null, turn.facing)
     quad(turn.right, fitted(turn.right, turn.rightSlot, false), false, true, null)
     quad(turn.front, turn.sheet, true, false, turn.back)
   }
@@ -727,15 +721,9 @@ export class PageCurl {
       return
     }
     this.program = program
-    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uThrough']) {
+    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uMirrored']) {
       this.uniforms.set(name, gl.getUniformLocation(program, name))
     }
-
-    this.paper = gl.createTexture()
-    gl.bindTexture(gl.TEXTURE_2D, this.paper)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([...PAPER_RGB, 255]))
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 
     const vertices = new Float32Array((COLUMNS + 1) * (ROWS + 1) * 2)
     let v = 0
