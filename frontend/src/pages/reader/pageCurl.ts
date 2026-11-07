@@ -26,7 +26,8 @@ uniform float uRadius;
 uniform float uCurl;
 uniform float uZ;
 uniform float uCover;
-uniform vec2 uSwing;
+uniform vec2 uCoverAxis;
+uniform float uCoverFlex;
 uniform float uLift;
 uniform float uSpine;
 uniform float uBookShift;
@@ -44,14 +45,16 @@ void main() {
   vec3 normal = vec3(0.0, 0.0, 1.0);
   float s = dot(p - uFold.xy, uFold.zw);
   if (uCurl > 0.5 && uCover > 0.5) {
-    // Cardstock swings from the binding with a gentle bow instead of rolling like paper.
+    // A softcover bends along a broad, length-preserving arc rather than swinging as a board.
     float t = aUv.x;
-    float bow = 0.035 * uRect.z * uSwing.y;
-    float bend = bow * sin(3.14159265 * t);
-    float slope = 0.035 * 3.14159265 * uSwing.y * cos(3.14159265 * t);
-    float x = p.x - uSpine;
-    pos = vec3(uSpine + x * uSwing.x - bend * uSwing.y, p.y, x * uSwing.y + bend * uSwing.x);
-    normal = normalize(vec3(-uSwing.y - slope * uSwing.x, 0.0, uSwing.x - slope * uSwing.y));
+    float a = uCoverFlex * t;
+    float sn = sin(a);
+    float cs = cos(a);
+    float radius = uRect.z / max(uCoverFlex, 0.0001);
+    float x = uCoverFlex > 0.0001 ? radius * sn : uRect.z * t;
+    float z = uCoverFlex > 0.0001 ? -radius * (1.0 - cs) : 0.0;
+    pos = vec3(uSpine + x * uCoverAxis.x - z * uCoverAxis.y, p.y, x * uCoverAxis.y + z * uCoverAxis.x);
+    normal = vec3(sn * uCoverAxis.x - cs * uCoverAxis.y, 0.0, cs * uCoverAxis.x + sn * uCoverAxis.y);
   } else if (uCurl > 0.5 && s > 0.0) {
     vec2 n = uFold.zw;
     float r = max(uRadius, 0.0001);
@@ -67,9 +70,17 @@ void main() {
   }
   if (uCurl > 0.5) {
     float wave = sin(3.14159265 * aUv.x) * sin(6.2831853 * aUv.y + uWear.x);
-    float corner = smoothstep(0.8, 1.0, aUv.x) * smoothstep(0.82, 1.0, aUv.y);
-    float ripple = uRect.z * (0.0015 * wave + 0.008 * uWear.y * corner) * uLift;
-    pos += normal * (ripple * (uCover > 0.5 ? 0.2 : 1.0) + (aLayer + uLayer) * uThickness);
+    float mark = 0.0;
+    if (uWear.y > 0.5) {
+      if (uWear.x < 3.14159265) {
+        mark = smoothstep(0.8, 1.0, aUv.x) * smoothstep(0.82, 1.0, aUv.y);
+      } else {
+        float dy = (aUv.y - 0.35 - 0.15 * sin(uWear.x)) / 0.08;
+        mark = exp(-dy * dy) * smoothstep(0.65, 1.0, aUv.x);
+      }
+    }
+    float ripple = uRect.z * (0.002 * wave + 0.014 * mark) * uLift;
+    pos += normal * (ripple * (uCover > 0.5 ? 0.55 : 1.0) + (aLayer + uLayer) * uThickness);
   }
   // The scene is mirrored for right-to-left; the pictures on it must not be.
   vUv = vec2(mix(aUv.x, 1.0 - aUv.x, uMirror), aUv.y);
@@ -156,10 +167,22 @@ const TURN_SHARE = 0.4
 export const GUTTER_SHARE = 0.06
 
 /** Fixed per leaf: wear must never change when a page is redrawn. */
-export function pageWear(page: number): [number, number] {
-  const mixed = Math.imul(page + 1, 2654435761)
+export function pageWear(page: number, book = ''): [number, number] {
+  let bookSeed = 0
+  for (let i = 0; i < book.length; i++) bookSeed = (Math.imul(bookSeed, 31) + book.charCodeAt(i)) | 0
+  const mixed = Math.imul(page + 1, 2654435761) ^ bookSeed
   const seed = Math.imul(mixed ^ (mixed >>> 16), 2246822507) >>> 0
   return [(seed / 0xffffffff) * Math.PI * 2, seed % 19 === 0 ? 1 : 0]
+}
+
+export function coverShape(progress: number, phase: number) {
+  const p = Math.max(0, Math.min(1, progress))
+  const flex = (0.9 + 0.08 * Math.sin(phase)) * Math.sin(Math.PI * p)
+  const c = 1 - 2 * p
+  const s = 2 * Math.sqrt(p * (1 - p))
+  const hc = Math.cos(flex / 2)
+  const hs = Math.sin(flex / 2)
+  return { flex, axis: [c * hc - s * hs, s * hc + c * hs] as const }
 }
 
 interface Texture {
@@ -845,7 +868,11 @@ export class PageCurl {
     gl.uniform1f(u('uDepth'), Math.max(width, height) * 2.2)
     gl.uniform4f(u('uFold'), fold.x, fold.y, fold.nx, fold.ny)
     gl.uniform1f(u('uRadius'), fold.radius)
-    gl.uniform2f(u('uSwing'), 1 - 2 * progress, 2 * Math.sqrt(progress * (1 - progress)))
+    if (coverTurn) {
+      const shape = coverShape(progress, pageWear(turn.front.page, this.context?.urls[0])[0])
+      gl.uniform2f(u('uCoverAxis'), ...shape.axis)
+      gl.uniform1f(u('uCoverFlex'), shape.flex)
+    }
     gl.uniform1f(u('uLift'), Math.sin(Math.PI * progress))
     // The lifted page's shadow on the page it uncovers fades as it lies down; flat, it casts none.
     const lift = coverTurn ? Math.sin(Math.PI * progress) : Math.min(1, fold.radius / (turn.sheet.w * RADIUS_SHARE))
@@ -884,7 +911,7 @@ export class PageCurl {
       const cover = face.cover || !!back?.cover
       gl.uniform1f(u('uCover'), cover ? 1 : 0)
       gl.uniform2f(u('uCoverSides'), face.cover ? 1 : 0, (back?.cover ?? face.cover) ? 1 : 0)
-      gl.uniform2f(u('uWear'), ...pageWear(face.page))
+      gl.uniform2f(u('uWear'), ...pageWear(face.page, this.context?.urls[0]))
       gl.uniform1f(u('uThickness'), cover ? Math.max(0.45, Math.min(1.1, turn.sheet.w * 0.0018)) : 0)
       gl.uniform1f(u('uLayer'), 0)
       gl.uniform1f(u('uEdge'), 0)
@@ -929,7 +956,7 @@ export class PageCurl {
       return
     }
     this.program = program
-    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uCover', 'uCoverSides', 'uSwing', 'uLift', 'uThickness', 'uLayer', 'uEdge', 'uWear', 'uBookShift', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uFrontPart', 'uBackPart', 'uFrontPaper', 'uBackPaper', 'uSpine', 'uGutter']) {
+    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uCover', 'uCoverSides', 'uCoverAxis', 'uCoverFlex', 'uLift', 'uThickness', 'uLayer', 'uEdge', 'uWear', 'uBookShift', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uFrontPart', 'uBackPart', 'uFrontPaper', 'uBackPaper', 'uSpine', 'uGutter']) {
       this.uniforms.set(name, gl.getUniformLocation(program, name))
     }
 

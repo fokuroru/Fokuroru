@@ -5754,7 +5754,7 @@ body.reader-open {
 .reader-paged[data-paper] img.reader-page {
   border-radius: 0.7px 0.9px 0.8px 0.5px;
 }
-.reader-paged[data-paper] img.reader-page[data-worn] {
+.reader-paged[data-paper] img.reader-page.reader-worn {
   border-bottom-right-radius: 2px;
 }
 .reader-paged[data-paper] .reader-cover {

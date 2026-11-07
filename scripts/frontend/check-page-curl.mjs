@@ -8,7 +8,15 @@ const source = await readFile(new URL('../../frontend/src/pages/reader/pageCurl.
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText
 const module = { exports: {} }
 new Function('module', 'exports', 'require', compiled)(module, module.exports, () => ({ heldPageUrl: () => undefined }))
-const { PageCurl, pageWear } = module.exports
+const { PageCurl, pageWear, coverShape } = module.exports
+assert.notDeepEqual(pageWear(0, 'book-a'), pageWear(0, 'book-b'), 'wear varies between books, rather than wearing every front cover identically')
+for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
+  const shape = coverShape(progress, 0)
+  assert.ok(Math.abs(Math.hypot(...shape.axis) - 1) < 1e-12)
+  if (progress === 0 || progress === 1) assert.ok(shape.flex < 1e-12, 'a cover settles flat at either end')
+  else assert.ok(shape.flex > 0.5 && shape.flex < 1.1, 'a softcover bends visibly over a broad arc')
+}
+assert.ok(1 / coverShape(0.5, 0).flex > 0.8, 'the cover bend radius remains much broader than interior paper')
 const worn = Array.from({ length: 200 }, (_, page) => pageWear(page)[1]).filter(Boolean).length
 assert.ok(worn > 3 && worn < 20, 'only a small minority of pages have a worn corner')
 assert.deepEqual(pageWear(27), pageWear(27), 'imperfections stay fixed as the leaf turns')
@@ -113,7 +121,7 @@ assert.ok(edgeIndices.some((index) => vertices[index * 3 + 2] === -1), 'the edge
 for (const [x, expected] of [[1000, [1, 0]], [200, [-1, 0]]]) {
   gpu.finger = { x, y: 600 }
   gpu.draw()
-  assert.deepEqual(uniforms.get('uSwing'), expected, 'the cover is flat at both ends of its swing')
+  assert.ok(uniforms.get('uCoverAxis').every((value, index) => Math.abs(value - expected[index]) < 1e-12), 'the cover is flat at both ends of its swing')
   assert.ok(Math.abs(uniforms.get('uLift')[0]) < 1e-12, 'paper imperfections settle at the handoff')
 }
 gpu.gl = null

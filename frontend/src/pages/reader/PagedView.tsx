@@ -306,7 +306,6 @@ function PagedPage({
         ref={setRef}
         src={url}
         data-no-cover-fallback
-        data-worn={pageWear(page)[1] === 1 || undefined}
         alt={alt}
         className={className}
         style={{ ...style, ...evened, filter: tone, ...(!visible ? { display: 'none' } : standby ? STANDBY : undefined) }}
@@ -917,7 +916,7 @@ export default function PagedView({
             key={src}
             src={src}
             alt={t`${label} - page ${pageNumber}`}
-            className={`reader-page ${FIT_CLASS[fit]}${faceOf(page)?.cover ? ' reader-cover' : ''}`}
+            className={`reader-page ${FIT_CLASS[fit]}${faceOf(page)?.cover ? ' reader-cover' : ''}${pageWear(page, urls[0])[1] === 1 ? ' reader-worn' : ''}`}
             style={
               !standby && loneSize
                 ? {
