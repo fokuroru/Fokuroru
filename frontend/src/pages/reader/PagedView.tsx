@@ -625,11 +625,12 @@ export default function PagedView({
     curl?.settled(shown.key)
   }, [curl, shown.key])
 
-  // The blank facing page beside a lone page: the back of the page before it, on the spine side.
-  // Placed from the page's own box, so every fit and size setting keeps working as it did.
+  // The facing page beside a lone page, on the spine side: the page before it, where a turned page
+  // lands, or plain paper at the start. Placed from the page's own box, so every fit and size setting
+  // keeps working as it did.
   const [blank, setBlank] = useState<Box | null>(null)
   const wantBlank = curlOn && lone
-  const blankLeft = mirror
+  const facingRight = mirror
   useLayoutEffect(() => {
     const host = root.current
     if (!host || !wantBlank) {
@@ -645,7 +646,7 @@ export default function PagedView({
       const next =
         rect && rect.height > rect.width
           ? {
-              left: (blankLeft ? rect.right : rect.left - rect.width) - origin.left,
+              left: (facingRight ? rect.right : rect.left - rect.width) - origin.left,
               top: rect.top - origin.top,
               width: rect.width,
               height: rect.height,
@@ -662,7 +663,7 @@ export default function PagedView({
     observer.observe(host)
     for (const element of host.querySelectorAll('.reader-page:not(.reader-blank)')) observer.observe(element)
     return () => observer.disconnect()
-  }, [wantBlank, blankLeft, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
+  }, [wantBlank, facingRight, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
   const ghostPage = shown.spread[0]! - 1
   const ghost = ghostPage >= 0 ? (urls[ghostPage] ?? null) : null
 
@@ -709,8 +710,12 @@ export default function PagedView({
               <img
                 src={heldPageUrl(ghost) ?? ghost}
                 alt=""
-                className="reader-blank-ghost"
-                style={{ objectFit: sheet?.cover ? 'cover' : 'fill' }}
+                className="reader-facing-page"
+                style={{
+                  objectFit: sheet ? (sheet.cover ? 'cover' : 'fill') : 'contain',
+                  // Against the spine, as the turned page lands.
+                  objectPosition: facingRight ? 'left center' : 'right center',
+                }}
                 draggable={false}
               />
             )}

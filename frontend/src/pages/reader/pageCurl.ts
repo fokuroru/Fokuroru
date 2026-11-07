@@ -45,7 +45,8 @@ void main() {
       normal = vec3(0.0, 0.0, -1.0);
     }
   }
-  vUv = aUv;
+  // The scene is mirrored for right-to-left; the pictures on it must not be.
+  vUv = vec2(mix(aUv.x, 1.0 - aUv.x, uMirror), aUv.y);
   vNormal = normal;
   vBeyond = s;
   float x = mix(pos.x, uView.x - pos.x, uMirror);
@@ -118,8 +119,8 @@ interface Turn {
   spine: number
   sheet: Rect
   leftSlot: Rect | null
-  /** The left page is a blank facing page, drawn as the back of `left` (plain paper when null). */
-  leftThrough: boolean
+  /** The left page is a lone page's facing page: the page before it, or plain paper when there is none. */
+  facing: boolean
   rightSlot: Rect
   front: string
   back: string | null
@@ -355,13 +356,13 @@ export class PageCurl {
       const [fromLeft, fromRight] = from.map((page) => urls[page]!)
       const [toLeft, toRight] = to.map((page) => urls[page]!)
       return forward
-        ? { forward, targetKey, spine, sheet, leftSlot, leftThrough: false, rightSlot, front: fromRight!, back: toLeft!, left: fromLeft!, right: toRight! }
-        : { forward, targetKey, spine, sheet, leftSlot, leftThrough: false, rightSlot, front: toRight!, back: fromLeft!, left: toLeft!, right: fromRight! }
+        ? { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: fromRight!, back: toLeft!, left: fromLeft!, right: toRight! }
+        : { forward, targetKey, spine, sheet, leftSlot, facing: false, rightSlot, front: toRight!, back: fromLeft!, left: toLeft!, right: fromRight! }
     }
     const rect = rects[0]!
     const fromSrc = urls[from[0]!]!
     const toSrc = urls[to[0]!]!
-    // An aligned page has a blank facing page: the back of the page before whichever is the sheet.
+    // A lone page has a facing page: the page before whichever page is the sheet, shown as it was read.
     const behind = forward ? context.previous : context.beforePrevious
     return {
       forward,
@@ -369,10 +370,11 @@ export class PageCurl {
       spine: rect.x,
       sheet: rect,
       leftSlot: blank,
-      leftThrough: true,
+      facing: true,
       rightSlot: rect,
       front: forward ? fromSrc : toSrc,
-      back: null,
+      // The turned page stays readable as it lands on the facing side.
+      back: forward ? fromSrc : toSrc,
       left: blank && behind ? (urls[behind[0]!] ?? null) : null,
       right: forward ? toSrc : fromSrc,
     }
@@ -673,7 +675,7 @@ export class PageCurl {
       return texture ? fitInto(slot, texture.aspect, anchorRight) : slot
     }
 
-    if (turn.leftSlot && turn.leftThrough) quad(turn.left, turn.leftSlot, false, false, null, true)
+    if (turn.leftSlot && turn.facing && !turn.left) quad(null, turn.leftSlot, false, false, null, true)
     else if (turn.leftSlot) quad(turn.left, fitted(turn.left, turn.leftSlot, true), false, false, null)
     quad(turn.right, fitted(turn.right, turn.rightSlot, false), false, true, null)
     quad(turn.front, turn.sheet, true, false, turn.back)

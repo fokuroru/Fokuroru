@@ -5764,8 +5764,8 @@ body.reader-open {
 .reader-paged[data-align='right'] {
   justify-content: flex-end;
 }
-/* The blank facing page: paper with the page before it faintly through, as the back of a turned
-   sheet. Clipped by its own box so a facing page off the screen edge adds no sideways scroll. */
+/* The facing page beside a lone page: the page before it, where a turned page lands, on paper.
+   Clipped by its own box so a facing page off the screen edge adds no sideways scroll. */
 .reader-blank-clip {
   position: absolute;
   inset: 0;
@@ -5777,13 +5777,11 @@ body.reader-open {
   background: #f5f2eb;
   overflow: hidden;
 }
-.reader-blank-ghost {
+.reader-facing-page {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.1;
-  transform: scaleX(-1);
   user-select: none;
   -webkit-user-drag: none;
 }
