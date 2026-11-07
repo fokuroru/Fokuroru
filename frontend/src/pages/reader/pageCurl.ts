@@ -284,6 +284,11 @@ export function releaseCompletes(samples: Sample[], upTime: number, progress: nu
   return forward ? progress >= reach || coasted >= reach : 1 - progress >= reach || 1 - coasted >= reach
 }
 
+/** Device pixels per CSS pixel, as far as the drawing goes. */
+function pixelRatio(): number {
+  return Math.min(window.devicePixelRatio || 1, 3)
+}
+
 export function reducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
@@ -485,14 +490,25 @@ export class PageCurl {
   }
 
   /** Textures are shaped to the sheet, so the same page at another sheet size is another texture. */
+  /**
+   * The height in device pixels a page is shown at. Textures are drawn at exactly this size with the
+   * browser's own resampling, so the drawing matches the page it hands back to; a texture shrunk on
+   * the GPU came out softer, and lighter where screentone blurred. Rounded so small moves reuse them.
+   */
+  private displayHeight(): number | null {
+    const height = this.context?.geometry()?.pageHeight
+    return height ? Math.round((height * pixelRatio()) / 8) * 8 : null
+  }
+
   private keyFor(src: string) {
-    return `${src}|${this.context?.sheetAspect ?? ''}|${this.context?.sheetFill ?? ''}`
+    return `${src}|${this.context?.sheetAspect ?? ''}|${this.context?.sheetFill ?? ''}|${this.displayHeight() ?? ''}`
   }
 
   private texture(src: string): Promise<Texture | null> {
     const key = this.keyFor(src)
     const sheet = this.context?.sheetAspect ?? null
     const fill = this.context?.sheetFill ?? 'stretch'
+    const target = this.displayHeight()
     const known = this.textures.get(key)
     if (known) return known
     const loading = (async () => {
@@ -507,29 +523,28 @@ export class PageCurl {
       })
       image.src = heldPageUrl(src) ?? src
       if (!(await loaded) || !image.naturalWidth) return null
-      const limit = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE) as number, 2048)
+      const limit = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE) as number, 4096)
       const natural = image.naturalWidth / image.naturalHeight
       // A two-page spread covers two sheets.
       const shaped = sheet === null ? null : natural <= 1 ? sheet : sheet * 2
       const aspect = shaped ?? natural
-      // Keep the page's width; the sheet sets the height (a short page comes out taller).
-      const scale = Math.min(1, limit / Math.max(image.naturalWidth, image.naturalWidth / aspect))
-      let source: TexImageSource = image
-      if (scale < 1 || shaped !== null) {
-        const copy = document.createElement('canvas')
-        copy.width = Math.round(image.naturalWidth * scale)
-        copy.height = Math.round((image.naturalWidth / aspect) * scale)
-        const draw = copy.getContext('2d')
-        if (shaped !== null && fill === 'enlarge') {
-          const cover = Math.max(copy.width / image.naturalWidth, copy.height / image.naturalHeight)
-          const w = image.naturalWidth * cover
-          const h = image.naturalHeight * cover
-          draw?.drawImage(image, (copy.width - w) / 2, (copy.height - h) / 2, w, h)
-        } else {
-          draw?.drawImage(image, 0, 0, copy.width, copy.height)
-        }
-        source = copy
+      // At the size it is shown; the sheet sets the shape (a short page comes out taller).
+      const height = Math.max(1, Math.round(Math.min(target ?? image.naturalHeight, limit, limit / aspect)))
+      const copy = document.createElement('canvas')
+      copy.width = Math.max(1, Math.round(height * aspect))
+      copy.height = height
+      const draw = copy.getContext('2d')
+      if (!draw) return null
+      draw.imageSmoothingQuality = 'high'
+      if (shaped !== null && fill === 'enlarge') {
+        const cover = Math.max(copy.width / image.naturalWidth, copy.height / image.naturalHeight)
+        const w = image.naturalWidth * cover
+        const h = image.naturalHeight * cover
+        draw.drawImage(image, (copy.width - w) / 2, (copy.height - h) / 2, w, h)
+      } else {
+        draw.drawImage(image, 0, 0, copy.width, copy.height)
       }
+      const source: TexImageSource = copy
       const texture = gl.createTexture()
       if (!texture) return null
       gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -539,8 +554,8 @@ export class PageCurl {
         gl.deleteTexture(texture)
         return null
       }
-      gl.generateMipmap(gl.TEXTURE_2D)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+      // Drawn about one texel to a pixel, so plain linear filtering keeps it as sharp as the page.
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
@@ -702,8 +717,11 @@ export class PageCurl {
     const width = turn.sheet.w
     const edge = turn.spine + width
     const progress = this.progress()
-    const dx = edge - this.finger.x
-    const dy = this.grabY - this.finger.y
+    // Past a full turn, or far above or below the page, the finger pulls no further.
+    const fingerX = Math.max(turn.spine - width, Math.min(edge, this.finger.x))
+    const fingerY = Math.max(turn.sheet.y - turn.sheet.h * 0.25, Math.min(turn.sheet.y + turn.sheet.h * 1.25, this.finger.y))
+    const dx = edge - fingerX
+    const dy = this.grabY - fingerY
     const tilt = Math.max(-MAX_TILT, Math.min(MAX_TILT, Math.atan2(dy, Math.max(dx, 1)))) * (1 - progress)
     const nx = Math.cos(tilt)
     const ny = Math.sin(tilt)
@@ -711,7 +729,14 @@ export class PageCurl {
     if (reach <= 0.5) return { x: edge + 1, y: this.grabY, nx: 1, ny: 0, radius: 1 }
     const radius = Math.max(0.5, Math.min(width * RADIUS_SHARE, reach / Math.PI, width * RADIUS_SHARE * 3 * (1 - progress)))
     const along = (reach + Math.PI * radius) / 2
-    return { x: edge - nx * along, y: this.grabY - ny * along, nx, ny, radius }
+    let x = edge - nx * along
+    const y = this.grabY - ny * along
+    // The page is bound at the spine: the fold never crosses it, however far the finger goes, so a
+    // page cannot be pulled off. Where a tilted fold meets the top or bottom edge decides it.
+    const slope = ny / nx
+    const reachesSpine = Math.min(x - (turn.sheet.y - y) * slope, x - (turn.sheet.y + turn.sheet.h - y) * slope)
+    if (reachesSpine < turn.spine) x += turn.spine - reachesSpine
+    return { x, y, nx, ny, radius }
   }
 
   private draw() {
@@ -719,7 +744,7 @@ export class PageCurl {
     const turn = this.turn
     const program = this.program
     if (!gl || !turn || !program) return
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const dpr = pixelRatio()
     const width = window.innerWidth
     const height = window.innerHeight
     const pixelWidth = Math.round(width * dpr)
@@ -743,6 +768,8 @@ export class PageCurl {
     gl.uniform1f(u('uDepth'), Math.max(width, height) * 2.2)
     gl.uniform4f(u('uFold'), fold.x, fold.y, fold.nx, fold.ny)
     gl.uniform1f(u('uRadius'), fold.radius)
+    // The lifted page's shadow on the page it uncovers fades as it lies down; flat, it casts none.
+    const lift = Math.min(1, fold.radius / (turn.sheet.w * RADIUS_SHARE))
     gl.uniform1f(u('uSpine'), turn.spine)
     gl.uniform1f(u('uGutter'), turn.sheet.w * GUTTER_SHARE)
     gl.uniform1i(u('uFront'), 0)
@@ -772,14 +799,17 @@ export class PageCurl {
       gl.uniform4f(u('uRect'), rect.x, rect.y, rect.w, rect.h)
       gl.uniform1f(u('uCurl'), curl ? 1 : 0)
       gl.uniform1f(u('uZ'), curl ? 0 : -1)
-      gl.uniform1f(u('uShadow'), shadow ? 1 : 0)
+      gl.uniform1f(u('uShadow'), shadow ? lift : 0)
       gl.uniform1f(u('uHasBack'), backTexture ? 1 : 0)
       gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0)
     }
     // A face keeps its own shape inside its page's slot, against the spine.
     const fitted = (face: Face | null, slot: Rect, anchorRight: boolean) => {
       const texture = face ? turn.textures.get(face.src) : undefined
-      return texture ? fitInto(slot, texture.aspect * PARTS[face!.part][1], anchorRight) : slot
+      if (!texture) return slot
+      const aspect = texture.aspect * PARTS[face!.part][1]
+      // A page the shape of its slot fills it exactly, as the real page does; fitting it would round a pixel off.
+      return Math.abs(slot.w / slot.h - aspect) < aspect * 0.03 ? slot : fitInto(slot, aspect, anchorRight)
     }
 
     quad(turn.left, fitted(turn.left, turn.leftSlot, true), false, false, null)
