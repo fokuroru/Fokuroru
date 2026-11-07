@@ -5751,12 +5751,73 @@ body.reader-open {
   pointer-events: none;
   display: none;
 }
-.reader-paged[data-curling] > :not(.reader-curl) {
+.reader-paged[data-curling] > :not(.reader-curl):not(.reader-book-shadow) {
   visibility: hidden;
 }
 .reader-paged[data-curling] > .reader-curl {
   display: block;
 }
+/* The open book's shadow, with a few page edges along its outer sides. Behind the pages; it stays up
+   while a turn is drawn over it. */
+.reader-book-shadow {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  box-shadow:
+    -1px 0 0 #e6e1d5,
+    -2px 0 0 #b9b3a6,
+    -3px 0 0 #e1dccf,
+    -4px 0 0 #aaa497,
+    1px 0 0 #e6e1d5,
+    2px 0 0 #b9b3a6,
+    3px 0 0 #e1dccf,
+    4px 0 0 #aaa497,
+    0 14px 34px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+/* The fold at the spine: the paper curves into the binding, darkest at the spine itself. Three gutter
+   widths (pageCurl.ts GUTTER_SHARE) each side, falling off as the drawn turn's does: 30% at the spine,
+   down by e for every gutter width out. */
+.reader-gutter {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.reader-gutter[data-sides='both'] {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.015) 0%,
+    rgba(0, 0, 0, 0.04) 16.7%,
+    rgba(0, 0, 0, 0.11) 33.3%,
+    rgba(0, 0, 0, 0.18) 41.7%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.18) 58.3%,
+    rgba(0, 0, 0, 0.11) 66.7%,
+    rgba(0, 0, 0, 0.04) 83.3%,
+    rgba(0, 0, 0, 0.015) 100%
+  );
+}
+.reader-gutter[data-sides='right'] {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.18) 16.7%,
+    rgba(0, 0, 0, 0.11) 33.3%,
+    rgba(0, 0, 0, 0.04) 66.7%,
+    rgba(0, 0, 0, 0.015) 100%
+  );
+}
+.reader-gutter[data-sides='left'] {
+  background: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.18) 16.7%,
+    rgba(0, 0, 0, 0.11) 33.3%,
+    rgba(0, 0, 0, 0.04) 66.7%,
+    rgba(0, 0, 0, 0.015) 100%
+  );
+}
+
 /* A lone page pushed to one side, so a thumb on that side reaches the edge it turns. */
 .reader-paged[data-align='left'] {
   justify-content: flex-start;

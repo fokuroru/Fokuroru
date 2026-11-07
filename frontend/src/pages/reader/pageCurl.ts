@@ -27,8 +27,10 @@ uniform float uZ;
 out vec2 vUv;
 out vec3 vNormal;
 out float vBeyond;
+out float vFlatX;
 void main() {
   vec2 p = uRect.xy + aUv * uRect.zw;
+  vFlatX = p.x;
   vec3 pos = vec3(p, uZ);
   vec3 normal = vec3(0.0, 0.0, 1.0);
   float s = dot(p - uFold.xy, uFold.zw);
@@ -59,6 +61,9 @@ precision highp float;
 in vec2 vUv;
 in vec3 vNormal;
 in float vBeyond;
+in float vFlatX;
+uniform float uSpine;
+uniform float uGutter;
 uniform sampler2D uFront;
 uniform sampler2D uBack;
 uniform float uHasBack;
@@ -67,10 +72,12 @@ uniform float uRadius;
 // A face's share of its texture: left edge, width, and 1 when its print is mirrored.
 uniform vec3 uFrontPart;
 uniform vec3 uBackPart;
+// Each page's own paper colour, which print seen from the other side fades into.
+uniform vec3 uFrontPaper;
+uniform vec3 uBackPaper;
 out vec4 outColor;
 const vec3 LIGHT = vec3(-0.3, -0.4, 0.87);
-// Print seen through the paper from the other side: faded into the paper colour.
-const vec3 PAPER = vec3(0.96, 0.95, 0.92);
+// Print seen through the paper from the other side: faded into that page's paper.
 const float THROUGH = 0.7;
 vec2 within(vec3 part, float u, float v) {
   float s = part.z > 0.5 ? 1.0 - u : u;
@@ -82,20 +89,22 @@ void main() {
   vec3 colour;
   if (!back) {
     colour = texture(uFront, within(uFrontPart, vUv.x, vUv.y)).rgb;
-    if (uFrontPart.z > 0.5) colour = mix(colour, PAPER, THROUGH);
+    if (uFrontPart.z > 0.5) colour = mix(colour, uFrontPaper, THROUGH);
   } else if (uHasBack > 0.5) {
     // Seen from behind the sheet, so flipped once more: it reads as it will when it lies down.
     colour = texture(uBack, within(uBackPart, 1.0 - vUv.x, vUv.y)).rgb;
-    if (uBackPart.z > 0.5) colour = mix(colour, PAPER, THROUGH);
+    if (uBackPart.z > 0.5) colour = mix(colour, uBackPaper, THROUGH);
   } else {
     // A sheet with nothing printed on its back shows its own print through the paper.
-    colour = mix(texture(uFront, within(uFrontPart, vUv.x, vUv.y)).rgb, PAPER, THROUGH);
+    colour = mix(texture(uFront, within(uFrontPart, vUv.x, vUv.y)).rgb, uFrontPaper, THROUGH);
   }
   vec3 facing = back ? -n : n;
   float light = (0.55 + 0.45 * max(dot(facing, LIGHT), 0.0)) / (0.55 + 0.45 * LIGHT.z);
   // The lifted sheet shades the page it uncovers, darkest under the roll.
   float shade = uShadow * (vBeyond > 0.0 ? 0.45 * exp(-vBeyond / (uRadius * 1.5 + 10.0)) : 0.0);
-  outColor = vec4(colour * min(light, 1.08) * (1.0 - shade), 1.0);
+  // The fold at the spine, where the paper curves into the binding: darkest at the spine itself.
+  float gutter = uGutter > 0.0 ? 0.3 * exp(-abs(vFlatX - uSpine) / uGutter) : 0.0;
+  outColor = vec4(colour * min(light, 1.08) * (1.0 - shade) * (1.0 - gutter), 1.0);
 }`
 
 const COLUMNS = 64
@@ -109,10 +118,47 @@ const VELOCITY_MS = 80
 const COAST_MS = 300
 /** Share of a page's width the finger has to cross for a released drag to turn the page. */
 const TURN_SHARE = 0.4
+/** How far the fold's shadow reaches from the spine, as a share of a page's width. Matches the page's CSS gutter. */
+export const GUTTER_SHARE = 0.06
 
 interface Texture {
   texture: WebGLTexture
   aspect: number
+  /** The page's paper colour, 0 to 1 per channel. */
+  paper: [number, number, number]
+}
+
+/**
+ * A page's paper colour: the median of its outer edge, which is margin on almost every page. Print
+ * shown from the back of the sheet fades into this, so a white page stays white and a cream or grey
+ * one keeps its own tone. Returned 0 to 1 per channel.
+ */
+export function paperTone(image: CanvasImageSource & { width: number; height: number }): [number, number, number] {
+  const canvas = document.createElement('canvas')
+  const width = 40
+  const height = Math.max(4, Math.round((40 * image.height) / Math.max(1, image.width)))
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext('2d', { willReadFrequently: true })
+  if (!context) return [0.96, 0.95, 0.92]
+  try {
+    context.drawImage(image, 0, 0, width, height)
+    const data = context.getImageData(0, 0, width, height).data
+    const channels: number[][] = [[], [], []]
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (x > 1 && x < width - 2 && y > 1 && y < height - 2) continue
+        const i = (y * width + x) * 4
+        for (let c = 0; c < 3; c++) channels[c]!.push(data[i + c]!)
+      }
+    }
+    return channels.map((values) => {
+      values.sort((a, b) => a - b)
+      return values[Math.floor(values.length / 2)]! / 255
+    }) as [number, number, number]
+  } catch {
+    return [0.96, 0.95, 0.92]
+  }
 }
 
 /** Which part of a page's image a face shows: all of it, or one half of a two-page spread. */
@@ -498,7 +544,7 @@ export class PageCurl {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-      const result = { texture, aspect }
+      const result = { texture, aspect, paper: paperTone(image) }
       this.ready.set(key, result)
       this.evict()
       return result
@@ -697,6 +743,8 @@ export class PageCurl {
     gl.uniform1f(u('uDepth'), Math.max(width, height) * 2.2)
     gl.uniform4f(u('uFold'), fold.x, fold.y, fold.nx, fold.ny)
     gl.uniform1f(u('uRadius'), fold.radius)
+    gl.uniform1f(u('uSpine'), turn.spine)
+    gl.uniform1f(u('uGutter'), turn.sheet.w * GUTTER_SHARE)
     gl.uniform1i(u('uFront'), 0)
     gl.uniform1i(u('uBack'), 1)
 
@@ -719,6 +767,8 @@ export class PageCurl {
       gl.bindTexture(gl.TEXTURE_2D, backTexture?.texture ?? texture)
       part('uFrontPart', face)
       part('uBackPart', backTexture ? back : null)
+      gl.uniform3f(u('uFrontPaper'), ...turn.textures.get(face.src)!.paper)
+      gl.uniform3f(u('uBackPaper'), ...(backTexture ?? turn.textures.get(face.src)!).paper)
       gl.uniform4f(u('uRect'), rect.x, rect.y, rect.w, rect.h)
       gl.uniform1f(u('uCurl'), curl ? 1 : 0)
       gl.uniform1f(u('uZ'), curl ? 0 : -1)
@@ -754,7 +804,7 @@ export class PageCurl {
       return
     }
     this.program = program
-    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uFrontPart', 'uBackPart']) {
+    for (const name of ['uRect', 'uView', 'uMirror', 'uDepth', 'uFold', 'uRadius', 'uCurl', 'uZ', 'uFront', 'uBack', 'uHasBack', 'uShadow', 'uFrontPart', 'uBackPart', 'uFrontPaper', 'uBackPaper', 'uSpine', 'uGutter']) {
       this.uniforms.set(name, gl.getUniformLocation(program, name))
     }
 

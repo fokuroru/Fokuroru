@@ -5,7 +5,7 @@ import { cropRegion, FULL_REGION, isFull, partOf, type PagePart, type Region } f
 import EnhancedPage from './EnhancedPage'
 import { heldPageUrl, holdPage } from './pageBlobs'
 import { isSoftPage } from '../../lib/enhance/softness'
-import { PageCurl, type BookGeometry, type Face, type FacePart, type Opening } from './pageCurl'
+import { GUTTER_SHARE, PageCurl, paperTone, type BookGeometry, type Face, type FacePart, type Opening } from './pageCurl'
 import { useCompareKey } from './compareHold'
 import {
   EnhanceScope,
@@ -670,12 +670,17 @@ export default function PagedView({
           .map((element) => element.getBoundingClientRect())
           .filter((rect) => rect.width > 0 && rect.height > rect.width)
           .sort((a, b) => a.left - b.left)
-    const measured = pages[pages.length - 1]
+    // Two pages up only a spread measures a page: a page on its own (a cover) is drawn at the size
+    // this gives, so measuring it would only measure itself.
+    const measuring = double ? (pages.length === 2 ? pages : []) : pages
+    const measured = measuring[measuring.length - 1]
     if (measured) pageBox.current = { width: measured.width, height: measured.height, top: measured.top }
     let box = pageBox.current
     if (!box) {
-      const image = host.querySelector<HTMLImageElement>('img.reader-page')
-      const aspect = sheet?.aspect ?? (image?.naturalWidth ? image.naturalWidth / image.naturalHeight / 2 : 0.7)
+      const image = [...host.querySelectorAll<HTMLImageElement>('img.reader-page')].find(
+        (element) => element.naturalWidth > 0 && element.naturalHeight > element.naturalWidth,
+      )
+      const aspect = sheet?.aspect ?? (image ? image.naturalWidth / image.naturalHeight : 0.7)
       const across = double ? width / 2 : width
       const w = fit === 'width' ? across : Math.min(across, height * aspect)
       const h = w / aspect
@@ -698,6 +703,16 @@ export default function PagedView({
   useEffect(() => {
     pageBox.current = null
   }, [fit, sheet?.aspect, sheet?.cover, double, align])
+
+  // Two pages up, a page on its own is the size of a page in a spread, whatever its own image is.
+  const [loneSize, setLoneSize] = useState<{ width: number; height: number } | null>(null)
+  const sizeLone = curlOn && double && lone && !shownWide
+  useLayoutEffect(() => {
+    const book = sizeLone ? geometry() : null
+    const next = book ? { width: book.pageWidth, height: book.pageHeight } : null
+    setLoneSize((old) => (old && next && Math.abs(old.width - next.width) < 0.5 && Math.abs(old.height - next.height) < 0.5 ? old : next))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sizeLone, shown.key, fit, sheet?.aspect, sheet?.cover])
 
   // A two-page spread wider than the screen allows: after a turn lands on it the book shrinks to fit
   // the screen, and before the next turn it grows back to the book's size. The image keeps its
@@ -824,6 +839,67 @@ export default function PagedView({
     return () => observer.disconnect()
   }, [wantBlank, facingRight, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
 
+  // The facing page's paper: its print shows through faded into it, so the paper keeps its own tone.
+  const [facingPaper, setFacingPaper] = useState<{ src: string; colour: string } | null>(null)
+  const facingSrc = facing?.mirrored ? facing.src : null
+  useEffect(() => {
+    if (!facingSrc) return
+    let live = true
+    const image = new Image()
+    image.onload = () => {
+      if (!live) return
+      const [r, g, b] = paperTone(image)
+      setFacingPaper({ src: facingSrc, colour: `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})` })
+    }
+    image.src = heldPageUrl(facingSrc) ?? facingSrc
+    return () => {
+      live = false
+    }
+  }, [facingSrc])
+  const facingColour = facingPaper?.src === facingSrc ? facingPaper.colour : undefined
+
+  // The open book: a shadow under it with the page edges along its sides, and the fold at the spine.
+  // The shadow stays while a turn is drawn over it; the fold is drawn into the turn instead.
+  const [frame, setFrame] = useState<{ box: Box; spine: number; leftSide: boolean; rightSide: boolean } | null>(null)
+  useLayoutEffect(() => {
+    const host = root.current
+    if (!host || !curlOn || (shownWide && bookView)) {
+      setFrame(null)
+      return
+    }
+    const place = () => {
+      const origin = host.getBoundingClientRect()
+      let next: typeof frame = null
+      if (shownWide) {
+        const element = wideElement()
+        if (element) {
+          const box = { left: element.offsetLeft, top: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }
+          next = { box, spine: box.left + box.width / 2, leftSide: true, rightSide: true }
+        }
+      } else {
+        const book = geometry()
+        const { left, right } = opening(shown.spread)
+        if (book) {
+          // Faces are in left-to-right space: mirrored, the left one lies right of the spine.
+          const leftSide = mirror ? !!right : !!left
+          const rightSide = mirror ? !!left : !!right
+          const spine = book.spineX - origin.left
+          const x0 = spine - (leftSide ? book.pageWidth : 0)
+          const x1 = spine + (rightSide ? book.pageWidth : 0)
+          next = { box: { left: x0, top: book.top - origin.top, width: x1 - x0, height: book.pageHeight }, spine, leftSide, rightSide }
+        }
+      }
+      setFrame((old) => (JSON.stringify(old) === JSON.stringify(next) ? old : next))
+    }
+    place()
+    const observer = new ResizeObserver(place)
+    observer.observe(host)
+    for (const element of onScreen(host)) observer.observe(element)
+    return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [curlOn, shownWide, bookView, shown.key, fit, sheet?.aspect, sheet?.cover, align, double, mirror, loneSize, blank])
+  const gutter = frame ? (frame.box.width / (frame.leftSide && frame.rightSide ? 2 : 1)) * GUTTER_SHARE : 0
+
   return (
     <div
       ref={root}
@@ -834,6 +910,13 @@ export default function PagedView({
       data-paper={curlOn || undefined}
       style={zoom === 1 ? undefined : { transform: `scale(${zoom})`, transformOrigin: 'left top' }}
     >
+      {frame && (
+        <div
+          className="reader-book-shadow"
+          style={{ left: frame.box.left, top: frame.box.top, width: frame.box.width, height: frame.box.height }}
+          aria-hidden
+        />
+      )}
       {[...inReadingOrder(shown.spread), ...(holding ? inReadingOrder(spread) : [])].map((page, index) => {
         const standby = index >= shown.spread.length
         const src = urls[page]
@@ -845,7 +928,17 @@ export default function PagedView({
             src={src}
             alt={t`${label} - page ${pageNumber}`}
             className={`reader-page ${FIT_CLASS[fit]}`}
-            style={pageSizeStyle(fit, scale, spread.length > 1)}
+            style={
+              !standby && loneSize
+                ? {
+                    width: loneSize.width,
+                    height: loneSize.height,
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    objectFit: sheet ? undefined : 'contain',
+                  }
+                : pageSizeStyle(fit, scale, spread.length > 1)
+            }
             tone={tone}
             fit={fit}
             shaping={standby ? shaping : shapingFor(shown.spread, shown.half)}
@@ -863,7 +956,14 @@ export default function PagedView({
         <div className="reader-blank-clip" aria-hidden>
           <div
             className="reader-page reader-blank"
-            style={{ left: blank.left, top: blank.top, width: blank.width, height: blank.height, filter: tone }}
+            style={{
+              left: blank.left,
+              top: blank.top,
+              width: blank.width,
+              height: blank.height,
+              filter: tone,
+              background: facing.mirrored ? facingColour : undefined,
+            }}
           >
             <div className="reader-facing" data-through={facing.mirrored || undefined}>
               <img
@@ -883,6 +983,19 @@ export default function PagedView({
             </div>
           </div>
         </div>
+      )}
+      {frame && (frame.leftSide || frame.rightSide) && (
+        <div
+          className="reader-gutter"
+          data-sides={frame.leftSide && frame.rightSide ? 'both' : frame.leftSide ? 'left' : 'right'}
+          style={{
+            left: frame.spine - (frame.leftSide ? gutter * 3 : 0),
+            top: frame.box.top,
+            width: gutter * 3 * ((frame.leftSide ? 1 : 0) + (frame.rightSide ? 1 : 0)),
+            height: frame.box.height,
+          }}
+          aria-hidden
+        />
       )}
       {paper && <canvas ref={canvas} className="reader-curl" style={{ filter: tone }} aria-hidden />}
     </div>
