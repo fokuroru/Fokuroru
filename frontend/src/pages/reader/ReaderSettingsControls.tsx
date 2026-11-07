@@ -31,6 +31,8 @@ export const NESTED_COMBOBOX = { zIndex: OVERLAY_Z + 1, withinPortal: false, flo
 /** Which of the reader's options a host can honour. The preview reader writes nothing and has no chapter. */
 export interface ReaderSettingsFeatures {
   wideSplit: boolean
+  /** Paper page turns: page position and evened-out page sizes. */
+  paper: boolean
   webtoon: boolean
   /** Chapter banner and auto-advance. */
   chapter: boolean
@@ -128,6 +130,44 @@ export function ReaderSettingsControls({
               { label: t`Whole`, value: 'off' },
               { label: t`Split`, value: 'split' },
               { label: t`Rotate`, value: 'rotate' },
+            ]}
+          />
+        </div>
+      )}
+      {features.paper && prefs.mode !== 'vertical' && prefs.mode !== 'double' && (
+        <div>
+          <Text fz="xs" c="var(--ink-3)" mb={4}>
+            <Trans>Page position</Trans>
+          </Text>
+          <SegmentedControl
+            aria-label={t`Page position`}
+            fullWidth
+            size="xs"
+            value={prefs.pageAlign}
+            onChange={(value) => onPrefs({ pageAlign: value as ReaderPrefs['pageAlign'] })}
+            data={[
+              { label: t`Left`, value: 'left' },
+              { label: t`Centre`, value: 'center' },
+              { label: t`Right`, value: 'right' },
+            ]}
+          />
+        </div>
+      )}
+      {features.paper && prefs.mode !== 'vertical' && (
+        <div>
+          <Text fz="xs" c="var(--ink-3)" mb={4}>
+            <Trans>Short pages</Trans>
+          </Text>
+          <SegmentedControl
+            aria-label={t`Short pages`}
+            fullWidth
+            size="xs"
+            value={prefs.evenPages}
+            onChange={(value) => onPrefs({ evenPages: value as ReaderPrefs['evenPages'] })}
+            data={[
+              { label: t`Stretch`, value: 'stretch' },
+              { label: t`Enlarge`, value: 'enlarge' },
+              { label: t`As is`, value: 'off' },
             ]}
           />
         </div>

@@ -3189,6 +3189,10 @@ msgstr ""
 msgid "Art"
 msgstr "Иллюстрации"
 
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "As is"
+msgstr ""
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
 msgid "Ask for this"
@@ -3876,6 +3880,11 @@ msgstr "Дочитано"
 #, fuzzy
 msgid "Central only"
 msgstr "Только Central"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Centre"
+msgstr ""
 
 #: src/pages/ScrobblePage.tsx
 #, fuzzy
@@ -6541,6 +6550,14 @@ msgstr "Улучшение"
 msgid "enhance {level}, {methodLabel}"
 msgstr "улучшение {level}, {methodLabel}"
 
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Enlarge"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Enlarge and crop"
+msgstr ""
+
 #: src/pages/LoginPage.tsx
 msgid "Enter one of your recovery codes"
 msgstr ""
@@ -8968,6 +8985,10 @@ msgstr "меньше всего похожее на прочитанное ва�
 msgid "Leave a field blank for no bound. Approving queues exactly this range."
 msgstr "Оставьте поле пустым, чтобы не ограничивать. Одобрение добавляет в очередь ровно этот диапазон."
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Leave as is"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Leave at 0–100% to ignore."
@@ -9009,6 +9030,8 @@ msgid "Leave out series in your library"
 msgstr "Не показывать серии из вашей библиотеки"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Left"
 msgstr ""
 
@@ -12058,6 +12081,11 @@ msgstr "Страница не найдена"
 msgid "Page order reversed"
 msgstr ""
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Page position"
+msgstr ""
+
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -12112,6 +12140,10 @@ msgstr "Страницы загружены заранее."
 #, fuzzy
 msgid "Pages matched"
 msgstr "Страницы сопоставлены"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Pages shorter than the chapter's tallest."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Pages to bank before showing new chapters"
@@ -14173,6 +14205,11 @@ msgid "Rhythm"
 msgstr "Ритм"
 
 #: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Right"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "right to left"
 msgstr "справа налево"
@@ -15409,6 +15446,11 @@ msgstr ""
 msgid "Shift + Space"
 msgstr "Shift + Пробел"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Short pages"
+msgstr ""
+
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
 msgid "Shoujo"
@@ -16222,6 +16264,14 @@ msgstr "Сюжет"
 #, fuzzy
 msgid "Streak"
 msgstr "Серия дней"
+
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Stretch"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Stretch to match"
+msgstr ""
 
 #: src/pages/reader/enhanceMethods.ts
 #, fuzzy

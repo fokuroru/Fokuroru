@@ -3189,6 +3189,10 @@ msgstr ""
 msgid "Art"
 msgstr "画作"
 
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "As is"
+msgstr ""
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 #, fuzzy
 msgid "Ask for this"
@@ -3876,6 +3880,11 @@ msgstr "已追上进度"
 #, fuzzy
 msgid "Central only"
 msgstr "仅限核心内容"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Centre"
+msgstr ""
 
 #: src/pages/ScrobblePage.tsx
 #, fuzzy
@@ -6541,6 +6550,14 @@ msgstr "增强"
 msgid "enhance {level}, {methodLabel}"
 msgstr "增强 {level}，{methodLabel}"
 
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Enlarge"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Enlarge and crop"
+msgstr ""
+
 #: src/pages/LoginPage.tsx
 msgid "Enter one of your recovery codes"
 msgstr ""
@@ -8968,6 +8985,10 @@ msgstr "与你阅读过的其他内容最不像"
 msgid "Leave a field blank for no bound. Approving queues exactly this range."
 msgstr "字段留空表示没有边界。批准后会将此范围准确加入队列。"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Leave as is"
+msgstr ""
+
 #: src/pages/LibraryPage.tsx
 #, fuzzy
 msgid "Leave at 0–100% to ignore."
@@ -9009,6 +9030,8 @@ msgid "Leave out series in your library"
 msgstr "排除资料库中的作品"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Left"
 msgstr ""
 
@@ -12058,6 +12081,11 @@ msgstr "未找到页面"
 msgid "Page order reversed"
 msgstr ""
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Page position"
+msgstr ""
+
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 #, fuzzy
@@ -12112,6 +12140,10 @@ msgstr "已提前获取页面。"
 #, fuzzy
 msgid "Pages matched"
 msgstr "匹配的页面"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Pages shorter than the chapter's tallest."
+msgstr ""
 
 #: src/pages/SettingsPage.tsx
 msgid "Pages to bank before showing new chapters"
@@ -14173,6 +14205,11 @@ msgid "Rhythm"
 msgstr "节奏"
 
 #: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Right"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
 #, fuzzy
 msgid "right to left"
 msgstr "从右到左"
@@ -15409,6 +15446,11 @@ msgstr ""
 msgid "Shift + Space"
 msgstr "Shift + 空格"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Short pages"
+msgstr ""
+
 #: src/components/CatalogueFilters.tsx
 #, fuzzy
 msgid "Shoujo"
@@ -16222,6 +16264,14 @@ msgstr "故事"
 #, fuzzy
 msgid "Streak"
 msgstr "连续记录"
+
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Stretch"
+msgstr ""
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Stretch to match"
+msgstr ""
 
 #: src/pages/reader/enhanceMethods.ts
 #, fuzzy

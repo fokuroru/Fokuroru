@@ -415,7 +415,7 @@ export default function ReaderToolbar({
                 autoLayout={autoLayout}
                 tier={manifest.tier}
                 enhanceModels={manifest.enhanceServer?.models}
-                features={{ wideSplit: true, webtoon: true, chapter: true, wakeLock: true }}
+                features={{ wideSplit: true, paper: true, webtoon: true, chapter: true, wakeLock: true }}
                 onEditTapZones={() => setTapEditorOpen(true)}
               >
                 <Switch

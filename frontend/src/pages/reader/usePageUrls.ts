@@ -31,12 +31,21 @@ export function usePageUrls(chapterId: number, pageCount: number, version: strin
 }
 
 /** Warms the browser cache with the next few pages so a page turn is instant. */
-export function usePreload(urls: string[], page: number, count: number) {
+export function usePreload(
+  urls: string[],
+  page: number,
+  count: number,
+  onMeasure?: (index: number, image: HTMLImageElement) => void,
+) {
+  const measure = useRef(onMeasure)
+  measure.current = onMeasure
   useEffect(() => {
     if (count <= 0) return
     const images: HTMLImageElement[] = []
     for (let i = page + 1; i <= page + count && i < urls.length; i++) {
       const image = new Image()
+      // The shape of the pages ahead, so evened-out sizes settle before those pages are reached.
+      image.onload = () => measure.current?.(i, image)
       image.src = urls[i]
       images.push(image)
     }

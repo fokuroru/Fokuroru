@@ -42,7 +42,7 @@ export function cropRegion(image: HTMLImageElement): Region | null {
   return region
 }
 
-function sample(image: HTMLImageElement): { data: Uint8ClampedArray; cw: number; ch: number } | null {
+function measureMargins(image: HTMLImageElement): Region | null {
   const { naturalWidth: width, naturalHeight: height } = image
   if (!width || !height) return null
   const scale = Math.min(1, SAMPLE_EDGE / Math.max(width, height))
@@ -54,51 +54,13 @@ function sample(image: HTMLImageElement): { data: Uint8ClampedArray; cw: number;
   canvas.height = ch
   const context = canvas.getContext('2d', { willReadFrequently: true })
   if (!context) return null
+  let data: Uint8ClampedArray
   try {
     context.drawImage(image, 0, 0, cw, ch)
-    return { data: context.getImageData(0, 0, cw, ch).data, cw, ch }
+    data = context.getImageData(0, 0, cw, ch).data
   } catch {
     return null
   }
-}
-
-// The edge counts as one paper colour when this share of its samples sit this close to the mean.
-const PAPER_SHARE = 0.8
-const PAPER_SPREAD = 24
-const papers = new Map<string, string | null>()
-
-/**
- * The colour of the paper at the page's outer edge, as `rgb()`, or null when the edge is not one
- * colour (art that bleeds off the page). Fills the space around a page that does not fill the screen.
- */
-export function paperColour(image: HTMLImageElement): string | null {
-  const key = image.currentSrc || image.src
-  const known = papers.get(key)
-  if (known !== undefined) return known
-  const colour = measurePaper(image)
-  if (papers.size >= CACHE_LIMIT) papers.delete(papers.keys().next().value as string)
-  papers.set(key, colour)
-  return colour
-}
-
-function measurePaper(image: HTMLImageElement): string | null {
-  const sampled = sample(image)
-  if (!sampled) return null
-  const { data, cw, ch } = sampled
-  const edge: number[] = []
-  for (let x = 0; x < cw; x++) edge.push(x, (ch - 1) * cw + x)
-  for (let y = 1; y < ch - 1; y++) edge.push(y * cw, y * cw + cw - 1)
-  const mean = [0, 1, 2].map((c) => edge.reduce((sum, i) => sum + data[i * 4 + c], 0) / edge.length)
-  const close = edge.filter((i) => [0, 1, 2].every((c) => Math.abs(data[i * 4 + c] - mean[c]) <= PAPER_SPREAD))
-  if (close.length < edge.length * PAPER_SHARE) return null
-  const [r, g, b] = [0, 1, 2].map((c) => Math.round(close.reduce((sum, i) => sum + data[i * 4 + c], 0) / close.length))
-  return `rgb(${r}, ${g}, ${b})`
-}
-
-function measureMargins(image: HTMLImageElement): Region | null {
-  const sampled = sample(image)
-  if (!sampled) return null
-  const { data, cw, ch } = sampled
 
   const luma = new Uint8Array(cw * ch)
   for (let i = 0; i < luma.length; i++) {

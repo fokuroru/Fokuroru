@@ -5678,6 +5678,8 @@ body.reader-open {
 }
 
 .reader-paged {
+  /* The containing block for the blank facing page. */
+  position: relative;
   min-height: 100%;
   display: flex;
   /* `safe` on both axes: a page wider or taller than the viewport (1:1 on a phone, or zoomed in)
@@ -5739,62 +5741,51 @@ body.reader-open {
   max-width: none;
 }
 
-/* The page's own paper colour behind it in the app, in place of the black bars. Behind the pages,
-   above the reader's background. */
-.reader-paper {
+/* Paper page turns (PagedView + pageCurl.ts). While a turn is drawn the canvas covers the real
+   pages, which stay laid out underneath so the swap to the next spread is invisible. */
+.reader-curl {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  transition: background-color var(--dur-medium) linear;
+  display: none;
 }
-
-/* A page turn in the app (PagedView): a leaf of paper swinging on the spine. The base holds the
-   old page under a leaf that swings in going back. */
-.reader-turn {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  perspective: 1600px;
-  --turn-angle: -100deg;
+.reader-paged[data-curling] > :not(.reader-curl) {
+  visibility: hidden;
 }
-.reader-turn[data-rtl='true'] {
-  --turn-angle: 100deg;
+.reader-paged[data-curling] > .reader-curl {
+  display: block;
 }
-.reader-turn-base,
-.reader-turn-leaf {
+/* A lone page pushed to one side, so a thumb on that side reaches the edge it turns. */
+.reader-paged[data-align='left'] {
+  justify-content: flex-start;
+}
+.reader-paged[data-align='right'] {
+  justify-content: flex-end;
+}
+/* The blank facing page: paper with the page before it faintly through, as the back of a turned
+   sheet. Clipped by its own box so a facing page off the screen edge adds no sideways scroll. */
+.reader-blank-clip {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
 }
-.reader-turn-leaf {
-  transform-origin: left center;
-  backface-visibility: hidden;
-  animation: reader-leaf-off 420ms cubic-bezier(0.45, 0, 0.75, 0.4) both;
+.reader-blank {
+  position: absolute;
+  background: #f5f2eb;
+  overflow: hidden;
 }
-.reader-turn[data-rtl='true'] .reader-turn-leaf {
-  transform-origin: right center;
-}
-.reader-turn[data-forward='false'] .reader-turn-leaf {
-  animation: reader-leaf-on 420ms cubic-bezier(0.2, 0.6, 0.35, 1) both;
-}
-.reader-turn-leaf .reader-page {
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.35);
-}
-@keyframes reader-leaf-off {
-  to {
-    transform: rotateY(var(--turn-angle));
-    filter: brightness(0.55);
-  }
-}
-@keyframes reader-leaf-on {
-  from {
-    transform: rotateY(var(--turn-angle));
-    filter: brightness(0.55);
-  }
+.reader-blank-ghost {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+  transform: scaleX(-1);
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* A trimmed, split or turned page (PagedView's RegionPage). The canvas inside takes the fit

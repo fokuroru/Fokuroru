@@ -20,6 +20,8 @@ export type EnhanceMethod =
   | 'server:span-s'
   | 'server:realesrgan-av3'
 export type EnhanceFallback = 'a4k-s' | 'a4k-m' | 'a4k-a' | 'off'
+export type ReaderPageAlign = 'center' | 'left' | 'right'
+export type ReaderEvenPages = 'stretch' | 'enlarge' | 'off'
 
 export interface ReaderPrefs {
   mode: ReaderMode
@@ -64,6 +66,10 @@ export interface ReaderPrefs {
   enhanceFallback: EnhanceFallback
   /** Chapters whose file has one of these quality tiers are never enhanced. */
   enhanceSkipTiers: QualityTierName[]
+  /** Where a single page sits in the paged layouts; a blank facing page fills the spine side. */
+  pageAlign: ReaderPageAlign
+  /** Pages shorter than the chapter's tallest: stretched to its shape, enlarged and cropped, or left alone. */
+  evenPages: ReaderEvenPages
 }
 
 /** Whether "next" scrolls down rather than turning a page sideways. */
@@ -136,6 +142,8 @@ export const DEFAULT_PREFS: ReaderPrefs = {
   enhanceMethod: 'a4k-m',
   enhanceFallback: 'a4k-m',
   enhanceSkipTiers: ['volume'],
+  pageAlign: 'center',
+  evenPages: 'stretch',
 }
 
 /** The enhance level a chapter actually gets: off when its file's tier is one the prefs skip. */

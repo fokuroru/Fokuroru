@@ -2716,6 +2716,10 @@ msgstr "Arrange Home and Discover on the pages themselves: pick which sections s
 msgid "Art"
 msgstr "Art"
 
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "As is"
+msgstr "As is"
+
 #: src/components/discover/DiscoverLibraryRail.tsx
 msgid "Ask for this"
 msgstr "Ask for this"
@@ -3304,6 +3308,11 @@ msgstr "Caught up"
 #: src/components/CatalogueRules.tsx
 msgid "Central only"
 msgstr "Central only"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Centre"
+msgstr "Centre"
 
 #: src/pages/ScrobblePage.tsx
 msgid "ch {chapter}"
@@ -5578,6 +5587,14 @@ msgstr "Enhance"
 msgid "enhance {level}, {methodLabel}"
 msgstr "enhance {level}, {methodLabel}"
 
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Enlarge"
+msgstr "Enlarge"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Enlarge and crop"
+msgstr "Enlarge and crop"
+
 #: src/pages/LoginPage.tsx
 msgid "Enter one of your recovery codes"
 msgstr "Enter one of your recovery codes"
@@ -7638,6 +7655,10 @@ msgstr "least like anything else you read"
 msgid "Leave a field blank for no bound. Approving queues exactly this range."
 msgstr "Leave a field blank for no bound. Approving queues exactly this range."
 
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Leave as is"
+msgstr "Leave as is"
+
 #: src/pages/LibraryPage.tsx
 msgid "Leave at 0–100% to ignore."
 msgstr "Leave at 0–100% to ignore."
@@ -7671,6 +7692,8 @@ msgid "Leave out series in your library"
 msgstr "Leave out series in your library"
 
 #: src/components/reader/TapZoneEditor.tsx
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
 msgid "Left"
 msgstr "Left"
 
@@ -10262,6 +10285,11 @@ msgstr "Page not found"
 msgid "Page order reversed"
 msgstr "Page order reversed"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Page position"
+msgstr "Page position"
+
 #: src/pages/reader/ReaderToolbar.tsx
 #: src/pages/reader/ShortcutSheet.tsx
 msgid "Page thumbnails"
@@ -10308,6 +10336,10 @@ msgstr "Pages fetched ahead."
 #: src/components/SourceCompareModal.tsx
 msgid "Pages matched"
 msgstr "Pages matched"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Pages shorter than the chapter's tallest."
+msgstr "Pages shorter than the chapter's tallest."
 
 #: src/pages/SettingsPage.tsx
 msgid "Pages to bank before showing new chapters"
@@ -12084,6 +12116,11 @@ msgid "Rhythm"
 msgstr "Rhythm"
 
 #: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Right"
+msgstr "Right"
+
+#: src/components/settings/ReadingProfilesSection.tsx
 msgid "right to left"
 msgstr "right to left"
 
@@ -13145,6 +13182,11 @@ msgstr "Shelf figures"
 msgid "Shift + Space"
 msgstr "Shift + Space"
 
+#: src/components/settings/ReadingProfilesSection.tsx
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Short pages"
+msgstr "Short pages"
+
 #: src/components/CatalogueFilters.tsx
 msgid "Shoujo"
 msgstr "Shoujo"
@@ -13835,6 +13877,14 @@ msgstr "Story"
 #: src/pages/stats/sections/ProgressSection.tsx
 msgid "Streak"
 msgstr "Streak"
+
+#: src/pages/reader/ReaderSettingsControls.tsx
+msgid "Stretch"
+msgstr "Stretch"
+
+#: src/components/settings/ReadingProfilesSection.tsx
+msgid "Stretch to match"
+msgstr "Stretch to match"
 
 #: src/pages/reader/enhanceMethods.ts
 msgid "Strong"

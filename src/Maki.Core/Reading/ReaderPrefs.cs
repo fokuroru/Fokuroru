@@ -87,8 +87,23 @@ public record ReaderPrefsSpec(
     /// whatever <see cref="Enhance"/> says. Null means unset and becomes <see cref="DefaultEnhanceSkipTiers"/>:
     /// a digital volume is already clean, and sharpening it only adds artefacts.
     /// </summary>
-    IReadOnlyList<string>? EnhanceSkipTiers = null)
+    IReadOnlyList<string>? EnhanceSkipTiers = null,
+    /// <summary>
+    /// Where a single page sits in the paged layouts: <c>center</c>, or against the <c>left</c> or
+    /// <c>right</c> edge so a thumb on that side reaches the edge it turns. A blank facing page is
+    /// drawn on the spine side either way, so a turned page has somewhere to land.
+    /// </summary>
+    string PageAlign = ReaderPrefsSpec.AlignCenter,
+    /// <summary>
+    /// What a page shorter than the chapter's tallest does in the paged layouts, so every sheet is
+    /// one size: <c>stretch</c> it to the same shape, <c>enlarge</c> it and crop the sides, or
+    /// <c>off</c> to show each page at its own shape.
+    /// </summary>
+    string EvenPages = ReaderPrefsSpec.EvenStretch)
 {
+    public const string AlignCenter = "center";
+    public const string EvenStretch = "stretch";
+
     public const string FilterNone = "none";
     public const string SplitOff = "off";
     public const string EnhanceOff = "off";
@@ -129,6 +144,8 @@ public record ReaderPrefsSpec(
     private static readonly string[] Navigations = [NavAuto, NavHorizontal, NavVertical];
     private static readonly string[] Filters = [FilterNone, "grayscale", "sepia", "invert"];
     private static readonly string[] SplitModes = [SplitOff, "split", "rotate"];
+    private static readonly string[] Aligns = [AlignCenter, "left", "right"];
+    private static readonly string[] EvenModes = [EvenStretch, "enlarge", "off"];
     private static readonly string[] EnhanceModes = [EnhanceOff, "auto", "always"];
     private static readonly string[] EnhanceMethods =
         ["a4k-s", EnhanceMethodDefault, "a4k-a", "server:span-s", "server:realesrgan-av3"];
@@ -156,6 +173,8 @@ public record ReaderPrefsSpec(
         PageGap = Math.Clamp(PageGap, 0, 64),
         Preload = Math.Clamp(Preload, 0, 10),
         Scale = Math.Clamp(Scale, 25, 400),
+        PageAlign = Aligns.Contains(PageAlign) ? PageAlign : AlignCenter,
+        EvenPages = EvenModes.Contains(EvenPages) ? EvenPages : EvenStretch,
     };
 
     /// <summary>Reads a stored blob, falling back to defaults for null/blank/unparseable JSON.</summary>

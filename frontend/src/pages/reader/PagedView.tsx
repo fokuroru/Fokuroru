@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button, Stack, Text } from '@mantine/core'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { cropRegion, FULL_REGION, paperColour, isFull, partOf, type PagePart, type Region } from './pageShape'
+import { cropRegion, FULL_REGION, isFull, partOf, type PagePart, type Region } from './pageShape'
 import EnhancedPage from './EnhancedPage'
 import { heldPageUrl, holdPage } from './pageBlobs'
 import { isSoftPage } from '../../lib/enhance/softness'
-import { nativeApp } from '../../lib/nativeApp'
+import { PageCurl } from './pageCurl'
 import { useCompareKey } from './compareHold'
 import {
   EnhanceScope,
@@ -21,7 +21,9 @@ import type {
   EnhanceMethod,
   ReaderDirection,
   ReaderEnhance,
+  ReaderEvenPages,
   ReaderFit,
+  ReaderPageAlign,
   ReaderSplitWide,
 } from './prefs'
 import { pageSizeStyle } from './prefs'
@@ -49,17 +51,31 @@ const PLAIN: PageShaping = { crop: false, part: 'whole', rotate: 0 }
 // scroller's overflow.
 const STANDBY: React.CSSProperties = { position: 'fixed', inset: 0, visibility: 'hidden', pointerEvents: 'none' }
 
-// In the app a turn is drawn as a paper leaf swinging on the spine: the old page lifts off going
-// forward, the new one swings down over the old going back.
-interface Turn {
-  key: string
-  forward: boolean
-  leaf: string[]
-  base: string[] | null
+/** Paper page turns: a drawn turn that follows the pointer, a blank facing page, pages of one size. */
+export interface PaperOptions {
+  align: ReaderPageAlign
+  even: ReaderEvenPages
+  /** Width over height of the tallest page measured in the chapter so far. */
+  sheetAspect: number | null
+  next: Spread | null
+  previous: Spread | null
+  beforePrevious: Spread | null
+  /** A drag finished a turn: move the reader on, the drawing already shows the result. */
+  onTurn: (forward: boolean) => void
 }
 
-const paperTurns = () =>
-  nativeApp() !== undefined && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+/** The shape every page is drawn at when sizes are evened out. */
+interface Sheet {
+  aspect: number
+  cover: boolean
+}
+
+interface Box {
+  left: number
+  top: number
+  width: number
+  height: number
+}
 
 // Past this the turn shows the incoming page's loading state rather than holding the old page.
 const HOLD_MS = 500
@@ -185,6 +201,7 @@ function PagedPage({
   onLoaded,
   standby,
   onReady,
+  sheet,
 }: {
   src: string
   alt: string
@@ -199,6 +216,7 @@ function PagedPage({
   onLoaded: (image: HTMLImageElement) => void
   standby: boolean
   onReady: (src: string) => void
+  sheet: Sheet | null
 }) {
   const [state, setState] = useState<PageState>('loading')
   const [attempt, setAttempt] = useState(0)
@@ -240,6 +258,9 @@ function PagedPage({
   const shaped = natural !== null && (enhance !== null || rotate !== 0 || !isFull(region))
 
   const visible = state === 'ready' && !shaped
+  // A short page takes the chapter's tallest shape. A two-page spread keeps its own.
+  const evened: React.CSSProperties | undefined =
+    sheet && natural && !wide ? { aspectRatio: String(sheet.aspect), objectFit: sheet.cover ? 'cover' : 'fill' } : undefined
   return (
     <>
       {state === 'loading' && !standby && <div className="reader-page-skeleton" aria-hidden />}
@@ -267,7 +288,7 @@ function PagedPage({
         data-no-cover-fallback
         alt={alt}
         className={className}
-        style={{ ...style, filter: tone, ...(!visible ? { display: 'none' } : standby ? STANDBY : undefined) }}
+        style={{ ...style, ...evened, filter: tone, ...(!visible ? { display: 'none' } : standby ? STANDBY : undefined) }}
         decoding="sync"
         draggable={false}
         onLoad={(event) => markReady(event.currentTarget)}
@@ -321,6 +342,7 @@ export default function PagedView({
   server = null,
   preload,
   onStretched,
+  paper = null,
 }: {
   urls: string[]
   spread: Spread
@@ -348,9 +370,28 @@ export default function PagedView({
   preload?: number[]
   /** The pages `auto` enhances: shown at 1.2x their size or more (measured on screen or matched to a measured size), or soft. */
   onStretched?: (pages: ReadonlySet<number>) => void
+  /** Paper page turns; the preview reader leaves them off. */
+  paper?: PaperOptions | null
 }) {
   const { t } = useLingui()
   const root = useRef<HTMLDivElement>(null)
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const [curl, setCurl] = useState<PageCurl | null>(null)
+  // Set while a drawn turn loads its pages: the real swap waits so it never shows first.
+  const [curlBusy, setCurlBusy] = useState(false)
+  const paperRef = useRef(paper)
+  paperRef.current = paper
+  const hasPaper = paper !== null
+  useEffect(() => {
+    if (!hasPaper || !canvas.current || !root.current) return
+    const created = new PageCurl(canvas.current, root.current, (forward) => paperRef.current?.onTurn(forward), setCurlBusy)
+    setCurl(created)
+    return () => {
+      created.dispose()
+      setCurl(null)
+      setCurlBusy(false)
+    }
+  }, [hasPaper])
 
   // A turn keeps the current spread on screen until every page of the next one has loaded and
   // decoded, then swaps them in one frame. Mounting the next page straight away showed a blank
@@ -378,18 +419,7 @@ export default function PagedView({
   const holding = shown.urls === urls && shown.key !== target.key
   const current = shown.urls === urls && shown.key === target.key && shown.half === half
   const [expired, setExpired] = useState<string | null>(null)
-  const [turn, setTurn] = useState<Turn | null>(null)
-  if (!current && (!holding || expired === target.key || incoming.every((src) => readySrcs.has(src)))) {
-    if (holding && zoom === 1 && shapingFor(shown.spread, shown.half) === PLAIN && paperTurns()) {
-      const forward = Math.min(...spread) > Math.min(...shown.spread)
-      const outgoing = inReadingOrder(shown.spread).map((page) => urls[page])
-      setTurn({
-        key: target.key,
-        forward,
-        leaf: forward ? outgoing : inReadingOrder(spread).map((page) => urls[page]),
-        base: forward ? null : outgoing,
-      })
-    }
+  if (!current && (!holding || expired === target.key || (!curlBusy && incoming.every((src) => readySrcs.has(src))))) {
     setShown(target)
     setReadySrcs((ready) => new Set(incoming.filter((src) => ready.has(src))))
     setExpired(null)
@@ -517,13 +547,6 @@ export default function PagedView({
     if (scroller) scroller.scrollLeft = rtlRef.current ? scroller.scrollWidth : 0
   }, [])
   const leadSrc = shown.urls[shown.spread[0]]
-  const [papers, setPapers] = useState<Readonly<Record<string, string | null>>>({})
-  const notePaper = (src: string, image: HTMLImageElement) => {
-    if (!nativeApp() || src in papers) return
-    const colour = paperColour(image)
-    setPapers((known) => ({ ...known, [src]: colour }))
-  }
-  const paper = papers[leadSrc] ?? null
   useLayoutEffect(() => {
     const scroller = root.current?.parentElement
     if (scroller) scroller.scrollTop = 0
@@ -563,14 +586,94 @@ export default function PagedView({
     scroller.scrollLeft = (scroller.scrollLeft + centre) * (zoom / previous) - centre
   }, [zoom])
 
+  // Paper turns. Drawn only for plain pages at 1x: a trimmed, split or turned page would look
+  // different in the drawing than on screen.
+  const lone = shown.spread.length === 1
+  const plainPages = !cropBorders && splitWide === 'off'
+  const curlOn = paper !== null && zoom === 1 && plainPages
+  const align = paper?.align ?? 'center'
+  // The sheet hinges on its right edge for right-to-left, and for a page pushed to the left, whose
+  // blank facing page is on its right.
+  const mirror = lone ? (align === 'left' ? true : align === 'right' ? false : rtl) : rtl
+  const sheet: Sheet | null =
+    paper && paper.even !== 'off' && paper.sheetAspect ? { aspect: paper.sheetAspect, cover: paper.even === 'enlarge' } : null
+
+  useEffect(() => {
+    curl?.update({
+      urls,
+      current: shown.spread,
+      next: paper?.next ?? null,
+      previous: paper?.previous ?? null,
+      beforePrevious: paper?.beforePrevious ?? null,
+      mirror,
+      sheetAspect: sheet?.aspect ?? null,
+      sheetFill: sheet?.cover ? 'enlarge' : 'stretch',
+      enabled: curlOn,
+      draggable: true,
+    })
+  })
+  // A turn made by a tap, key or button plays the drawing; one a drag made is already drawn.
+  const lastTarget = useRef(target)
+  useEffect(() => {
+    const before = lastTarget.current
+    lastTarget.current = target
+    if (!curl || before.urls !== urls || before.key === target.key) return
+    curl.auto(before.spread, spread, Math.min(...spread) > Math.min(...before.spread))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [curl, target.key, urls])
+  useEffect(() => {
+    curl?.settled(shown.key)
+  }, [curl, shown.key])
+
+  // The blank facing page beside a lone page: the back of the page before it, on the spine side.
+  // Placed from the page's own box, so every fit and size setting keeps working as it did.
+  const [blank, setBlank] = useState<Box | null>(null)
+  const wantBlank = curlOn && lone
+  const blankLeft = mirror
+  useLayoutEffect(() => {
+    const host = root.current
+    if (!host || !wantBlank) {
+      setBlank(null)
+      return
+    }
+    const place = () => {
+      const page = [...host.querySelectorAll<HTMLElement>('.reader-page:not(.reader-blank)')].find(
+        (element) => element.getBoundingClientRect().width > 0 && getComputedStyle(element).visibility !== 'hidden',
+      )
+      const rect = page?.getBoundingClientRect()
+      const origin = host.getBoundingClientRect()
+      const next =
+        rect && rect.height > rect.width
+          ? {
+              left: (blankLeft ? rect.right : rect.left - rect.width) - origin.left,
+              top: rect.top - origin.top,
+              width: rect.width,
+              height: rect.height,
+            }
+          : null
+      setBlank((old) =>
+        old && next && old.left === next.left && old.top === next.top && old.width === next.width && old.height === next.height
+          ? old
+          : next,
+      )
+    }
+    place()
+    const observer = new ResizeObserver(place)
+    observer.observe(host)
+    for (const element of host.querySelectorAll('.reader-page:not(.reader-blank)')) observer.observe(element)
+    return () => observer.disconnect()
+  }, [wantBlank, blankLeft, shown.key, fit, scale, sheet?.aspect, sheet?.cover, align])
+  const ghostPage = shown.spread[0]! - 1
+  const ghost = ghostPage >= 0 ? (urls[ghostPage] ?? null) : null
+
   return (
     <div
       ref={root}
       className="reader-paged"
       data-double={shown.spread.length > 1}
+      data-align={lone && paper ? align : undefined}
       style={zoom === 1 ? undefined : { transform: `scale(${zoom})`, transformOrigin: 'left top' }}
     >
-      {paper && <div className="reader-paper" style={{ background: paper, filter: tone }} aria-hidden />}
       {[...inReadingOrder(shown.spread), ...(holding ? inReadingOrder(spread) : [])].map((page, index) => {
         const standby = index >= shown.spread.length
         const src = urls[page]
@@ -589,40 +692,32 @@ export default function PagedView({
             enhance={pageEnhance}
             page={page}
             server={server}
-            onLoaded={(image) => {
-              onMeasure(page, image)
-              notePaper(src, image)
-            }}
+            onLoaded={(image) => onMeasure(page, image)}
             standby={standby}
             onReady={onReady}
+            sheet={sheet}
           />
         )
       })}
-      {turn && (
-        <div key={turn.key} className="reader-turn" data-rtl={rtl} data-forward={turn.forward} aria-hidden>
-          {[turn.base, turn.leaf].map(
-            (pages, layer) =>
-              pages && (
-                <div
-                  key={layer}
-                  className={layer === 0 ? 'reader-turn-base' : 'reader-turn-leaf'}
-                  onAnimationEnd={layer === 1 ? () => setTurn(null) : undefined}
-                >
-                  {pages.map((src) => (
-                    <img
-                      key={src}
-                      src={heldPageUrl(src) ?? src}
-                      alt=""
-                      className={`reader-page ${FIT_CLASS[fit]}`}
-                      style={{ ...pageSizeStyle(fit, scale, pages.length > 1), filter: tone }}
-                      draggable={false}
-                    />
-                  ))}
-                </div>
-              ),
-          )}
+      {blank && (
+        <div className="reader-blank-clip" aria-hidden>
+          <div
+            className="reader-page reader-blank"
+            style={{ left: blank.left, top: blank.top, width: blank.width, height: blank.height, filter: tone }}
+          >
+            {ghost && (
+              <img
+                src={heldPageUrl(ghost) ?? ghost}
+                alt=""
+                className="reader-blank-ghost"
+                style={{ objectFit: sheet?.cover ? 'cover' : 'fill' }}
+                draggable={false}
+              />
+            )}
+          </div>
         </div>
       )}
+      {paper && <canvas ref={canvas} className="reader-curl" style={{ filter: tone }} aria-hidden />}
     </div>
   )
 }

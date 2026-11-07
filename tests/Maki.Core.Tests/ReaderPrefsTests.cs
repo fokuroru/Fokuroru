@@ -78,6 +78,22 @@ public class ReaderPrefsTests
     }
 
     [Fact]
+    public void Page_position_and_even_pages_default_round_trip_and_reject_unknown_values()
+    {
+        var older = ReaderPrefsSpec.Parse("""{"mode":"paged"}""");
+        Assert.Equal("center", older.PageAlign);
+        Assert.Equal("stretch", older.EvenPages);
+
+        var saved = ReaderPrefsSpec.Parse(ReaderPrefsSpec.Serialize(new ReaderPrefsSpec(PageAlign: "right", EvenPages: "enlarge")));
+        Assert.Equal("right", saved.PageAlign);
+        Assert.Equal("enlarge", saved.EvenPages);
+
+        var bad = ReaderPrefsSpec.Parse("""{"pageAlign":"top","evenPages":"squash"}""");
+        Assert.Equal("center", bad.PageAlign);
+        Assert.Equal("stretch", bad.EvenPages);
+    }
+
+    [Fact]
     public void Parse_of_a_blob_from_before_enhance_uses_off_and_the_balanced_preset()
     {
         var spec = ReaderPrefsSpec.Parse("""{"mode":"double","splitWide":"split"}""");

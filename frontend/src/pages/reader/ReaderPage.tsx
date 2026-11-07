@@ -166,7 +166,7 @@ export default function ReaderPage() {
   const vertical = navigatesVertically(prefs)
 
   const thumbs = usePageUrls(chapterId, stripOpen ? pageCount : 0, manifest?.pageVersion, true)
-  const { wide, measure } = usePageAspects(urls)
+  const { wide, measure, sheetAspect } = usePageAspects(urls)
   const spreads = useSpreads(pageCount, wide, prefs.mode === 'double')
   const spreadIndex = useMemo(() => spreadIndexOf(spreads, page), [spreads, page])
   // `page` is a spread's first index; the position on record is the furthest page on screen.
@@ -197,7 +197,7 @@ export default function ReaderPage() {
   )
   const bookmarked = bookmarkedPages.has(page)
 
-  usePreload(urls, page, prefs.mode === 'vertical' ? 0 : prefs.preload)
+  usePreload(urls, page, prefs.mode === 'vertical' ? 0 : prefs.preload, measure)
 
   const tone = toneFilter(prefs)
   useWakeLock(prefs.keepAwake)
@@ -894,6 +894,15 @@ export default function ReaderPage() {
               server={server}
               preload={preloadPages}
               onStretched={setStretchedPages}
+              paper={{
+                align: prefs.pageAlign,
+                even: prefs.evenPages,
+                sheetAspect,
+                next: splitting ? null : (spreads[spreadIndex + 1] ?? null),
+                previous: splitting ? null : (spreads[spreadIndex - 1] ?? null),
+                beforePrevious: splitting ? null : (spreads[spreadIndex - 2] ?? null),
+                onTurn: (forward) => (forward ? next() : previous()),
+              }}
             />
           )}
         </div>

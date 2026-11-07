@@ -10,21 +10,31 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
  */
 export function usePageAspects(urls: string[]) {
   const [wide, setWide] = useState<Record<number, boolean>>({})
+  // Width over height of the tallest single page seen, the shape short pages are evened out to.
+  const [sheetAspect, setSheetAspect] = useState<number | null>(null)
 
   useEffect(() => {
     setWide({})
+    setSheetAspect(null)
   }, [urls])
 
   const measure = useCallback((index: number, image: HTMLImageElement) => {
     if (!image.naturalWidth || !image.naturalHeight) return
     const isWide = image.naturalWidth > image.naturalHeight
     setWide((current) => (current[index] === isWide ? current : { ...current, [index]: isWide }))
+    const aspect = image.naturalWidth / image.naturalHeight
+    // Webtoon slices are far taller than any page; evening a chapter out to one would squash it.
+    if (aspect >= MIN_SHEET_ASPECT && aspect <= 1) {
+      setSheetAspect((current) => (current === null || aspect < current ? aspect : current))
+    }
   }, [])
 
-  return { wide, measure }
+  return { wide, measure, sheetAspect }
 }
 
 export type Spread = number[]
+
+const MIN_SHEET_ASPECT = 0.45
 
 /**
  * Groups pages into what is shown at once in double-page mode.

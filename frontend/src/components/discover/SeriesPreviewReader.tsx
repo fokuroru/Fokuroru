@@ -682,7 +682,7 @@ export function SeriesPreviewReader({
                 <ReaderSettingsControls
                   prefs={{ ...savedPrefs, enhanceMethod }}
                   onPrefs={update}
-                  features={{ wideSplit: false, webtoon: false, chapter: false, wakeLock: false }}
+                  features={{ wideSplit: false, paper: false, webtoon: false, chapter: false, wakeLock: false }}
                   onEditTapZones={() => setTapEditorOpen(true)}
                 />
               </Popover.Dropdown>

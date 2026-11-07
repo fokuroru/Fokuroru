@@ -517,6 +517,33 @@ function ProfileEditor({
 
       <Group grow align="flex-start">
         <Select
+          label={t`Page position`}
+          description={t`Single page layout only.`}
+          allowDeselect={false}
+          value={prefs.pageAlign}
+          onChange={(value) => value && set({ pageAlign: value as ReaderPrefs['pageAlign'] })}
+          data={[
+            { value: 'left', label: t`Left` },
+            { value: 'center', label: t`Centre` },
+            { value: 'right', label: t`Right` },
+          ]}
+        />
+        <Select
+          label={t`Short pages`}
+          description={t`Pages shorter than the chapter's tallest.`}
+          allowDeselect={false}
+          value={prefs.evenPages}
+          onChange={(value) => value && set({ evenPages: value as ReaderPrefs['evenPages'] })}
+          data={[
+            { value: 'stretch', label: t`Stretch to match` },
+            { value: 'enlarge', label: t`Enlarge and crop` },
+            { value: 'off', label: t`Leave as is` },
+          ]}
+        />
+      </Group>
+
+      <Group grow align="flex-start">
+        <Select
           label={t`Enhance`}
           description={t`Sharpen soft pages. Auto does it only when a page is shown larger than its source or looks blurry.`}
           allowDeselect={false}
