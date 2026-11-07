@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button, Stack, Text } from '@mantine/core'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { cropRegion, FULL_REGION, isFull, partOf, type PagePart, type Region } from './pageShape'
+import { cropRegion, FULL_REGION, paperColour, isFull, partOf, type PagePart, type Region } from './pageShape'
 import EnhancedPage from './EnhancedPage'
 import { heldPageUrl, holdPage } from './pageBlobs'
 import { isSoftPage } from '../../lib/enhance/softness'
+import { nativeApp } from '../../lib/nativeApp'
 import { useCompareKey } from './compareHold'
 import {
   EnhanceScope,
@@ -47,6 +48,18 @@ const PLAIN: PageShaping = { crop: false, part: 'whole', rotate: 0 }
 // The incoming spread loads here while the current one stays up. Fixed, so it adds nothing to the
 // scroller's overflow.
 const STANDBY: React.CSSProperties = { position: 'fixed', inset: 0, visibility: 'hidden', pointerEvents: 'none' }
+
+// In the app a turn is drawn as a paper leaf swinging on the spine: the old page lifts off going
+// forward, the new one swings down over the old going back.
+interface Turn {
+  key: string
+  forward: boolean
+  leaf: string[]
+  base: string[] | null
+}
+
+const paperTurns = () =>
+  nativeApp() !== undefined && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // Past this the turn shows the incoming page's loading state rather than holding the old page.
 const HOLD_MS = 500
@@ -343,6 +356,21 @@ export default function PagedView({
   // decoded, then swaps them in one frame. Mounting the next page straight away showed a blank
   // frame first even when it was preloaded (WebKit fires load late and decodes at draw time).
   const target = { urls, spread, key: spread.join(','), half }
+  const rtl = direction === 'rtl'
+  // The half read first is the right one in right-to-left. A quarter turn puts it at the top:
+  // anticlockwise lifts the right edge, clockwise the left.
+  const shapingFor = (pages: Spread, pageHalf: 0 | 1): PageShaping => {
+    const single = pages.length === 1
+    return !cropBorders && (!single || splitWide === 'off')
+      ? PLAIN
+      : {
+          crop: cropBorders,
+          part: single && splitWide === 'split' ? ((pageHalf === 0) === rtl ? 'right' : 'left') : 'whole',
+          rotate: single && splitWide === 'rotate' ? (rtl ? -90 : 90) : 0,
+        }
+  }
+  // In right-to-left reading the lower page number belongs on the right.
+  const inReadingOrder = (pages: Spread) => (rtl ? [...pages].reverse() : pages)
   const [shown, setShown] = useState(target)
   const [readySrcs, setReadySrcs] = useState<ReadonlySet<string>>(() => new Set())
   const incoming = spread.map((page) => urls[page]).filter(Boolean)
@@ -350,7 +378,18 @@ export default function PagedView({
   const holding = shown.urls === urls && shown.key !== target.key
   const current = shown.urls === urls && shown.key === target.key && shown.half === half
   const [expired, setExpired] = useState<string | null>(null)
+  const [turn, setTurn] = useState<Turn | null>(null)
   if (!current && (!holding || expired === target.key || incoming.every((src) => readySrcs.has(src)))) {
+    if (holding && zoom === 1 && shapingFor(shown.spread, shown.half) === PLAIN && paperTurns()) {
+      const forward = Math.min(...spread) > Math.min(...shown.spread)
+      const outgoing = inReadingOrder(shown.spread).map((page) => urls[page])
+      setTurn({
+        key: target.key,
+        forward,
+        leaf: forward ? outgoing : inReadingOrder(spread).map((page) => urls[page]),
+        base: forward ? null : outgoing,
+      })
+    }
     setShown(target)
     setReadySrcs((ready) => new Set(incoming.filter((src) => ready.has(src))))
     setExpired(null)
@@ -369,22 +408,7 @@ export default function PagedView({
   // the same offset. A page wider than the viewport (zoomed, or 1:1) starts at the edge reading
   // begins from: the right in right-to-left. Its width is not known until the image has loaded, so
   // the right edge is held until the reader touches the scroller or the zoom changes.
-  const rtl = direction === 'rtl'
-  // The half read first is the right one in right-to-left. A quarter turn puts it at the top:
-  // anticlockwise lifts the right edge, clockwise the left.
-  const shapingFor = (pages: Spread, pageHalf: 0 | 1): PageShaping => {
-    const single = pages.length === 1
-    return !cropBorders && (!single || splitWide === 'off')
-      ? PLAIN
-      : {
-          crop: cropBorders,
-          part: single && splitWide === 'split' ? ((pageHalf === 0) === rtl ? 'right' : 'left') : 'whole',
-          rotate: single && splitWide === 'rotate' ? (rtl ? -90 : 90) : 0,
-        }
-  }
   const shaping = shapingFor(spread, half)
-  // In right-to-left reading the lower page number belongs on the right.
-  const inReadingOrder = (pages: Spread) => (rtl ? [...pages].reverse() : pages)
   const enhanceOn = enhance !== 'off'
   const preset = presetFor(enhanceMethod, enhanceFallback)
   const engineState = useEnhanceEngine(enhanceOn && preset !== null)
@@ -493,6 +517,13 @@ export default function PagedView({
     if (scroller) scroller.scrollLeft = rtlRef.current ? scroller.scrollWidth : 0
   }, [])
   const leadSrc = shown.urls[shown.spread[0]]
+  const [papers, setPapers] = useState<Readonly<Record<string, string | null>>>({})
+  const notePaper = (src: string, image: HTMLImageElement) => {
+    if (!nativeApp() || src in papers) return
+    const colour = paperColour(image)
+    setPapers((known) => ({ ...known, [src]: colour }))
+  }
+  const paper = papers[leadSrc] ?? null
   useLayoutEffect(() => {
     const scroller = root.current?.parentElement
     if (scroller) scroller.scrollTop = 0
@@ -539,6 +570,7 @@ export default function PagedView({
       data-double={shown.spread.length > 1}
       style={zoom === 1 ? undefined : { transform: `scale(${zoom})`, transformOrigin: 'left top' }}
     >
+      {paper && <div className="reader-paper" style={{ background: paper, filter: tone }} aria-hidden />}
       {[...inReadingOrder(shown.spread), ...(holding ? inReadingOrder(spread) : [])].map((page, index) => {
         const standby = index >= shown.spread.length
         const src = urls[page]
@@ -557,12 +589,40 @@ export default function PagedView({
             enhance={pageEnhance}
             page={page}
             server={server}
-            onLoaded={(image) => onMeasure(page, image)}
+            onLoaded={(image) => {
+              onMeasure(page, image)
+              notePaper(src, image)
+            }}
             standby={standby}
             onReady={onReady}
           />
         )
       })}
+      {turn && (
+        <div key={turn.key} className="reader-turn" data-rtl={rtl} data-forward={turn.forward} aria-hidden>
+          {[turn.base, turn.leaf].map(
+            (pages, layer) =>
+              pages && (
+                <div
+                  key={layer}
+                  className={layer === 0 ? 'reader-turn-base' : 'reader-turn-leaf'}
+                  onAnimationEnd={layer === 1 ? () => setTurn(null) : undefined}
+                >
+                  {pages.map((src) => (
+                    <img
+                      key={src}
+                      src={heldPageUrl(src) ?? src}
+                      alt=""
+                      className={`reader-page ${FIT_CLASS[fit]}`}
+                      style={{ ...pageSizeStyle(fit, scale, pages.length > 1), filter: tone }}
+                      draggable={false}
+                    />
+                  ))}
+                </div>
+              ),
+          )}
+        </div>
+      )}
     </div>
   )
 }
