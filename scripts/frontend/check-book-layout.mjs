@@ -38,6 +38,9 @@ for (let count = 1; count <= 40; count++) {
         const after = opening(spreads[i + 1])
         assert.ok(before.right, 'every forward turn has a right leaf to lift')
         assert.ok(after.left, 'every forward turn has a back face to land on')
+        if (double && spreads[i + 1][0] > 1 && spreads[i + 1][0] < count && wide[spreads[i + 1][0]]) {
+          assert.notEqual(before.right.src, 'blank-front', 'alignment padding is not inserted immediately before a wide spread')
+        }
       }
       assert.equal(contentPage(count, count), 0, 'the opening filler does not finish the chapter')
       assert.equal(contentPage(count + 1, count), count - 1)
@@ -46,4 +49,8 @@ for (let count = 1; count <= 40; count++) {
     }
   }
 }
+assert.deepEqual(bookSpreads(6, 9, { 3: true }, true).slice(0, 4), [[0], [6], [1, 2], [3]], 'the first alignment blank follows the inside front cover')
+const multi = bookFaces(['cover', 'wide-a', 'page', 'wide-b', 'page', 'page', 'blank-front', 'blank-back', 'back'], { 1: true, 3: true }, false, true, 6)
+assert.equal(multi.opening([2]).left.src, 'blank-front')
+assert.equal(multi.opening([2]).right.src, 'page', 'unavoidable padding between wide spreads precedes the intervening pages')
 console.log(`Book layout: ${cases} cases passed (page counts, wide pages, single/double, LTR/RTL, blank inside covers and progress)`)

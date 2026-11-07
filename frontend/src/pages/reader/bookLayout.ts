@@ -8,10 +8,19 @@ export function bookSpreads(contentPages: number, totalPages: number, wide: Read
   if (contentPages === 0) return []
   const bound = totalPages === contentPages + 3
   const spreads: Spread[] = [[0]]
+  let firstWide = 1
+  while (firstWide < contentPages && !wide[firstWide]) firstWide++
+  const openingPad = bound && firstWide < contentPages && (double ? firstWide % 2 === 1 : firstWide === 1)
   let i = 1
-  if (bound && contentPages > 1 && wide[1]) spreads.push([contentPages])
-  if (i < contentPages && !wide[i]) spreads.push([i++])
+  if (openingPad) spreads.push([contentPages])
+  if (!openingPad && i < contentPages && !wide[i]) spreads.push([i++])
   while (i < contentPages) {
+    if (double && wide[i - 1] && !wide[i]) {
+      let nextWide = i
+      while (nextWide < contentPages && !wide[nextWide]) nextWide++
+      if (nextWide < contentPages && (nextWide - i) % 2 === 1) spreads.push([i++])
+      if (i >= contentPages) break
+    }
     if (double && !wide[i] && i + 1 < contentPages && !wide[i + 1]) spreads.push([i++, i++])
     else spreads.push([i++])
   }
@@ -53,8 +62,8 @@ export function bookFaces(urls: string[], wide: Readonly<Record<number, boolean>
     if (first === backCover) return { left: faceOf(first), right: null }
     if (pages.length === 2) return { left: faceOf(first), right: faceOf(pages[1]!) }
     if (first < contentPages && wide[first]) return { left: faceOf(first, near), right: faceOf(first, far) }
-    if (first === 1 || first === contentPages || first === insideBack) {
-      return { left: blank(first !== insideBack || contentPages === 1), right: faceOf(first) }
+    if (first === 1 || first === contentPages || first === insideBack || (double && wide[first - 1])) {
+      return { left: blank(first === 1 || first === contentPages || contentPages === 1), right: faceOf(first) }
     }
     if (double) return { left: faceOf(first), right: blank(false) }
     const before = faceOf(first - 1, wide[first - 1] ? far : 'whole')
