@@ -27,13 +27,18 @@ export function gutterShade(t: number): number {
   const k = Math.max(0, Math.min(1, (t - GUTTER.fade) / (GUTTER.reach - GUTTER.fade)))
   return GUTTER.depth * Math.exp(-t / GUTTER.fall) * (1 - k * k * (3 - 2 * k))
 }
-/** The fold as a CSS gradient running away from the spine, out to GUTTER_REACH units. */
-export function gutterGradient(direction: 'to right' | 'to left'): string {
-  const stops = Array.from({ length: 21 }, (_, i) => {
-    const t = (i / 20) * GUTTER.reach
-    return `rgba(0, 0, 0, ${gutterShade(t).toFixed(4)}) ${(i * 5).toFixed(0)}%`
-  })
-  return `linear-gradient(${direction}, ${stops.join(', ')})`
+/**
+ * The fold as a CSS gradient across a box reaching GUTTER_REACH units out on the sides that have a
+ * fold, the spine at its centre when both do. One box, so no seam can open at the spine.
+ */
+export function gutterGradient(left: boolean, right: boolean): string {
+  const steps = 20
+  const share = 100 / ((left ? 1 : 0) + (right ? 1 : 0))
+  const stops: string[] = []
+  const stop = (t: number, at: number) => stops.push(`rgba(0, 0, 0, ${gutterShade(t).toFixed(4)}) ${at.toFixed(2)}%`)
+  if (left) for (let i = steps; i >= 0; i--) stop((i / steps) * GUTTER.reach, ((steps - i) / steps) * share)
+  if (right) for (let i = left ? 1 : 0; i <= steps; i++) stop((i / steps) * GUTTER.reach, (left ? share : 0) + (i / steps) * share)
+  return `linear-gradient(to right, ${stops.join(', ')})`
 }
 
 const VERTEX = `#version 300 es

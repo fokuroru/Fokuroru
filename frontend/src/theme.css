@@ -5746,6 +5746,8 @@ body.reader-open {
 .reader-curl {
   position: fixed;
   inset: 0;
+  /* Above the page's own fold and marks: while it fades out they must not be shaded twice. */
+  z-index: 2;
   width: 100%;
   height: 100%;
   pointer-events: none;
@@ -5771,6 +5773,11 @@ body.reader-open {
   display: block;
   opacity: 0;
   transition: opacity 160ms ease-in;
+}
+/* Paper under the open book, so the hairline where two pages meet shows paper, not the dark
+   reader behind. Only at rest: during a turn the book can move off it. */
+.reader-paged:not([data-curling]) > .reader-book-shadow {
+  background: #f5f2eb;
 }
 /* Soft contact shadow only: fixed page-edge stripes float outside a closing cover. */
 .reader-book-shadow {

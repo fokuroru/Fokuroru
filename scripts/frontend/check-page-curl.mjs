@@ -15,7 +15,12 @@ assert.equal(pageMark(41, 'book'), pageMark(41, 'book'), 'a leaf keeps its mark'
 assert.ok(gutterShade(GUTTER_REACH) < 1e-6, 'the spine shadow fades to nothing where its box ends')
 for (let t = 0; t < GUTTER_REACH; t += 0.05) assert.ok(gutterShade(t + 0.05) <= gutterShade(t), 'the spine shadow only ever lightens away from the spine')
 assert.ok(gutterShade(0) <= 0.25, 'the spine shadow is soft at the binding')
-assert.match(gutterGradient('to left'), /rgba\(0, 0, 0, 0\.0000\) 100%\)$/, 'the CSS fold ends fully transparent')
+const spine = `rgba(0, 0, 0, ${gutterShade(0).toFixed(4)})`
+const clear = 'rgba(0, 0, 0, 0.0000)'
+assert.ok(gutterGradient(true, true).startsWith(`linear-gradient(to right, ${clear} 0.00%`) && gutterGradient(true, true).endsWith(`${clear} 100.00%)`), 'a two-sided fold fades to nothing at both ends')
+assert.ok(gutterGradient(true, true).includes(`${spine} 50.00%`), 'both sides meet at the spine in one box, darkest there')
+assert.ok(gutterGradient(false, true).startsWith(`linear-gradient(to right, ${spine} 0.00%`) && gutterGradient(false, true).endsWith(`${clear} 100.00%)`), 'a right-hand fold runs from the spine out')
+assert.ok(gutterGradient(true, false).startsWith(`linear-gradient(to right, ${clear} 0.00%`) && gutterGradient(true, false).endsWith(`${spine} 100.00%)`), 'a left-hand fold runs out to the spine')
 assert.notDeepEqual(pageWear(0, 'book-a'), pageWear(0, 'book-b'), 'wear varies between books, rather than wearing every front cover identically')
 const worn = Array.from({ length: 200 }, (_, page) => pageWear(page)[1]).filter(Boolean).length
 assert.ok(worn > 3 && worn < 20, 'only a small minority of pages have a worn corner')

@@ -76,9 +76,6 @@ interface Sheet {
   cover: boolean
 }
 
-const GUTTER_LEFT = gutterGradient('to left')
-const GUTTER_RIGHT = gutterGradient('to right')
-
 const NO_WIDE: Readonly<Record<number, boolean>> = {}
 
 // How long a wide page takes to grow to the book's size before a turn, and to shrink after one.
@@ -1031,24 +1028,19 @@ export default function PagedView({
       {marks.map(({ page, box }) => (
         <PageMarkOverlay key={page} page={page} book={book} box={box} tone={tone} />
       ))}
-      {frame &&
-        ([leftFold && 'left', rightFold && 'right'] as const).map(
-          (side) =>
-            side && (
-              <div
-                key={side}
-                className="reader-gutter"
-                style={{
-                  left: side === 'left' ? frame.spine - gutter * GUTTER_REACH : frame.spine,
-                  top: frame.box.top,
-                  width: gutter * GUTTER_REACH,
-                  height: frame.box.height,
-                  background: side === 'left' ? GUTTER_LEFT : GUTTER_RIGHT,
-                }}
-                aria-hidden
-              />
-            ),
-        )}
+      {frame && (leftFold || rightFold) && (
+        <div
+          className="reader-gutter"
+          style={{
+            left: frame.spine - (leftFold ? gutter * GUTTER_REACH : 0),
+            top: frame.box.top,
+            width: gutter * GUTTER_REACH * ((leftFold ? 1 : 0) + (rightFold ? 1 : 0)),
+            height: frame.box.height,
+            background: gutterGradient(leftFold, rightFold),
+          }}
+          aria-hidden
+        />
+      )}
       {paper && <canvas ref={canvas} className="reader-curl" style={{ filter: tone }} aria-hidden />}
     </div>
   )
