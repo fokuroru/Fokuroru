@@ -436,10 +436,9 @@ public class ChapterSyncService(
     {
         var list = chapters.ToList();
         var backed = list.Where(c => c is { Volume: not null, Number: not null } && c.SourceLinks.Count >= 2)
-            .Select(c => (c.Number, c.Volume))
-            .ToHashSet();
+            .ToLookup(c => c.Number, c => c.Volume);
         var rows = list
-            .Where(c => c.SourceLinks.Count >= 2 || !backed.Any(b => b.Number == c.Number && b.Volume != c.Volume))
+            .Where(c => c.SourceLinks.Count >= 2 || !backed[c.Number].Any(v => v != c.Volume))
             .Select(c => (c.Volume, c.Number));
         return Maki.Core.Reading.VolumeRanges.ContinuousVolumeOf(rows, number, includeNumber: true);
     }
