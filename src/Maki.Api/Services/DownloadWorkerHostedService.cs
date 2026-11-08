@@ -180,6 +180,10 @@ public class DownloadWorkerHostedService(
             // already refuses values outside 1..MaxConcurrentChapters.
             return Math.Clamp(configured, 1, MaxConcurrentChapters);
         }
+        catch (Exception ex) when (ex is OperationCanceledException or ObjectDisposedException)
+        {
+            return DefaultConcurrentChapters;
+        }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Could not read download concurrency setting; using {Default}", DefaultConcurrentChapters);
@@ -205,6 +209,10 @@ public class DownloadWorkerHostedService(
             }
 
             return Math.Max(minutes, 0);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or ObjectDisposedException)
+        {
+            return DefaultItemTimeoutMinutes;
         }
         catch (Exception ex)
         {
