@@ -24,24 +24,21 @@ public static class PageStripMerger
     public static async Task<List<string>> MergeAsync(
         IReadOnlyList<string> pageFiles, string outDir, CancellationToken ct = default)
     {
-        var sizes = pageFiles.Select(ImageCodec.IdentifyFile).ToList();
+        var sizes = pageFiles.Select(TryIdentify).ToList();
         var groups = new List<List<int>>();
         var height = 0;
         for (var i = 0; i < pageFiles.Count; i++)
         {
-            if (groups.Count > 0)
+            if (groups.Count > 0 && sizes[groups[^1][0]] is { } first && sizes[i] is { } strip &&
+                IsStrip(first.Width, height, strip.Width, strip.Height))
             {
-                var first = sizes[groups[^1][0]];
-                if (IsStrip(first.Width, height, sizes[i].Width, sizes[i].Height))
-                {
-                    groups[^1].Add(i);
-                    height += sizes[i].Height;
-                    continue;
-                }
+                groups[^1].Add(i);
+                height += strip.Height;
+                continue;
             }
 
             groups.Add([i]);
-            height = sizes[i].Height;
+            height = sizes[i]?.Height ?? 0;
         }
 
         if (groups.All(g => g.Count == 1))
@@ -72,6 +69,22 @@ public static class PageStripMerger
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The validator trusts an AVIF by its container without decoding it, so a page may not decode here.
+    /// Such a page is shipped as it is and never merged, rather than failing the whole download.
+    /// </summary>
+    private static ImageHeader? TryIdentify(string path)
+    {
+        try
+        {
+            return ImageCodec.IdentifyFile(path);
+        }
+        catch (NetVips.VipsException)
+        {
+            return null;
+        }
     }
 
     private static async Task<string> StackAsync(List<string> files, string outDir, int index, CancellationToken ct)

@@ -15,6 +15,28 @@ public class PageStripMergerTests
         Assert.Equal(expected, PageStripMerger.IsStrip(pw, ph, sw, sh));
 
     [Fact]
+    public async Task A_page_that_does_not_decode_is_kept_as_it_is()
+    {
+        var dir = Directory.CreateTempSubdirectory().FullName;
+        try
+        {
+            var page = Path.Combine(dir, "001.png");
+            File.WriteAllBytes(page, new Raster(400, 500, new Rgba(255, 0, 0)).EncodePng());
+            var avif = new byte[256];
+            avif[3] = 0x1C;
+            "ftypavif"u8.CopyTo(avif.AsSpan(4));
+            var broken = Path.Combine(dir, "002.avif");
+            File.WriteAllBytes(broken, avif);
+
+            Assert.Equal([page, broken], await PageStripMerger.MergeAsync([page, broken], Path.Combine(dir, "merged")));
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [Fact]
     public async Task Strip_is_glued_under_its_page()
     {
         var dir = Directory.CreateTempSubdirectory().FullName;
