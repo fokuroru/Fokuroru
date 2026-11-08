@@ -46,6 +46,12 @@ jobs:
       - name: Tap zone layouts behave
         run: npm run check:tap-zones
 
+      - name: Reader page turns and book layout behave
+        run: npm run check:page-curl && npm run check:book-layout
+
+      - name: Library shelf behaves
+        run: npm run check:shelf-physics && npm run check:shelf-colours && npm run check:shelf-layout
+
       # Catches a new t/<Trans> whose English was never extracted, and a key hand-added to
       # en/server.po but never propagated. Either way the string compiles and renders in English
       # while being absent from thirteen catalogues, with nothing to say so. Diffing the whole tree

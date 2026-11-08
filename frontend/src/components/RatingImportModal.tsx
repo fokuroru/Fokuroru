@@ -67,7 +67,7 @@ export function RatingImportModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, service, queryClient])
 
-  const items = data?.items ?? []
+  const items = useMemo(() => data?.items ?? [], [data])
   const requestFailed = start.isError || queryIsError
   const running = !requestFailed && (data?.running ?? true)
   const computedAt = data?.computedAt ?? null

@@ -28,11 +28,11 @@ scene.add(model)
 const item = { book, body, model, row, button: {} }
 const prop = { body: { position: { x: 500, y: 300 } } }
 Object.assign(shelf, {
-  books: [book], items: [item], rows: [row], props: [prop], sticks: [], spawnedBooks: new Set([1]),
+  books: [book], items: [item], rows: [row], props: [prop], sticks: [], spawnedBooks: new Set([1]), stocked: true,
   cssWidth: 900, logicalWidth: 900, generation: 0, abort: new AbortController(), prank: null,
   figureUrl: null, renderedFigureUrl: null, board: null, lastScrollAt: -Infinity,
   loadCovers: async () => {}, wake() {}, clear() { throw Error('scene rebuilt') },
-  sizeCanvas() {}, model: () => ({ group: new T.Group(), hinges: {} }),
+  sizeCanvas() {}, syncBannerObject() {}, model: () => ({ group: new T.Group(), hinges: {} }),
   disposeModel: (object) => object.removeFromParent(), label: (b) => b.number,
 })
 await shelf.layout()

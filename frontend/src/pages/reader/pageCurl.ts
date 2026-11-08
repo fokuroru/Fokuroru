@@ -617,6 +617,7 @@ export class PageCurl {
   dispose() {
     this.disposed = true
     this.stop()
+    this.endHandoff()
     window.removeEventListener('resize', this.resize)
     this.removeListeners?.()
     if (this.surface) this.surface.style.touchAction = ''
