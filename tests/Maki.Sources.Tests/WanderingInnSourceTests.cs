@@ -7,10 +7,11 @@ public class WanderingInnSourceTests
     private const string Posts =
         """
         [
-          {"slug":"chapter-1-page-2","date":"2024-07-02T10:00:00","content":{"rendered":"<figure><img src=\"https://x.test/p2.jpg\"></figure>"}},
-          {"slug":"chapter-1-page-1","date":"2024-07-01T10:00:00","content":{"rendered":"<figure><img src=\"https://x.test/p1.jpg\"></figure>"}},
-          {"slug":"chapter-2-page-1","date":"2024-08-01T10:00:00","content":{"rendered":"<figure><img src=\"https://x.test/c2.jpg\"></figure>"}},
-          {"slug":"rough-landing-page-1","date":"2024-09-01T10:00:00","content":{"rendered":"<img src=\"https://x.test/rl.jpg\">"}}
+          {"slug":"chapter-1-page-2","modified":"2024-07-02T10:00:00","content":{"rendered":"<figure><img src=\"https://x.test/p2.jpg\"></figure>"}},
+          {"slug":"chapter-1-page-1","modified":"2024-07-01T10:00:00","content":{"rendered":"<figure><img src=\"https://x.test/p1.jpg\"></figure>"}},
+          {"slug":"chapter-1-page-3-and-4","modified":"2024-07-03T10:00:00","content":{"rendered":"<figure><img src=\"https://x.test/p34.jpg\"></figure>"}},
+          {"slug":"chapter-2-page-1","modified":"2024-08-01T10:00:00","content":{"rendered":"<figure><img src=\"https://x.test/c2.jpg\"></figure>"}},
+          {"slug":"rough-landing-page-1","modified":"2024-09-01T10:00:00","content":{"rendered":"<img src=\"https://x.test/rl.jpg\">"}}
         ]
         """;
 
@@ -23,7 +24,8 @@ public class WanderingInnSourceTests
         var chapters = await Source().ListChaptersAsync(WanderingInnSource.SeriesId);
 
         Assert.Equal([1m, 2m], chapters.Select(c => c.Number));
-        Assert.Equal(new DateTime(2024, 7, 2, 10, 0, 0), chapters[0].ReleaseDate);
+        Assert.Equal(new DateTime(2024, 7, 3, 10, 0, 0), chapters[0].ReleaseDate);
+        Assert.Equal([3, 1], chapters.Select(c => c.PageCount));
     }
 
     [Fact]
@@ -34,6 +36,6 @@ public class WanderingInnSourceTests
 
         var pages = await source.GetPagesAsync(chapter);
 
-        Assert.Equal(["https://x.test/p1.jpg", "https://x.test/p2.jpg"], pages.Pages.Select(p => p.Url));
+        Assert.Equal(["https://x.test/p1.jpg", "https://x.test/p2.jpg", "https://x.test/p34.jpg"], pages.Pages.Select(p => p.Url));
     }
 }

@@ -67,6 +67,7 @@ public class ChapterSyncService(
         var topMain = existing.Where(c => ReadingStatuses.IsMain(c.Number)).Max(c => c.Number) ?? 0m;
         var numbersBySource = new Dictionary<string, IReadOnlyCollection<decimal?>>();
         var promotedBesideExisting = false;
+        var growing = new List<(Chapter Chapter, int Pages, SourceMapping Mapping)>();
 
         // MangaBaka has no MangaDex ids, so the uuid can only come from a linked
         // source mapping; it feeds the series web links.
@@ -158,6 +159,10 @@ public class ChapterSyncService(
                         }
 
                         match.ReleaseDate ??= sc.ReleaseDate;
+                        if (sc.PageCount is { } listedPages && match.ChapterFileId is not null)
+                        {
+                            growing.Add((match, listedPages, mapping));
+                        }
                     }
                     else
                     {
@@ -226,6 +231,8 @@ public class ChapterSyncService(
             await MergeDuplicatesAsync(existing, reads, ct);
         }
 
+        var regrow = await ShortFilesAsync(growing, ct);
+
         // Flag (or clear) cross-source numbering clashes. A clash is always
         // recorded; clearing requires every enabled mapping to have fetched this
         // run, so one temporarily failing source doesn't wipe a real flag.
@@ -248,6 +255,18 @@ public class ChapterSyncService(
         }
 
         await db.SaveChangesAsync(ct);
+
+        foreach (var (chapterId, mappingId) in regrow)
+        {
+            try
+            {
+                await queue.EnqueueChapterAsync(chapterId, ct, preferMappingId: mappingId);
+            }
+            catch (Exception ex) when (ex is EnqueueRefusedException or InvalidOperationException)
+            {
+                logger.LogWarning(ex, "Could not queue chapter {ChapterId} to fetch its new pages", chapterId);
+            }
+        }
 
         // Only a full sync reschedules. A partial one saw a few mappings, and the job would
         // otherwise treat the whole series as checked.
@@ -272,6 +291,34 @@ public class ChapterSyncService(
         }
 
         return newChapters.Select(c => c.Id).ToList();
+    }
+
+    /// <summary>
+    /// Chapters whose file came from the listing's own source and holds fewer pages than it lists now,
+    /// for a source that publishes a chapter's pages gradually. Re-queued unmarked as a user's own
+    /// download, so it stays out of the inbox.
+    /// </summary>
+    private async Task<List<(int ChapterId, int MappingId)>> ShortFilesAsync(
+        List<(Chapter Chapter, int Pages, SourceMapping Mapping)> growing, CancellationToken ct)
+    {
+        if (growing.Count == 0)
+        {
+            return [];
+        }
+
+        var fileIds = growing.Select(g => g.Chapter.ChapterFileId!.Value).Distinct().ToList();
+        var files = await db.ChapterFiles
+            .Where(f => fileIds.Contains(f.Id))
+            .Select(f => new { f.Id, f.PageCount, f.SourceName })
+            .ToDictionaryAsync(f => f.Id, ct);
+
+        return growing
+            .Where(g => files.TryGetValue(g.Chapter.ChapterFileId!.Value, out var f) &&
+                        f.PageCount < g.Pages &&
+                        string.Equals(f.SourceName, g.Mapping.SourceName, StringComparison.OrdinalIgnoreCase))
+            .Select(g => (g.Chapter.Id, g.Mapping.Id))
+            .Distinct()
+            .ToList();
     }
 
     /// <summary>

@@ -238,6 +238,10 @@ public record SourceSeriesDetail(
 /// Scanlation group (or joint groups, "A, B") of the upload the source kept, when the source
 /// publishes one. Null for sources that don't (most of them) or a chapter with none attached.
 /// </param>
+/// <param name="PageCount">
+/// How many pages the listing already holds, for a source that releases a chapter's pages one at a
+/// time. A file with fewer pages is re-downloaded. Null for sources that list whole chapters.
+/// </param>
 public record SourceChapter(
     string SourceName,
     string SourceSeriesId,
@@ -249,7 +253,8 @@ public record SourceChapter(
     string Language,
     DateTime? ReleaseDate,
     string? Url = null,
-    string? Group = null);
+    string? Group = null,
+    int? PageCount = null);
 
 /// <summary>Resolved page list for a chapter.</summary>
 public record ChapterPages(IReadOnlyList<PageRequest> Pages);

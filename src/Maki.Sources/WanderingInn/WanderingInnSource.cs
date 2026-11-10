@@ -10,7 +10,9 @@ namespace Maki.Sources.WanderingInn;
 /// <summary>
 /// The Wandering Inn webcomic (webcomic.wanderinginn.com). A single WordPress site where every comic
 /// page is one post ("Chapter 1: Page 1", slug chapter-1-page-1) holding one image, so we read the
-/// REST API instead of scraping HTML. The site is one series; a Maki chapter is a numbered comic
+/// REST API instead of scraping HTML. A chapter's pages go live one at a time while the post dates
+/// stay at creation, so the modified time is the release date and the page count lets a short file
+/// be fetched again. The site is one series; a Maki chapter is a numbered comic
 /// chapter, and its id is the chapter number. Side comics (Rough Landing, BOC x TWI) are skipped.
 /// </summary>
 public partial class WanderingInnSource(IHttpClientFactory httpClientFactory) : ISource
@@ -78,8 +80,9 @@ public partial class WanderingInnSource(IHttpClientFactory httpClientFactory) : 
                 null,
                 null,
                 Language: "en",
-                ReleaseDate: g.Max(p => p.Date),
-                Url: $"{BaseUrl}/chapter/chapter-{g.Key}/"))
+                ReleaseDate: g.Max(p => p.Modified),
+                Url: $"{BaseUrl}/chapter/chapter-{g.Key}/",
+                PageCount: g.Sum(p => p.ImageUrls.Count)))
             .ToList();
 
         return SourceChapterList.Normalize(chapters);
@@ -127,7 +130,7 @@ public partial class WanderingInnSource(IHttpClientFactory httpClientFactory) : 
         for (var page = 1; page <= totalPages; page++)
         {
             using var response = await Client.GetAsync(
-                $"wp-json/wp/v2/posts?per_page=100&page={page}&_fields=slug,date,content", ct);
+                $"wp-json/wp/v2/posts?per_page=100&page={page}&_fields=slug,modified,content", ct);
             response.EnsureSuccessStatusCode();
 
             if (response.Headers.TryGetValues("X-WP-TotalPages", out var values) &&
@@ -160,7 +163,7 @@ public partial class WanderingInnSource(IHttpClientFactory httpClientFactory) : 
                 pages.Add(new ComicPage(
                     int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                     int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture),
-                    post.Date,
+                    post.Modified,
                     images));
             }
         }
@@ -168,11 +171,11 @@ public partial class WanderingInnSource(IHttpClientFactory httpClientFactory) : 
         return pages.OrderBy(p => p.Chapter).ThenBy(p => p.Page).ToList();
     }
 
-    private sealed record ComicPage(int Chapter, int Page, DateTime Date, List<string> ImageUrls);
+    private sealed record ComicPage(int Chapter, int Page, DateTime Modified, List<string> ImageUrls);
 
     private sealed record Post(
         [property: JsonPropertyName("slug")] string Slug,
-        [property: JsonPropertyName("date")] DateTime Date,
+        [property: JsonPropertyName("modified")] DateTime Modified,
         [property: JsonPropertyName("content")] Rendered Content);
 
     private sealed record Rendered([property: JsonPropertyName("rendered")] string Html);
