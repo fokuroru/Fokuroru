@@ -65,14 +65,11 @@ public class PublicAddressGuardTests
         Assert.Equal(allowed, PublicAddressGuard.IsAllowedUrl(new Uri(url)));
 
     [Fact]
-    public void Handlers_ask_for_compressed_bodies()
+    public void Handler_asks_for_compressed_bodies()
     {
         using var guarded = PublicAddressGuard.CreateHandler();
-        using var manual = PublicAddressGuard.CreateManualRedirectHandler();
 
         Assert.Equal(DecompressionMethods.All, guarded.AutomaticDecompression);
-        Assert.Equal(DecompressionMethods.All, manual.AutomaticDecompression);
-        Assert.False(manual.AllowAutoRedirect);
     }
 
     [Fact]

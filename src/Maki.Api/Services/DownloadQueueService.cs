@@ -220,6 +220,18 @@ public class DownloadQueueService(
     /// Snapshot of the sources currently cooling down, for <see cref="ClaimNextAsync"/> to exclude in
     /// SQL. Usually empty, which is the case the query is optimized for.
     /// </summary>
+    /// <summary>Sources paused or cooling down, tried only after every other source.</summary>
+    public async Task<HashSet<string>> HeldSourcesAsync(CancellationToken ct = default)
+    {
+        var held = CoolingDownSources().ToHashSet();
+        if (pauses is not null)
+        {
+            held.UnionWith((await pauses.ActiveAsync(ct)).Sources.Keys);
+        }
+
+        return held;
+    }
+
     private List<string> CoolingDownSources()
     {
         lock (_cooldownLock)

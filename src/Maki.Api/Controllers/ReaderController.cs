@@ -8,6 +8,7 @@ using Maki.Api.Services.Upscaling;
 using Maki.Core.Configuration;
 using Maki.Core.Entities;
 using Maki.Core.Images;
+using Maki.Core.Io;
 using Maki.Core.Images.Upscaling;
 using Maki.Core.Progress;
 using Maki.Core.Quality;
