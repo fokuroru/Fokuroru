@@ -87,18 +87,16 @@ export default function EnhancedPage({
     return () => clearTimeout(timer)
   }, [known, image, src])
   const soft = known === true
+  const softRef = useRef(soft)
+  softRef.current = soft
 
   const measure = useRef(() => {})
   measure.current = () => {
     if (!box || standby) return
     const next = measureTarget(box, rotate, { width: image.naturalWidth, height: image.naturalHeight }, region)
     if (!next) return
-    const width = image.naturalWidth * region.w
-    const height = image.naturalHeight * region.h
-    scope.noteSize(width, height, next)
-    // Until the page is measured at its new size, its last answer stands.
-    const softNow = mode === 'auto' ? knownSoft(src, shownScale(next, width, height)) : false
-    if (next.stretched || softNow !== undefined) scope.notePage(page, next.stretched || softNow === true)
+    scope.noteSize(image.naturalWidth * region.w, image.naturalHeight * region.h, next)
+    scope.notePage(page, next.stretched || softRef.current)
     setTarget((previous) => (sameTarget(previous, next) ? previous : next))
   }
 
@@ -128,8 +126,8 @@ export default function EnhancedPage({
   }, [box, rotate, regionId, image, standby])
 
   useEffect(() => {
-    if (known !== undefined) measure.current()
-  }, [known])
+    if (soft) measure.current()
+  }, [soft])
 
   const lastLayout = useRef(layout)
   useEffect(() => {
