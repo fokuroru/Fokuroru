@@ -6265,6 +6265,10 @@ msgstr "다운로드"
 msgid "Downloads now try {bestName} first."
 msgstr ""
 
+#: src/components/SourceMeasurePanel.tsx
+msgid "Downloads now try {bestName} first. Sources that could not be measured are tried last."
+msgstr ""
+
 #: src/components/QueuePause.tsx
 msgid "Downloads paused"
 msgstr ""
