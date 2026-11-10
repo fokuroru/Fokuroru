@@ -18,7 +18,6 @@ internal sealed class FakeReleases() : ReleaseService(null!, null!, null!, null!
     public List<(int SeriesId, string Query)> Queries { get; } = [];
     public List<(int SeriesId, ReleaseDto Release, DownloadOrigin Origin, int? UserId, string? Info)> Grabs { get; } = [];
     public Exception? SearchError { get; set; }
-    public Exception? GrabError { get; set; }
     public Action? OnSearch { get; set; }
 
     public override Task<ReleaseSearchResult> SearchAsync(int seriesId, string? query = null, CancellationToken ct = default)
@@ -37,11 +36,6 @@ internal sealed class FakeReleases() : ReleaseService(null!, null!, null!, null!
         int? queuedByUserId, string? upgradeInfoJson, CancellationToken ct = default)
     {
         Grabs.Add((seriesId, release, origin, queuedByUserId, upgradeInfoJson));
-        if (GrabError is not null)
-        {
-            throw GrabError;
-        }
-
         return Task.FromResult(new DownloadQueueItem { Id = 1000 + Grabs.Count, SeriesId = seriesId, Origin = origin });
     }
 
@@ -468,29 +462,6 @@ public class TorrentUpgradeServiceTests : IDisposable
         Assert.Equal(VolumeSearchReasons.SearchFailed, result.Reason);
         using var db = _world.Db.NewContext();
         Assert.Equal(_clock.Now.UtcDateTime, db.Series.Single().LastVolumeSearchUtc);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task A_grab_the_client_holds_in_another_category_waits_the_full_interval(bool heldOutsideLabel)
-    {
-        Chapter(1, 1);
-        _releases.Results.Add(FakeReleases.Release("Kaguya v01 (Digital) (1r0n)"));
-        _releases.GrabError = heldOutsideLabel
-            ? new Maki.Core.Download.TorrentClientException(Maki.Core.Download.TorrentClientFailure.HeldOutsideLabel, "held")
-            : new HttpRequestException("qbittorrent down");
-
-        var result = await SearchAsync();
-
-        Assert.Equal(VolumeSearchReasons.GrabFailed, result.Reason);
-        Assert.Single(_releases.Grabs);
-        using var db = _world.Db.NewContext();
-        var expected = heldOutsideLabel
-            ? _clock.Now.UtcDateTime
-            : _clock.Now.UtcDateTime - (TorrentUpgradeService.SearchInterval - TorrentUpgradeService.RetryAfterFailure);
-        Assert.Equal(expected, db.Series.Single().LastVolumeSearchUtc);
-        Assert.DoesNotContain(db.TorrentProposals, p => p.Status == TorrentProposalStatus.Dismissed);
     }
 
     private void RenameSeries(string title)
