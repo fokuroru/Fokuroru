@@ -663,7 +663,7 @@ export default function PagedView({
   // different in the drawing than on screen, and 1:1 or zoomed pages pan sideways, which a book cannot.
   const lone = shown.spread.length === 1
   const plainPages = !cropBorders && splitWide === 'off'
-  const curlOn = paper !== null && zoom === 1 && plainPages && fit !== 'original' && scale === 100
+  const curlOn = paper !== null && zoom === 1 && plainPages && fit !== 'original'
   const align = paper?.align ?? 'center'
   const double = paper?.double ?? false
   const wideMap = paper?.wide ?? NO_WIDE
