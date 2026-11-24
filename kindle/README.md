@@ -1,0 +1,21 @@
+# Fōkurōru for KOReader (Kindle)
+
+A KOReader plugin that keeps the next unread chapters of what you are reading on the device and
+syncs progress back. Needs a server with the `device.cbz`, `shelf.json` and `progress` OPDS routes.
+
+## Install
+
+1. Copy `fokuroru.koplugin` to KOReader's `plugins` folder on the Kindle (`/mnt/us/koreader/plugins/`).
+2. Restart KOReader.
+3. Top menu, Tools, Fokuroru. Set the server address to your OPDS feed URL, for example
+   `http://192.168.1.20:8990/api/v1/opds/<token>`, then choose Sync now.
+
+Chapters land in `/mnt/us/documents/Fokuroru/<series>/`, one folder per series.
+
+## What it does
+
+- Downloads the next N unread chapters per series, already cut for the screen (webtoon strips are
+  split at gutters by the server).
+- Remembers the page while you read and sends it on the next sync, so reading offline is fine.
+- Deletes chapters you have read, keeping the most recent one.
+- Optionally syncs when Wi-Fi connects, at most every 10 minutes.

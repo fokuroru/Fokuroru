@@ -101,6 +101,15 @@ fork, are not documented here.
   The app opens on a simple view (last read hero, Continue reading, library grid) that can be
   switched to the full interface. See [android/README.md](android/README.md).
 
+### Kindle (KOReader)
+
+- Added a KOReader plugin in `kindle/` for jailbroken Kindles. It keeps the next unread chapters of
+  what you are reading on the device and sends your progress back on the next sync. See
+  [kindle/README.md](kindle/README.md).
+- Added three OPDS routes for it: `chapter/{id}/device.cbz` (one chapter's pages, with webtoon strips
+  cut into screen-shaped pieces at gutters), `shelf.json` (what you are reading, with read flags) and
+  `POST chapter/{id}/progress`.
+
 ### Platform, migrations and account isolation
 
 - Added an installable PWA with a service worker caching the app shell and hashed build assets.

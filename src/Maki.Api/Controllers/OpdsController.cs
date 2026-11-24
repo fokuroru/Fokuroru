@@ -194,6 +194,13 @@ public class OpdsController(
             ? NotFound()
             : Ok(await catalog.LibraryTotalsAsync(ct));
 
+    /// <summary>The series the token's user is reading, each with its downloaded chapters and read flags. For the Kindle plugin's fetch-ahead.</summary>
+    [HttpGet("shelf.json")]
+    public async Task<IActionResult> ShelfJson(string token, CancellationToken ct) =>
+        await AuthorizeAsync(token, ct) is null
+            ? NotFound()
+            : Ok(await catalog.DeviceShelfAsync(ct));
+
     [HttpGet("on-deck")]
     public async Task<IActionResult> OnDeck(string token, CancellationToken ct) =>
         await AuthorizeAsync(token, ct) is null
@@ -257,6 +264,105 @@ public class OpdsController(
         return PhysicalFile(
             slice.ArchivePath, OpdsXml.MimeType(slice.ArchivePath), SanitizeFileName(name),
             enableRangeProcessing: true);
+    }
+
+    /// <summary>
+    /// Just this chapter's pages as a CBZ, with webtoon strips cut into screen-shaped pieces at
+    /// gutters. For e-readers that fit one page to the screen. Built once and cached on disk.
+    /// </summary>
+    [HttpGet("chapter/{chapterId:int}/device.cbz")]
+    public async Task<IActionResult> DeviceDownload(
+        string token, int chapterId, [FromQuery] double ratio = 1448d / 1072d, CancellationToken ct = default)
+    {
+        if (await AuthorizeAsync(token, ct) is null)
+        {
+            return NotFound();
+        }
+
+        var slice = await reader.PageSliceAsync(chapterId, ct);
+        if (slice is null)
+        {
+            return NotFound();
+        }
+
+        ratio = Math.Clamp(ratio, 0.5, 3);
+        var dir = Path.Combine(paths.ReaderCacheDir, "device");
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, $"{slice.ChapterId}-{slice.ChapterFileId}-{slice.ArchiveSize}-{(int)(ratio * 100)}.cbz");
+        if (!System.IO.File.Exists(file))
+        {
+            var temp = $"{file}.{Guid.NewGuid():N}.tmp";
+            try
+            {
+                await using (var zipFile = System.IO.File.Create(temp))
+                using (var zip = new System.IO.Compression.ZipArchive(zipFile, System.IO.Compression.ZipArchiveMode.Create))
+                {
+                    for (var i = 0; i < slice.PageCount; i++)
+                    {
+                        var entry = slice.Pages[slice.StartPage + i];
+                        await using var source = await reader.OpenPageAsync(slice, entry, ct);
+                        if (source is null)
+                        {
+                            return NotFound();
+                        }
+
+                        using var buffer = new MemoryStream();
+                        await source.CopyToAsync(buffer, ct);
+                        var bytes = buffer.ToArray();
+                        var tiles = Maki.Core.Images.StripSlicer.Split(bytes, ratio);
+                        var extension = Path.GetExtension(entry);
+                        for (var j = 0; j < (tiles?.Count ?? 1); j++)
+                        {
+                            var part = zip.CreateEntry($"{i:D4}_{j:D2}{(tiles is null ? extension : ".jpg")}", System.IO.Compression.CompressionLevel.NoCompression);
+                            await using var output = part.Open();
+                            await output.WriteAsync(tiles is null ? bytes : tiles[j], ct);
+                        }
+                    }
+                }
+
+                System.IO.File.Move(temp, file, overwrite: true);
+            }
+            finally
+            {
+                System.IO.File.Delete(temp);
+            }
+        }
+
+        var name = $"{chapterId}.cbz";
+        return PhysicalFile(file, "application/vnd.comicbook+zip", name, enableRangeProcessing: true);
+    }
+
+    /// <summary>
+    /// Progress from a device that read a <see cref="DeviceDownload"/> copy. Its page count differs
+    /// from the chapter's (strips become several pages), so the position arrives as page of count
+    /// and is mapped onto the chapter's own pages. The last device page completes the chapter.
+    /// </summary>
+    [HttpPost("chapter/{chapterId:int}/progress")]
+    public async Task<IActionResult> DeviceProgress(
+        string token, int chapterId, [FromQuery] int page, [FromQuery] int count, CancellationToken ct)
+    {
+        if (await AuthorizeAsync(token, ct) is not { } settings)
+        {
+            return NotFound();
+        }
+
+        var slice = await reader.PageSliceAsync(chapterId, ct);
+        if (slice is null || count < 1 || page < 0)
+        {
+            return NotFound();
+        }
+
+        if (!settings.TrackProgress)
+        {
+            return NoContent();
+        }
+
+        var last = Math.Min(page, count - 1);
+        var mapped = last >= count - 1
+            ? slice.PageCount - 1
+            : (int)Math.Floor((double)last / count * slice.PageCount);
+        progressWriter.Enqueue(settings.UserId, settings.AllRootFolders, slice.ChapterId, mapped, slice.PageCount);
+        return NoContent();
     }
 
     /// <summary>

@@ -37,6 +37,10 @@ public record LatestChapterItem(
     int SeriesId, string SeriesTitle, int ChapterId, string Chapter, decimal? Number, int? Volume,
     string Language, DateTime AddedAt, int NewChapters, string? Cover);
 
+public record DeviceChapter(int ChapterId, string Chapter, bool Read);
+
+public record DeviceSeries(int SeriesId, string Title, IReadOnlyList<DeviceChapter> Chapters);
+
 public record LatestChaptersFeed(DateTime GeneratedAt, int Count, IReadOnlyList<LatestChapterItem> Items);
 
 /// <summary>
@@ -436,20 +440,7 @@ public class OpdsCatalogService(
     /// </summary>
     public async Task<OpdsFeed> OnDeckFeedAsync(OpdsContext ctx, CancellationToken ct)
     {
-        var recent = await db.ChapterProgress
-            .AsNoTracking()
-            .OwnedByScopeUser(db)
-            .OrderByDescending(p => p.UpdatedAt)
-            .Take(RecentProgressScan)
-            .Select(p => new { p.SeriesId, p.UpdatedAt })
-            .ToListAsync(ct);
-
-        var seriesOrder = recent
-            .GroupBy(p => p.SeriesId)
-            .Select(g => new { SeriesId = g.Key, Last = g.Max(p => p.UpdatedAt) })
-            .OrderByDescending(x => x.Last)
-            .Take(ShelfSize)
-            .ToList();
+        var seriesOrder = await RecentSeriesAsync(ct);
 
         var next = await continueReading.NextForAsync(seriesOrder.Select(x => x.SeriesId).ToList(), ct);
         var chapterIds = seriesOrder
@@ -470,6 +461,59 @@ public class OpdsCatalogService(
         var ordered = chapterIds.Select(byId.GetValueOrDefault).OfType<ChapterRow>().ToList();
 
         return await ShelfAsync(ctx, "on-deck", localizer.Get("opds.onDeck.title"), ordered, ct);
+    }
+
+    private async Task<List<(int SeriesId, DateTime Last)>> RecentSeriesAsync(CancellationToken ct)
+    {
+        var recent = await db.ChapterProgress
+            .AsNoTracking()
+            .OwnedByScopeUser(db)
+            .OrderByDescending(p => p.UpdatedAt)
+            .Take(RecentProgressScan)
+            .Select(p => new { p.SeriesId, p.UpdatedAt })
+            .ToListAsync(ct);
+
+        return recent
+            .GroupBy(p => p.SeriesId)
+            .Select(g => (SeriesId: g.Key, Last: g.Max(p => p.UpdatedAt)))
+            .OrderByDescending(x => x.Last)
+            .Take(ShelfSize)
+            .ToList();
+    }
+
+    /// <summary>The series being read with their downloaded chapters in reading order and a read flag, for a device that fetches ahead.</summary>
+    public async Task<IReadOnlyList<DeviceSeries>> DeviceShelfAsync(CancellationToken ct)
+    {
+        var recent = await RecentSeriesAsync(ct);
+        var ids = recent.Select(r => r.SeriesId).ToList();
+
+        var titles = await db.Series.AsNoTracking()
+            .Where(s => ids.Contains(s.Id))
+            .ToDictionaryAsync(s => s.Id, s => s.Title, ct);
+
+        var done = (await db.ChapterProgress.AsNoTracking().OwnedByScopeUser(db)
+                .Where(p => ids.Contains(p.SeriesId) && p.Completed && p.UnreadAt == null)
+                .Select(p => p.ChapterId)
+                .ToListAsync(ct))
+            .ToHashSet();
+
+        var rows = await db.Chapters.AsNoTracking()
+            .Where(c => ids.Contains(c.SeriesId) && c.ChapterFileId != null)
+            .Select(c => new ChapterRow(
+                c.Id, c.SeriesId, c.Number, c.Volume, c.Title, c.IsOneShot, c.Language,
+                c.ChapterFile!.DateAdded))
+            .ToListAsync(ct);
+
+        var bySeries = rows.GroupBy(r => r.SeriesId).ToDictionary(g => g.Key, g => g.ToList());
+        return recent
+            .Where(r => titles.ContainsKey(r.SeriesId))
+            .Select(r => new DeviceSeries(
+                r.SeriesId, titles[r.SeriesId],
+                ChapterOrder.Sort(bySeries.GetValueOrDefault(r.SeriesId) ?? [], c => c.Number, c => c.Volume, c => c.Id)
+                    .Select(c => new DeviceChapter(
+                        c.Id, ChapterLabel.For(c.Number, c.Volume, c.Title, c.IsOneShot), done.Contains(c.Id)))
+                    .ToList()))
+            .ToList();
     }
 
     private async Task<OpdsFeed> ShelfAsync(
