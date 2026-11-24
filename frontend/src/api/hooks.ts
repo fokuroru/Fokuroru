@@ -2713,6 +2713,30 @@ export function useRotateOpdsToken() {
   })
 }
 
+export interface PendingDevice {
+  id: string
+  code: string
+  name: string
+  requestedAt: string
+}
+
+export function usePendingDevices() {
+  return useQuery({
+    queryKey: ['device-pairing', 'pending'],
+    queryFn: () => api<PendingDevice[]>('/device-pairing/pending'),
+    refetchInterval: 3000,
+  })
+}
+
+export function useAnswerDevice() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, approve }: { id: string; approve: boolean }) =>
+      api<void>(`/device-pairing/${id}${approve ? '/approve' : ''}`, { method: approve ? 'POST' : 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['device-pairing'] }),
+  })
+}
+
 export function useUpdateSettings() {
   return useQuery({
     queryKey: ['settings', 'updates'],

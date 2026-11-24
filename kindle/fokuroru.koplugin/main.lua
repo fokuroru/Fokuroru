@@ -5,6 +5,7 @@ local LuaSettings = require("luasettings")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local Device = require("device")
 local ffiutil = require("ffi/util")
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
@@ -43,6 +44,20 @@ local function fetch(url, method)
     local chunks = {}
     socketutil:set_timeout(15, 60)
     local _ok, code = http_for(url).request{ url = url, method = method or "GET", sink = ltn12.sink.table(chunks) }
+    socketutil:reset_timeout()
+    return code, table.concat(chunks)
+end
+
+local function post_json(url, body)
+    local chunks = {}
+    socketutil:set_timeout(10, 30)
+    local _ok, code = http_for(url).request{
+        url = url,
+        method = "POST",
+        headers = { ["Content-Type"] = "application/json", ["Content-Length"] = tostring(#body) },
+        source = ltn12.source.string(body),
+        sink = ltn12.sink.table(chunks),
+    }
     socketutil:reset_timeout()
     return code, table.concat(chunks)
 end
@@ -136,7 +151,7 @@ end
 
 function Fokuroru:sync()
     if not self.state.url or self.state.url == "" then
-        return UIManager:show(InfoMessage:new{ text = _("Set the server address first.") })
+        return self:quickConnect()
     end
     local sent = self:flushQueue()
     local code, body = fetch(self:endpoint("/shelf.json"))
@@ -180,6 +195,76 @@ function Fokuroru:onNetworkConnected()
     end
 end
 
+-- Quick connect: show a code, the person approves it in the web UI, the plugin collects the token.
+
+local POLL_SECONDS = 3
+
+function Fokuroru:cancelPairing()
+    if self.pairing and self.pairing.tick then UIManager:unschedule(self.pairing.tick) end
+    self.pairing = nil
+end
+
+function Fokuroru:quickConnect()
+    NetworkMgr:runWhenOnline(function() self:startPairing() end)
+end
+
+function Fokuroru:startPairing()
+    self:cancelPairing()
+    local defaults = {}
+    local ok, loaded = pcall(dofile, ffiutil.dirname(debug.getinfo(1, "S").source:sub(2)) .. "/defaults.lua")
+    if ok and type(loaded) == "table" then defaults = loaded end
+    local servers = self.state.server and { self.state.server } or defaults.servers or {}
+
+    for _i, server in ipairs(servers) do
+        server = server:gsub("/+$", "")
+        local code, body = post_json(server .. "/api/v1/opds/pair/start", json.encode({ name = Device.model or "KOReader" }))
+        local parsed = code == 200 and select(2, pcall(json.decode, body)) or nil
+        if type(parsed) == "table" and parsed.secret then
+            return self:waitForApproval(server, parsed)
+        end
+    end
+    UIManager:show(InfoMessage:new{ text = _("Could not reach the server.") })
+end
+
+function Fokuroru:waitForApproval(server, started)
+    local pairing = { server = server, deadline = os.time() + (started.expiresIn or 600) }
+    self.pairing = pairing
+    local message = InfoMessage:new{
+        text = _("Open Fokuroru on your phone or computer, go to Settings, and approve this code:\n\n") .. started.code
+            .. _("\n\nTap here to cancel."),
+        dismiss_callback = function() self:cancelPairing() end,
+    }
+    UIManager:show(message)
+
+    pairing.tick = function()
+        if self.pairing ~= pairing then return end
+        if os.time() > pairing.deadline then
+            UIManager:close(message)
+            self:cancelPairing()
+            return UIManager:show(InfoMessage:new{ text = _("The code expired. Try again.") })
+        end
+        local code, body = fetch(server .. "/api/v1/opds/pair/poll?secret=" .. started.secret)
+        if code == 200 then
+            local decoded, parsed = pcall(json.decode, body)
+            if decoded and type(parsed) == "table" and parsed.path then
+                self.state.url = server .. parsed.path
+                self.state.server = server
+                self:save()
+                UIManager:close(message)
+                self.pairing = nil
+                UIManager:show(InfoMessage:new{ text = _("Connected."), timeout = 3 })
+                return UIManager:scheduleIn(1, function() self:sync() end)
+            end
+        elseif code == 404 then
+            UIManager:close(message)
+            self:cancelPairing()
+            return UIManager:show(InfoMessage:new{ text = _("The code expired. Try again.") })
+        end
+        UIManager:scheduleIn(POLL_SECONDS, pairing.tick)
+    end
+    UIManager:scheduleIn(POLL_SECONDS, pairing.tick)
+end
+
 -- Menu
 
 function Fokuroru:ask(title, key, numeric)
@@ -206,6 +291,7 @@ function Fokuroru:addToMainMenu(menu_items)
         text = _("Fokuroru"),
         sorting_hint = "tools",
         sub_item_table = {
+            { text = _("Quick connect"), callback = function() self:quickConnect() end },
             { text = _("Sync now"), callback = function() self:syncWhenOnline() end },
             { text = _("Server address (with OPDS token)"), keep_menu_open = true,
               callback = function() self:ask(_("OPDS URL"), "url") end },

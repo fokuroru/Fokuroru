@@ -3138,6 +3138,7 @@ msgid "Approval in progress"
 msgstr "Onaylama sürüyor"
 
 #: src/pages/RequestsPage.tsx
+#: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Approve"
 msgstr "Onayla"
@@ -4834,6 +4835,10 @@ msgstr "Bağlan"
 msgid "Connect {label} under Scrobbling to import from it."
 msgstr "İçeri aktarmak için {label} hizmetini Eşitleme bölümünden bağla."
 
+#: src/pages/SettingsPage.tsx
+msgid "Connect a Kindle"
+msgstr ""
+
 #: src/pages/discover/ManageSignalsModal.tsx
 #, fuzzy
 msgid "Connect an AniList or MyAnimeList tracker to use this."
@@ -5836,6 +5841,10 @@ msgstr "Demografi"
 
 #: src/pages/LibraryPage.tsx
 msgid "Density: {densityLabel}"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Deny"
 msgstr ""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
@@ -8316,6 +8325,10 @@ msgstr "İçe aktarıldı"
 msgid "Importing"
 msgstr "İçe aktarılıyor"
 
+#: src/pages/SettingsPage.tsx
+msgid "In KOReader open Tools, Fokuroru, Quick connect, then approve the code it shows here."
+msgstr ""
+
 #: src/components/import/MihonReview.tsx
 #: src/components/ui/DiscoverRail.tsx
 #: src/pages/ImportPage.tsx
@@ -10622,6 +10635,10 @@ msgstr "Henüz yeterince sık görünen bir yaratıcı yok."
 #, fuzzy
 msgid "No demographic data yet"
 msgstr "Henüz demografik veri yok"
+
+#: src/pages/SettingsPage.tsx
+msgid "No device is waiting."
+msgstr ""
 
 #: src/components/LinkChaptersModal.tsx
 #, fuzzy

@@ -3138,6 +3138,7 @@ msgid "Approval in progress"
 msgstr "Zatwierdzanie w toku"
 
 #: src/pages/RequestsPage.tsx
+#: src/pages/SettingsPage.tsx
 #, fuzzy
 msgid "Approve"
 msgstr "Zatwierdź"
@@ -4834,6 +4835,10 @@ msgstr "Połącz"
 msgid "Connect {label} under Scrobbling to import from it."
 msgstr "Połącz {label} w sekcji Scrobblowanie, aby zaimportować z niego dane."
 
+#: src/pages/SettingsPage.tsx
+msgid "Connect a Kindle"
+msgstr ""
+
 #: src/pages/discover/ManageSignalsModal.tsx
 #, fuzzy
 msgid "Connect an AniList or MyAnimeList tracker to use this."
@@ -5836,6 +5841,10 @@ msgstr "Demografia"
 
 #: src/pages/LibraryPage.tsx
 msgid "Density: {densityLabel}"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Deny"
 msgstr ""
 
 #: src/components/settings/UpgradeProfilesSection.tsx
@@ -8316,6 +8325,10 @@ msgstr "Zaimportowane"
 msgid "Importing"
 msgstr "Importowanie"
 
+#: src/pages/SettingsPage.tsx
+msgid "In KOReader open Tools, Fokuroru, Quick connect, then approve the code it shows here."
+msgstr ""
+
 #: src/components/import/MihonReview.tsx
 #: src/components/ui/DiscoverRail.tsx
 #: src/pages/ImportPage.tsx
@@ -10622,6 +10635,10 @@ msgstr "Żaden twórca nie pojawia się jeszcze wystarczająco często."
 #, fuzzy
 msgid "No demographic data yet"
 msgstr "Brak jeszcze danych demograficznych"
+
+#: src/pages/SettingsPage.tsx
+msgid "No device is waiting."
+msgstr ""
 
 #: src/components/LinkChaptersModal.tsx
 #, fuzzy

@@ -92,7 +92,8 @@ public class OpdsAccessService(MakiDbContext db, TimeProvider clock, IMemoryCach
         }
 
         var match = await db.UserApiKeys
-            .Where(k => k.KeyHash == hash && k.RevokedAt == null && k.Scope == UserApiKeyScope.Opds)
+            .Where(k => k.KeyHash == hash && k.RevokedAt == null
+                        && (k.Scope == UserApiKeyScope.Opds || k.Scope == UserApiKeyScope.Device))
             .Join(db.Users, k => k.UserId, u => u.Id, (k, u) => new
             {
                 KeyId = k.Id,

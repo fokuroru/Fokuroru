@@ -7,8 +7,10 @@ syncs progress back. Needs a server with the `device.cbz`, `shelf.json` and `pro
 
 1. Copy `fokuroru.koplugin` to KOReader's `plugins` folder on the Kindle (`/mnt/us/koreader/plugins/`).
 2. Restart KOReader.
-3. Top menu, Tools, Fokuroru. Set the server address to your OPDS feed URL, for example
-   `http://192.168.1.20:8990/api/v1/opds/<token>`, then choose Sync now.
+3. Top menu, Tools, Fokuroru, Quick connect. The Kindle shows a code.
+4. In the Fōkurōru web UI open Settings, OPDS, and tap Approve next to that code. The Kindle connects and syncs by itself.
+
+Quick connect tries the addresses in `defaults.lua` (edit it if your server is somewhere else). Each Kindle gets its own key, so connecting one never changes the feed URL other apps use, and you can revoke it from your account's API keys.
 
 Chapters land in `/mnt/us/documents/Fokuroru/<series>/`, one folder per series.
 

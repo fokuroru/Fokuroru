@@ -109,6 +109,8 @@ fork, are not documented here.
 - Added three OPDS routes for it: `chapter/{id}/device.cbz` (one chapter's pages, with webtoon strips
   cut into screen-shaped pieces at gutters), `shelf.json` (what you are reading, with read flags) and
   `POST chapter/{id}/progress`.
+- Added Quick connect: the plugin shows a short code and you approve it in Settings, OPDS. No typing on
+  the Kindle. Each approved device gets its own key (`Device` scope) that can be revoked alone.
 
 ### Platform, migrations and account isolation
 

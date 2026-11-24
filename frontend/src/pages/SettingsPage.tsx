@@ -104,6 +104,8 @@ import {
   useMetadataSettings,
   useMonitoringSettings,
   useOpdsSettings,
+  usePendingDevices,
+  useAnswerDevice,
   useRotateOpdsToken,
   useSaveOpdsSettings,
   useRecommendationIndex,
@@ -939,6 +941,54 @@ function KavitaLiveReadControl() {
   )
 }
 
+/** Quick connect for devices with no keyboard: the device shows a code, this is where it gets approved. */
+function PairDevicesBlock() {
+  const { data: pending = [] } = usePendingDevices()
+  const answer = useAnswerDevice()
+
+  return (
+    <div>
+      <Text size="sm" fw={500} mb={4}>
+        <Trans>Connect a Kindle</Trans>
+      </Text>
+      <Text size="xs" c="var(--ink-3)" mb="xs">
+        <Trans>
+          In KOReader open Tools, Fokuroru, Quick connect, then approve the code it shows here.
+        </Trans>
+      </Text>
+      {pending.length === 0 ? (
+        <Text size="xs" c="var(--ink-3)">
+          <Trans>No device is waiting.</Trans>
+        </Text>
+      ) : (
+        <Stack gap="xs">
+          {pending.map((device) => (
+            <Group key={device.id} gap="xs" wrap="nowrap">
+              <Code>{device.code}</Code>
+              <Text size="sm">{device.name}</Text>
+              <Button
+                size="compact-xs"
+                loading={answer.isPending}
+                onClick={() => answer.mutate({ id: device.id, approve: true })}
+              >
+                <Trans>Approve</Trans>
+              </Button>
+              <Button
+                size="compact-xs"
+                variant="subtle"
+                color="var(--danger)"
+                onClick={() => answer.mutate({ id: device.id, approve: false })}
+              >
+                <Trans>Deny</Trans>
+              </Button>
+            </Group>
+          ))}
+        </Stack>
+      )}
+    </div>
+  )
+}
+
 /**
  * OPDS is off until switched on, and enabling it is what mints the token, so the URL box only
  * appears once there is something real to copy.
@@ -1063,6 +1113,8 @@ function OpdsSection() {
             )}
           </div>
         )}
+
+        <PairDevicesBlock />
 
         {enabled && (
           <div>

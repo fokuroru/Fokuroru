@@ -12,6 +12,12 @@ public enum UserApiKeyScope
     /// key there would hand them the entire management API.
     /// </summary>
     Opds = 1,
+
+    /// <summary>
+    /// The OPDS catalogue only, like <see cref="Opds"/>, but one per paired device and revoked on its own,
+    /// so approving a Kindle never rotates the feed URL other apps use.
+    /// </summary>
+    Device = 2,
 }
 
 /// <summary>

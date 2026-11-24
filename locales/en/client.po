@@ -2674,6 +2674,7 @@ msgid "Approval in progress"
 msgstr "Approval in progress"
 
 #: src/pages/RequestsPage.tsx
+#: src/pages/SettingsPage.tsx
 msgid "Approve"
 msgstr "Approve"
 
@@ -4110,6 +4111,10 @@ msgstr "Connect"
 msgid "Connect {label} under Scrobbling to import from it."
 msgstr "Connect {label} under Scrobbling to import from it."
 
+#: src/pages/SettingsPage.tsx
+msgid "Connect a Kindle"
+msgstr "Connect a Kindle"
+
 #: src/pages/discover/ManageSignalsModal.tsx
 msgid "Connect an AniList or MyAnimeList tracker to use this."
 msgstr "Connect an AniList or MyAnimeList tracker to use this."
@@ -4979,6 +4984,10 @@ msgstr "Demographic"
 #: src/pages/LibraryPage.tsx
 msgid "Density: {densityLabel}"
 msgstr "Density: {densityLabel}"
+
+#: src/pages/SettingsPage.tsx
+msgid "Deny"
+msgstr "Deny"
 
 #: src/components/settings/UpgradeProfilesSection.tsx
 msgid "Description"
@@ -7081,6 +7090,10 @@ msgstr "Imported"
 msgid "Importing"
 msgstr "Importing"
 
+#: src/pages/SettingsPage.tsx
+msgid "In KOReader open Tools, Fokuroru, Quick connect, then approve the code it shows here."
+msgstr "In KOReader open Tools, Fokuroru, Quick connect, then approve the code it shows here."
+
 #: src/components/import/MihonReview.tsx
 #: src/components/ui/DiscoverRail.tsx
 #: src/pages/ImportPage.tsx
@@ -9044,6 +9057,10 @@ msgstr "No creator shows up often enough yet."
 #: src/pages/stats/sections/TasteSection.tsx
 msgid "No demographic data yet"
 msgstr "No demographic data yet"
+
+#: src/pages/SettingsPage.tsx
+msgid "No device is waiting."
+msgstr "No device is waiting."
 
 #: src/components/LinkChaptersModal.tsx
 msgid "No files found in the series folder."
