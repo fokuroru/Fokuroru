@@ -212,7 +212,10 @@ end
 
 -- First run: assume the three series read most recently on the server.
 function Fokuroru:seedSelection()
-    if self.state.seeded then return end
+    if self.state.seeded or next(self.state.selected) then
+        self.state.seeded = true
+        return
+    end
     local code, body = fetch(self:endpoint("/shelf.json"))
     local ok, shelf = pcall(json.decode, body)
     if code ~= 200 or not ok or type(shelf) ~= "table" then return end
