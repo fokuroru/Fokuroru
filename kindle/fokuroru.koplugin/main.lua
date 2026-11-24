@@ -5,6 +5,7 @@ local LuaSettings = require("luasettings")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local util = require("util")
 local Device = require("device")
 local ffiutil = require("ffi/util")
 local json = require("json")
@@ -149,7 +150,7 @@ function Fokuroru:pruneRead(chapters)
     end
 end
 
-function Fokuroru:sync()
+function Fokuroru:doSync()
     if not self.state.url or self.state.url == "" then
         return self:quickConnect()
     end
@@ -166,7 +167,7 @@ function Fokuroru:sync()
     local got, failed = 0, 0
     for _i, series in ipairs(shelf) do
         local dir = ("%s/%s"):format(self.state.dir, safe(series.title))
-        ffiutil.mkdir_p(dir)
+        util.makePath(dir)
         local fetched = 0
         for index, chapter in ipairs(series.chapters) do
             if not chapter.read and fetched < self.state.keep then
@@ -183,6 +184,13 @@ function Fokuroru:sync()
         text = (_("Synced. %1 new chapters, %2 progress updates sent, %3 failed.")
             :gsub("%%1", got):gsub("%%2", sent):gsub("%%3", failed)),
     })
+end
+
+function Fokuroru:sync()
+    local ok, err = pcall(self.doSync, self)
+    if not ok then
+        UIManager:show(InfoMessage:new{ text = _("Sync failed: ") .. tostring(err) })
+    end
 end
 
 function Fokuroru:syncWhenOnline()
