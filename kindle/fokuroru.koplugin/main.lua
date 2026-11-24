@@ -118,8 +118,11 @@ end
 
 local POLL_DOWNLOAD_SECONDS = 2
 
+local NAME = "Fōkurōru"
+
+-- Every pop-up says where it came from.
 local function toast(text, timeout)
-    UIManager:show(InfoMessage:new{ text = text, timeout = timeout or 4 })
+    UIManager:show(InfoMessage:new{ text = NAME .. ": " .. text, timeout = timeout or 4 })
 end
 
 -- Runs in the subprocess: fetch url to dest through a .part file.
@@ -234,7 +237,7 @@ function Fokuroru:doSync()
 
     self.run = { jobs = jobs, i = 0, got = 0, failed = 0, sent = sent }
     if #jobs > 0 then
-        toast(_("Syncing in the background. Stop it from the Fokuroru menu."))
+        toast(_("Syncing in the background. Stop it from the Fōkurōru menu."))
     end
     self:nextJob()
     return true
@@ -373,14 +376,14 @@ function Fokuroru:startPairing()
             return self:waitForApproval(server, parsed)
         end
     end
-    UIManager:show(InfoMessage:new{ text = _("Could not reach the server.") })
+    toast(_("Could not reach the server."))
 end
 
 function Fokuroru:waitForApproval(server, started)
     local pairing = { server = server, deadline = os.time() + (started.expiresIn or 600) }
     self.pairing = pairing
     local message = InfoMessage:new{
-        text = _("Open Fokuroru on your phone or computer, go to Settings, and approve this code:\n\n") .. started.code
+        text = NAME .. "\n\n" .. _("Open Fōkurōru on your phone or computer, go to Settings, and approve this code:\n\n") .. started.code
             .. _("\n\nTap here to cancel."),
         dismiss_callback = function() self:cancelPairing() end,
     }
@@ -391,7 +394,7 @@ function Fokuroru:waitForApproval(server, started)
         if os.time() > pairing.deadline then
             UIManager:close(message)
             self:cancelPairing()
-            return UIManager:show(InfoMessage:new{ text = _("The code expired. Try again.") })
+            return toast(_("The code expired. Try again."))
         end
         local code, body = fetch(server .. "/api/v1/opds/pair/poll?secret=" .. started.secret)
         if code == 200 then
@@ -402,13 +405,13 @@ function Fokuroru:waitForApproval(server, started)
                 self:save()
                 UIManager:close(message)
                 self.pairing = nil
-                UIManager:show(InfoMessage:new{ text = _("Connected."), timeout = 3 })
+                toast(_("Connected."), 3)
                 return UIManager:scheduleIn(1, function() self:chooseTitles() end)
             end
         elseif code == 404 then
             UIManager:close(message)
             self:cancelPairing()
-            return UIManager:show(InfoMessage:new{ text = _("The code expired. Try again.") })
+            return toast(_("The code expired. Try again."))
         end
         UIManager:scheduleIn(POLL_SECONDS, pairing.tick)
     end
@@ -423,7 +426,7 @@ function Fokuroru:chooseTitles()
         local code, body = fetch(self:endpoint("/titles.json"))
         local ok, titles = pcall(json.decode, body)
         if code ~= 200 or not ok or type(titles) ~= "table" then
-            return UIManager:show(InfoMessage:new{ text = _("Could not load the library.") })
+            return toast(_("Could not load the library."))
         end
 
         self:seedSelection()
@@ -487,7 +490,7 @@ end
 
 function Fokuroru:addToMainMenu(menu_items)
     menu_items.fokuroru = {
-        text = _("Fokuroru"),
+        text = NAME,
         sorting_hint = "tools",
         sub_item_table = {
             { text = _("Quick connect"), callback = function() self:quickConnect() end },
