@@ -39,6 +39,8 @@ public record LatestChapterItem(
 
 public record DeviceChapter(int ChapterId, string Chapter, bool Read);
 
+public record DeviceTitle(int SeriesId, string Title, int Chapters);
+
 public record DeviceSeries(int SeriesId, string Title, IReadOnlyList<DeviceChapter> Chapters);
 
 public record LatestChaptersFeed(DateTime GeneratedAt, int Count, IReadOnlyList<LatestChapterItem> Items);
@@ -482,9 +484,11 @@ public class OpdsCatalogService(
     }
 
     /// <summary>The series being read with their downloaded chapters in reading order and a read flag, for a device that fetches ahead.</summary>
-    public async Task<IReadOnlyList<DeviceSeries>> DeviceShelfAsync(CancellationToken ct)
+    public async Task<IReadOnlyList<DeviceSeries>> DeviceShelfAsync(IReadOnlyList<int>? only, CancellationToken ct)
     {
-        var recent = await RecentSeriesAsync(ct);
+        var recent = only is { Count: > 0 }
+            ? only.Distinct().Select(id => (SeriesId: id, Last: DateTime.UtcNow)).ToList()
+            : await RecentSeriesAsync(ct);
         var ids = recent.Select(r => r.SeriesId).ToList();
 
         var titles = await db.Series.AsNoTracking()
@@ -513,6 +517,27 @@ public class OpdsCatalogService(
                     .Select(c => new DeviceChapter(
                         c.Id, ChapterLabel.For(c.Number, c.Volume, c.Title, c.IsOneShot), done.Contains(c.Id)))
                     .ToList()))
+            .ToList();
+    }
+
+    /// <summary>Every series with at least one downloaded chapter, for a device to pick which ones to keep.</summary>
+    public async Task<IReadOnlyList<DeviceTitle>> DeviceTitlesAsync(CancellationToken ct)
+    {
+        var counts = await db.Chapters.AsNoTracking()
+            .Where(c => c.ChapterFileId != null)
+            .GroupBy(c => c.SeriesId)
+            .Select(g => new { SeriesId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.SeriesId, g => g.Count, ct);
+
+        var titles = await db.Series.AsNoTracking()
+            .Select(s => new { s.Id, s.Title })
+            .ToListAsync(ct);
+
+        return titles
+            .Where(s => counts.ContainsKey(s.Id))
+            .OrderBy(s => s.Title, StringComparer.CurrentCultureIgnoreCase)
+            .Take(2000)
+            .Select(s => new DeviceTitle(s.Id, s.Title, counts[s.Id]))
             .ToList();
     }
 

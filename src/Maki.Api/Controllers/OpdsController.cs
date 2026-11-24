@@ -196,10 +196,27 @@ public class OpdsController(
 
     /// <summary>The series the token's user is reading, each with its downloaded chapters and read flags. For the Kindle plugin's fetch-ahead.</summary>
     [HttpGet("shelf.json")]
-    public async Task<IActionResult> ShelfJson(string token, CancellationToken ct) =>
+    public async Task<IActionResult> ShelfJson(string token, [FromQuery] string? ids, CancellationToken ct)
+    {
+        if (await AuthorizeAsync(token, ct) is null)
+        {
+            return NotFound();
+        }
+
+        var only = (ids ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(x => int.TryParse(x, out var id) ? id : 0)
+            .Where(id => id > 0)
+            .Take(100)
+            .ToList();
+        return Ok(await catalog.DeviceShelfAsync(only, ct));
+    }
+
+    /// <summary>All series that have downloaded chapters, so a device can choose which to keep.</summary>
+    [HttpGet("titles.json")]
+    public async Task<IActionResult> TitlesJson(string token, CancellationToken ct) =>
         await AuthorizeAsync(token, ct) is null
             ? NotFound()
-            : Ok(await catalog.DeviceShelfAsync(ct));
+            : Ok(await catalog.DeviceTitlesAsync(ct));
 
     [HttpGet("on-deck")]
     public async Task<IActionResult> OnDeck(string token, CancellationToken ct) =>

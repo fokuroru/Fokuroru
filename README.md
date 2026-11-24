@@ -110,7 +110,7 @@ fork, are not documented here.
   cut into screen-shaped pieces at gutters), `shelf.json` (what you are reading, with read flags) and
   `POST chapter/{id}/progress`.
 - Added Quick connect: the plugin shows a short code and you approve it in Settings, OPDS. No typing on
-  the Kindle. Each approved device gets its own key (`Device` scope) that can be revoked alone.
+  the Kindle. Nothing downloads until you pick titles on the device. Each approved device gets its own key (`Device` scope) that can be revoked alone.
 
 ### Platform, migrations and account isolation
 

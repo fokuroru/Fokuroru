@@ -2,6 +2,7 @@ local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
+local Menu = require("ui/widget/menu")
 local NetworkMgr = require("ui/network/manager")
 local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
@@ -28,6 +29,7 @@ function Fokuroru:init()
     self.state.keep = self.state.keep or 3
     self.state.files = self.state.files or {} -- path -> chapter id
     self.state.queue = self.state.queue or {} -- chapter id (string) -> {page, count}
+    self.state.selected = self.state.selected or {} -- series id (string) -> title; nothing downloads until chosen
     self.state.dir = self.state.dir or "/mnt/us/documents/Fokuroru"
     self.ui.menu:registerToMainMenu(self)
 end
@@ -162,8 +164,14 @@ function Fokuroru:doSync()
     if not self.state.url or self.state.url == "" then
         return self:quickConnect()
     end
+    local ids = {}
+    for id in pairs(self.state.selected) do ids[#ids + 1] = id end
+    if #ids == 0 then
+        UIManager:show(InfoMessage:new{ text = _("No titles chosen yet. Pick the ones to keep on this Kindle."), timeout = 4 })
+        return UIManager:scheduleIn(0.5, function() self:chooseTitles() end)
+    end
     local sent = self:flushQueue()
-    local code, body = fetch(self:endpoint("/shelf.json"))
+    local code, body = fetch(self:endpoint("/shelf.json?ids=" .. table.concat(ids, ",")))
     if code ~= 200 then
         return UIManager:show(InfoMessage:new{ text = _("Could not reach the server.") })
     end
@@ -278,7 +286,7 @@ function Fokuroru:waitForApproval(server, started)
                 UIManager:close(message)
                 self.pairing = nil
                 UIManager:show(InfoMessage:new{ text = _("Connected."), timeout = 3 })
-                return UIManager:scheduleIn(1, function() self:sync() end)
+                return UIManager:scheduleIn(1, function() self:chooseTitles() end)
             end
         elseif code == 404 then
             UIManager:close(message)
@@ -288,6 +296,49 @@ function Fokuroru:waitForApproval(server, started)
         UIManager:scheduleIn(POLL_SECONDS, pairing.tick)
     end
     UIManager:scheduleIn(POLL_SECONDS, pairing.tick)
+end
+
+-- Title chooser
+
+function Fokuroru:chooseTitles()
+    if not self.state.url or self.state.url == "" then return self:quickConnect() end
+    NetworkMgr:runWhenOnline(function()
+        local code, body = fetch(self:endpoint("/titles.json"))
+        local ok, titles = pcall(json.decode, body)
+        if code ~= 200 or not ok or type(titles) ~= "table" then
+            return UIManager:show(InfoMessage:new{ text = _("Could not load the library.") })
+        end
+
+        local menu
+        local items = {}
+        for _i, title in ipairs(titles) do
+            local key = tostring(title.seriesId)
+            local item = { text = title.title }
+            local function mark() item.mandatory = self.state.selected[key] and "[x]" or "[ ]" end
+            mark()
+            item.callback = function()
+                if self.state.selected[key] then
+                    self.state.selected[key] = nil
+                else
+                    self.state.selected[key] = title.title
+                end
+                mark()
+                self:save()
+                menu:updateItems(nil, true)
+            end
+            items[#items + 1] = item
+        end
+
+        menu = Menu:new{
+            title = _("Titles to keep on this Kindle"),
+            item_table = items,
+            is_borderless = true,
+            is_popout = false,
+            covers_fullscreen = true,
+            close_callback = function() UIManager:close(menu) end,
+        }
+        UIManager:show(menu)
+    end)
 end
 
 -- Menu
@@ -317,6 +368,7 @@ function Fokuroru:addToMainMenu(menu_items)
         sorting_hint = "tools",
         sub_item_table = {
             { text = _("Quick connect"), callback = function() self:quickConnect() end },
+            { text = _("Choose titles to sync"), callback = function() self:chooseTitles() end },
             { text = _("Sync now"), callback = function() self:syncWhenOnline() end },
             { text = _("Server address (with OPDS token)"), keep_menu_open = true,
               callback = function() self:ask(_("OPDS URL"), "url") end },

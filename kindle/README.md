@@ -12,11 +12,14 @@ syncs progress back. Needs a server with the `device.cbz`, `shelf.json` and `pro
 
 Quick connect tries the addresses in `defaults.lua` (edit it if your server is somewhere else). Each Kindle gets its own key, so connecting one never changes the feed URL other apps use, and you can revoke it from your account's API keys.
 
+Nothing downloads until you choose titles: Tools, Fokuroru, Choose titles to sync, then tick the series you want.
+Quick connect opens that list for you the first time.
+
 Chapters land in `/mnt/us/documents/Fokuroru/<series>/`, one folder per series.
 
 ## What it does
 
-- Downloads the next N unread chapters per series, already cut for the screen (webtoon strips are
+- Downloads the next N unread chapters of each title you chose, already cut for the screen (webtoon strips are
   split at gutters by the server).
 - Remembers the page while you read and sends it on the next sync, so reading offline is fine.
 - Deletes chapters you have read, keeping the most recent one.
