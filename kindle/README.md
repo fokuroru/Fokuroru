@@ -15,7 +15,7 @@ Quick connect tries the addresses in `defaults.lua` (edit it if your server is s
 Nothing downloads until you choose titles: Tools, Fokuroru, Choose titles to sync, then tick the series you want.
 Quick connect opens that list for you the first time.
 
-Chapters land in `/mnt/us/documents/Fokuroru/<series>/`, one folder per series.
+Chapters land in `/mnt/us/Books/<series>/`, one folder per series.
 
 ## What it does
 

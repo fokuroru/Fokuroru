@@ -2,6 +2,7 @@ local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
+local logger = require("logger")
 local Menu = require("ui/widget/menu")
 local NetworkMgr = require("ui/network/manager")
 local Trapper = require("ui/trapper")
@@ -30,7 +31,9 @@ function Fokuroru:init()
     self.state.files = self.state.files or {} -- path -> chapter id
     self.state.queue = self.state.queue or {} -- chapter id (string) -> {page, count}
     self.state.selected = self.state.selected or {} -- series id (string) -> title; nothing downloads until chosen
-    self.state.dir = self.state.dir or "/mnt/us/documents/Fokuroru"
+    if not self.state.dir or self.state.dir == "/mnt/us/documents/Fokuroru" then
+        self.state.dir = "/mnt/us/Books"
+    end
     self.ui.menu:registerToMainMenu(self)
 end
 
@@ -164,6 +167,7 @@ function Fokuroru:doSync()
     if not self.state.url or self.state.url == "" then
         return self:quickConnect()
     end
+    self:seedSelection()
     local ids = {}
     for id in pairs(self.state.selected) do ids[#ids + 1] = id end
     if #ids == 0 then
@@ -206,14 +210,28 @@ function Fokuroru:doSync()
     })
 end
 
+-- First run: assume the three series read most recently on the server.
+function Fokuroru:seedSelection()
+    if self.state.seeded then return end
+    local code, body = fetch(self:endpoint("/shelf.json"))
+    local ok, shelf = pcall(json.decode, body)
+    if code ~= 200 or not ok or type(shelf) ~= "table" then return end
+    for i = 1, math.min(3, #shelf) do
+        self.state.selected[tostring(shelf[i].seriesId)] = shelf[i].title
+    end
+    self.state.seeded = true
+    self:save()
+end
+
 function Fokuroru:sync()
     if self.syncing then return end
     self.syncing = true
     Trapper:wrap(function()
-        local ok, err = pcall(self.doSync, self)
+        local ok, err = xpcall(function() self:doSync() end, debug.traceback)
         self.syncing = false
         if not ok then
-            UIManager:show(InfoMessage:new{ text = _("Sync failed: ") .. tostring(err) })
+            logger.warn("fokuroru sync failed:", err)
+            UIManager:show(InfoMessage:new{ text = _("Sync failed: ") .. tostring(err):match("^[^\n]*") })
         end
     end)
 end
@@ -309,6 +327,13 @@ function Fokuroru:chooseTitles()
             return UIManager:show(InfoMessage:new{ text = _("Could not load the library.") })
         end
 
+        self:seedSelection()
+        table.sort(titles, function(a, b)
+            local sa, sb = self.state.selected[tostring(a.seriesId)] ~= nil, self.state.selected[tostring(b.seriesId)] ~= nil
+            if sa ~= sb then return sa end
+            return a.title:lower() < b.title:lower()
+        end)
+
         local menu
         local items = {}
         for _i, title in ipairs(titles) do
@@ -335,7 +360,6 @@ function Fokuroru:chooseTitles()
             is_borderless = true,
             is_popout = false,
             covers_fullscreen = true,
-            close_callback = function() UIManager:close(menu) end,
         }
         UIManager:show(menu)
     end)
