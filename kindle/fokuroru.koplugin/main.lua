@@ -1,4 +1,5 @@
 local DataStorage = require("datastorage")
+local DocSettings = require("docsettings")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
@@ -121,6 +122,47 @@ local function toast(text, timeout)
     UIManager:show(InfoMessage:new{ text = text, timeout = timeout or 4 })
 end
 
+-- Runs in the subprocess: fetch url to dest through a .part file.
+local function download_to(url, dest, block_timeout, total_timeout)
+    local out = io.open(dest .. ".part", "wb")
+    if not out then return end
+    socketutil:set_timeout(block_timeout, total_timeout)
+    local ok, code = http_for(url).request{ url = url, sink = socketutil.file_sink(out) }
+    socketutil:reset_timeout()
+    if ok and code == 200 then os.rename(dest .. ".part", dest) else os.remove(dest .. ".part") end
+end
+
+-- Gives a chapter file its series, title, author and cover as KOReader's own custom book data,
+-- so the shelf shows the real names and the series cover. Returns the cover job for the subprocess.
+function Fokuroru:dress(path, series, chapter, index)
+    local sidecar = DocSettings:getSidecarDir(path)
+    util.makePath(sidecar)
+    local meta = sidecar .. "/custom_metadata.lua"
+    if lfs.attributes(meta, "mode") ~= "file" then
+        local settings = LuaSettings:open(meta)
+        settings:saveSetting("custom_props", {
+            title = series.title .. " - " .. chapter.chapter,
+            series = series.title,
+            series_index = tonumber(chapter.number) or index,
+            authors = series.authors,
+            description = series.description,
+            keywords = series.genres,
+        })
+        settings:flush()
+    end
+    local cover = sidecar .. "/cover.jpg"
+    if lfs.attributes(cover, "mode") ~= "file" then
+        return { url = self:endpoint("/cover/" .. series.seriesId), path = cover }
+    end
+end
+
+function Fokuroru:refreshBookInfo(path)
+    local ok, manager = pcall(require, "plugins/coverbrowser.koplugin/bookinfomanager")
+    if ok and type(manager) == "table" and manager.deleteBookInfo then
+        pcall(manager.deleteBookInfo, manager, path)
+    end
+end
+
 function Fokuroru:pruneRead(chapters)
     local last_read
     for i, c in ipairs(chapters) do
@@ -176,12 +218,13 @@ function Fokuroru:doSync()
             if not chapter.read and fetched < self.state.keep then
                 fetched = fetched + 1
                 local path = ("%s/%04d - %s - %d.cbz"):format(dir, index, safe(chapter.chapter), chapter.chapterId)
-                if lfs.attributes(path, "mode") == "file" then
-                    self.state.files[path] = chapter.chapterId
-                else
+                local cover = self:dress(path, series, chapter, index)
+                local present = lfs.attributes(path, "mode") == "file"
+                if present then self.state.files[path] = chapter.chapterId end
+                if cover or not present then
                     jobs[#jobs + 1] = {
-                        path = path, tmp = path .. ".part", id = chapter.chapterId,
-                        url = self:endpoint("/chapter/" .. chapter.chapterId .. "/device.cbz"),
+                        path = path, tmp = path .. ".part", id = chapter.chapterId, cover = cover,
+                        url = not present and self:endpoint("/chapter/" .. chapter.chapterId .. "/device.cbz") or nil,
                     }
                 end
             end
@@ -205,12 +248,8 @@ function Fokuroru:nextJob()
     if not job then return self:finishSync() end
 
     local pid = ffiutil.runInSubProcess(function()
-        local out = io.open(job.tmp, "wb")
-        if not out then return end
-        socketutil:set_timeout(30, 600)
-        local ok, code = http_for(job.url).request{ url = job.url, sink = socketutil.file_sink(out) }
-        socketutil:reset_timeout()
-        if ok and code == 200 then os.rename(job.tmp, job.path) else os.remove(job.tmp) end
+        if job.cover then download_to(job.cover.url, job.cover.path, 15, 60) end
+        if job.url then download_to(job.url, job.path, 30, 600) end
     end)
     if not pid then
         run.failed = run.failed + 1
@@ -224,9 +263,10 @@ function Fokuroru:nextJob()
             run.pid = nil
             if lfs.attributes(job.path, "mode") == "file" then
                 self.state.files[job.path] = job.id
-                run.got = run.got + 1
+                if job.url then run.got = run.got + 1 end
+                self:refreshBookInfo(job.path)
                 self:save()
-            else
+            elseif job.url then
                 os.remove(job.tmp)
                 run.failed = run.failed + 1
             end

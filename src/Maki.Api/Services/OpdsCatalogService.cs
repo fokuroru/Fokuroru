@@ -37,11 +37,13 @@ public record LatestChapterItem(
     int SeriesId, string SeriesTitle, int ChapterId, string Chapter, decimal? Number, int? Volume,
     string Language, DateTime AddedAt, int NewChapters, string? Cover);
 
-public record DeviceChapter(int ChapterId, string Chapter, bool Read);
+public record DeviceChapter(int ChapterId, string Chapter, decimal? Number, bool Read);
 
 public record DeviceTitle(int SeriesId, string Title, int Chapters);
 
-public record DeviceSeries(int SeriesId, string Title, IReadOnlyList<DeviceChapter> Chapters);
+public record DeviceSeries(
+    int SeriesId, string Title, string? Authors, string? Description, string? Genres,
+    IReadOnlyList<DeviceChapter> Chapters);
 
 public record LatestChaptersFeed(DateTime GeneratedAt, int Count, IReadOnlyList<LatestChapterItem> Items);
 
@@ -493,7 +495,8 @@ public class OpdsCatalogService(
 
         var titles = await db.Series.AsNoTracking()
             .Where(s => ids.Contains(s.Id))
-            .ToDictionaryAsync(s => s.Id, s => s.Title, ct);
+            .Select(s => new { s.Id, s.Title, s.AuthorStory, s.AuthorArt, s.Overview, s.Genres })
+            .ToDictionaryAsync(s => s.Id, ct);
 
         var done = (await db.ChapterProgress.AsNoTracking().OwnedByScopeUser(db)
                 .Where(p => ids.Contains(p.SeriesId) && p.Completed && p.UnreadAt == null)
@@ -511,12 +514,21 @@ public class OpdsCatalogService(
         var bySeries = rows.GroupBy(r => r.SeriesId).ToDictionary(g => g.Key, g => g.ToList());
         return recent
             .Where(r => titles.ContainsKey(r.SeriesId))
-            .Select(r => new DeviceSeries(
-                r.SeriesId, titles[r.SeriesId],
-                ChapterOrder.Sort(bySeries.GetValueOrDefault(r.SeriesId) ?? [], c => c.Number, c => c.Volume, c => c.Id)
-                    .Select(c => new DeviceChapter(
-                        c.Id, ChapterLabel.For(c.Number, c.Volume, c.Title, c.IsOneShot), done.Contains(c.Id)))
-                    .ToList()))
+            .Select(r =>
+            {
+                var series = titles[r.SeriesId];
+                var authors = string.Join(", ", new[] { series.AuthorStory, series.AuthorArt }
+                    .Where(a => !string.IsNullOrWhiteSpace(a)).Distinct());
+                return new DeviceSeries(
+                    r.SeriesId, series.Title,
+                    authors.Length == 0 ? null : authors,
+                    Truncate(series.Overview),
+                    series.Genres is { Count: > 0 } ? string.Join(", ", series.Genres) : null,
+                    ChapterOrder.Sort(bySeries.GetValueOrDefault(r.SeriesId) ?? [], c => c.Number, c => c.Volume, c => c.Id)
+                        .Select(c => new DeviceChapter(
+                            c.Id, ChapterLabel.For(c.Number, c.Volume, c.Title, c.IsOneShot), c.Number, done.Contains(c.Id)))
+                        .ToList());
+            })
             .ToList();
     }
 
