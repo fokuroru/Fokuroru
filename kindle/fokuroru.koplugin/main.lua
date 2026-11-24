@@ -124,7 +124,7 @@ function Fokuroru:download(chapter, index, series_dir)
     end
     local tmp = path .. ".part"
     local url = self:endpoint("/chapter/" .. chapter.chapterId .. "/device.cbz")
-    local completed = Trapper:dismissableRunInSubProcess(function()
+    local completed = Trapper:dismissableRunInSubprocess(function()
         local out = io.open(tmp, "wb")
         if not out then return end
         socketutil:set_timeout(30, 600)
