@@ -5,7 +5,6 @@ local LuaSettings = require("luasettings")
 local logger = require("logger")
 local Menu = require("ui/widget/menu")
 local NetworkMgr = require("ui/network/manager")
-local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
@@ -113,34 +112,13 @@ function Fokuroru:flushQueue()
 end
 
 -- Downloads
+-- Chapters download one at a time in a background subprocess that is polled from the UI loop, so
+-- the screen stays fully usable. "Stop sync" in the menu cancels.
 
--- Returns "have" (already on disk), "new", "cancelled", or nil on failure.
--- The transfer runs in a subprocess so the screen stays responsive and a tap cancels it.
-function Fokuroru:download(chapter, index, series_dir)
-    local path = ("%s/%04d - %s - %d.cbz"):format(series_dir, index, safe(chapter.chapter), chapter.chapterId)
-    if lfs.attributes(path, "mode") == "file" then
-        self.state.files[path] = chapter.chapterId
-        return "have"
-    end
-    local tmp = path .. ".part"
-    local url = self:endpoint("/chapter/" .. chapter.chapterId .. "/device.cbz")
-    local completed = Trapper:dismissableRunInSubprocess(function()
-        local out = io.open(tmp, "wb")
-        if not out then return end
-        socketutil:set_timeout(30, 600)
-        local ok, code = http_for(url).request{ url = url, sink = socketutil.file_sink(out) }
-        socketutil:reset_timeout()
-        if ok and code == 200 then os.rename(tmp, path) else os.remove(tmp) end
-    end, _("Downloading ") .. chapter.chapter .. _("\n\nTap to cancel."))
-    if not completed then
-        os.remove(tmp)
-        return "cancelled"
-    end
-    if lfs.attributes(path, "mode") == "file" then
-        self.state.files[path] = chapter.chapterId
-        return "new"
-    end
-    return nil
+local POLL_DOWNLOAD_SECONDS = 2
+
+local function toast(text, timeout)
+    UIManager:show(InfoMessage:new{ text = text, timeout = timeout or 4 })
 end
 
 function Fokuroru:pruneRead(chapters)
@@ -163,28 +141,33 @@ function Fokuroru:pruneRead(chapters)
     end
 end
 
+-- Returns true when a background run was started.
 function Fokuroru:doSync()
     if not self.state.url or self.state.url == "" then
-        return self:quickConnect()
+        self:quickConnect()
+        return false
     end
     self:seedSelection()
     local ids = {}
     for id in pairs(self.state.selected) do ids[#ids + 1] = id end
     if #ids == 0 then
-        UIManager:show(InfoMessage:new{ text = _("No titles chosen yet. Pick the ones to keep on this Kindle."), timeout = 4 })
-        return UIManager:scheduleIn(0.5, function() self:chooseTitles() end)
+        toast(_("No titles chosen yet. Pick the ones to keep on this Kindle."))
+        UIManager:scheduleIn(0.5, function() self:chooseTitles() end)
+        return false
     end
     local sent = self:flushQueue()
     local code, body = fetch(self:endpoint("/shelf.json?ids=" .. table.concat(ids, ",")))
     if code ~= 200 then
-        return UIManager:show(InfoMessage:new{ text = _("Could not reach the server.") })
+        toast(_("Could not reach the server."))
+        return false
     end
     local ok, shelf = pcall(json.decode, body)
     if not ok or type(shelf) ~= "table" then
-        return UIManager:show(InfoMessage:new{ text = _("Unexpected reply from the server.") })
+        toast(_("Unexpected reply from the server."))
+        return false
     end
 
-    local got, failed = 0, 0
+    local jobs = {}
     for _i, series in ipairs(shelf) do
         local dir = ("%s/%s"):format(self.state.dir, safe(series.title))
         util.makePath(dir)
@@ -192,22 +175,92 @@ function Fokuroru:doSync()
         for index, chapter in ipairs(series.chapters) do
             if not chapter.read and fetched < self.state.keep then
                 fetched = fetched + 1
-                local result = self:download(chapter, index, dir)
-                if result == "cancelled" then
-                    self:save()
-                    return UIManager:show(InfoMessage:new{ text = _("Sync cancelled."), timeout = 3 })
+                local path = ("%s/%04d - %s - %d.cbz"):format(dir, index, safe(chapter.chapter), chapter.chapterId)
+                if lfs.attributes(path, "mode") == "file" then
+                    self.state.files[path] = chapter.chapterId
+                else
+                    jobs[#jobs + 1] = {
+                        path = path, tmp = path .. ".part", id = chapter.chapterId,
+                        url = self:endpoint("/chapter/" .. chapter.chapterId .. "/device.cbz"),
+                    }
                 end
-                if result == "new" then got = got + 1 elseif not result then failed = failed + 1 end
             end
         end
         self:pruneRead(series.chapters)
     end
+
+    self.run = { jobs = jobs, i = 0, got = 0, failed = 0, sent = sent }
+    if #jobs > 0 then
+        toast(_("Syncing in the background. Stop it from the Fokuroru menu."))
+    end
+    self:nextJob()
+    return true
+end
+
+function Fokuroru:nextJob()
+    local run = self.run
+    if not run then return end
+    run.i = run.i + 1
+    local job = run.jobs[run.i]
+    if not job then return self:finishSync() end
+
+    local pid = ffiutil.runInSubProcess(function()
+        local out = io.open(job.tmp, "wb")
+        if not out then return end
+        socketutil:set_timeout(30, 600)
+        local ok, code = http_for(job.url).request{ url = job.url, sink = socketutil.file_sink(out) }
+        socketutil:reset_timeout()
+        if ok and code == 200 then os.rename(job.tmp, job.path) else os.remove(job.tmp) end
+    end)
+    if not pid then
+        run.failed = run.failed + 1
+        return UIManager:scheduleIn(0, function() self:nextJob() end)
+    end
+
+    run.pid = pid
+    local function poll()
+        if self.run ~= run then return end
+        if ffiutil.isSubProcessDone(pid) then
+            run.pid = nil
+            if lfs.attributes(job.path, "mode") == "file" then
+                self.state.files[job.path] = job.id
+                run.got = run.got + 1
+                self:save()
+            else
+                os.remove(job.tmp)
+                run.failed = run.failed + 1
+            end
+            return self:nextJob()
+        end
+        UIManager:scheduleIn(POLL_DOWNLOAD_SECONDS, poll)
+    end
+    UIManager:scheduleIn(POLL_DOWNLOAD_SECONDS, poll)
+end
+
+function Fokuroru:finishSync()
+    local run = self.run
+    self.run = nil
+    self.syncing = false
     self.state.last_sync = os.time()
     self:save()
-    UIManager:show(InfoMessage:new{
-        text = (_("Synced. %1 new chapters, %2 progress updates sent, %3 failed.")
-            :gsub("%%1", got):gsub("%%2", sent):gsub("%%3", failed)),
-    })
+    toast((_("Synced. %1 new chapters, %2 progress updates sent, %3 failed.")
+        :gsub("%%1", run.got):gsub("%%2", run.sent):gsub("%%3", run.failed)), 6)
+end
+
+function Fokuroru:stopSync()
+    local run = self.run
+    if not run then return end
+    self.run = nil
+    self.syncing = false
+    if run.pid then
+        ffiutil.terminateSubProcess(run.pid)
+        local pid = run.pid
+        UIManager:scheduleIn(1, function() ffiutil.isSubProcessDone(pid) end)
+        local job = run.jobs[run.i]
+        if job then os.remove(job.tmp) end
+    end
+    self:save()
+    toast(_("Sync stopped."))
 end
 
 -- First run: assume the three series read most recently on the server.
@@ -227,16 +280,19 @@ function Fokuroru:seedSelection()
 end
 
 function Fokuroru:sync()
-    if self.syncing then return end
+    if self.syncing then
+        return toast(_("Already syncing."))
+    end
     self.syncing = true
-    Trapper:wrap(function()
-        local ok, err = xpcall(function() self:doSync() end, debug.traceback)
+    local ok, started = xpcall(function() return self:doSync() end, debug.traceback)
+    if not ok then
+        self.run = nil
+        logger.warn("fokuroru sync failed:", started)
+        toast(_("Sync failed: ") .. tostring(started):match("^[^\n]*"))
+    end
+    if not ok or not started then
         self.syncing = false
-        if not ok then
-            logger.warn("fokuroru sync failed:", err)
-            UIManager:show(InfoMessage:new{ text = _("Sync failed: ") .. tostring(err):match("^[^\n]*") })
-        end
-    end)
+    end
 end
 
 function Fokuroru:syncWhenOnline()
@@ -396,6 +452,8 @@ function Fokuroru:addToMainMenu(menu_items)
         sub_item_table = {
             { text = _("Quick connect"), callback = function() self:quickConnect() end },
             { text = _("Choose titles to sync"), callback = function() self:chooseTitles() end },
+            { text = _("Stop sync"), enabled_func = function() return self.run ~= nil end,
+              callback = function() self:stopSync() end },
             { text = _("Sync now"), callback = function() self:syncWhenOnline() end },
             { text = _("Server address (with OPDS token)"), keep_menu_open = true,
               callback = function() self:ask(_("OPDS URL"), "url") end },

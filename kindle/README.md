@@ -23,4 +23,5 @@ Chapters land in `/mnt/us/Books/<series>/`, one folder per series.
   split at gutters by the server).
 - Remembers the page while you read and sends it on the next sync, so reading offline is fine.
 - Deletes chapters you have read, keeping the most recent one.
+- Downloads run in the background, so you can keep reading; Tools, Fokuroru, Stop sync cancels.
 - Optionally syncs when Wi-Fi connects, at most every 10 minutes.
