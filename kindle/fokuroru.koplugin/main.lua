@@ -3,6 +3,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
 local NetworkMgr = require("ui/network/manager")
+local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
@@ -43,7 +44,7 @@ end
 
 local function fetch(url, method)
     local chunks = {}
-    socketutil:set_timeout(15, 60)
+    socketutil:set_timeout(8, 20)
     local _ok, code = http_for(url).request{ url = url, method = method or "GET", sink = ltn12.sink.table(chunks) }
     socketutil:reset_timeout()
     return code, table.concat(chunks)
@@ -51,7 +52,7 @@ end
 
 local function post_json(url, body)
     local chunks = {}
-    socketutil:set_timeout(10, 30)
+    socketutil:set_timeout(8, 20)
     local _ok, code = http_for(url).request{
         url = url,
         method = "POST",
@@ -78,18 +79,18 @@ function Fokuroru:chapterIdOfOpenDocument()
     return doc and self.state.files[doc.file]
 end
 
-function Fokuroru:remember()
+function Fokuroru:remember(flush)
     local id = self:chapterIdOfOpenDocument()
     if not id or not self.ui.view then return end
     local page = self.ui.view.state and self.ui.view.state.page
     if not page then return end
     self.state.queue[tostring(id)] = { page = page - 1, count = self.ui.document:getPageCount() }
-    self:save()
+    if flush then self:save() end
 end
 
-function Fokuroru:onPageUpdate() self:remember() end
-function Fokuroru:onCloseDocument() self:remember() end
-function Fokuroru:onSuspend() self:remember() end
+function Fokuroru:onPageUpdate() self:remember(false) end
+function Fokuroru:onCloseDocument() self:remember(true) end
+function Fokuroru:onSuspend() self:remember(true) end
 
 function Fokuroru:flushQueue()
     local sent = 0
@@ -108,7 +109,8 @@ end
 
 -- Downloads
 
--- Returns "have" (already on disk), "new", or nil on failure.
+-- Returns "have" (already on disk), "new", "cancelled", or nil on failure.
+-- The transfer runs in a subprocess so the screen stays responsive and a tap cancels it.
 function Fokuroru:download(chapter, index, series_dir)
     local path = ("%s/%04d - %s - %d.cbz"):format(series_dir, index, safe(chapter.chapter), chapter.chapterId)
     if lfs.attributes(path, "mode") == "file" then
@@ -116,17 +118,23 @@ function Fokuroru:download(chapter, index, series_dir)
         return "have"
     end
     local tmp = path .. ".part"
-    local out = io.open(tmp, "wb")
-    if not out then return nil end
     local url = self:endpoint("/chapter/" .. chapter.chapterId .. "/device.cbz")
-    socketutil:set_timeout(30, 900)
-    local ok, code = http_for(url).request{ url = url, sink = socketutil.file_sink(out) }
-    socketutil:reset_timeout()
-    if ok and code == 200 and os.rename(tmp, path) then
+    local completed = Trapper:dismissableRunInSubProcess(function()
+        local out = io.open(tmp, "wb")
+        if not out then return end
+        socketutil:set_timeout(30, 600)
+        local ok, code = http_for(url).request{ url = url, sink = socketutil.file_sink(out) }
+        socketutil:reset_timeout()
+        if ok and code == 200 then os.rename(tmp, path) else os.remove(tmp) end
+    end, _("Downloading ") .. chapter.chapter .. _("\n\nTap to cancel."))
+    if not completed then
+        os.remove(tmp)
+        return "cancelled"
+    end
+    if lfs.attributes(path, "mode") == "file" then
         self.state.files[path] = chapter.chapterId
         return "new"
     end
-    os.remove(tmp)
     return nil
 end
 
@@ -173,6 +181,10 @@ function Fokuroru:doSync()
             if not chapter.read and fetched < self.state.keep then
                 fetched = fetched + 1
                 local result = self:download(chapter, index, dir)
+                if result == "cancelled" then
+                    self:save()
+                    return UIManager:show(InfoMessage:new{ text = _("Sync cancelled."), timeout = 3 })
+                end
                 if result == "new" then got = got + 1 elseif not result then failed = failed + 1 end
             end
         end
@@ -187,10 +199,15 @@ function Fokuroru:doSync()
 end
 
 function Fokuroru:sync()
-    local ok, err = pcall(self.doSync, self)
-    if not ok then
-        UIManager:show(InfoMessage:new{ text = _("Sync failed: ") .. tostring(err) })
-    end
+    if self.syncing then return end
+    self.syncing = true
+    Trapper:wrap(function()
+        local ok, err = pcall(self.doSync, self)
+        self.syncing = false
+        if not ok then
+            UIManager:show(InfoMessage:new{ text = _("Sync failed: ") .. tostring(err) })
+        end
+    end)
 end
 
 function Fokuroru:syncWhenOnline()
