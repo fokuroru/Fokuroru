@@ -39,7 +39,9 @@ public record LatestChapterItem(
 
 public record DeviceChapter(int ChapterId, string Chapter, decimal? Number, bool Read);
 
-public record DeviceTitle(int SeriesId, string Title, int Chapters);
+/// <param name="Added">Unix seconds the newest chapter file arrived.</param>
+/// <param name="LastRead">Unix seconds of the last reading progress, or 0 when never read.</param>
+public record DeviceTitle(int SeriesId, string Title, int Chapters, long Added, long LastRead);
 
 public record DeviceSeries(
     int SeriesId, string Title, string? Authors, string? Description, string? Genres,
@@ -538,8 +540,14 @@ public class OpdsCatalogService(
         var counts = await db.Chapters.AsNoTracking()
             .Where(c => c.ChapterFileId != null)
             .GroupBy(c => c.SeriesId)
-            .Select(g => new { SeriesId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(g => g.SeriesId, g => g.Count, ct);
+            .Select(g => new { SeriesId = g.Key, Count = g.Count(), Added = g.Max(c => c.ChapterFile!.DateAdded) })
+            .ToDictionaryAsync(g => g.SeriesId, ct);
+
+        var lastRead = (await db.ChapterProgress.AsNoTracking().OwnedByScopeUser(db)
+                .GroupBy(p => p.SeriesId)
+                .Select(g => new { SeriesId = g.Key, Last = g.Max(p => p.UpdatedAt) })
+                .ToListAsync(ct))
+            .ToDictionary(g => g.SeriesId, g => new DateTimeOffset(DateTime.SpecifyKind(g.Last, DateTimeKind.Utc)).ToUnixTimeSeconds());
 
         var titles = await db.Series.AsNoTracking()
             .Select(s => new { s.Id, s.Title })
@@ -549,7 +557,10 @@ public class OpdsCatalogService(
             .Where(s => counts.ContainsKey(s.Id))
             .OrderBy(s => s.Title, StringComparer.CurrentCultureIgnoreCase)
             .Take(2000)
-            .Select(s => new DeviceTitle(s.Id, s.Title, counts[s.Id]))
+            .Select(s => new DeviceTitle(
+                s.Id, s.Title, counts[s.Id].Count,
+                new DateTimeOffset(DateTime.SpecifyKind(counts[s.Id].Added, DateTimeKind.Utc)).ToUnixTimeSeconds(),
+                lastRead.GetValueOrDefault(s.Id)))
             .ToList();
     }
 

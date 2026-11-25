@@ -430,35 +430,72 @@ function Fokuroru:chooseTitles()
         end
 
         self:seedSelection()
-        table.sort(titles, function(a, b)
-            local sa, sb = self.state.selected[tostring(a.seriesId)] ~= nil, self.state.selected[tostring(b.seriesId)] ~= nil
-            if sa ~= sb then return sa end
-            return a.title:lower() < b.title:lower()
-        end)
-
         local menu
         local items = {}
-        for _i, title in ipairs(titles) do
-            local key = tostring(title.seriesId)
-            local item = { text = title.title }
-            local function mark() item.mandatory = self.state.selected[key] and "[x]" or "[ ]" end
-            mark()
-            item.callback = function()
-                if self.state.selected[key] then
-                    self.state.selected[key] = nil
-                else
-                    self.state.selected[key] = title.title
-                end
+        local function build()
+            local mode = self.state.sort or "title"
+            local field = mode == "read" and "lastRead" or mode == "added" and "added" or nil
+            -- Chosen titles stay on top; the sort orders within each group. Dates run newest first, titles A-Z.
+            table.sort(titles, function(a, b)
+                local sa, sb = self.state.selected[tostring(a.seriesId)] ~= nil, self.state.selected[tostring(b.seriesId)] ~= nil
+                if sa ~= sb then return sa end
+                if self.state.sort_reverse then a, b = b, a end
+                if field and (a[field] or 0) ~= (b[field] or 0) then return (a[field] or 0) > (b[field] or 0) end
+                return a.title:lower() < b.title:lower()
+            end)
+            for i = #items, 1, -1 do items[i] = nil end
+            for _i, title in ipairs(titles) do
+                local key = tostring(title.seriesId)
+                local item = { text = title.title }
+                local function mark() item.mandatory = self.state.selected[key] and "[x]" or "[ ]" end
                 mark()
-                self:save()
-                menu:updateItems(nil, true)
+                item.callback = function()
+                    if self.state.selected[key] then
+                        self.state.selected[key] = nil
+                    else
+                        self.state.selected[key] = title.title
+                    end
+                    mark()
+                    self:save()
+                    menu:updateItems(nil, true)
+                end
+                items[#items + 1] = item
             end
-            items[#items + 1] = item
+        end
+        build()
+
+        local SORTS = { title = _("Title"), read = _("Last read"), added = _("Recently added") }
+        local function resort()
+            build()
+            menu:switchItemTable(nil, items)
+        end
+        local function setSort(mode)
+            if (self.state.sort or "title") == mode then
+                self.state.sort_reverse = not self.state.sort_reverse -- same choice again flips the order
+            else
+                self.state.sort = mode
+                self.state.sort_reverse = false
+            end
+            self:save()
+            resort()
         end
 
         menu = Menu:new{
             title = _("Titles to keep on this Kindle"),
             item_table = items,
+            title_bar_left_icon = "appbar.menu",
+            onLeftButtonTap = function()
+                local dialog
+                local buttons = {}
+                for _i, mode in ipairs({ "title", "read", "added" }) do
+                    buttons[#buttons + 1] = {{
+                        text = SORTS[mode] .. ((self.state.sort or "title") == mode and (self.state.sort_reverse and "  ↑" or "  ↓") or ""),
+                        callback = function() UIManager:close(dialog); setSort(mode) end,
+                    }}
+                end
+                dialog = require("ui/widget/buttondialog"):new{ title = _("Sort by (tap again to reverse)"), buttons = buttons }
+                UIManager:show(dialog)
+            end,
             is_borderless = true,
             is_popout = false,
             covers_fullscreen = true,
