@@ -956,6 +956,14 @@ function PairDevicesBlock() {
           In KOReader open Tools, Fokuroru, Quick connect, then approve the code it shows here.
         </Trans>
       </Text>
+      <Group gap="md" mb="xs">
+        <Anchor size="xs" href="https://github.com/koreader/koreader/releases/latest" target="_blank" rel="noopener noreferrer">
+          <Trans>Latest KOReader</Trans>
+        </Anchor>
+        <Anchor size="xs" href="/api/v1/android/apk" download="fokuroru.apk">
+          <Trans>Latest Android app</Trans>
+        </Anchor>
+      </Group>
       {pending.length === 0 ? (
         <Text size="xs" c="var(--ink-3)">
           <Trans>No device is waiting.</Trans>

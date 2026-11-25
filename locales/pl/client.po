@@ -8965,6 +8965,14 @@ msgstr ""
 msgid "latest"
 msgstr "najnowszy"
 
+#: src/pages/SettingsPage.tsx
+msgid "Latest Android app"
+msgstr ""
+
+#: src/pages/SettingsPage.tsx
+msgid "Latest KOReader"
+msgstr ""
+
 #: src/components/settings/ReadingProfilesSection.tsx
 #: src/pages/reader/ReaderSettingsControls.tsx
 #: src/pages/reader/ShortcutSheet.tsx
