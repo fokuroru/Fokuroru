@@ -529,6 +529,29 @@ function Fokuroru:ask(title, key, numeric)
     dialog:onShowKeyboard()
 end
 
+-- Asks the server for a newer copy of the plugin and writes it over this one; needs a KOReader restart.
+function Fokuroru:updatePlugin()
+    local code, body = fetch(self:endpoint("/plugin.json"))
+    local ok, data = pcall(json.decode, body or "")
+    if code ~= 200 or not ok or type(data) ~= "table" or type(data.files) ~= "table" then
+        return toast(_("Could not check for an update."))
+    end
+    local ok_meta, meta = pcall(dofile, self.path .. "/_meta.lua")
+    if ok_meta and (tonumber(data.version) or 0) <= (tonumber(meta.version) or 0) then
+        return toast(_("The plugin is up to date."))
+    end
+    for name, text in pairs(data.files) do
+        local f = io.open(self.path .. "/" .. name:match("[^/]+$") .. ".new", "wb")
+        if not f then return toast(_("Could not write the update.")) end
+        f:write(text); f:close()
+    end
+    for name in pairs(data.files) do -- only swap in once every file arrived
+        name = name:match("[^/]+$")
+        os.rename(self.path .. "/" .. name .. ".new", self.path .. "/" .. name)
+    end
+    UIManager:show(InfoMessage:new{ text = NAME .. ": " .. _("Updated. Restart KOReader to use the new version.") })
+end
+
 function Fokuroru:addToMainMenu(menu_items)
     menu_items.fokuroru = {
         text = NAME,
@@ -543,6 +566,7 @@ function Fokuroru:addToMainMenu(menu_items)
               callback = function() self:ask(_("OPDS URL"), "url") end },
             { text = _("Chapters to keep ahead"), keep_menu_open = true,
               callback = function() self:ask(_("Chapters per series"), "keep", true) end },
+            { text = _("Check for plugin update"), callback = function() NetworkMgr:runWhenOnline(function() self:updatePlugin() end) end },
             { text = _("Sync when Wi-Fi connects"), checked_func = function() return self.state.auto end,
               callback = function() self.state.auto = not self.state.auto; self:save() end },
         },

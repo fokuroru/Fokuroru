@@ -218,6 +218,31 @@ public class OpdsController(
             ? NotFound()
             : Ok(await catalog.DeviceTitlesAsync(ct));
 
+    /// <summary>The KOReader plugin's current version and files, so the plugin can update itself. defaults.lua is the user's own and never sent.</summary>
+    [HttpGet("plugin.json")]
+    public async Task<IActionResult> PluginJson(string token, CancellationToken ct)
+    {
+        if (await AuthorizeAsync(token, ct) is null)
+        {
+            return NotFound();
+        }
+
+        var dir = Path.Combine(AppContext.BaseDirectory, "kindle", "fokuroru.koplugin");
+        if (!Directory.Exists(dir))
+        {
+            return NotFound();
+        }
+
+        var files = new Dictionary<string, string>();
+        foreach (var name in new[] { "main.lua", "_meta.lua" })
+        {
+            files[name] = await System.IO.File.ReadAllTextAsync(Path.Combine(dir, name), ct);
+        }
+
+        var m = System.Text.RegularExpressions.Regex.Match(files["_meta.lua"], @"version\s*=\s*(\d+)");
+        return Ok(new { version = m.Success ? int.Parse(m.Groups[1].Value) : 0, files });
+    }
+
     [HttpGet("on-deck")]
     public async Task<IActionResult> OnDeck(string token, CancellationToken ct) =>
         await AuthorizeAsync(token, ct) is null

@@ -153,6 +153,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # The app itself goes in last: it changes on every build, and everything above it is then reused.
 COPY --from=trimmed-publish /app ./
 COPY THIRD_PARTY_NOTICES.md ./
+COPY kindle/fokuroru.koplugin ./kindle/fokuroru.koplugin
 COPY --from=frontend /src/frontend/dist ./wwwroot/
 COPY distribution/docker/entrypoint.sh /entrypoint.sh
 # The app runs as PUID via gosu, so build-context files with owner-only modes (a source tree copied
