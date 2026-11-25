@@ -34,6 +34,10 @@ function Fokuroru:init()
     if not self.state.dir or self.state.dir == "/mnt/us/documents/Fokuroru" then
         self.state.dir = "/mnt/us/Books"
     end
+    -- /mnt/us only exists on a Kindle; on Android it would fail silently.
+    if Device:isAndroid() and self.state.dir:find("^/mnt/us") then
+        self.state.dir = "/sdcard/Books/Fokuroru"
+    end
     self.ui.menu:registerToMainMenu(self)
 end
 
