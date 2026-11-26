@@ -73,17 +73,22 @@ export function useSpreads(
   return useMemo(() => {
     if (contentPages !== undefined) {
       if (groups.length === 0) return bookSpreads(contentPages, pageCount, wide, enabled)
-      // A grouped page stands alone like a spread, then the strips are folded back into it.
-      const alone = { ...wide }
-      for (const group of groups) for (const page of group) alone[page] = true
-      const folded: Spread[] = []
+      // Lay the book out without the strips, so stitched pages pair like any others, then put
+      // each strip back after the page it sits under.
       const strips = new Set(groups.flatMap((group) => group.slice(1)))
-      for (const spread of bookSpreads(contentPages, pageCount, alone, enabled)) {
-        const host = folded[folded.length - 1]
-        if (spread.length === 1 && strips.has(spread[0]!) && host) host.push(spread[0]!)
-        else folded.push([...spread])
-      }
-      return folded
+      const kept = Array.from({ length: contentPages }, (_, i) => i).filter((i) => !strips.has(i))
+      const real = (k: number) => (k < kept.length ? kept[k]! : k - kept.length + contentPages)
+      const compactWide: Record<number, boolean> = {}
+      kept.forEach((page, k) => {
+        if (wide[page]) compactWide[k] = true
+      })
+      const under = new Map(groups.map((group) => [group[0]!, group.slice(1)]))
+      return bookSpreads(kept.length, kept.length + pageCount - contentPages, compactWide, enabled).map((spread) =>
+        spread.flatMap((k) => {
+          const page = real(k)
+          return [page, ...(under.get(page) ?? [])]
+        }),
+      )
     }
     if (!enabled) {
       return Array.from({ length: pageCount }, (_, i) => [i])
