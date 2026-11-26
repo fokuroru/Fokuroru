@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { bookSpreads } from './bookLayout'
-import { isSpreadShape } from './pageShape'
+import { isSpreadShape, isStripShape } from './pageShape'
 
 /**
  * Page aspect ratios, measured in the browser as images load.
@@ -12,11 +12,13 @@ import { isSpreadShape } from './pageShape'
  */
 export function usePageAspects(urls: string[]) {
   const [wide, setWide] = useState<Record<number, boolean>>({})
+  const [strip, setStrip] = useState<Record<number, boolean>>({})
   // Width over height of the tallest single page seen, the shape short pages are evened out to.
   const [sheetAspect, setSheetAspect] = useState<number | null>(null)
 
   useEffect(() => {
     setWide({})
+    setStrip({})
     setSheetAspect(null)
   }, [urls])
 
@@ -24,6 +26,8 @@ export function usePageAspects(urls: string[]) {
     if (!image.naturalWidth || !image.naturalHeight) return
     const isWide = isSpreadShape(image.naturalWidth, image.naturalHeight)
     setWide((current) => (current[index] === isWide ? current : { ...current, [index]: isWide }))
+    const isStrip = isStripShape(image.naturalWidth, image.naturalHeight)
+    setStrip((current) => (current[index] === isStrip ? current : { ...current, [index]: isStrip }))
     const aspect = image.naturalWidth / image.naturalHeight
     // Webtoon slices are far taller than any page; evening a chapter out to one would squash it.
     if (aspect >= MIN_SHEET_ASPECT && aspect <= 1) {
@@ -31,12 +35,25 @@ export function usePageAspects(urls: string[]) {
     }
   }, [])
 
-  return { wide, measure, sheetAspect }
+  return { wide, strip, measure, sheetAspect }
 }
 
 export type Spread = number[]
 
+/** Each page followed by the strips measured under it: [page, strip, ...]. Strips never lead a group. */
+export function stripGroups(strip: Record<number, boolean>, pageCount: number): number[][] {
+  const groups: number[][] = []
+  for (let i = 1; i < pageCount; i++) {
+    if (!strip[i]) continue
+    const last = groups[groups.length - 1]
+    if (last && last[last.length - 1] === i - 1) last.push(i)
+    else groups.push([i - 1, i])
+  }
+  return groups
+}
+
 const MIN_SHEET_ASPECT = 0.45
+const NO_GROUPS: number[][] = []
 
 /**
  * Groups pages into what is shown at once in double-page mode.
@@ -46,9 +63,28 @@ const MIN_SHEET_ASPECT = 0.45
  * two-page spread and also stands alone. Pages not measured yet are assumed portrait, so the
  * layout settles as images arrive rather than blocking on them.
  */
-export function useSpreads(pageCount: number, wide: Record<number, boolean>, enabled: boolean, contentPages?: number): Spread[] {
+export function useSpreads(
+  pageCount: number,
+  wide: Record<number, boolean>,
+  enabled: boolean,
+  contentPages?: number,
+  groups: number[][] = NO_GROUPS,
+): Spread[] {
   return useMemo(() => {
-    if (contentPages !== undefined) return bookSpreads(contentPages, pageCount, wide, enabled)
+    if (contentPages !== undefined) {
+      if (groups.length === 0) return bookSpreads(contentPages, pageCount, wide, enabled)
+      // A grouped page stands alone like a spread, then the strips are folded back into it.
+      const alone = { ...wide }
+      for (const group of groups) for (const page of group) alone[page] = true
+      const folded: Spread[] = []
+      const strips = new Set(groups.flatMap((group) => group.slice(1)))
+      for (const spread of bookSpreads(contentPages, pageCount, alone, enabled)) {
+        const host = folded[folded.length - 1]
+        if (spread.length === 1 && strips.has(spread[0]!) && host) host.push(spread[0]!)
+        else folded.push([...spread])
+      }
+      return folded
+    }
     if (!enabled) {
       return Array.from({ length: pageCount }, (_, i) => [i])
     }
@@ -70,7 +106,7 @@ export function useSpreads(pageCount: number, wide: Record<number, boolean>, ena
       i += 1
     }
     return spreads
-  }, [pageCount, wide, enabled, contentPages])
+  }, [pageCount, wide, enabled, contentPages, groups])
 }
 
 /** The spread containing a page, and the first page of a spread. */

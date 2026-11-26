@@ -31,7 +31,8 @@ import { usePageUrls, usePreload, useWarmChapter } from './usePageUrls'
 import { useReaderProgress } from './useReaderProgress'
 import { useReadingClock } from './useReadingClock'
 import { spineVars } from '../../lib/spine'
-import { spreadIndexOf, usePageAspects, useSpreads } from './useSpreads'
+import { useStitched } from './stitchPages'
+import { spreadIndexOf, stripGroups, usePageAspects, useSpreads } from './useSpreads'
 import { useBookEnd } from './backCover'
 import { contentPage } from './bookLayout'
 import { useNativeAction, useNativeLayout, useNativeTurn } from '../../lib/nativeApp'
@@ -168,7 +169,7 @@ export default function ReaderPage() {
   const vertical = navigatesVertically(prefs)
 
   const thumbs = usePageUrls(chapterId, stripOpen ? pageCount : 0, manifest?.pageVersion, true)
-  const { wide, measure: measureAspect, sheetAspect } = usePageAspects(urls)
+  const { wide, strip, measure: measureAspect, sheetAspect } = usePageAspects(urls)
   // Inside-cover blanks and the back cover use separate resources, without moving archive indexes.
   const bookEnd = useBookEnd(prefs.mode !== 'vertical', manifest?.seriesId, manifest?.seriesCoverUrl, pageCount, sheetAspect, urls)
   const bookUrls = useMemo(
@@ -181,8 +182,15 @@ export default function ReaderPage() {
     },
     [measureAspect, pageCount],
   )
-  const spreads = useSpreads(bookUrls.length, wide, prefs.mode === 'double', prefs.mode === 'vertical' ? undefined : pageCount)
+  const groups = useMemo(() => (prefs.mode === 'vertical' ? [] : stripGroups(strip, pageCount)), [strip, pageCount, prefs.mode])
+  const spreads = useSpreads(bookUrls.length, wide, prefs.mode === 'double', prefs.mode === 'vertical' ? undefined : pageCount, groups)
+  const pagedUrls = useStitched(bookUrls, groups)
+  // The strips live inside their page's stitched image, so the book draws only the page.
+  const stripped = useMemo(() => new Set(groups.flatMap((group) => group.slice(1))), [groups])
+  const drawn = useCallback((spread: number[]) => spread.filter((index) => !stripped.has(index)), [stripped])
+  const drawnSpreads = useMemo(() => spreads.map(drawn), [spreads, drawn])
   const spreadIndex = useMemo(() => spreadIndexOf(spreads, page), [spreads, page])
+  const drawnSpread = useMemo(() => drawn(spreads[spreadIndex] ?? [0]), [drawn, spreads, spreadIndex])
   // `page` is a spread's first index; the position on record is the furthest page on screen.
   const shownTo = useMemo(() => Math.max(...(spreads[spreadIndex] ?? [page]).map((index) => contentPage(index, pageCount))), [spreads, spreadIndex, page, pageCount])
   const splitting = prefs.mode === 'paged' && prefs.splitWide === 'split'
@@ -897,8 +905,8 @@ export default function ReaderPage() {
             />
           ) : (
             <PagedView
-              urls={bookUrls}
-              spread={spreads[spreadIndex] ?? [0]}
+              urls={pagedUrls}
+              spread={drawnSpread}
               fit={prefs.fit}
               direction={prefs.direction}
               zoom={zoom}
@@ -917,12 +925,12 @@ export default function ReaderPage() {
               onStretched={setStretchedPages}
               paper={{
                 contentPages: pageCount,
-                spreads,
+                spreads: drawnSpreads,
                 align: prefs.pageAlign,
                 even: prefs.evenPages,
                 sheetAspect,
-                next: splitting ? null : (spreads[spreadIndex + 1] ?? null),
-                previous: splitting ? null : (spreads[spreadIndex - 1] ?? null),
+                next: splitting ? null : (drawnSpreads[spreadIndex + 1] ?? null),
+                previous: splitting ? null : (drawnSpreads[spreadIndex - 1] ?? null),
                 wide,
                 double: prefs.mode === 'double',
                 onTurn: (forward) => (forward ? next() : previous()),

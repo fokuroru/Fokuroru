@@ -20,6 +20,11 @@ export function isSpreadShape(width: number, height: number): boolean {
   return ratio >= SPREAD_MIN_RATIO && ratio <= SPREAD_MAX_RATIO
 }
 
+/** A page far wider than any spread: a strip sliced off a tall image, which belongs under the page before it. */
+export function isStripShape(width: number, height: number): boolean {
+  return height > 0 && width / height > SPREAD_MAX_RATIO
+}
+
 export type PagePart = 'whole' | 'left' | 'right'
 
 // Long edge of the copy the margins are measured on. Downscaling averages away JPEG noise and
