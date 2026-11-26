@@ -8,12 +8,16 @@ export interface Region {
 
 export const FULL_REGION: Region = { x: 0, y: 0, w: 1, h: 1 }
 
-// A printed two-page spread is two portrait pages side by side, so about 1.4 wide. Single pages
-// that are only a little wider than tall (trimmed scans, odd crops) sit just above 1 and are not spreads.
-const SPREAD_RATIO = 1.2
+// A printed two-page spread is two portrait pages side by side: about 1.4 wide, up to roughly 1.9
+// for squarish pages. Barely wider than tall is a trimmed single page; far wider is a strip
+// (a panel sliced off a tall image), not a spread.
+const SPREAD_MIN_RATIO = 1.2
+const SPREAD_MAX_RATIO = 2.2
 
 export function isSpreadShape(width: number, height: number): boolean {
-  return height > 0 && width / height >= SPREAD_RATIO
+  if (height <= 0) return false
+  const ratio = width / height
+  return ratio >= SPREAD_MIN_RATIO && ratio <= SPREAD_MAX_RATIO
 }
 
 export type PagePart = 'whole' | 'left' | 'right'
