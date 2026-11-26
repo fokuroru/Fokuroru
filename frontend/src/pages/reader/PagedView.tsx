@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button, Stack, Text } from '@mantine/core'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { cropRegion, FULL_REGION, isFull, partOf, type PagePart, type Region } from './pageShape'
+import { cropRegion, FULL_REGION, isFull, isSpreadShape, partOf, type PagePart, type Region } from './pageShape'
 import EnhancedPage from './EnhancedPage'
 import { heldPageUrl, holdPage } from './pageBlobs'
 import { isSoftPage } from '../../lib/enhance/softness'
@@ -307,7 +307,7 @@ function PagedPage({
 
   const ready = state === 'ready' && image !== null
   const natural = ready ? { width: image.naturalWidth, height: image.naturalHeight } : null
-  const wide = natural !== null && natural.width > natural.height
+  const wide = natural !== null && isSpreadShape(natural.width, natural.height)
   const crop = useMemo(() => (ready && shaping.crop ? cropRegion(image) : null), [ready, image, shaping.crop])
   const region = partOf(crop, wide ? shaping.part : 'whole')
   const rotate = wide ? shaping.rotate : 0
@@ -580,7 +580,7 @@ export default function PagedView({
           })
           .then(async () => {
             if (signal.aborted || !image.complete) return
-            if (image.naturalWidth > image.naturalHeight && (shapePart !== 'whole' || shapeRotate !== 0)) return
+            if (isSpreadShape(image.naturalWidth, image.naturalHeight) && (shapePart !== 'whole' || shapeRotate !== 0)) return
             const region = (shapeCrop ? cropRegion(image) : null) ?? FULL_REGION
             const target = owner.sizeFor(image.naturalWidth * region.w, image.naturalHeight * region.h)
             if (!target) return

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { bookSpreads } from './bookLayout'
+import { isSpreadShape } from './pageShape'
 
 /**
  * Page aspect ratios, measured in the browser as images load.
@@ -21,7 +22,7 @@ export function usePageAspects(urls: string[]) {
 
   const measure = useCallback((index: number, image: HTMLImageElement) => {
     if (!image.naturalWidth || !image.naturalHeight) return
-    const isWide = image.naturalWidth > image.naturalHeight
+    const isWide = isSpreadShape(image.naturalWidth, image.naturalHeight)
     setWide((current) => (current[index] === isWide ? current : { ...current, [index]: isWide }))
     const aspect = image.naturalWidth / image.naturalHeight
     // Webtoon slices are far taller than any page; evening a chapter out to one would squash it.
